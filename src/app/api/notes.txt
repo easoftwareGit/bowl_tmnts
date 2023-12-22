@@ -1,0 +1,4 @@
+to get query to work in PostBird
+
+SELECT *
+FROM public."Tmnt"
