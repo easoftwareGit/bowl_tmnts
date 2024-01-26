@@ -1,0 +1,11 @@
+/* .li > .nav-link:not(:active)  {
+  color: black;
+}
+ */
+
+.nav-pills .nav-link.active {
+  background-color: #cfe2ff;
+  color: #000000;
+  font-weight: bold;
+}
+

@@ -3,8 +3,9 @@ import "./globals.css";
 import type { Metadata } from "next";
 import { Inter } from "next/font/google";
 import { Container, SSRProvider } from "@/components/boostrap";
-import EaNavbar from "@/components/eaNavbar";
+import EaNavbar from "@/components/navBar/eaNavbar";
 import { ReduxProvider } from "@/redux/provider";
+import { Providers } from "./providers";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -21,14 +22,16 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body className={inter.className}>
-        {/* <SSRProvider> */}
+        <Providers>
           <ReduxProvider>
             <EaNavbar />
             <main>
-              <Container fluid className="py-3">{children}</Container>
+              <Container fluid className="py-3">
+                {children}
+              </Container>
             </main>
           </ReduxProvider>
-        {/* </SSRProvider> */}
+        </Providers>
       </body>
     </html>
   );

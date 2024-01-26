@@ -1,0 +1,18 @@
+.form_container {  
+  max-width: 576px; /* bootstrap small */
+}
+
+/* .li > .nav-link:not(:active)  {
+  color: black;
+}
+
+#div-plus {
+  color: white;
+  font-weight: bold;  
+} */
+
+.nav-pills .nav-link.active {
+  background-color: #cfe2ff;
+  color: #000000;
+  font-weight: bold;
+}

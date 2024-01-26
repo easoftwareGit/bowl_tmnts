@@ -15,12 +15,12 @@ model users {
   // replace(..., '-', ''): removed the '-' values from the uuid  
   // concat('usr_', ...): adds usr_ to start of uuid (so uuid shows table it is for). 
   // dbgenerated("..."): indicates the code that will be run by the database
-  // @defaul: the default value for the field
+  // @default: the default value for the field
   // @id: indicates the field is the primary key
   // @db.Text: tells prisma to map the field as a text field
   id            String   @id @default(dbgenerated("concat('usr_', replace(cast(gen_random_uuid() as text), '-', ''))")) @db.Text
   email         String   @unique(map: "users_email_idx") @db.VarChar
-  password_hash String?
+  password      String?
   first_name    String   @db.VarChar
   last_name     String   @db.VarChar
   phone         String?  @db.VarChar

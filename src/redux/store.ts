@@ -1,16 +1,15 @@
 import { configureStore } from '@reduxjs/toolkit'
 import { TypedUseSelectorHook, useSelector } from 'react-redux';
-// import reducers
 import tmntsReducer from './features/tmnts/tmntsSlice';
-import tmntResultsReducer from './features/tmnts/resultsSlice'
-import tmntUpcomingSlice from './features/tmnts/upcomingSlice';
+import tmntYearsReducer from './features/tmnts/yearsSlice';
+import bowlsReducer from './features/bowls/bowlsSlice';
 
 // create the store, include reduces in object
 export const store = configureStore({
   reducer: {
     tmnts: tmntsReducer,
-    tmntResults: tmntResultsReducer,
-    tmntUpcomping: tmntUpcomingSlice
+    tmntYears: tmntYearsReducer,
+    bowls: bowlsReducer
   }
 });
 

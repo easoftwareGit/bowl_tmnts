@@ -20,7 +20,7 @@ model User {
   // @db.Text: tells prisma to map the field as a text field
   id            String   @id @default(dbgenerated("concat('usr_', replace(cast(gen_random_uuid() as text), '-', ''))")) @db.Text
   email         String   @unique(map: "users_email_idx") @db.VarChar
-  password_hash String?
+  password      String?
   first_name    String   @db.VarChar
   last_name     String   @db.VarChar
   phone         String?  @db.VarChar

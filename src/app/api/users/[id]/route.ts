@@ -32,7 +32,7 @@ export async function PUT(
     data: {
       first_name: json.first_name || null,
       last_name: json.last_name || null,
-      password_hash: json.password_hash || null,
+      password: json.password || null,
       phone: json.phone || null
     }
   })

@@ -15,10 +15,10 @@ async function userUpsert() {
       create: {
         id: "usr_5bcefb5d314fff1ff5da6521a2fa7bde",
         email: "adam@email.com",
-        password_hash: testPassword,
+        password: testPassword,
         first_name: "Adam",
         last_name: "Smith",
-        phone: "800 555-1212",
+        phone: "+18005551212",
       },
     });
     user = await prisma.user.upsert({
@@ -29,10 +29,10 @@ async function userUpsert() {
       create: {
         id: "usr_516a113083983234fc316e31fb695b85",
         email: "chad@email.com",
-        password_hash: testPassword,
+        password: testPassword,
         first_name: "Chad",
         last_name: "White",
-        phone: "800 555-7890",
+        phone: "+18005557890",
       },
     });
     user = await prisma.user.upsert({
@@ -43,10 +43,10 @@ async function userUpsert() {
       create: {
         id: "usr_5735c309d480323662da31e13c35b91e",
         email: "doug@email.com",
-        password_hash: testPassword,
+        password: testPassword,
         first_name: "Doug",
         last_name: "Jones",
-        phone: "800 555-2211",
+        phone: "+18005552211",
       },
     });
     user = await prisma.user.upsert({
@@ -57,10 +57,10 @@ async function userUpsert() {
       create: {
         id: "usr_a24894ed10c5dd835d5cbbfea7ac6dca",
         email: "eric@email.com",
-        password_hash: testPassword,
+        password: testPassword,
         first_name: "Eric",
         last_name: "Johnson",
-        phone: "800 555-1234",
+        phone: "+18005551234",
       },
     });
     user = await prisma.user.upsert({
@@ -71,10 +71,10 @@ async function userUpsert() {
       create: {
         id: "usr_07de11929565179487c7a04759ff9866",
         email: "fred@email.com",
-        password_hash: testPassword,
+        password: testPassword,
         first_name: "Fred",
         last_name: "Green",
-        phone: "800 555-4321",
+        phone: "+18005554321",
       },
     });
     console.log("Upserted users:", 5);
@@ -144,8 +144,8 @@ async function tmntUpsert() {
         user_id: "usr_5bcefb5d314fff1ff5da6521a2fa7bde",
         tmnt_name: "Gold Pin",
         bowl_id: "bwl_561540bd64974da9abdd97765fdb3659",
-        start_date: new Date("10/23/2023"),
-        end_date: new Date("10/23/2023"),
+        start_date: new Date("10/23/2022"),
+        end_date: new Date("10/23/2022"),
       },
     });
     tmnt = await prisma.tmnt.upsert({
@@ -158,8 +158,8 @@ async function tmntUpsert() {
         user_id: "usr_516a113083983234fc316e31fb695b85",
         tmnt_name: "Scratch Tournament Series #1",
         bowl_id: "bwl_8b4a5c35ad1247049532ff53a12def0a",
-        start_date: new Date("09/02/2023"),
-        end_date: new Date("09/02/2023"),
+        start_date: new Date("01/02/2023"),
+        end_date: new Date("01/02/2023"),
       },
     });
     tmnt = await prisma.tmnt.upsert({
@@ -200,8 +200,8 @@ async function tmntUpsert() {
         user_id: "usr_5735c309d480323662da31e13c35b91e",
         tmnt_name: "Coconut Singles & Doubles",
         bowl_id: "bwl_ff4cd62b03f24017beea81c1d6e047e7",
-        start_date: new Date("09/17/2023"),
-        end_date: new Date("09/17/2023"),
+        start_date: new Date("01/01/2023"),
+        end_date: new Date("01/01/2023"),
       },
     });
     tmnt = await prisma.tmnt.upsert({
@@ -214,8 +214,8 @@ async function tmntUpsert() {
         user_id: "usr_5bcefb5d314fff1ff5da6521a2fa7bde",
         tmnt_name: "Gold Pin",
         bowl_id: "bwl_561540bd64974da9abdd97765fdb3659",
-        start_date: new Date("08/19/2023"),
-        end_date: new Date("08/19/2023"),
+        start_date: new Date("01/02/2023"),
+        end_date: new Date("01/02/2023"),
       },
     });
     tmnt = await prisma.tmnt.upsert({
@@ -228,8 +228,8 @@ async function tmntUpsert() {
         user_id: "usr_5bcefb5d314fff1ff5da6521a2fa7bde",
         tmnt_name: "Masters",
         bowl_id: "bwl_8b4a5c35ad1247049532ff53a12def0a",
-        start_date: new Date("09/19/2023"),
-        end_date: new Date("09/19/2023"),
+        start_date: new Date("01/05/2023"),
+        end_date: new Date("01/05/2023"),
       },
     });
     tmnt = await prisma.tmnt.upsert({
@@ -242,8 +242,8 @@ async function tmntUpsert() {
         user_id: "usr_5bcefb5d314fff1ff5da6521a2fa7bde",
         tmnt_name: "2-Day event",
         bowl_id: "bwl_561540bd64974da9abdd97765fdb3659",
-        start_date: new Date("09/20/2023"),
-        end_date: new Date("09/21/2023"),
+        start_date: new Date("04/20/2024"),
+        end_date: new Date("04/21/2024"),
       },
     });
     tmnt = await prisma.tmnt.upsert({

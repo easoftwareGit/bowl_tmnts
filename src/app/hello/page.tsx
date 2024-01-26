@@ -1,26 +1,20 @@
-'use client'
-import { useSelector, useDispatch } from "react-redux"
-import { fetchTmnts } from "@/redux/features/tmnts/tmntsSlice"
-import { AppDispatch, RootState } from "@/redux/store";
-import { useEffect } from "react";
+import { getServerSession } from "next-auth";
+import { authOptions } from "@/app/api/auth/[...nextauth]/route";;
+import { User } from "@/components/users/userFromClient";
+import { LoginButton, LogoutButton } from "@/components/auth";
 
-// import { baseOrigin, baseApi } from "@/lib/tools";
-
-export default function TmntsPage() {
-
-  const dispatch = useDispatch<AppDispatch>();
-
-  useEffect(() => {
-    dispatch(fetchTmnts())
-  }, [dispatch])
-
-  const tmntsInState = useSelector((state:RootState) => state.tmnts)
-  const tmnts = tmntsInState.tmnts;  
+export default async function Hello() {
+  const session = await getServerSession(authOptions)
 
   return (
     <div>
-      <h1>All Tournaments</h1>
-      <p>Loaded tournaments</p>
+      <h1>Hello</h1>
+      <LoginButton />
+      <LogoutButton />
+      <h2>Server</h2>
+      <pre>{JSON.stringify(session)}</pre>      
+      <h2>Client</h2>
+      <User />
     </div>
-  )
+  );
 }

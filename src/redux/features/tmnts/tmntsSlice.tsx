@@ -1,7 +1,5 @@
 import { createAsyncThunk, createSlice, PayloadAction } from '@reduxjs/toolkit'
 import axios from 'axios'
-// import { Tmnt } from '@prisma/client';
-// import { FullTmnt } from '@/app/types/tmntType';
 import { baseApi } from '@/lib/tools';
 import { Tmnt } from '@prisma/client';
 
@@ -18,9 +16,27 @@ const initialState: TmntSliceState = {
   error: ''
 } 
 
-export const fetchTmnts = createAsyncThunk('tmnts/fetchTmnts', async () => {
-  // const url = 'http://localhost:3000/api/tmnts'
-  const url = baseApi + '/tmnts'
+/**
+ * gets tmnts with results for a year or all upcoming tmnts
+ *
+ * @param {year: string} - 'XXXX' get tmnts for year 'XXXX'; '' get tmnts upcoming
+ * @return {*}  {Tmnt[]} array of tmnts from database
+ */
+
+export const fetchTmnts = createAsyncThunk('tmnts/fetchTmnts', async (year: string) => {
+  // ok to pass year as param, API route checks for valid year
+  // only 4 digits, between 1900 and 2100
+  // const url = 'http://localhost:3000/api/tmnts/results/year'
+  // OR
+  // const url = 'http://localhost:3000/api/tmnts/upcoming'
+  const baseUrl = baseApi + '/tmnts/'
+  let url: string
+  if (year === '') {
+    url = baseUrl + 'upcoming'
+  } else {
+    url = baseUrl + 'results/' + year;
+  }
+  
   try {
     const response = await axios.get(url)
     if (response.status === 200 && response.data) {
@@ -29,7 +45,6 @@ export const fetchTmnts = createAsyncThunk('tmnts/fetchTmnts', async () => {
       console.log('Tmnts - Non error return, but not status 200');
       return [];
     }
-
   } catch (error) {
     return [];
   }
@@ -40,8 +55,7 @@ export const tmntsSlice = createSlice({
   initialState,
   reducers: {},
   extraReducers: (builder) => {
-    builder.addCase(fetchTmnts.pending, (state: TmntSliceState) => {
-      // state.status = 'loading'
+    builder.addCase(fetchTmnts.pending, (state: TmntSliceState) => {      
       state.loading = true;
       state.error = '';
     })
