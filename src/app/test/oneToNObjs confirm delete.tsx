@@ -6,8 +6,7 @@ interface ChildProps {
   objCount: number;
   onAddObj: () => void;
   onDeleteObj: (id: number) => void;
-  onInputChange: (e: ChangeEvent<HTMLInputElement>) => void;
-  onBlur: (e: ChangeEvent<HTMLInputElement>) => void;
+  onInputChange: (e: ChangeEvent<HTMLInputElement>) => void;  
 }
 
 const OneToNObj: React.FC<ChildProps> = ({
@@ -16,7 +15,6 @@ const OneToNObj: React.FC<ChildProps> = ({
   onAddObj,
   onDeleteObj,
   onInputChange,
-  onBlur,
 }) => {
   
   const AddOrDelButton = () => {
@@ -29,7 +27,7 @@ const OneToNObj: React.FC<ChildProps> = ({
           <div className="input-group">
             <input
               type="text"
-              className="form-control"              
+              className="form-control"
               id="inputNumObjs"
               name="num_objs"
               readOnly
@@ -61,6 +59,45 @@ const OneToNObj: React.FC<ChildProps> = ({
     }
   };
 
+  // const InputName = () => {
+  //   return (
+  //     <div className="col-sm-3">
+  //       <label htmlFor={`inputName${obj.id}`} className="form-label">
+  //         Object Name
+  //       </label>
+  //       <input
+  //         type="text"
+  //         className="form-control"
+  //         id={`inputName${obj.id}`}
+  //         name="name"
+  //         value={obj.name}
+  //         maxLength={20}
+  //         onChange={(e) => onInputChange(e.target.value)}
+  //         // onChange={(e) => onInputChange(e)}
+  //       />
+  //     </div>
+  //   );
+  // };
+
+  // const InputMyNum = () => {
+  //   return (
+  //     <div className="col-sm-3">
+  //       <label htmlFor={`inputMyNum${obj.id}`} className="form-label">
+  //         My Num
+  //       </label>
+  //       <input
+  //         type="Number"
+  //         className="form-control"
+  //         id={`inputMyNum${obj.id}`}
+  //         name="myNum"
+  //         value={obj.myNum}
+  //         readOnly
+  //         // onChange={(e) => onInputChange(e)}
+  //       />
+  //     </div>
+  //   );
+  // };
+
   // AddOrDelButton, InputName and InputMyNum all have
   // <div className="col-sm-3">
   // ...
@@ -74,31 +111,27 @@ const OneToNObj: React.FC<ChildProps> = ({
           Object Name
         </label>
         <input
-          type="text"          
-          className={`form-control ${obj.name_err && "is-invalid"}`}
+          type="text"
+          className="form-control"
           id={`inputName${obj.id}`}
           name="name"
           value={obj.name}
           maxLength={20}
-          onChange={(e) => onInputChange(e)}
-          onBlur={(e) => onBlur(e)}
+          onChange={(e) => onInputChange(e)}          
         />
-        <div className="text-danger">{obj.name_err}</div>
       </div>
       <div className="col-sm-3">
         <label htmlFor={`inputMyNum${obj.id}`} className="form-label">
           My Num
         </label>
         <input
-          type="Number"          
-          className={`form-control ${obj.myNum_err && "is-invalid"}`}
+          type="Number"
+          className="form-control"
           id={`inputMyNum${obj.id}`}
           name="myNum"
           value={obj.myNum}          
           onChange={(e) => onInputChange(e)}
-          onBlur={(e) => onBlur(e)}
         />
-        <div className="text-danger">{obj.myNum_err}</div>
       </div>
       <div className="col-sm-3"></div>
     </div>

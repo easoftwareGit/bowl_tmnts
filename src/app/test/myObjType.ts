@@ -4,4 +4,7 @@ export type myObj = {
   tabTitle: string;
   myNum: number;
   other: number;
+  errClass: string;
+  name_err: string;
+  myNum_err: string;
 };

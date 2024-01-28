@@ -74,7 +74,8 @@ const OneToNObj: React.FC<ChildProps> = ({
           Object Name
         </label>
         <input
-          type="text"          
+          type="text"
+          // className="form-control"
           className={`form-control ${obj.name_err && "is-invalid"}`}
           id={`inputName${obj.id}`}
           name="name"
@@ -90,7 +91,8 @@ const OneToNObj: React.FC<ChildProps> = ({
           My Num
         </label>
         <input
-          type="Number"          
+          type="Number"
+          // className="form-control"
           className={`form-control ${obj.myNum_err && "is-invalid"}`}
           id={`inputMyNum${obj.id}`}
           name="myNum"

@@ -13,22 +13,13 @@ type modalObjectType = {
   id: number
 }
 
-type AcdnErrType = {
-  errClass: string,
-  message: string,
-}
-
 export const TestForm: React.FC = () => {
-
-  const delConfTitle = 'Confirm Delete'
-  const objErrClassName = 'objError';
-  const acndErrClassName = 'acdnError';
 
   const initObjs: myObj[] = [
     {
       id: 1,
       name: "Object 1",
-      tabTitle: "Object 1",
+      tabTitle: "Objects",
       myNum: 11,
       other: 123,
       errClass: '',
@@ -72,20 +63,16 @@ export const TestForm: React.FC = () => {
     message: 'message',
     id: 0
   }
-  
-  const noObjAcndErr: AcdnErrType = {
-    errClass: '',
-    message: ''
-  }
 
   const [objs, setObjs] = useState(initObjs);
   const [objId, setObjId] = useState(4);
   const [tabKey, setTabKey] = useState("object1");
-  const [objAcdnErr, setObjAcdnErr] = useState(noObjAcndErr);
   
   const [showModal, setShowModal] = useState(false);
-  const [modalObj, setModalObj] = useState(initModalObj);
+  const [modalObj, setModalObj] = useState(initModalObj)
 
+  const delConfTitle = 'Confirm Delete'
+  
   const confirmedDelete = () => {    
     setShowModal(false)       // hide modal
 
@@ -127,107 +114,32 @@ export const TestForm: React.FC = () => {
     setShowModal(true) // deletion done in confirmedDelete
   };
 
-  const getObjAcdnErrMsg = (objName: string, objErrMsg: string): string => {
-    return `: Error in ${objName} - ${objErrMsg}`
-  }
-
-  const getObjErrMsg = (obj: myObj): string => {
-    if (obj.name_err) {
-      return obj.name_err
-    } else if (obj.myNum_err) {
-      return obj.myNum_err
-    } else
-      return '';
-  }
-
-  const getNextObjAcdnErrMsg = (updatedObj: myObj | null): string => {
-    
-    let errMsg = '';
-    let acdnErrMsg = '';
-    let i = 0;
-    let obj: myObj;
-    while (i < objs.length && !errMsg) {
-      if (objs[i].id === updatedObj?.id) {
-        obj = updatedObj;
-      } else {
-        obj = objs[i];
-      }
-      errMsg = getObjErrMsg(obj)
-      if (errMsg) {
-        acdnErrMsg = getObjAcdnErrMsg(obj.name, errMsg)
-      }              
-      i++;
-    }
-    return acdnErrMsg;
-  }
-
   const handleInputChange = (id: number, e: ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
-    const nameErr = name + '_err';    
+    const nameErr = name + '_err';
     setObjs(
       objs.map((obj) => {
         if (obj.id === id) {
-
-          let updatedObj: myObj
-          // set tabTitle changing name property value
-          if (name === "name") {
-            updatedObj = {
+          // set tabTitle if id !== 1 AND changing name property value
+          if (id !== 1 && name === "name") {
+            return {
               ...obj,
               name: value,
               tabTitle: value,
               name_err: '',
             };
           } else {
-            updatedObj = {
+            return {
               ...obj,
               [name]: value,
               [nameErr]: '',
             };
           }
-          const acdnErrMsg = getNextObjAcdnErrMsg(updatedObj);
-          if (acdnErrMsg) {
-            setObjAcdnErr({
-              errClass: acndErrClassName,
-              message: acdnErrMsg
-            })
-          } else {
-            setObjAcdnErr(noObjAcndErr)
-          }
-          const errMsg = getObjErrMsg(updatedObj);            
-          if (errMsg) {
-            return {
-              ...updatedObj,
-              errClass: objErrClassName,
-            }            
-          } else {
-            return {
-              ...updatedObj,
-              errClass: '',
-            }            
-          }
-          
-          // set tabTitle changing name property value
-          // if (name === "name") {
-          //   return {
-          //     ...obj,
-          //     name: value,
-          //     tabTitle: value,
-          //     name_err: '',
-          //   };
-          // } else {
-          //   return {
-          //     ...obj,
-          //     [name]: value,
-          //     [nameErr]: '',
-          //   };
-          // }
-
         } else {
           return obj;
         }
       })
     );
-
   };
 
   const handleBlur = (id: number, e: ChangeEvent<HTMLInputElement>) => { 
@@ -239,7 +151,6 @@ export const TestForm: React.FC = () => {
             return {
               ...obj,
               name: 'Object ' + obj.id,
-              tabTitle: 'Object ' + obj.id,
               name_err: ''
             }
           } else {
@@ -250,17 +161,6 @@ export const TestForm: React.FC = () => {
         }
       }))
     }
-  }
-
-  const isDuplicateName = (obj: myObj): boolean => {
-    let i = 0;
-    while (objs[i].id < obj.id && i < objs.length) {
-      if (objs[i].name === obj.name) {
-        return true;
-      }
-      i++;
-    }
-    return false;
   }
 
   const handleValidate = () => {
@@ -274,48 +174,18 @@ export const TestForm: React.FC = () => {
         objErrClass = '';
         if (!obj.name.trim()) {
           nameErr = "Name is required";
-          if (isValid) {
-            setObjAcdnErr({
-              errClass: acndErrClassName,
-              message: getObjAcdnErrMsg(obj.name, nameErr),
-            })    
-          }
           isValid = false;
-          objErrClass = objErrClassName;
-        } else if (isDuplicateName(obj)) {
-          nameErr = `"${obj.name}" has already been used.`;
-          if (isValid) {
-            setObjAcdnErr({
-              errClass: acndErrClassName,
-              message: getObjAcdnErrMsg(obj.name, nameErr) 
-            })    
-          }
-          isValid = false;
-          objErrClass = objErrClassName;
+          objErrClass = 'objError';
         } else {
           nameErr = '';
           // sanitized.first_name = sanitize(formData.first_name);
         }  
         if (obj.myNum < 1) {
           MyNumErr = 'Number must be more than 0'
-          if (isValid) {
-            setObjAcdnErr({
-              errClass: acndErrClassName,
-              message: getObjAcdnErrMsg(obj.name, MyNumErr) 
-            })    
-          }
-          isValid = false;
-          objErrClass = objErrClassName
+          objErrClass = 'objError'
         } else if (obj.myNum > 100) {
           MyNumErr = 'Number must be less than 100'
-          if (isValid) {
-            setObjAcdnErr({
-              errClass: acndErrClassName,
-              message: getObjAcdnErrMsg(obj.name, MyNumErr) 
-            })    
-          }
-          isValid = false;
-          objErrClass = objErrClassName;
+          objErrClass = 'objError';
         } else {
           MyNumErr = ''
         }
@@ -327,9 +197,6 @@ export const TestForm: React.FC = () => {
         }
       })
     )
-    if (isValid) {
-      setObjAcdnErr(noObjAcndErr)
-    }    
     return isValid;
   }
 
@@ -387,10 +254,7 @@ export const TestForm: React.FC = () => {
 
       <Accordion>
         <Accordion.Item eventKey="0">
-          {/* <Accordion.Header className="accordObj1"> */}
-          <Accordion.Header className={objAcdnErr.errClass}>
-            Objects{objAcdnErr.message}
-          </Accordion.Header>
+          <Accordion.Header>Objects</Accordion.Header>
           <Accordion.Body>
             <Tabs
               defaultActiveKey="object1"
