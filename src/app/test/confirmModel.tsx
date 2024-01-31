@@ -6,7 +6,7 @@ interface ChildProps {
   title: string,
   message: string,
   onConfirm: () => void;
-  onCancel: () => void;
+  onCancel?: () => void;
 }
 
 const ModalConfirm: React.FC<ChildProps> = ({ 

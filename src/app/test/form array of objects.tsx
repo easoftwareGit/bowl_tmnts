@@ -6,8 +6,8 @@ import OneToNObj from "./oneToNObjs";
 import OtherObj from "./otherObj";
 import { myObj } from "./myObjType";
 import ModalConfirm from "./confirmModel";
-import MyOtherObj, { validate } from "./myOtherObj";
 import "./form.css";
+import MyOtherObj from "./myOtherObj";
 
 type modalObjectType = {
   title: string,
@@ -80,59 +80,30 @@ export const TestForm: React.FC = () => {
     message: ''
   }
 
-  const initOtherObjs: myObj[] = [
-    {
-      id: 5,
-      name: "Object 5",
-      tabTitle: "Object 5",
-      myNum: 55,
-      other: 567,
-      errClass: "",
-      name_err: "",
-      myNum_err: "",
-    },
-    {
-      id: 6,
-      name: "Object 6",
-      tabTitle: "Object 6",
-      myNum: 66,
-      other: 678,
-      errClass: "",
-      name_err: "",
-      myNum_err: "",
-    },
-    {
-      id: 7,
-      name: "Object 7",
-      tabTitle: "Object 7",
-      myNum: 77,
-      other: 789,
-      errClass: "",
-      name_err: "",
-      myNum_err: "",
-    },
-    {
-      id: 8,
-      name: "Object 8",
-      tabTitle: "Object 8",
-      myNum: 88,
-      other: 890,
-      errClass: "",
-      name_err: "",
-      myNum_err: "",
-    },
-  ];
+  const initOtherObj: myObj = {
+    id: 1,
+    name: 'blank',
+    tabTitle: 'blank',
+    myNum: 0,
+    other: 0,
+    errClass: '',
+    name_err: '',
+    myNum_err: ''  
+  }
 
   const [objs, setObjs] = useState(initObjs);
   const [objId, setObjId] = useState(4);
-  const [tabKey, setTabKey] = useState("object1"); 
+  const [tabKey, setTabKey] = useState("object1");
   const [objAcdnErr, setObjAcdnErr] = useState(noObjAcndErr);
   
-  const [parentObjs, setParentObjs] = useState(initOtherObjs);
-  const [parentAcdnErr, setParentAcdnErr] = useState(noObjAcndErr);
+  const [parentObj, setParentObj] = useState<myObj>(initOtherObj);
 
   const [showModal, setShowModal] = useState(false);
   const [modalObj, setModalObj] = useState(initModalObj);
+
+  const handleParentObjChange = (updatedObj: myObj[]) => {
+    setParentObj(updatedObj[0])
+  }
 
   const confirmedDelete = () => {    
     setShowModal(false)       // hide modal
@@ -172,7 +143,7 @@ export const TestForm: React.FC = () => {
       message: `Do you want to delete Object: ${toDelName}`,
       id: id
     })
-    setShowModal(true) // deletion done in confirmedDelete      
+    setShowModal(true) // deletion done in confirmedDelete
   };
 
   const getObjAcdnErrMsg = (objName: string, objErrMsg: string): string => {
@@ -370,12 +341,6 @@ export const TestForm: React.FC = () => {
     }
   }
 
-  const handleTest = () => {
-    
-    const otherObjsValid = validate(parentObjs, setParentObjs, parentAcdnErr, setParentAcdnErr)
-    console.log('otherObjsValid: ', otherObjsValid)
-  }
-
   return (
     <div>
       <h3>Parent Component</h3>
@@ -383,7 +348,7 @@ export const TestForm: React.FC = () => {
         show={showModal}
         title={modalObj.title}
         message={modalObj.message}
-        onConfirm={confirmedDelete}   
+        onConfirm={confirmedDelete}
         onCancel={canceledDelete}
       />
       <div className="row g-3 mb-3">
@@ -412,14 +377,15 @@ export const TestForm: React.FC = () => {
           />
         </div>
         <div className="col-md-2 mx-auto">
+          <label htmlFor="button" className="form-label">
+            &#160;
+          </label>
           <Button variant="primary" onClick={handleValidate}>
             Validate
           </Button>
-          <Button variant="info" onClick={handleTest}>
-            Test
-          </Button>
         </div>
       </div>
+
 
       <Accordion>
         <Accordion.Item eventKey="0">
@@ -458,17 +424,19 @@ export const TestForm: React.FC = () => {
       </Accordion>
       <Accordion>
         <Accordion.Item eventKey="1">
-          <Accordion.Header className={parentAcdnErr.errClass}>
-            Other Object{parentAcdnErr.message}
-          </Accordion.Header>
+          <Accordion.Header>Other Object</Accordion.Header>
           <Accordion.Body>
-            <p>Parent Object [0]: {JSON.stringify(parentObjs[0])}</p>            
-            <MyOtherObj
-              otherObjs={parentObjs}
-              setOtherObjs={setParentObjs}
-              objAcdnErr={parentAcdnErr}
-              setObjAcdnErr={setParentAcdnErr}
-            />
+            <p>Parent Object [0]: {JSON.stringify(parentObj)}</p>
+            {/* <OtherObj onObjectChange={handleParentObjChange} /> */}
+            <MyOtherObj onObjectChange={handleParentObjChange} />
+
+            {/* Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do
+            eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad
+            minim veniam, quis nostrud exercitation ullamco laboris nisi ut
+            aliquip ex ea commodo consequat. Duis aute irure dolor in
+            reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla
+            pariatur. Excepteur sint occaecat cupidatat non proident, sunt in
+            culpa qui officia deserunt mollit anim id est laborum. */}
           </Accordion.Body>
         </Accordion.Item>
       </Accordion>

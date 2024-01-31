@@ -11,8 +11,9 @@ import Tab from "react-bootstrap/Tab";
 import { eventType, divType, squadType } from "./types";
 import OneToNEvents from "./oneToNEvents";
 import OneToNDivs from "./oneToNDivs";
-import "./form.css";
 import OneToNSquads from "./oneToNSquads";
+import "./form.css";
+
 
 
 export const TmntDataForm = () => {
