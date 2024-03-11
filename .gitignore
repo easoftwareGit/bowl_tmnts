@@ -41,3 +41,4 @@ next-env.d.ts
 
 # others
 /notUsed
+/.env.test
