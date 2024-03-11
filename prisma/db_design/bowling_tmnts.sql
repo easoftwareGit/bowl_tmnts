@@ -8,14 +8,6 @@ CREATE TABLE users (
   google TEXT NOT NULL
 );
 
-CREATE TABLE bowls (
-  id UUID DEFAULT gen_random_uuid() NOT NULL PRIMARY KEY,
-  bowl_name VARCHAR NOT NULL,
-  city VARCHAR NOT NULL,
-  state VARCHAR NOT NULL,
-  url VARCHAR NOT NULL
-);
-
 CREATE TABLE tmnts (
   id UUID DEFAULT gen_random_uuid() NOT NULL PRIMARY KEY,
   user_id UUID NOT NULL,
@@ -35,6 +27,13 @@ CREATE TABLE events (
   event_name VARCHAR NOT NULL,
   team_size INTEGER NOT NULL,
   games INTEGER NOT NULL,
+  entry_fee DECIMAL NOT NULL,
+  lineage DECIMAL NOT NULL,
+  prize_fund DECIMAL NOT NULL,
+  other DECIMAL NOT NULL,
+  expenses DECIMAL NOT NULL,
+  added_money DECIMAL NOT NULL,
+  sort_order INTEGER NOT NULL,
   FOREIGN KEY (tmnt_id) REFERENCES tmnts (id)
 );
 
@@ -43,8 +42,9 @@ CREATE TABLE squads (
   event_id UUID NOT NULL,
   squad_name VARCHAR NOT NULL,
   date DATE NOT NULL,
-  time TIME NOT NULL,
+  time TIME,
   games INTEGER NOT NULL,
+  sort_order INTEGER NOT NULL,
   FOREIGN KEY (event_id) REFERENCES events (id)
 );
 
@@ -52,18 +52,17 @@ CREATE TABLE divs (
   id UUID DEFAULT gen_random_uuid() NOT NULL PRIMARY KEY,
   event_id UUID NOT NULL,
   div_name VARCHAR NOT NULL,
-  hdcp BOOLEAN NOT NULL,
-  pots BOOLEAN DEFAULT true NOT NULL,
+  hdcp_per DOUBLE NOT NULL,
+  sort_order INTEGER NOT NULL,
   FOREIGN KEY (event_id) REFERENCES events (id)
 );
 
 CREATE TABLE hdcps (
   id UUID DEFAULT gen_random_uuid() NOT NULL PRIMARY KEY,
   div_id UUID NOT NULL,
-  hdcp_per DOUBLE NOT NULL,
   hdcp_from INTEGER NOT NULL,
   int_hdcp BOOLEAN NOT NULL,
-  games INTEGER NOT NULL,
+  game BOOLEAN NOT NULL,
   FOREIGN KEY (div_id) REFERENCES divs (id)
 );
 
@@ -96,9 +95,16 @@ CREATE TABLE games (
 );
 
 CREATE TABLE div_features (
-  id UUID DEFAULT uuid_generate_v4() NOT NULL PRIMARY KEY,
+  id UUID NOT NULL PRIMARY KEY,
   div_id UUID NOT NULL,
   feature VARCHAR NOT NULL,
   FOREIGN KEY (div_id) REFERENCES divs (id)
 );
 
+CREATE TABLE bowls (
+  id UUID DEFAULT gen_random_uuid() NOT NULL PRIMARY KEY,
+  bowl_name VARCHAR NOT NULL,
+  city VARCHAR NOT NULL,
+  state VARCHAR NOT NULL,
+  url VARCHAR NOT NULL
+);

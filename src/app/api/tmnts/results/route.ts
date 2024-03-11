@@ -1,17 +1,18 @@
 import { NextResponse, NextRequest } from "next/server";
 import { prisma } from "@/lib/prisma";
+import { endOfToday } from "date-fns";
 
 // routes /api/tmnts/results
 
 export async function GET(request: NextRequest) {
-  const today = new Date(new Date().toLocaleDateString());
-
+  
   const skip = request.nextUrl.searchParams.get("skip");
   const take = request.nextUrl.searchParams.get("take");
+  
   const tmntData = await prisma.tmnt.findMany({
     where: {
       start_date: {
-        lte: today,
+        lte: endOfToday(),
       },
     },
     orderBy: [
@@ -37,5 +38,5 @@ export async function GET(request: NextRequest) {
   });
   // return NextResponse.json(resultsData);
 
-  return NextResponse.json({ tmntData }, { status: 200 });
+  return NextResponse.json({ data: tmntData }, { status: 200 });
 }

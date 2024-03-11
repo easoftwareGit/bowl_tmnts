@@ -1,30 +1,31 @@
 "use client";
 import { useState, ChangeEvent, useEffect } from "react";
 import { useSelector, useDispatch } from "react-redux";
-import { AppDispatch, RootState } from "@/redux/store";
-import { fetchBowls } from "@/redux/features/bowls/bowlsSlice";
-import { maxTmntNameLength, maxEventLength } from "@/lib/validation";
-import { Bowl } from "@prisma/client";
-import { BowlsFromStateObj } from "@/lib/types/bowlTypes";
-import Tabs from "react-bootstrap/Tabs";
-import Tab from "react-bootstrap/Tab";
-import { eventType, divType, squadType } from "./types";
-import OneToNEvents from "./oneToNEvents";
-import OneToNDivs from "./oneToNDivs";
-import OneToNSquads from "./oneToNSquads";
+import { AppDispatch, RootState, store } from "@/redux/store";
+import { fetchBowls, selectAllBowls, getBowlsStatus, getBowlsError } from "@/redux/features/bowls/bowlsSlice";
+import { maxTmntNameLength } from "@/lib/validation";
+import { Bowl, Feat } from "@prisma/client";
+import { Accordion, AccordionCollapse, AccordionItem } from "react-bootstrap";
+import { eventType, divType, squadType, elimType, brktType, featsParamsType, divFeatType, seDivFeatType, AcdnErrType } from "./types";
+import { noAcdnErr } from "./errors";
+import OneToNEvents, { validateEvents } from "./oneToNEvents";
+import OneToNDivs, { validateDivs } from "./oneToNDivs";
+import OneToNSquads, { validateSquads } from "./oneToNSquads";
+import ZeroToNFeats, { validateFeats } from "./features/zeroToNFeats";import { fetchFeats, getFeatsStatus, selectAllFeats, getFeatsError } from "@/redux/features/feats/featsSlice";
+import { initEvent, initDiv, initSquad, initElim, initBrkt } from "./initVals";
+import { todayStr } from "@/lib/dateTools";
+import { isValid } from "date-fns";
+import { selectAllDivFeats } from "@/redux/features/feats/divFeatsSlice";
+import { selectAllSeDivFeats } from "@/redux/features/feats/seDivFeatsSlice";
+
 import "./form.css";
 
-
-
 export const TmntDataForm = () => {
+  const squadsDefaultActiveKey = "squad1";
 
-  const eventsDefaultActiveKey = 'event1'
-  const divsDefaultActiveKey = 'div1'
-  const squadsDefaultActiveKey = 'squad1'
+  const currentState = store.getState();
 
   const dispatch = useDispatch<AppDispatch>();
-
-  const todayStr = new Date().toISOString().split("T")[0];
 
   const initVals = {
     tmnt_name: "",
@@ -39,74 +40,75 @@ export const TmntDataForm = () => {
     end_date: "",
   };
 
-  const initEvents: eventType[] = [{
-    id: 1,
-    name: "Singles",
-    tabTitle: "Events",
-    team_size: 1,
-    games: 3,
-    name_err: "",
-    team_size_err: "",
-    games_err: ""  
-  }]
+  const initEvents: eventType[] = [
+    {
+      ...initEvent,
+    }
+  ]
 
-  const initDivs: divType[] = [{
-    id: 1,
-    name: "Division 1",
-    tabTitle: "Divisions",
-    hdcp: 90,
-    hdcp_from: 220,
-    int_hdcp: true,
-    hdcp_for: "game",
-    name_err: "",
-    hdcp_err: "",
-    hdcp_from_err: "",
-  }]
-  
-  const initSquads: squadType[] = [{
-    id: 1,
-    name: "Squad 1",
-    tabTitle: "Squads",
-    sqd_date: todayStr,
-    sqd_time: "",
-    games: 3,  
-    name_err: "",
-    sqd_date_err: "",
-    sqd_time_err: "",
-    games_err: "",
-}]
+  const initDivs: divType[] = [
+    {
+      ...initDiv,
+    },
+  ];
+
+  const initSquads: squadType[] = [
+    {
+      ...initSquad,
+    },
+  ];
 
   const [formData, setFormData] = useState(initVals);
   const [formErrors, setFormErrors] = useState(initErrors);
 
-  const [eventTabKey, setEventTabKey] = useState(eventsDefaultActiveKey);
   const [events, setEvents] = useState(initEvents);
-  const [eventId, setEventId] = useState(1)  
+  const [eventAcdnErr, setEventAcdnErr] = useState(noAcdnErr);
 
-  const [divTabKey, setDivTabKey] = useState(divsDefaultActiveKey);
   const [divs, setDivs] = useState(initDivs);
-  const [divId, setDivId] = useState(1);  
+  const [divAcdnErr, setDivAcdnErr] = useState(noAcdnErr);
 
-  const [squadTabKey, setSquadTabKey] = useState(squadsDefaultActiveKey);
-  const [squads, setSquads] = useState(initSquads)
-  const [sqdId, setSqdId] = useState(1);  
+  const [squads, setSquads] = useState(initSquads);
+  const [squadAcdnErr, setSquadAcdnErr] = useState(noAcdnErr); 
+  
+  const [featAcdnErr, setFeatAcdnErr] = useState<AcdnErrType>(noAcdnErr)
+  const [divFeats, setDivFeats] = useState<divFeatType[]>(useSelector(selectAllDivFeats));
+  const [seDivFeats, setSeDivFeats] = useState<seDivFeatType[]>(useSelector(selectAllSeDivFeats));
+  const [elim, setElim] = useState<elimType>(initElim)
+  const [brkt, setBrkt] = useState<brktType>(initBrkt)
+
+  const featsParams: featsParamsType = {
+    divFeats,
+    setDivFeats,
+    seDivFeats,
+    setSeDivFeats,
+    elim,
+    setElim,
+    brkt,
+    setBrkt,
+    featAcdnErr,
+    setFeatAcdnErr,
+  }
+
+  const bowlsStatus = useSelector(getBowlsStatus);
+  const bowls = useSelector(selectAllBowls);
+  const bowlsError = useSelector(getBowlsError);  
+  const featsStatus = useSelector(getFeatsStatus);
+  const feats = useSelector(selectAllFeats);
+  const featsError = useSelector(getFeatsError);  
 
   useEffect(() => {
     dispatch(fetchBowls());
   }, [dispatch]);
 
-  const stateBowls = useSelector((state: RootState) => state.bowls);
+  useEffect(() => {
+    dispatch(fetchFeats());
+  }, [dispatch]);
 
-  let bowlsArr: Bowl[] = [];
-  if (!stateBowls.loading && stateBowls.error === "") {
-    const bowlsFromState = stateBowls.bowls as unknown as BowlsFromStateObj;
-    if (
-      Array.isArray(bowlsFromState.bowls) &&
-      bowlsFromState.bowls.length > 0
-    ) {
-      bowlsArr = bowlsFromState.bowls;
-    }
-  }
+  const bowlOptions = bowls.map(bowl => (
+    <option key={bowl.id} value={bowl.id}>
+      {bowl.bowl_name} - {bowl.city}, {bowl.state}
+    </option>
+  ));
 
   const handleBowlSelectChange = (e: ChangeEvent<HTMLSelectElement>) => {
     const { value } = e.target;
@@ -131,245 +133,139 @@ export const TmntDataForm = () => {
       [name]: "",
     });
     if (name === "start_date") {
-      const endDateInput = document.getElementById(
-        "inputEndDate"
-      ) as HTMLInputElement;
-      if (endDateInput && endDateInput.value === "") {
-        const endDate = new Date(value);
-        const dateStr = endDate.toISOString().split("T")[0];
-        setFormData({
-          ...formData,
-          start_date: dateStr,
-          end_date: dateStr,
-        });
-        setFormErrors({
-          ...formErrors,
-          start_date: "",
-          end_date: "",
-        });
-        endDateInput.value = dateStr;
-        console.log(dateStr);
+      if (value) {
+        // const startDate = DateTime.fromISO(value);
+        const startDate = new Date(value);
+        if (isValid(startDate)) {
+          // set end date if not set
+          let endDate: Date;
+          let endDateStr: string;
+          const endDateInput = document.getElementById("inputEndDate") as HTMLInputElement;
+          if (endDateInput && endDateInput.value === "") {
+            endDate = new Date(value);
+            endDateStr = endDate.toISOString().split("T")[0];
+            setFormData({
+              ...formData,
+              start_date: value,
+              end_date: value,
+            });
+            setFormErrors({
+              ...formErrors,
+              start_date: "",
+              end_date: "",
+            });
+            endDateInput.value = endDateStr;
+          } else {
+            endDate = new Date(formData.end_date);
+            if (endDate < startDate) {
+              setFormData({
+                ...formData,
+                start_date: value,
+                end_date: value,
+              });
+            }
+          }
+          // make sure squad dates are within the start and end dates for the event
+          let squadDateStr = "";
+          setSquads(
+            squads.map((squad) => {
+              squadDateStr = "";              
+              if (
+                !squad.squad_date.trim() ||
+                !isValid(new Date(squad.squad_date))
+              ) {
+                squadDateStr = value;
+              } else if (new Date(squad.squad_date) < startDate) {
+                squadDateStr = value;
+              } else if (new Date(squad.squad_date) < endDate) {
+                squadDateStr = endDateStr;
+              }
+              if (squadDateStr) {
+                return {
+                  ...squad,
+                  squad_date: squadDateStr,
+                };
+              } else {
+                return squad;
+              }
+            })
+          );
+        }
       }
     }
   };
 
-  const handleEventTabSelect = (eventKey: string | null) => {
-    if (eventKey) {
-      setEventTabKey(eventKey);
-    }
-  };
-
-  const handleAddEvent = () => {
-    const newEvent: eventType = {
-      id: eventId + 1,
-      name: "Event " + (eventId + 1),
-      tabTitle: "Event " + (eventId + 1),
-      team_size: 1,
-      games: 3,
-      name_err: "",
-      team_size_err: "",
-      games_err: ""    
-    };
-    setEventId(eventId + 1);
-    setEvents([...events, newEvent]);
-  };
-
-  const handleDeleteEvent = (id:number) => { 
-    setEvents(events.filter(event => event.id !== id))
-    setEventTabKey(eventsDefaultActiveKey) // refocus first event tab after delete
-  }
-
-  const handleEventsInputChange = (id: number, e: ChangeEvent<HTMLInputElement>) => {
+  const handleBlur = (e: ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
-    const errName = name + "_err";
-    setEvents(
-      events.map((event) => {
-        if (event.id === id) {
-          // set tabTitle if id !== 1 AND changing name property value
-          if (id !== 1 && name === "name") { 
-            return {
-              ...event,
-              name: value,
-              tabTitle: value,
-              name_err: '',
-            };
-          } else {
-            return {
-              ...event,
-              [name]: value,
-              [errName]: ''
-            };
-          }
-        } else {
-          return event;
-        }
-      })
-    );
-  };
 
-  const handleDivTabSelect = (eventKey: string | null) => {
-    if (eventKey) {
-      setDivTabKey(eventKey);
+    if (!value.trim()) {
+      let updatedData: typeof formData;
+      if (name === "start_date") {
+        updatedData = {
+          ...formData,
+          start_date: todayStr,
+        };
+        setFormData(updatedData);
+      } else if (name === "end_date") {
+        const updatedDateStr =
+          formData.start_date !== todayStr ? formData.start_date : todayStr;
+        updatedData = {
+          ...formData,
+          end_date: updatedDateStr,
+        };
+        setFormData(updatedData);
+      }
     }
   };
 
-  const handleAddDiv = () => {
-    const newDiv: divType = {
-      id: divId + 1,
-      name: "Division " + (divId + 1),
-      tabTitle: "Division " + (divId + 1),
-      hdcp: 90,
-      hdcp_from: 220,
-      int_hdcp: true,
-      hdcp_for: "game",
-      name_err: "",
-      hdcp_err: "",
-      hdcp_from_err: "",
-    };
-    setDivId(divId + 1);
-    setDivs([...divs, newDiv]);
-  };
-
-  const handleDeleteDiv = (id:number) => { 
-    setDivs(divs.filter(div => div.id !== id))
-    setDivTabKey(divsDefaultActiveKey) // refocus first div tab after delete
-  }
-
-  const handleDivsInputChange = (id: number, e: ChangeEvent<HTMLInputElement>) => {
-    const { name, value, checked } = e.target;
-    const errName = name + "_err";
-    setDivs(
-      divs.map((div) => {
-        if (div.id === id) {          
-          if (id !== 1 && name === 'name') {
-            // set tabTitle if id !== 1 AND changing name property value
-            return {
-              ...div,
-              name: value,
-              tabTitle: value,
-              name_err: '',
-            };
-          } else if (name === "item.int_hdcp") {
-            // set name property value
-            return {
-              ...div,
-              int_hdcp: checked,
-            };
-          } else if (name.startsWith("hdcp_for")) {
-            return {
-              ...div,
-              hdcp_for: value,
-            };
-          } else {
-            return {
-              ...div,
-              [name]: value,
-              [errName]: "",
-            };
-          }
-        } else {
-          return div;
-        }
-      })
-    );
-  };
-
-  const handleHdcpBlur = (id: number, e: ChangeEvent<HTMLInputElement>) => {
-    const { name, value } = e.target;
-    if (value === '') {
-      setDivs(
-        divs.map((div) => {
-          if (div.id === id) {
-            return {
-              ...div,
-              hdcp: 0,
-              hdcp_err: '',
-            }
-          } else {
-            return div
-          }
-        })
-      )
-    }  
-    if (name === `hdcp`) {
-      const doDisable = (value === '' || parseInt(value) === 0);
-      const hcdpFromInput = document.getElementById(`inputHdcpFrom${id}`) as HTMLButtonElement;
-      const intHdcpCheck = document.getElementById(`chkBoxIntHdcp${id}`) as HTMLButtonElement;
-      const hdcpForGame = document.getElementById(`radioHdcpForGame${id}`) as HTMLButtonElement;
-      const hdcpForSeries = document.getElementById(`radioHdcpForSeries${id}`) as HTMLButtonElement;
-      hcdpFromInput.disabled = doDisable;
-      intHdcpCheck.disabled = doDisable;
-      hdcpForGame.disabled = doDisable;
-      hdcpForSeries.disabled = doDisable;   
+  const validateTmnt = (): boolean => {
+    let isTmntValid = true;
+    if (!validateEvents(events, setEvents, setEventAcdnErr)) {
+      isTmntValid = false;
     }
-  }
- 
-  const handleSquadTabSelect = (eventKey: string | null) => {
-    if (eventKey) {
-      setSquadTabKey(eventKey);
+    if (!validateDivs(divs, setDivs, setDivAcdnErr)) {
+      isTmntValid = false;
     }
-  };
 
-  const handleAddSquad = () => {
-    const newSquad: squadType = {
-      id: sqdId + 1,
-      name: "Squad " + (divId + 1),
-      tabTitle: "Squad " + (divId + 1),
-      sqd_date: todayStr,
-      sqd_time: "",
-      games: 3,  
-      name_err: "",
-      sqd_date_err: "",
-      sqd_time_err: "",
-      games_err: "",
-    };
-    setSqdId(sqdId + 1);
-    setSquads([...squads, newSquad]);
-  };
-
-  const handleDeleteSquad = (id:number) => { 
-    setSquads(squads.filter(squad => squad.id !== id))
-    setSquadTabKey(squadsDefaultActiveKey) // refocus first squad tab after delete
-  }
-
-  const handleSquadsInputChange = (id: number, e: ChangeEvent<HTMLInputElement>) => {
-    const { name, value } = e.target;
-    const errName = name + "_err";
-    setSquads(
-      squads.map((squad) => {
-        if (squad.id === id) {
-          // set tabTitle if id !== 1 AND changing name property value
-          if (id !== 1 && name === "name") { 
-            return {
-              ...squad,
-              name: value,
-              tabTitle: value,
-              name_err: '',
-            };
-          } else {
-            return {
-              ...squad,
-              [name]: value,
-              [errName]: ''
-            };
-          }
-        } else {
-          return squad;
-        }
-      })
-    );
+    return isTmntValid;
   };
 
   const handleDebug = (e: React.MouseEvent<HTMLElement>) => {
-    events.forEach((event) => {
-      console.log(`event ${event.id}: `, event);
-    });
-    divs.forEach((div) => {
-      console.log(`div ${div.id}: `, div);
-    });
-    squads.forEach((squad) => {
-      console.log(`squad ${squad.id}: `, squad);
-    });
+    // const eventsAreValid = validateEvents(events, setEvents, setEventAcdnErr);
+    // console.log("Events valid: ", eventsAreValid);
+
+    // const divsArevalid = validateDivs(divs, setDivs, setDivAcdnErr);
+    // console.log("Divs are valid: ", divsArevalid);
+
+    // const squadsAreValid = validateSquads(
+    //   squads,
+    //   setSquads,
+    //   events,
+    //   setSquadAcdnErr,
+    //   formData.start_date,
+    //   formData.end_date
+    // );
+    // console.log("Squads are valid: ", squadsAreValid);    
+
+    const featsAreValid = validateFeats(featsParams, squads);
+    console.log("Feats are valid: ", featsAreValid);    
+    
+    // events.forEach((event) => {
+    //   console.log(`event ${event.id}: `, event);
+    // });
+    // divs.forEach((div) => {
+    //   console.log(`div ${div.id}: `, div);
+    // });
+    // squads.forEach((squad) => {
+    //   console.log(`squad ${squad.id}: `, squad);
+    // });
+
+    // divFeats.forEach(divFeat => {
+    //   console.log('divFeat: ', divFeat)
+    // });
+    // seDivFeats.forEach(seDivFeat => {
+    //   console.log('seDivFeat: ', seDivFeat)
+    // });
   };
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -379,12 +275,14 @@ export const TmntDataForm = () => {
 
   return (
     <form onSubmit={handleSubmit}>
-      {stateBowls.loading && <div>Loading...</div>}
-      {!stateBowls.loading && stateBowls.error ? (
-        <div>Error: {stateBowls.error}</div>
+      {(bowlsStatus === 'loading' || featsStatus === 'loading' ) && <div>Loading...</div>}
+      {bowlsStatus !== 'loading' && bowlsError ? (
+        <div>Error: {bowlsError}</div>
       ) : null}
-
-      {!stateBowls.loading && stateBowls.bowls ? (
+      {featsStatus !== 'loading' && featsError ? (
+        <div>Error: {featsError}</div>
+      ) : null}
+      {(bowlsStatus === 'succeeded' && featsStatus === 'succeeded') ? (        
         <div className="form_container">
           <div className="row g-3 mb-3">
             <div className="col-md-6">
@@ -412,16 +310,12 @@ export const TmntDataForm = () => {
                 id="inputBowlName"
                 className={`form-select ${formErrors.bowl_id && "is-invalid"}`}
                 onChange={handleBowlSelectChange}
+                defaultValue='Choose...'
               >
-                <option disabled selected>
+                <option disabled>                
                   Choose...
                 </option>
-                {bowlsArr.length > 0 &&
-                  bowlsArr.map((bowl) => (
-                    <option key={bowl.id} value={bowl.id}>
-                      {bowl.bowl_name} - {bowl.city}, {bowl.state}
-                    </option>
-                  ))}
+                {bowlOptions}
               </select>
               <div className="text-danger">{formErrors.bowl_id}</div>
             </div>
@@ -440,6 +334,7 @@ export const TmntDataForm = () => {
                 name="start_date"
                 value={formData.start_date}
                 onChange={handleInputChange}
+                onBlur={handleBlur}
               />
               <div className="text-danger">{formErrors.start_date}</div>
             </div>
@@ -456,6 +351,7 @@ export const TmntDataForm = () => {
                 name="end_date"
                 value={formData.end_date}
                 onChange={handleInputChange}
+                onBlur={handleBlur}
               />
               <div className="text-danger">{formErrors.end_date}</div>
             </div>
@@ -465,176 +361,64 @@ export const TmntDataForm = () => {
               </button>
             </div>
           </div>
-          <div className="row g-3 mb-1">
-            <Tabs
-              className="flex-row"
-              variant="pills" 
-              defaultActiveKey={eventsDefaultActiveKey}
-              transition={false}
-              id="eventTabs"
-              activeKey={eventTabKey}
-              onSelect={handleEventTabSelect}              
-            >
-              {events.map((event) => (
-                <Tab key={event.id} eventKey={`event${event.id}`} title={event.tabTitle}>
-                  <OneToNEvents
-                    event={event}
-                    eventCount={events.length}
-                    onAddEvent={handleAddEvent}
-                    onDeleteEvent={handleDeleteEvent}
-                    onInputChange={(e: ChangeEvent<HTMLInputElement>) => handleEventsInputChange(event.id, e)}
-                  />
-                </Tab>
-              ))}
-            </Tabs>           
-          </div>
-          <div className="row g-3 mb-1">
-            <Tabs
-              className="flex-row"
-              variant="pills" 
-              defaultActiveKey={divsDefaultActiveKey}
-              transition={false}
-              id="divisionTabs"
-              activeKey={divTabKey}
-              onSelect={handleDivTabSelect}
-            >
-              {divs.map((div) => (
-                <Tab key={div.id} eventKey={`div${div.id}`} title={div.tabTitle}>
-                  <OneToNDivs
-                    div={div}
-                    divCount={divs.length}
-                    onAddDiv={handleAddDiv}
-                    onDeleteDiv={handleDeleteDiv}
-                    onInputChange={(e: ChangeEvent<HTMLInputElement>) => handleDivsInputChange(div.id, e)}
-                    onHdcpBlur={(e: ChangeEvent<HTMLInputElement>) => handleHdcpBlur(div.id, e)}
-                  />
-                </Tab>
-              ))}
-            </Tabs>
-          </div>
-          <div className="row g-3 mb-1">
-            <Tabs
-              className="flex-row"
-              variant="pills" 
-              defaultActiveKey={squadsDefaultActiveKey}
-              transition={false}
-              id="squadTabs"
-              activeKey={squadTabKey}
-              onSelect={handleSquadTabSelect}
-            >
-              {squads.map((squad) => (
-                <Tab key={squad.id} eventKey={`squad${squad.id}`} title={squad.tabTitle}>
-                  <OneToNSquads
-                    squad={squad}
-                    squadCount={squads.length}
-                    onAddSquad={handleAddSquad}
-                    onDeleteSquad={handleDeleteSquad}
-                    onInputChange={(e: ChangeEvent<HTMLInputElement>) => handleSquadsInputChange(squad.id, e)}
-                  />
-                </Tab>
-              ))}
-              {/* <Tab eventKey="1" title="Squads">
-                <div className="row g-3 mb-3">
-                  <div className="col-sm-3">
-                    <label htmlFor="inputNumSqds" className="form-label">
-                      # Squads
-                    </label>
-                    <div className="input-group">
-                      <input
-                        type="text"
-                        className="form-control"
-                        id="inputNumSqds"
-                        name="num_sqds"
-                        readOnly
-                        value={otherSqds.length + 1}
-                      />
-                      <button
-                        className="btn btn-success border border-start-0 rounded-end"
-                        type="button"
-                        tabIndex={-1}
-                        id="sqd-plus"
-                        onClick={handleAddSqdClick}
-                      >
-                        +
-                      </button>
-                    </div>
-                  </div>
-                  <div className="col-sm-3">
-                    <label
-                      htmlFor="inputSqdName1"
-                      className="form-label"
-                    >
-                      Squad Name
-                    </label>
-                    <input
-                      type="text"
-                      className={`form-control ${sqd1.name_err && "is-invalid"}`}
-                      id="inputSqdName1"
-                      name="name"
-                      maxLength={maxEventLength}
-                      value={sqd1.name}
-                      onChange={handleSqd1InputChange}
-                    />
-                    <div className="text-danger">{sqd1.name_err}</div>
-                  </div>
-                  <div className="col-sm-3">
-                    <label
-                      htmlFor="inputSqdDate1"
-                      className="form-label"                      
-                    >
-                      Date 
-                    </label>
-                    <input
-                      type="date"
-                      className={`form-control ${sqd1.sqd_date_err && "is-invalid"}`}
-                      id="inputSqdDate1"
-                      name="sqd_date"
-                      value={sqd1.sqd_date}
-                      onChange={handleSqd1InputChange}                      
-                    />
-                    <div className="text-danger">{sqd1.sqd_date_err}</div>
-                  </div>
-                  <div className="col-sm-3">
-                    <label htmlFor="inputSqdTime1" className="form-label">
-                      Start Time
-                    </label>
-                    <input
-                      type="time"
-                      className={`form-control ${sqd1.sqd_time_err && "is-invalid"}`}
-                      id="inputSqdTime1"
-                      name="sqd_time"
-                      value={sqd1.sqd_time}                        
-                      onChange={handleSqd1InputChange}                      
-                    />
-                    <div className="text-danger">{sqd1.sqd_time_err}</div>
-                  </div>
-                </div>
-                <div className="row g-3">
-                  <div className="col-sm-3">
-                  </div>
-                  <div className="col-sm-3">
-                    <label htmlFor="inputSqdGames1" className="form-label">
-                      Squad Games
-                    </label>
-                    <input
-                      type="number"
-                      min={1}
-                      max={99}
-                      step={1}
-                      className={`form-control ${
-                        sqd1.games_err && "is-invalid"
-                      }`}
-                      id="inputSqdGames1"
-                      name="games"
-                      value={sqd1.games}
-                      onChange={handleSqd1InputChange}
-                    />
-                    <div className="text-danger">{sqd1.games_err}</div>
-                  </div>
-                </div>
-              </Tab> */}
-            </Tabs>
-          </div>
+          <Accordion>
+            <AccordionItem eventKey="events">
+              <Accordion.Header className={eventAcdnErr.errClassName}>
+                Events{eventAcdnErr.message}
+              </Accordion.Header>
+              <Accordion.Body>
+                <OneToNEvents
+                  events={events}
+                  setEvents={setEvents}
+                  squads={squads}
+                  setSquads={setSquads}
+                  setAcdnErr={setEventAcdnErr}
+                />
+              </Accordion.Body>
+            </AccordionItem>
+          </Accordion>
+          <Accordion>
+            <AccordionItem eventKey="divs">
+              <Accordion.Header className={divAcdnErr.errClassName}>
+                Divisions{divAcdnErr.message}
+              </Accordion.Header>
+              <Accordion.Body>
+                <OneToNDivs
+                  divs={divs}
+                  setDivs={setDivs}
+                  setAcdnErr={setDivAcdnErr}
+                />
+              </Accordion.Body>
+            </AccordionItem>
+          </Accordion>
+          <Accordion>
+            <AccordionItem eventKey="squads">
+              <Accordion.Header className={squadAcdnErr.errClassName}>
+                Squads{squadAcdnErr.message}
+              </Accordion.Header>
+              <Accordion.Body>
+                <OneToNSquads
+                  squads={squads}
+                  setSquads={setSquads}
+                  events={events}
+                  setAcdnErr={setSquadAcdnErr}
+                />
+              </Accordion.Body>
+            </AccordionItem>
+          </Accordion>
+          <Accordion>
+            <AccordionItem eventKey="fatures">
+              <Accordion.Header className={featAcdnErr.errClassName}>
+                Feaures{featAcdnErr.message}
+              </Accordion.Header>
+              <Accordion.Body>
+                <ZeroToNFeats 
+                  featsParams={featsParams}  
+                  // setAcdnErr={setFeatAcdnErr}
+                />
+              </Accordion.Body>
+            </AccordionItem>
+          </Accordion>
         </div>
       ) : null}
     </form>

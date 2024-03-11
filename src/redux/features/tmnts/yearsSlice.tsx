@@ -1,36 +1,28 @@
 import { createAsyncThunk, createSlice } from '@reduxjs/toolkit'
-import axios from 'axios'
-import { baseApi } from '@/lib/tools';
+import { loadStatusType } from '@/redux/statusTypes';
+import { getTmntYears } from '@/db/tmnts/years';
+import { YearObj } from '@/lib/types/tmntType';
 
 export interface TmntYearsSliceState {
-  data: number[];  
-  loading: boolean;
+  data: YearObj[];  
+  status: loadStatusType;  
   error: string | undefined;
 }
 
 // initial state constant
 const initialState: TmntYearsSliceState = {
   data: [],  
-  loading: false,
+  status: 'idle',    
   error: ''
 } 
 
 // get list of years from today and before
 export const fetchTmntYears = createAsyncThunk('tmnts/fetchTmntsYears', async () => {  
-  const year = new Date().getFullYear().toString()
-  // error checking for year is done in the API
-  const url = baseApi + '/tmnts/years/' + year
-  try {
-    const response = await axios.get(url)
-    if (response.status === 200 && response.data) {
-      return response.data; // response.data is already JSON'ed
-    } else {
-      console.log('Tmnt Results - Non error return, but not status 200');
-      return [];
-    }
-  } catch (error) {
-    return [];
-  }
+
+  // Do not use try / catch blocks here. Need the promise to be fulfilled or
+  // rejected which will have the appropriate response in the extraReducers.
+
+  return await getTmntYears();
 })
 
 export const tmntYearsSlice = createSlice({
@@ -39,16 +31,16 @@ export const tmntYearsSlice = createSlice({
   reducers: {},
   extraReducers: (builder) => {
     builder.addCase(fetchTmntYears.pending, (state: TmntYearsSliceState) => {      
-      state.loading = true;
+      state.status = 'loading';      
       state.error = '';
     })
     builder.addCase(fetchTmntYears.fulfilled, (state: TmntYearsSliceState, action) => {
-      state.loading = false;
-      state.data = action.payload;
+      state.status = 'succeeded';      
+      state.data = action.payload.data;
       state.error = '';
     })
     builder.addCase(fetchTmntYears.rejected, (state: TmntYearsSliceState, action) => {
-      state.loading = false;
+      state.status = 'failed';      
       state.error = action.error.message
     })
   }

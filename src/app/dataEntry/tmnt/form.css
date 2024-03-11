@@ -1,18 +1,29 @@
-.form_container {  
-  max-width: 576px; /* bootstrap small */
+@media (min-width: 1400px) {}
+.container, .container-lg, .container-md, .container-sm, .container-xl, .container-xxl {
+    max-width: 768px;
 }
-
-/* .li > .nav-link:not(:active)  {
-  color: black;
-}
-
-#div-plus {
-  color: white;
-  font-weight: bold;  
-} */
 
 .nav-pills .nav-link.active {
   background-color: #cfe2ff;
   color: #000000;
   font-weight: bold;
+}
+
+.nav-link {
+  background-color: #e9f2ff;
+}
+
+.acdnError > .accordion-button {
+  background-color: #fa8282;
+  color: #000000;
+}
+
+.objError {
+  background-color: #fa8282;  
+  color: #000000;
+}
+
+.deleteInput {
+  text-align: right;
+  border-style: none;
 }

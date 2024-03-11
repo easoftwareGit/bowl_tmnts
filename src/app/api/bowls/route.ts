@@ -9,6 +9,6 @@ export async function GET(request: NextRequest) {
       bowl_name: 'asc',
     }
   })
-  return NextResponse.json({bowls}, {status: 200});
+  return NextResponse.json({data: bowls}, {status: 200});
 }
 

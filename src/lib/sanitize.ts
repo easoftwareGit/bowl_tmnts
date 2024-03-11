@@ -1,16 +1,24 @@
 // base on code in https://www.npmjs.com/package/string-sanitizer
 
-export const stringRegEx = /[^ a-zA-Z0-9'-]/g;
+// space, regular chars, digits, single quote and a dash
+export const stringRegEx = /[^ a-zA-Z0-9'-.]/g;
 
 /**
- * removes special chars & spaces, allow only numbers and regular chars 
+ * trims tailing and leading spaces, 
+ * removes special chars, allow only numbers, regular chars, 
+ * space, period, dash
  *
  * @param {string} str
  * @return {*}  {string} - "a.b-c@d e'fg#h1ক😀" returns "ab-cd e'fgh1"
  */
 export function sanitize(str: string): string {
-  // space, regular chars, digits, single quote and a dash
-  const regex = /[^ a-zA-Z0-9'-]/g;       
-  return str.replace(stringRegEx, '');
+  if (!str) {
+    return ''
+  }
+  const trimmed = str.trim();
+  if (trimmed) {
+    return trimmed.replace(stringRegEx, '');
+  } else {
+    return '';
+  }  
 }
-

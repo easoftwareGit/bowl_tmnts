@@ -1,20 +1,20 @@
-import { createAsyncThunk, createSlice, PayloadAction } from '@reduxjs/toolkit'
-import axios from 'axios'
-import { baseApi } from '@/lib/tools';
-import { Tmnt } from '@prisma/client';
+import { createAsyncThunk, createSlice } from "@reduxjs/toolkit";
+import { loadStatusType } from "@/redux/statusTypes";
+import { getTmnts } from "@/db/tmnts/tmnts";
+import { TmntDataType } from "@/lib/types/tmntType";
 
 export interface TmntSliceState {
-  tmnts: Tmnt[];  
-  loading: boolean;
+  tmnts: TmntDataType[];
+  status: loadStatusType;  
   error: string | undefined;
 }
 
-// initial state constant
+// initial state constant 
 const initialState: TmntSliceState = {
-  tmnts: [],  
-  loading: false,
-  error: ''
-} 
+  tmnts: [],
+  status: "idle",  
+  error: "",
+};
 
 /**
  * gets tmnts with results for a year or all upcoming tmnts
@@ -23,52 +23,36 @@ const initialState: TmntSliceState = {
  * @return {*}  {Tmnt[]} array of tmnts from database
  */
 
-export const fetchTmnts = createAsyncThunk('tmnts/fetchTmnts', async (year: string) => {
-  // ok to pass year as param, API route checks for valid year
-  // only 4 digits, between 1900 and 2100
-  // const url = 'http://localhost:3000/api/tmnts/results/year'
-  // OR
-  // const url = 'http://localhost:3000/api/tmnts/upcoming'
-  const baseUrl = baseApi + '/tmnts/'
-  let url: string
-  if (year === '') {
-    url = baseUrl + 'upcoming'
-  } else {
-    url = baseUrl + 'results/' + year;
+export const fetchTmnts = createAsyncThunk(
+  "tmnts/fetchTmnts",
+  async (year: string) => {
+
+    // Do not use try / catch blocks here. Need the promise to be fulfilled or
+    // rejected which will have the appropriate response in the extraReducers.
+
+    return getTmnts(year);
   }
-  
-  try {
-    const response = await axios.get(url)
-    if (response.status === 200 && response.data) {
-      return response.data; // response.data is already JSON'ed
-    } else {
-      console.log('Tmnts - Non error return, but not status 200');
-      return [];
-    }
-  } catch (error) {
-    return [];
-  }
-})
+);
 
 export const tmntsSlice = createSlice({
-  name: 'tmnts',
+  name: "tmnts",
   initialState,
   reducers: {},
   extraReducers: (builder) => {
-    builder.addCase(fetchTmnts.pending, (state: TmntSliceState) => {      
-      state.loading = true;
-      state.error = '';
-    })
+    builder.addCase(fetchTmnts.pending, (state: TmntSliceState) => {
+      state.status = "loading";      
+      state.error = "";
+    });
     builder.addCase(fetchTmnts.fulfilled, (state: TmntSliceState, action) => {
-      state.loading = false;
-      state.tmnts = action.payload;
-      state.error = '';
-    })
+      state.status = "succeeded";      
+      state.tmnts = action.payload.data;
+      state.error = "";
+    });
     builder.addCase(fetchTmnts.rejected, (state: TmntSliceState, action) => {
-      state.loading = false;
-      state.error = action.error.message
-    })
-  }
+      state.status = "failed";      
+      state.error = action.error.message;
+    });
+  },
 });
 
 export default tmntsSlice.reducer;

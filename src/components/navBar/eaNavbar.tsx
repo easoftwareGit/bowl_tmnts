@@ -7,7 +7,7 @@ import NavDropdown from 'react-bootstrap/NavDropdown';
 
 import { useSession } from "next-auth/react"; 
 import { signOut } from "next-auth/react"; 
-import ModelConfirm from "../modal/ModalBootstrap";
+import ModelConfirm from "@/components/modal/confirmModel"
 import { useState } from "react";
 
 import "./navlink.css";
@@ -42,7 +42,7 @@ export default function EaNavbar() {
             <Nav.Link as={Link} href="/upcoming" active={pathname === "/upcoming"}>Upcoming</Nav.Link>
             <Nav.Link as={Link} href="/contact" active={pathname === "/contact"}>Contact</Nav.Link>
             {/* <Nav.Link as={Link} href="/secret" active={pathname === "/secret"}>Secret</Nav.Link> */}
-            <Nav.Link as={Link} href="/test" active={pathname === "/test"}>Test</Nav.Link>
+            <Nav.Link as={Link} href="/sample" active={pathname === "/sample"}>Sample</Nav.Link>
             <Nav.Link as={Link} href="/dataEntry/tmnt" active={pathname === "/dataEntry/tmnt"}>Tmnt Data</Nav.Link>
             {status === 'authenticated' ? (              
               <NavDropdown title={ data.user?.name } id="user-dropdown">
@@ -69,6 +69,7 @@ export default function EaNavbar() {
       </Container>
       <ModelConfirm
         show={isModalOpen}  
+        title="Confirm log out"
         message="Do you want to log out?"
         onConfirm={handleConfirm}
         onCancel={handleCancel}

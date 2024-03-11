@@ -1,25 +1,17 @@
-import { Bowl } from "@prisma/client"
-
-export type FullTmnt = {
-  id: string,
-  user_id: string,
-  tmnt_name: string,
-  bowl_id: string
-  bowls: Bowl 
-  start_date: Date,
-  end_date: Date,
-  createdAt: Date,
-  updatedAt: Date
-}
-
-export type TmntsFromStateObj = {
-  tmntData: FullTmnt[];
-}
-
 export type YearObj = {
   year: number,
 }
 
-export type YearsFromStateObj = {
-  yearsData: YearObj[];
+export type BowlInTmntData = {  
+  bowl_name: string;
+  city: string;
+  state: string;
+  url: string;
+}
+
+export type TmntDataType = {
+  id: string,
+  tmnt_name: string,
+  start_date: Date,
+  bowls: BowlInTmntData
 }

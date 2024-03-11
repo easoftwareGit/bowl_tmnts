@@ -1,15 +1,9 @@
 import { NextResponse, NextRequest } from "next/server";
 import { prisma } from "@/lib/prisma";
+import { validYear } from "@/lib/validation";
+import { endOfToday, endOfDay, startOfDay } from "date-fns";
 
 // routes /api/tmnts/results/year
-
-const validYear = (year: string): boolean => {
-
-  if (!year || year.length !== 4) return false;
-  const yearNum = parseInt(year, 10) || 0;  
-  if (yearNum < 1900 || yearNum > 2100) return false;
-  return true;
-}
 
 export async function GET(
   request: NextRequest, 
@@ -20,16 +14,15 @@ export async function GET(
     return NextResponse.json({ error: 'Invalid parameter' }, { status: 400 });
   }
   
-  const today = new Date((new Date()).toLocaleDateString())
-  const todayYear = today.getFullYear();
-  let maxDate: Date
+  const todayYear = endOfToday().getFullYear();
+  let maxDate
   if (todayYear === parseInt(paramYear)) {
-    maxDate = today;
-  } else {
-    maxDate = new Date(`${paramYear}-12-31`)
-  }
+    maxDate = endOfToday();
+  } else {    
+    maxDate = endOfDay(new Date(`${paramYear}-12-31`))    
+  }  
+  
   const jan1st = new Date(`${paramYear}-01-01`)
-    
   const skip = request.nextUrl.searchParams.get('skip')
   const take = request.nextUrl.searchParams.get('take')
   const tmntData = await prisma.tmnt.findMany({
@@ -62,5 +55,5 @@ export async function GET(
   })
   // return NextResponse.json(tmnts);
 
-  return NextResponse.json({ tmntData }, { status: 200 });
+  return NextResponse.json({ data: tmntData }, { status: 200 });
 }

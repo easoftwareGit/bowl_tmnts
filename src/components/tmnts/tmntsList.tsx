@@ -1,10 +1,10 @@
 "use client";
 import { FC, useState, useEffect } from "react";
-import { FullTmnt, YearObj } from "@/lib/types/tmntType";
+import { TmntDataType, YearObj } from "@/lib/types/tmntType";
 
 interface TmntListProps {
   yearsArr: YearObj[];
-  tmntsArr: FullTmnt[];
+  tmntsArr: TmntDataType[];
   onYearChange: (val: string) => void | undefined;
 }
 
@@ -49,10 +49,10 @@ function sortedIndex(
 /**
  * gets an array of sorted state objects, no duplicates
  *
- * @param {FullTmnt[]} tmnts
+ * @param {TmntDataType[]} tmnts
  * @return {*}  {SelectOption[]}
  */
-function getSortedStateOptions(tmnts: FullTmnt[]): SelectOption[] {
+function getSortedStateOptions(tmnts: TmntDataType[]): SelectOption[] {
   if (!tmnts) return [];
   const stateOptions: SelectOption[] = [];
   tmnts.forEach((tmnt) => {
@@ -83,7 +83,7 @@ const TmntsList: FC<TmntListProps> = (props) => {
     setTmntYear(yearsArr[0]?.year)    
   }, [tmntsArr, yearsArr])
 
-  function filterTmnt(tmnt: FullTmnt): boolean {
+  function filterTmnt(tmnt: TmntDataType): boolean {
     if (stateFilter === "all") return true;
     return tmnt.bowls.state === stateFilter;
   }
@@ -127,9 +127,18 @@ const TmntsList: FC<TmntListProps> = (props) => {
                 </th>
                 <th style={{ width: 150 }}>   
                   {yearsArr.length ? (
-                    <select className="form-select w-auto" id="yearSelect" onChange={handleYearChange}>
+                    <select
+                      className="form-select w-auto"
+                      id="yearSelect"
+                      onChange={handleYearChange}
+                      data-testid="yearSelect"
+                    >
                       {yearsArr.map((yearObj) => (
-                        <option key={yearObj.year} value={yearObj.year}>
+                        <option
+                          key={yearObj.year}
+                          value={yearObj.year}
+                          data-testid="select-option"
+                        >
                           {yearObj.year}
                         </option>
                       ))}
@@ -144,6 +153,7 @@ const TmntsList: FC<TmntListProps> = (props) => {
                     id="stateFilter"
                     className="form-select w-100"
                     aria-label="Select State"
+                    data-testid="stateSelect"
                     onChange={handleStateFilterChange}
                   >
                     {sortedStates.map((stateObj) => (

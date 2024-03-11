@@ -1,7 +1,7 @@
 import { NextResponse, NextRequest } from "next/server";
 import { prisma } from "@/lib/prisma";
-import { validYear } from "../../valid";
-import { Prisma } from "@prisma/client";
+import { validYear } from "@/lib/validation";
+import { endOfDay } from "date-fns";
 
 // routes /api/tmnts/years/year
 
@@ -15,7 +15,7 @@ export async function GET(
     return NextResponse.json({ error: 'Invalid parameter' }, { status: 400 });
   }
   
-  const lastDOY = new Date(`${paramYear}-12-31`)
+  const lastDOY = endOfDay(new Date(`${paramYear}-12-31`))
 
   // ok to use queryRawUnsafe because call to validYear 
   const yearsData = await prisma.$queryRawUnsafe(
@@ -26,5 +26,5 @@ export async function GET(
     lastDOY
   )
     
-  return NextResponse.json({ yearsData }, { status: 200 });
+  return NextResponse.json({ data: yearsData }, { status: 200 });
 }
