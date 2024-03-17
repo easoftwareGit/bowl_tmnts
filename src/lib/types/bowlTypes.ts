@@ -1,1 +1,0 @@
-import { Bowl } from "@prisma/client"

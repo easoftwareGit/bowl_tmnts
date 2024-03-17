@@ -4,27 +4,21 @@ import { useSelector, useDispatch } from "react-redux";
 import { AppDispatch, RootState, store } from "@/redux/store";
 import { fetchBowls, selectAllBowls, getBowlsStatus, getBowlsError } from "@/redux/features/bowls/bowlsSlice";
 import { maxTmntNameLength } from "@/lib/validation";
-import { Bowl, Feat } from "@prisma/client";
 import { Accordion, AccordionCollapse, AccordionItem } from "react-bootstrap";
-import { eventType, divType, squadType, elimType, brktType, featsParamsType, divFeatType, seDivFeatType, AcdnErrType } from "./types";
+import { eventType, divType, squadType, elimType, brktType, AcdnErrType, potType } from "./types";
 import { noAcdnErr } from "./errors";
 import OneToNEvents, { validateEvents } from "./oneToNEvents";
 import OneToNDivs, { validateDivs } from "./oneToNDivs";
 import OneToNSquads, { validateSquads } from "./oneToNSquads";
-import ZeroToNFeats, { validateFeats } from "./features/zeroToNFeats";import { fetchFeats, getFeatsStatus, selectAllFeats, getFeatsError } from "@/redux/features/feats/featsSlice";
-import { initEvent, initDiv, initSquad, initElim, initBrkt } from "./initVals";
+import { initEvents, initDivs, initSquads, initElims, initBrkts, initPots } from "./initVals";
 import { todayStr } from "@/lib/dateTools";
 import { isValid } from "date-fns";
-import { selectAllDivFeats } from "@/redux/features/feats/divFeatsSlice";
-import { selectAllSeDivFeats } from "@/redux/features/feats/seDivFeatsSlice";
-
+import ZeroToNPots, { validatePots } from "./zeroToNPots";
 import "./form.css";
+import ZeroToNBrackets, { validateBrkts } from "./zeroToNBrackets";
+import ZeroToNElims, { validateElims } from "./zeroToNElims";
 
-export const TmntDataForm = () => {
-  const squadsDefaultActiveKey = "squad1";
-
-  const currentState = store.getState();
-
+export const TmntDataForm = () => {   
   const dispatch = useDispatch<AppDispatch>();
 
   const initVals = {
@@ -40,24 +34,6 @@ export const TmntDataForm = () => {
     end_date: "",
   };
 
-  const initEvents: eventType[] = [
-    {
-      ...initEvent,
-    }
-  ]
-
-  const initDivs: divType[] = [
-    {
-      ...initDiv,
-    },
-  ];
-
-  const initSquads: squadType[] = [
-    {
-      ...initSquad,
-    },
-  ];
-
   const [formData, setFormData] = useState(initVals);
   const [formErrors, setFormErrors] = useState(initErrors);
 
@@ -70,38 +46,21 @@ export const TmntDataForm = () => {
   const [squads, setSquads] = useState(initSquads);
   const [squadAcdnErr, setSquadAcdnErr] = useState(noAcdnErr); 
   
-  const [featAcdnErr, setFeatAcdnErr] = useState<AcdnErrType>(noAcdnErr)
-  const [divFeats, setDivFeats] = useState<divFeatType[]>(useSelector(selectAllDivFeats));
-  const [seDivFeats, setSeDivFeats] = useState<seDivFeatType[]>(useSelector(selectAllSeDivFeats));
-  const [elim, setElim] = useState<elimType>(initElim)
-  const [brkt, setBrkt] = useState<brktType>(initBrkt)
+  const [pots, setPots] = useState(initPots)
+  const [potAcdnErr, setPotAcdnErr] = useState(noAcdnErr); 
 
-  const featsParams: featsParamsType = {
-    divFeats,
-    setDivFeats,
-    seDivFeats,
-    setSeDivFeats,
-    elim,
-    setElim,
-    brkt,
-    setBrkt,
-    featAcdnErr,
-    setFeatAcdnErr,
-  }
+  const [brkts, setBrkts] = useState(initBrkts)
+  const [brktAcdnErr, setBrktAcdnErr] = useState(noAcdnErr); 
+
+  const [elims, setElims] = useState(initElims)
+  const [elimAcdnErr, setElimAcdnErr] = useState(noAcdnErr); 
 
   const bowlsStatus = useSelector(getBowlsStatus);
   const bowls = useSelector(selectAllBowls);
   const bowlsError = useSelector(getBowlsError);  
-  const featsStatus = useSelector(getFeatsStatus);
-  const feats = useSelector(selectAllFeats);
-  const featsError = useSelector(getFeatsError);  
 
   useEffect(() => {
     dispatch(fetchBowls());
-  }, [dispatch]);
-
-  useEffect(() => {
-    dispatch(fetchFeats());
   }, [dispatch]);
 
   const bowlOptions = bowls.map(bowl => (
@@ -226,17 +185,23 @@ export const TmntDataForm = () => {
     if (!validateDivs(divs, setDivs, setDivAcdnErr)) {
       isTmntValid = false;
     }
-
+    if (!validateSquads(squads, setSquads, events, setSquadAcdnErr, formData.start_date, formData.end_date)) {
+      isTmntValid = false;
+    }
+    if (!validatePots(pots, setPots, setPotAcdnErr)) {
+      isTmntValid = false;
+    }
+    if (!validateBrkts(brkts, setBrkts, setBrktAcdnErr)) {
+      isTmntValid = false;
+    }
     return isTmntValid;
   };
 
   const handleDebug = (e: React.MouseEvent<HTMLElement>) => {
     // const eventsAreValid = validateEvents(events, setEvents, setEventAcdnErr);
     // console.log("Events valid: ", eventsAreValid);
-
     // const divsArevalid = validateDivs(divs, setDivs, setDivAcdnErr);
     // console.log("Divs are valid: ", divsArevalid);
-
     // const squadsAreValid = validateSquads(
     //   squads,
     //   setSquads,
@@ -245,11 +210,14 @@ export const TmntDataForm = () => {
     //   formData.start_date,
     //   formData.end_date
     // );
-    // console.log("Squads are valid: ", squadsAreValid);    
+    // console.log("Squads are valid: ", squadsAreValid);
+    // const postAreValid = validatePots(pots, setPots, setPotAcdnErr);
+    // console.log("Pots are valid: ", postAreValid);
+    // const brktsAreValid = validateBrkts(brkts, setBrkts, setBrktAcdnErr);
+    // console.log('brktsAreValid', brktsAreValid);
+    const elimsAreValid = validateElims(elims, setElims, setElimAcdnErr);
+    console.log('elimsAreValid', elimsAreValid);
 
-    const featsAreValid = validateFeats(featsParams, squads);
-    console.log("Feats are valid: ", featsAreValid);    
-    
     // events.forEach((event) => {
     //   console.log(`event ${event.id}: `, event);
     // });
@@ -259,13 +227,15 @@ export const TmntDataForm = () => {
     // squads.forEach((squad) => {
     //   console.log(`squad ${squad.id}: `, squad);
     // });
-
-    // divFeats.forEach(divFeat => {
-    //   console.log('divFeat: ', divFeat)
-    // });
-    // seDivFeats.forEach(seDivFeat => {
-    //   console.log('seDivFeat: ', seDivFeat)
-    // });
+    // pots.forEach((pot) => {
+    //   console.log(`pot ${pot.id}: `, pot);
+    // })
+    // brkts.forEach((brkt) => {
+    //   console.log(`brkt ${brkt.id}: `, brkt);
+    // })
+    elims.forEach((elim) => {
+      console.log(`elim ${elim.id}: `, elim);
+    })
   };
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -275,14 +245,11 @@ export const TmntDataForm = () => {
 
   return (
     <form onSubmit={handleSubmit}>
-      {(bowlsStatus === 'loading' || featsStatus === 'loading' ) && <div>Loading...</div>}
+      {(bowlsStatus === 'loading' ) && <div>Loading...</div>}
       {bowlsStatus !== 'loading' && bowlsError ? (
         <div>Error: {bowlsError}</div>
-      ) : null}
-      {featsStatus !== 'loading' && featsError ? (
-        <div>Error: {featsError}</div>
-      ) : null}
-      {(bowlsStatus === 'succeeded' && featsStatus === 'succeeded') ? (        
+      ) : null}      
+      {(bowlsStatus === 'succeeded') ? (        
         <div className="form_container">
           <div className="row g-3 mb-3">
             <div className="col-md-6">
@@ -356,7 +323,11 @@ export const TmntDataForm = () => {
               <div className="text-danger">{formErrors.end_date}</div>
             </div>
             <div className="col-sm-3">
-              <button className="btn btn-info" onClick={handleDebug}>
+              <button 
+                className="btn btn-info"
+                onClick={handleDebug}
+                onFocus={() => console.log("Debug button: got focus")}
+              >
                 Debug
               </button>
             </div>
@@ -386,6 +357,9 @@ export const TmntDataForm = () => {
                 <OneToNDivs
                   divs={divs}
                   setDivs={setDivs}
+                  pots={pots}
+                  brkts={brkts}
+                  elims={elims}
                   setAcdnErr={setDivAcdnErr}
                 />
               </Accordion.Body>
@@ -407,14 +381,49 @@ export const TmntDataForm = () => {
             </AccordionItem>
           </Accordion>
           <Accordion>
-            <AccordionItem eventKey="fatures">
-              <Accordion.Header className={featAcdnErr.errClassName}>
-                Feaures{featAcdnErr.message}
+            <AccordionItem eventKey="pots">
+              <Accordion.Header className={potAcdnErr.errClassName}>
+                Pots{potAcdnErr.message}
               </Accordion.Header>
               <Accordion.Body>
-                <ZeroToNFeats 
-                  featsParams={featsParams}  
-                  // setAcdnErr={setFeatAcdnErr}
+                <ZeroToNPots
+                  pots={pots}
+                  setPots={setPots}
+                  divs={divs}
+                  squads={squads}
+                  setAcdnErr={setPotAcdnErr}
+                />
+              </Accordion.Body>
+            </AccordionItem>
+          </Accordion>
+          <Accordion>
+            <AccordionItem eventKey="brkts">
+              <Accordion.Header className={brktAcdnErr.errClassName}>
+                Brackets{brktAcdnErr.message}
+              </Accordion.Header>
+              <Accordion.Body>
+                <ZeroToNBrackets
+                  brkts={brkts}
+                  setBrkts={setBrkts}
+                  divs={divs}
+                  squads={squads}
+                  setAcdnErr={setBrktAcdnErr}
+                />
+              </Accordion.Body>
+            </AccordionItem>
+          </Accordion>
+          <Accordion>
+            <AccordionItem eventKey="elims">
+              <Accordion.Header className={elimAcdnErr.errClassName}>
+                Eliminators{elimAcdnErr.message}
+              </Accordion.Header>
+              <Accordion.Body>
+                <ZeroToNElims
+                  elims={elims}
+                  setElims={setElims}
+                  divs={divs}
+                  squads={squads}
+                  setAcdnErr={setElimAcdnErr}
                 />
               </Accordion.Body>
             </AccordionItem>

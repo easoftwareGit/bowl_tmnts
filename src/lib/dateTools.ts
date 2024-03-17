@@ -25,8 +25,10 @@ export const twelveHourto24Hour = (time: string): string => {
     let hours = parseInt(time.substring(0, 2))    
     const minutes = time.substring(3, 5)
     const ampm = time.substring(6).toUpperCase();
-    if (ampm === 'PM') {
-      hours += 12;
+    if (ampm === 'PM' && hours !== 12) {
+      hours += 12;            
+    } else if (ampm === 'AM' && hours === 12) {
+      hours = 0
     }
     const hoursStr = hours.toString().padStart(2, '0');
     return `${hoursStr}:${minutes}`;

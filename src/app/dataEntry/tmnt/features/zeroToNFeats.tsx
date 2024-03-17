@@ -4,7 +4,7 @@ import { useSelector } from "react-redux";
 import { selectAllFeats } from "@/redux/features/feats/featsSlice";
 import { divFeatErrType, divFeatType, featsParamsType, seDivFeatType, squadType } from "../types";
 import { Tabs, Tab } from "react-bootstrap";
-import ModalConfirm, { initModalObj, delConfTitle } from "@/components/modal/confirmModel";
+import ModalConfirm, { initModalObj, delConfTitle } from "@/components/modal/confirmModal";
 import SingleEntry from "./singleEntry";
 import Eliminator from "./eliminator";
 import Brackets from "./brackets";

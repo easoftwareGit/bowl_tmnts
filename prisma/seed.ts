@@ -1,4 +1,3 @@
-import { FEATURES, FEATURES_SORT_ORDER } from "@/lib/features";
 import { PrismaClient } from "@prisma/client";
 import { hash } from "bcrypt";
 
@@ -285,88 +284,6 @@ async function tmntUpsert() {
   }
 }
 
-async function featUpsert() {  
-  try {
-    let feat = await prisma.feat.upsert({
-      where: {
-        id: "fea_a04f798e8c70473a98fb3e4487635046",
-      },
-      update: {},
-      create: {
-        id: "fea_a04f798e8c70473a98fb3e4487635046",
-        feat_name: FEATURES.POTS,
-        entry_type: "single",
-        sort_order: FEATURES_SORT_ORDER.POTS
-      },
-    });  
-    feat = await prisma.feat.upsert({
-      where: {
-        id: "fea_d46792cea35845378f2ccd373fed4fa2",
-      },
-      update: {},
-      create: {
-        id: "fea_d46792cea35845378f2ccd373fed4fa2",
-        feat_name: FEATURES.LAST_GAME,
-        entry_type: "single",
-        sort_order: FEATURES_SORT_ORDER.LAST_GAME
-      },
-    });  
-    feat = await prisma.feat.upsert({
-      where: {
-        id: "fea_aa47ed43d4f1426ea069f8818ad37e47",
-      },
-      update: {},
-      create: {
-        id: "fea_aa47ed43d4f1426ea069f8818ad37e47",
-        feat_name: FEATURES.SCRATCH_SERIES,
-        entry_type: "single",
-        sort_order: FEATURES_SORT_ORDER.SCRATCH_SERIES
-      },
-    });  
-    feat = await prisma.feat.upsert({
-      where: {
-        id: "fea_9c912313999547f78be9f1d0df71596e",
-      },
-      update: {},
-      create: {
-        id: "fea_9c912313999547f78be9f1d0df71596e",
-        feat_name: FEATURES.BRACKETS,
-        entry_type: "multiple",
-        sort_order: FEATURES_SORT_ORDER.BRACKETS
-      },
-    });  
-    feat = await prisma.feat.upsert({
-      where: {
-        id: "fea_284d66215adb480c97a20205199f7246",
-      },
-      update: {},
-      create: {
-        id: "fea_284d66215adb480c97a20205199f7246",
-        feat_name: FEATURES.ELIMINATOR,
-        entry_type: "multiple",
-        sort_order: FEATURES_SORT_ORDER.ELIMINATOR
-      },
-    });  
-    feat = await prisma.feat.upsert({
-      where: {
-        id: "fea_ade90b4eb8494ffd9d56964a22ba4720",
-      },
-      update: {},
-      create: {
-        id: "fea_ade90b4eb8494ffd9d56964a22ba4720",
-        feat_name: FEATURES.SENIOR_INSURANCE,
-        entry_type: "single",
-        sort_order: FEATURES_SORT_ORDER.SENIOR_INSURANCE
-      },
-    }); 
-    console.log("Upserted feats:", 5);
-    return 5    
-  } catch (error) {
-    console.log(error)
-    return -1
-  }
-}
-
 async function eventUpsert() {
 
   try {
@@ -622,185 +539,273 @@ async function squadUpsert() {
   }
 }
 
-async function divFeatUpsert() {
+async function potsUpsert() {
+
   try {
-    let divFeat = await prisma.div_Feat.upsert({
+    let pot = await prisma.pot.upsert({
       where: {
-        id: "dvf_d73447ccc88741c1b423cde071d2cb07",
+        id: "pot_b2a7b02d761b4f5ab5438be84f642c3b",
       },
       update: {},
       create: {
-        id: "dvf_d73447ccc88741c1b423cde071d2cb07",
+        id: "pot_b2a7b02d761b4f5ab5438be84f642c3b",
+        squad_id: "sqd_7116ce5f80164830830a7157eb093396",
         div_id: "div_f30aea2c534f4cfe87f4315531cef8ef",
-        feat_id: 'fea_a04f798e8c70473a98fb3e4487635046',
         sort_order: 1,
+        fee: 20,
+        pot_type: 'Game',
       },
     });      
-    divFeat = await prisma.div_Feat.upsert({
+    pot = await prisma.pot.upsert({
       where: {
-        id: "dvf_b5e8fba27f064081a8a3afa9d995dcc2",
+        id: "pot_ef6e06e06abb4d96a47017553f9a5e9e",
       },
       update: {},
       create: {
-        id: "dvf_b5e8fba27f064081a8a3afa9d995dcc2",
+        id: "pot_ef6e06e06abb4d96a47017553f9a5e9e",
+        squad_id: "sqd_7116ce5f80164830830a7157eb093396",
         div_id: "div_f30aea2c534f4cfe87f4315531cef8ef",
-        feat_id: 'fea_9c912313999547f78be9f1d0df71596e',
+        sort_order: 2,
+        fee: 10,
+        pot_type: 'Last_Game',
+      },
+    });  
+    pot = await prisma.pot.upsert({
+      where: {
+        id: "pot_ef6e06e06abb4d96a47017553f9a5e9e",
+      },
+      update: {},
+      create: {
+        id: "pot_ef6e06e06abb4d96a47017553f9a5e9e",
+        squad_id: "sqd_7116ce5f80164830830a7157eb093396",
+        div_id: "div_f30aea2c534f4cfe87f4315531cef8ef",
+        sort_order: 2,
+        fee: 10,
+        pot_type: 'Last_Game',
+      },
+    });  
+    pot = await prisma.pot.upsert({
+      where: {
+        id: "pot_ef6e06e06abb4d96a47017553f9a5e9e",
+      },
+      update: {},
+      create: {
+        id: "pot_ef6e06e06abb4d96a47017553f9a5e9e",
+        squad_id: "sqd_7116ce5f80164830830a7157eb093396",
+        div_id: "div_26230803eb454a6588476b64eab1963a",
+        sort_order: 3,
+        fee: 20,
+        pot_type: 'Game',
+      },
+    });  
+    pot = await prisma.pot.upsert({
+      where: {
+        id: "pot_dd99ba49394f4837aef26ec7e5781137",
+      },
+      update: {},
+      create: {
+        id: "pot_dd99ba49394f4837aef26ec7e5781137",
+        squad_id: "sqd_7116ce5f80164830830a7157eb093396",
+        div_id: "div_26230803eb454a6588476b64eab1963a",
         sort_order: 4,
+        fee: 10,
+        pot_type: 'Series',
       },
-    });      
-    divFeat = await prisma.div_Feat.upsert({
+    });  
+    pot = await prisma.pot.upsert({
       where: {
-        id: "dvf_1b0d1db75e7d4a58b5de727ee3124587",
+        id: "pot_98b3a008619b43e493abf17d9f462a65",
       },
       update: {},
       create: {
-        id: "dvf_1b0d1db75e7d4a58b5de727ee3124587",
+        id: "pot_98b3a008619b43e493abf17d9f462a65",
+        squad_id: "sqd_1a6c885ee19a49489960389193e8f819",
+        div_id: "div_1f42042f9ef24029a0a2d48cc276a087",
+        sort_order: 1,
+        fee: 10,
+        pot_type: 'Game',
+      },
+    });  
+    pot = await prisma.pot.upsert({
+      where: {
+        id: "pot_ab80213899ea424b938f52a062deacfe",
+      },
+      update: {},
+      create: {
+        id: "pot_ab80213899ea424b938f52a062deacfe",
+        squad_id: "sqd_1a6c885ee19a49489960389193e8f819",
+        div_id: "div_1f42042f9ef24029a0a2d48cc276a087",
+        sort_order: 2,
+        fee: 10,
+        pot_type: 'Last Gane',
+      },
+    });  
+
+    console.log("Upserted pots:", 6);
+    return 6
+  } catch (error) {
+    console.log(error)
+    return -1
+  }
+}
+
+async function brktUpsert() {
+
+  try {
+    let brkt = await prisma.bracket.upsert({
+      where: {
+        id: "brk_5109b54c2cc44ff9a3721de42c80c8c1",
+      },
+      update: {},
+      create: {
+        id: "brk_5109b54c2cc44ff9a3721de42c80c8c1",
+        squad_id: "sqd_7116ce5f80164830830a7157eb093396",
         div_id: "div_f30aea2c534f4cfe87f4315531cef8ef",
-        feat_id: 'fea_284d66215adb480c97a20205199f7246',
-        sort_order: 5,
-      },
-    });      
-    console.log("Upserted divFeats:", 3);
-    return 3  
-  } catch (error) {
-    console.log(error)
-    return -1    
-  }
-}
-
-async function seDivFeatUpsert() { 
-  try {
-    let seDivFeat = await prisma.se_Div_Feat.upsert({
-      where: {
-        id: "sef_da07c07192c545e5810b6752b292a915",
-      },
-      update: {},
-      create: {
-        id: "sef_da07c07192c545e5810b6752b292a915",
-        div_feat_id: "dvf_d73447ccc88741c1b423cde071d2cb07",        
-        sort_order: 1,
-        fee: 5,        
-      },
-    });      
-    console.log("Upserted SeDivFeats:", 1);
-    return 1   
-  } catch (error) {
-    console.log(error)
-    return -1    
-  }
-}
-
-async function elDivFeatUpsert() { 
-  try {
-    let elDivFeat = await prisma.el_Div_Feat.upsert({
-      where: {
-        id: "elf_1d8a46f250234c6dbcc0bd99338972e5",
-      },
-      update: {},
-      create: {
-        id: "elf_1d8a46f250234c6dbcc0bd99338972e5",
-        div_feat_id: "dvf_d73447ccc88741c1b423cde071d2cb07",
-        start: 1,
-        games: 3,
-        fee: 5,
-      },
-    });
-    elDivFeat = await prisma.el_Div_Feat.upsert({
-      where: {
-        id: "elf_b3558e6f53704bb2a02373e3277ec6ca",
-      },
-      update: {},
-      create: {
-        id: "elf_b3558e6f53704bb2a02373e3277ec6ca",
-        div_feat_id: "dvf_d73447ccc88741c1b423cde071d2cb07",
-        start: 4,
-        games: 3,
-        fee: 5,
-      },
-    });
-    console.log("Upserted ElDivFeats:", 2);
-    return 2 
-  } catch (error) {
-    console.log(error)
-    return -1    
-  }
-}
-
-async function brDivFeatUpsert() {
-  try {
-    let brDivFeat = await prisma.br_Div_Feat.upsert({
-      where: {
-        id: "brf_e47c7f248cac49f0a0e9f6dfe6394f0c",
-      },
-      update: {},
-      create: {
-        id: "brf_e47c7f248cac49f0a0e9f6dfe6394f0c",
-        div_feat_id: "dvf_d73447ccc88741c1b423cde071d2cb07",
         sort_order: 1,
         start: 1,
+        games: 3,
+        players: 8,
+        fee: 5,
+        first: 25,
+        second: 10,
+        admin: 5,
       },
-    });
-    brDivFeat = await prisma.br_Div_Feat.upsert({
+    });      
+    brkt = await prisma.bracket.upsert({
       where: {
-        id: "brf_16cd6172159245aea4b21e8fea5782b3",
+        id: "brk_6ede2512c7d4409ca7b055505990a499",
       },
       update: {},
       create: {
-        id: "brf_16cd6172159245aea4b21e8fea5782b3",
-        div_feat_id: "dvf_d73447ccc88741c1b423cde071d2cb07",
+        id: "brk_6ede2512c7d4409ca7b055505990a499",
+        squad_id: "sqd_7116ce5f80164830830a7157eb093396",
+        div_id: "div_f30aea2c534f4cfe87f4315531cef8ef",
         sort_order: 2,
         start: 4,
+        games: 3,
+        players: 8,
+        fee: 5,
+        first: 25,
+        second: 10,
+        admin: 5,
       },
-    });    
-    console.log("Upserted BrDivFeats:", 2);
-    return 2
-  } catch (error) {
-    console.log(error)
-    return -1    
-  }
-}
-
-async function brDesignUpsert() {
-  try {
-    let brDesign = await prisma.br_Design.upsert({
+    });      
+    brkt = await prisma.bracket.upsert({
       where: {
-        id: "brd_88408409097f4822862e89a399bba34e",
+        id: "brk_aa3da3a411b346879307831b6fdadd5f",
       },
       update: {},
       create: {
-        id: "brd_88408409097f4822862e89a399bba34e",
-        div_feat_id: "dvf_d73447ccc88741c1b423cde071d2cb07",
+        id: "brk_aa3da3a411b346879307831b6fdadd5f",
+        squad_id: "sqd_1a6c885ee19a49489960389193e8f819",
+        div_id: "div_1f42042f9ef24029a0a2d48cc276a087",
+        sort_order: 1,
         start: 1,
         games: 3,
         players: 8,
         fee: 5,
         first: 25,
         second: 10,
-        admin: 5
+        admin: 5,
       },
-    });
-    brDesign = await prisma.br_Design.upsert({
+    });      
+    brkt = await prisma.bracket.upsert({
       where: {
-        id: "brd_6b6d7e64b29d450a823d4c930f01ef49",
+        id: "brk_37345eb6049946ad83feb9fdbb43a307",
       },
       update: {},
       create: {
-        id: "brd_6b6d7e64b29d450a823d4c930f01ef49",
-        div_feat_id: "dvf_d73447ccc88741c1b423cde071d2cb07",
+        id: "brk_37345eb6049946ad83feb9fdbb43a307",
+        squad_id: "sqd_1a6c885ee19a49489960389193e8f819",
+        div_id: "div_1f42042f9ef24029a0a2d48cc276a087",
+        sort_order: 2,
         start: 4,
         games: 3,
         players: 8,
         fee: 5,
         first: 25,
         second: 10,
-        admin: 5
+        admin: 5,
       },
-    });    
-    console.log("Upserted BrDesign:", 1);
-    return 1
+    });      
+
+    console.log("Upserted brackets:", 4);
+    return 4
   } catch (error) {
     console.log(error)
-    return -1    
+    return -1
+  }
+}
+
+async function elimUpsert() {
+
+  try {
+    let elim = await prisma.eliminator.upsert({
+      where: {
+        id: "elm_45d884582e7042bb95b4818ccdd9974c",
+      },
+      update: {},
+      create: {
+        id: "elm_45d884582e7042bb95b4818ccdd9974c",
+        squad_id: "sqd_7116ce5f80164830830a7157eb093396",
+        div_id: "div_f30aea2c534f4cfe87f4315531cef8ef",
+        sort_order: 1,
+        start: 1,
+        games: 3,
+        fee: 5,
+      },
+    });      
+    elim = await prisma.eliminator.upsert({
+      where: {
+        id: "elm_9d01015272b54962a375cf3c91007a12",
+      },
+      update: {},
+      create: {
+        id: "elm_9d01015272b54962a375cf3c91007a12",
+        squad_id: "sqd_7116ce5f80164830830a7157eb093396",
+        div_id: "div_f30aea2c534f4cfe87f4315531cef8ef",
+        sort_order: 2,
+        start: 4,
+        games: 3,
+        fee: 5,
+      },
+    });      
+    elim = await prisma.eliminator.upsert({
+      where: {
+        id: "brk_aa3da3a411b346879307831b6fdadd5f",
+      },
+      update: {},
+      create: {
+        id: "brk_aa3da3a411b346879307831b6fdadd5f",
+        squad_id: "sqd_1a6c885ee19a49489960389193e8f819",
+        div_id: "div_1f42042f9ef24029a0a2d48cc276a087",
+        sort_order: 1,
+        start: 1,
+        games: 3,
+        fee: 5,
+      },
+    });      
+    elim = await prisma.eliminator.upsert({
+      where: {
+        id: "brk_37345eb6049946ad83feb9fdbb43a307",
+      },
+      update: {},
+      create: {
+        id: "brk_37345eb6049946ad83feb9fdbb43a307",
+        squad_id: "sqd_1a6c885ee19a49489960389193e8f819",
+        div_id: "div_1f42042f9ef24029a0a2d48cc276a087",
+        sort_order: 2,
+        start: 4,
+        games: 3,
+        fee: 5,
+      },
+    });      
+
+    console.log("Upserted eliminators:", 4);
+    return 4
+  } catch (error) {
+    console.log(error)
+    return -1
   }
 }
 
@@ -815,9 +820,6 @@ async function main() {
   count = await tmntUpsert();
   if (count < 0) return;
 
-  count = await featUpsert();
-  if (count < 0) return;
-
   count = await eventUpsert();
   if (count < 0) return;
 
@@ -830,19 +832,13 @@ async function main() {
   count = await squadUpsert();
   if (count < 0) return;
 
-  count = await divFeatUpsert()
+  count = await potsUpsert();
   if (count < 0) return;
 
-  count = await seDivFeatUpsert()
+  count = await brktUpsert();
   if (count < 0) return;
 
-  count = await elDivFeatUpsert()
-  if (count < 0) return;
-
-  count = await brDivFeatUpsert()
-  if (count < 0) return;
-
-  count = await brDesignUpsert()
+  count = await elimUpsert();
   if (count < 0) return;
 }
 

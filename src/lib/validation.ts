@@ -67,12 +67,9 @@ const validIdTypes = [
   "div",
   "sqd",
   "hdc",
-  "fea",
-  "dvf",
-  "sef",
-  "elf",
-  "brf",
-  "brd",
+  "pot",
+  "brk",
+  "elm",
   "ply",
 ];
 

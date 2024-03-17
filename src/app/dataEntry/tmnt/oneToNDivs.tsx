@@ -1,37 +1,35 @@
 import React, { useState, ChangeEvent, Dispatch, SetStateAction } from "react";
-import { divType, AcdnErrType } from "./types";
+import { divType, AcdnErrType, potType, brktType, elimType } from "./types";
 import { initDiv } from "./initVals";
 import { Tabs, Tab } from "react-bootstrap";
-import ModalConfirm, { initModalObj, delConfTitle } from "@/components/modal/confirmModel";
+import ModalConfirm, { delConfTitle } from "@/components/modal/confirmModal";
+import ModalErrorMsg, { cannotDeleteTitle } from "@/components/modal/errorModal";
+import { initModalObj } from "@/components/modal/modalObjType";
 import { objErrClassName, acdnErrClassName, getAcdnErrMsg, noAcdnErr, isDuplicateName } from "./errors";
 import { maxEventLength, minHdcpPer, maxHdcpPer, minHdcpFrom, maxHdcpFrom } from "@/lib/validation";
 
 interface ChildProps {
   divs: divType[],
   setDivs: (divs: divType[]) => void;  
+  pots: potType[],
+  brkts: brktType[],
+  elims: elimType[],
   setAcdnErr: (objAcdnErr: AcdnErrType) => void;
 }
 interface AddOrDelButtonProps {
-  id: number;
+  id: string;
 }
 
 const defaultTabKey = 'div1'
 
 const getDivErrMsg = (div: divType): string => {
-  if (div.name_err) {
-    return div.name_err
-  } else if (div.hdcp_err) {
-    return div.hdcp_err
-  } else if (div.hdcp_from_err) {
-    return div.hdcp_from_err
-  } else
-    return '';
+  if (div.name_err) return div.name_err;
+  if (div.hdcp_err) return div.hdcp_err;
+  if (div.hdcp_from_err) return div.hdcp_from_err;
+  return '';
 }
 
-const getNextAcdnErrMsg = (
-  updatedDiv: divType | null,
-  divs: divType[],
-): string => {
+const getNextAcdnErrMsg = (updatedDiv: divType | null, divs: divType[]): string => {
   let errMsg = '';
   let acdnErrMsg = '';
   let i = 0;
@@ -73,6 +71,7 @@ export const validateDivs = (
     areDivsValid = false;
     divErrClassName = objErrClassName;
   }
+
   setDivs(
     divs.map((div) => {
       divErrClassName = '';
@@ -121,52 +120,106 @@ export const validateDivs = (
 const OneToNDivs: React.FC<ChildProps> = ({
   divs,
   setDivs,  
+  pots,
+  brkts,
+  elims,
   setAcdnErr
 }) => { 
 
-  const [modalObj, setModalObj] = useState(initModalObj);
+  const [confModalObj, setConfModalObj] = useState(initModalObj);
+  const [errModalObj, setErrModalObj] = useState(initModalObj);
   const [tabKey, setTabKey] = useState(defaultTabKey); 
   const [divId, setDivId] = useState(1); // id # used in initDivs in form.tsx
 
   const handleAdd = () => {
     const newDiv: divType = {
       ...initDiv,
-      id: divId + 1,
+      id: '' + (divId + 1),
       name: "Division " + (divId + 1),
-      tabTitle: "Division " + (divId + 1),
+      tab_title: "Division " + (divId + 1),
     };
     setDivId(divId + 1);
     setDivs([...divs, newDiv]);
   };
 
   const confirmedDelete = () => {    
-    setModalObj(initModalObj)   // reset modal object (hides modal)    
+    setConfModalObj(initModalObj)   // reset modal object (hides modal)    
 
-    const updatedData = divs.filter((div) => div.id !== modalObj.id);
+    // filter out deleted div
+    const updatedData = divs.filter((div) => div.id !== confModalObj.id);
     setDivs(updatedData);    
+    
+    // deleted div might have an acdn error, get next acdn error
+    const acdnErrMsg = getNextAcdnErrMsg(null, updatedData);
+    if (acdnErrMsg) {
+      setAcdnErr({
+        errClassName: acdnErrClassName,
+        message: acdnErrMsg
+      })
+    } else {
+      setAcdnErr(noAcdnErr)
+    }
 
-    setTabKey(defaultTabKey);   // refocus 1st event
+    setTabKey(defaultTabKey);   // refocus 1st div
   }
 
   const canceledDelete = () => {    
-    setModalObj(initModalObj)   // reset modal object (hides modal)    
+    setConfModalObj(initModalObj)   // reset modal object (hides modal)    
+  }
+  const canceledModalErr = () => {
+    setErrModalObj(initModalObj); // reset modal object (hides modal)
+  };
+
+  const divHasPots = (divToDel: divType): boolean => {
+    return pots.some((pot) => pot.div_id === divToDel.id)
+  }
+  const divHasBrkts = (divToDel: divType): boolean => {
+    return false
+  }
+  const divHasElims = (divToDel: divType): boolean => {
+    return false
   }
 
-  const handleDelete = (id: number) => {
-    if (id === 1) {
-      return
-    }
+  const handleDelete = (id: string) => {
+    if (id === "1") return
+
     const divToDel = divs.find((div) => div.id === id);
-    const toDelName = divToDel?.name;
-    setModalObj({
-      show: true,
-      title: delConfTitle,
-      message: `Do you want to delete Division: ${toDelName}`,
-      id: id
-    });   // deletion done in confirmedDelete    
+    if (!divToDel) return;
+
+    const toDelName = divToDel.name;
+
+    if (divHasPots(divToDel)) {
+      setErrModalObj({
+        show: true,
+        title: cannotDeleteTitle,
+        message: `Cannot delete Division: ${toDelName}. It has a Pot.`,
+        id: id
+      })
+    } else if (divHasBrkts(divToDel)) {
+      setErrModalObj({
+        show: true,
+        title: cannotDeleteTitle,
+        message: `Cannot delete Division: ${toDelName}. It has a Bracket.`,
+        id: id
+      })
+    } else if (divHasElims(divToDel)) {
+      setErrModalObj({
+        show: true,
+        title: cannotDeleteTitle,
+        message: `Cannot delete Division: ${toDelName}. It has an Eliminator.`,
+        id: id
+      })
+    } else {
+      setConfModalObj({
+        show: true,
+        title: delConfTitle,
+        message: `Do you want to delete Division: ${toDelName}?`,
+        id: id
+      });   // deletion done in confirmedDelete    
+    }
   }
  
-  const handleInputChange = (id: number) => (e: ChangeEvent<HTMLInputElement>) => { 
+  const handleInputChange = (id: string) => (e: ChangeEvent<HTMLInputElement>) => { 
     const { name, value, checked } = e.target;
     const nameErr = name + '_err';   
 
@@ -179,7 +232,7 @@ const OneToNDivs: React.FC<ChildProps> = ({
             updatedDiv = {
               ...div,
               name: value,
-              tabTitle: value,
+              tab_title: value,
               name_err: ''
             }
           } else if (name === "item.int_hdcp") {
@@ -227,7 +280,7 @@ const OneToNDivs: React.FC<ChildProps> = ({
     );
   }
 
-  const handleBlur = (id: number) => (e: ChangeEvent<HTMLInputElement>) => { 
+  const handleBlur = (id: string) => (e: ChangeEvent<HTMLInputElement>) => { 
     const { name, value } = e.target;
 
     if (value === '') {
@@ -238,7 +291,7 @@ const OneToNDivs: React.FC<ChildProps> = ({
               return {
                 ...div,
                 name: 'Division ' + div.id,
-                tabTitle: 'Division ' + div.id,
+                tab_title: 'Division ' + div.id,
                 name_err: ''  
               }
             } else if (name === 'hdcp') {
@@ -282,52 +335,45 @@ const OneToNDivs: React.FC<ChildProps> = ({
   };
 
   const AddOrDelButton: React.FC<AddOrDelButtonProps> = ({ id }) => {
-    if (id === 1) {
+    if (id === "1") {
       return (
         <div className="col-sm-3">
           <label htmlFor="inputNumDivs" className="form-label">
             # Divisions
           </label>
-          <div className="input-group">
-            <input
-              type="text"
-              className="form-control"
-              id="inputNumDivs"
-              name="num_divs"
-              readOnly
-              value={divs.length}
-            />
-            <button
-              className="btn btn-success border border-start-0 rounded-end"
-              type="button"
-              tabIndex={-1}
-              id="divs-plus"
-              onClick={handleAdd}
-            >
-              +
-            </button>
+          <div className="row g-0">
+            <div className="col-sm-8">
+              <input
+                disabled
+                type="text"
+                className="form-control"
+                id="inputNumDivs"
+                name="num_Divs"
+                value={divs.length}
+              />
+            </div>
+            <div className="d-grid col-sm-4">            
+              <button
+                className="btn btn-success"
+                id="divAdd"
+                onClick={handleAdd}                
+              >
+                Add
+              </button>
+            </div>
           </div>
         </div>
       );
     } else {
       return (
         <div className="col-sm-3 d-flex justify-content-center align-items-end">
-          <div className="input-group">
-            <input
-              type="text"
-              className="form-control deleteInput"
-              readOnly
-              value="Delete Div"
-            />
-            <button
-              className="btn btn-danger border rounded"
-              type="button"
-              tabIndex={-1}
-              onClick={() => handleDelete(id)}
-            >
-              -
-            </button>
-          </div>
+          <button
+            className="btn btn-danger"
+            id="divDel"
+            onClick={() => handleDelete(id)}
+          >
+            Delete Div
+          </button>
         </div>
       );
     }
@@ -336,12 +382,18 @@ const OneToNDivs: React.FC<ChildProps> = ({
   return (
     <>
       <ModalConfirm
-        show={modalObj.show}
-        title={modalObj.title}
-        message={modalObj.message}
+        show={confModalObj.show}
+        title={confModalObj.title}
+        message={confModalObj.message}
         onConfirm={confirmedDelete}  
         onCancel={canceledDelete}
       />    
+      <ModalErrorMsg
+        show={errModalObj.show}
+        title={errModalObj.title}
+        message={errModalObj.message}   
+        onCancel={canceledModalErr}
+      />
       <Tabs
         defaultActiveKey={defaultTabKey}
         id="div-tabs"
@@ -354,7 +406,7 @@ const OneToNDivs: React.FC<ChildProps> = ({
           <Tab
             key={div.id}
             eventKey={`div${div.id}`}
-            title={div.tabTitle}
+            title={div.tab_title}
             tabClassName={`${div.errClassName}`}
           >
             <div className="row g-3 mb-3">
@@ -407,7 +459,7 @@ const OneToNDivs: React.FC<ChildProps> = ({
                   min={minHdcpFrom}
                   max={maxHdcpFrom}
                   step={10}        
-                  className={`form-control ${div.hdcp_err && "is-invalid"}`}
+                  className={`form-control ${div.hdcp_from_err && "is-invalid"}`}
                   id={`inputHdcpFrom${div.id}`}
                   name="hdcp_from"
                   value={div.hdcp_from}                        

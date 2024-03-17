@@ -1,21 +1,8 @@
 import Button from 'react-bootstrap/Button';
 import Modal from 'react-bootstrap/Modal';
+import { modalObjectType, initModalObj } from './modalObjType';
 
 export const delConfTitle = 'Confirm Delete'
-
-export type modalObjectType = {
-  show: boolean,
-  title: string,
-  message: string,
-  id: number
-}
-
-export const initModalObj: modalObjectType = {
-  show: false,
-  title: 'title',
-  message: 'message',
-  id: 0
-}
 
 interface ChildProps {
   show: boolean,

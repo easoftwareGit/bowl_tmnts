@@ -7,7 +7,7 @@ import NavDropdown from 'react-bootstrap/NavDropdown';
 
 import { useSession } from "next-auth/react"; 
 import { signOut } from "next-auth/react"; 
-import ModelConfirm from "@/components/modal/confirmModel"
+import ModelConfirm from "@/components/modal/confirmModal"
 import { useState } from "react";
 
 import "./navlink.css";

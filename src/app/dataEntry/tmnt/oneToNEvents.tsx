@@ -1,8 +1,10 @@
 import React, { useState, ChangeEvent, Dispatch, SetStateAction } from "react";
-import { eventType, AcdnErrType, featsParamsType, squadType } from "./types";
+import { eventType, AcdnErrType, squadType } from "./types";
 import { initEvent } from "./initVals";
 import { Tabs, Tab } from "react-bootstrap";
-import ModalConfirm, { initModalObj, delConfTitle } from "@/components/modal/confirmModel";
+import ModalConfirm, { delConfTitle } from "@/components/modal/confirmModal";
+import ModalErrorMsg, { cannotDeleteTitle } from "@/components/modal/errorModal";
+import { initModalObj } from "@/components/modal/modalObjType";
 import { formatValue2Dec, formatValueSymbSep2Dec } from "@/lib/currency/formatValue";
 import { 
   objErrClassName,
@@ -31,7 +33,7 @@ interface ChildProps {
   setAcdnErr: (objAcdnErr: AcdnErrType) => void;  
 }
 interface AddOrDelButtonProps {
-  id: number;
+  id: string;
 }
 
 const defaultTabKey = "event1";
@@ -143,7 +145,9 @@ export const validateEvents = (
       } else if (addedMoney > maxMoney) {        
         addedMoneyErr = 'Added $ cannot be more than ' + maxMoneyText;
         setError(event.name, addedMoneyErr);
-      } 
+      } else {
+        addedMoneyErr = '';
+      }
       const entryFee = Number(event.entry_fee)      
       if (typeof entryFee !== 'number') {
         entryFeeErr = 'Invalid Entry Fee'
@@ -181,7 +185,7 @@ export const validateEvents = (
       };
     })
   );
-  if (areEventsValid) {
+  if (areEventsValid) {1
     setAcdnErr(noAcdnErr);
   }
   return areEventsValid;
@@ -194,14 +198,15 @@ const OneToNEvents: React.FC<ChildProps> = ({
   setSquads,
   setAcdnErr,
 }) => {
-  const [modalObj, setModalObj] = useState(initModalObj);
+  const [confModalObj, setConfModalObj] = useState(initModalObj);
+  const [errModalObj, setErrModalObj] = useState(initModalObj);
   const [tabKey, setTabKey] = useState(defaultTabKey);
   const [eventId, setEventId] = useState(1); // id # used in initEvents in form.tsx
   
   const handleAdd = () => {
     const newEvent: eventType = {
       ...initEvent,      
-      id: eventId + 1,
+      id: '' + (eventId + 1),
       name: "Event " + (eventId + 1),
       tabTitle: "Event " + (eventId + 1),
     };
@@ -210,33 +215,64 @@ const OneToNEvents: React.FC<ChildProps> = ({
   };
 
   const confirmedDelete = () => {
-    setModalObj(initModalObj); // reset modal object (hides modal)
+    setConfModalObj(initModalObj); // reset modal object (hides modal)
 
-    const updatedData = events.filter((event) => event.id !== modalObj.id);
+    // filter out deleted event
+    const updatedData = events.filter((event) => event.id !== confModalObj.id);
     setEvents(updatedData);
+
+    // deleted event might have an acdn error, get next acdn error
+    const acdnErrMsg = getNextAcdnErrMsg(null, updatedData);
+    if (acdnErrMsg) {
+      setAcdnErr({
+        errClassName: acdnErrClassName,
+        message: acdnErrMsg
+      })
+    } else {
+      setAcdnErr(noAcdnErr)
+    }
 
     setTabKey(defaultTabKey); // refocus 1st event
   };
 
   const canceledDelete = () => {
-    setModalObj(initModalObj); // reset modal object (hides modal)
+    setConfModalObj(initModalObj); // reset modal object (hides modal)
+  };
+  const canceledModalErr = () => {
+    setErrModalObj(initModalObj); // reset modal object (hides modal)
   };
 
-  const handleDelete = (id: number) => {
-    if (id === 1) {
-      return;
-    }
+  const eventHasSquads = (eventToDel: eventType): boolean => {
+    const someSquads = squads.some((squad) => squad.event_id === eventToDel.id);
+    console.log('someSquads: ', someSquads)
+    return squads.some((squad) => squad.event_id === eventToDel.id);
+  }
+
+  const handleDelete = (id: string) => {
+    if (id === "1") return;
+
     const eventToDel = events.find((event) => event.id === id);
-    const toDelName = eventToDel?.name;
-    setModalObj({
-      show: true,
-      title: delConfTitle,
-      message: `Do you want to delete Event: ${toDelName}`,
-      id: id,
-    }); // deletion done in confirmedDelete
+    if (!eventToDel) return;
+    
+    const toDelName = eventToDel.name;
+    if (eventHasSquads(eventToDel)) {
+      setErrModalObj({
+        show: true,
+        title: cannotDeleteTitle,
+        message: `Cannot delete Event: ${toDelName}. It has a Squad.`,
+        id: id,
+      });
+    } else {
+      setConfModalObj({
+        show: true,
+        title: delConfTitle,
+        message: `Do you want to delete Event: ${toDelName}?`,
+        id: id,
+      }); // deletion done in confirmedDelete
+    }
   };
 
-  const handleAmountValueChange = (id: number, name: string) => (value: string | undefined): void => {
+  const handleAmountValueChange = (id: string, name: string) => (value: string | undefined): void => {
     const nameErr = name + "_err";
     let rawValue = value === undefined ? 'undefined' : value;
     rawValue = (rawValue || ' ');
@@ -306,8 +342,8 @@ const OneToNEvents: React.FC<ChildProps> = ({
       })
     )
   };
-
-  const handleInputChange = (id: number) => (e: ChangeEvent<HTMLInputElement>) => {
+  
+  const handleInputChange = (id: string) => (e: ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
     const nameErr = name + "_err";
 
@@ -430,7 +466,7 @@ const OneToNEvents: React.FC<ChildProps> = ({
     } 
   }
 
-  const handleBlur = (id: number) => (e: ChangeEvent<HTMLInputElement>) => {
+  const handleBlur = (id: string) => (e: ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
 
     if (amountFields.includes(name) && (value)) {
@@ -494,52 +530,45 @@ const OneToNEvents: React.FC<ChildProps> = ({
   };
 
   const AddOrDelButton: React.FC<AddOrDelButtonProps> = ({ id }) => {
-    if (id === 1) {
+    if (id === "1") {
       return (
         <div className="col-sm-3">
           <label htmlFor="inputNumEvents" className="form-label">
             # Events
           </label>
-          <div className="input-group">
-            <input
-              type="text"
-              className="form-control"
-              id="inputNumEvents"
-              name="num_events"
-              readOnly
-              value={events.length}
-            />
-            <button
-              className="btn btn-success border border-start-0 rounded-end"
-              type="button"
-              tabIndex={-1}
-              id="event-plus"
-              onClick={handleAdd}
-            >
-              +
-            </button>
+          <div className="row g-0">
+            <div className="col-sm-8">
+              <input
+                disabled
+                type="text"
+                className="form-control"
+                id="inputNumEvents"
+                name="num_events"
+                value={events.length}
+              />
+            </div>
+            <div className="d-grid col-sm-4">            
+              <button
+                className="btn btn-success"
+                id="eventAdd"
+                onClick={handleAdd}                
+              >
+                Add
+              </button>
+            </div>
           </div>
         </div>
       );
     } else {
       return (
         <div className="col-sm-3 d-flex justify-content-center align-items-end">
-          <div className="input-group">
-            <input
-              type="text"
-              className="form-control deleteInput"
-              readOnly
-              value="Delete Event"
-            />
-            <button
-              className="btn btn-danger border rounded"
-              type="button"
-              tabIndex={-1}
-              onClick={() => handleDelete(id)}
-            >
-              -
-            </button>
-          </div>
+          <button
+            className="btn btn-danger"
+            id="eventDel"
+            onClick={() => handleDelete(id)}
+          >
+            Delete Event
+          </button>
         </div>
       );
     }
@@ -548,11 +577,17 @@ const OneToNEvents: React.FC<ChildProps> = ({
   return (
     <>
       <ModalConfirm
-        show={modalObj.show}
-        title={modalObj.title}
-        message={modalObj.message}
+        show={confModalObj.show}
+        title={confModalObj.title}
+        message={confModalObj.message}
         onConfirm={confirmedDelete}
         onCancel={canceledDelete}
+      />
+      <ModalErrorMsg
+        show={errModalObj.show}
+        title={errModalObj.title}
+        message={errModalObj.message}   
+        onCancel={canceledModalErr}
       />
       <Tabs
         defaultActiveKey={defaultTabKey}
@@ -751,7 +786,7 @@ const OneToNEvents: React.FC<ChildProps> = ({
                   name="lpox"
                   className={`form-control ${event.lpox_valid}`}
                   value={event.lpox}
-                  disabled={true}
+                  readOnly
                 />
                 <div className="text-danger">{event.lpox_err}</div>
               </div>

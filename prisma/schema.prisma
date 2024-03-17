@@ -76,17 +76,19 @@ model Event {
 }
 
 model Div {
-  id         String     @id @default(dbgenerated("concat('div_', replace(cast(gen_random_uuid() as text), '-', ''))")) @db.Text
-  event_id   String     @db.Text
-  div_name   String
-  hdcp_per   Float
-  sort_order Int
-  events     Event      @relation(fields: [event_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
-  entries    Entry[]
-  hdcp       Hdcp?
-  div_feats  Div_Feat[]
-  createdAt  DateTime   @default(now())
-  updatedAt  DateTime   @updatedAt
+  id          String       @id @default(dbgenerated("concat('div_', replace(cast(gen_random_uuid() as text), '-', ''))")) @db.Text
+  event_id    String       @db.Text
+  div_name    String
+  hdcp_per    Float
+  sort_order  Int
+  events      Event        @relation(fields: [event_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  entries     Entry[]
+  pots        Pot[]
+  brackets    Bracket[]
+  eliminators Eliminator[]
+  hdcp        Hdcp?
+  createdAt   DateTime     @default(now())
+  updatedAt   DateTime     @updatedAt
 }
 
 model Hdcp {
@@ -101,89 +103,137 @@ model Hdcp {
 }
 
 model Squad {
-  id         String      @id @default(dbgenerated("concat('sqd_', replace(cast(gen_random_uuid() as text), '-', ''))")) @db.Text
-  event_id   String      @db.Text
-  squad_name String
-  squad_date DateTime    @db.Date
-  squad_time String?     @db.Text
+  id          String       @id @default(dbgenerated("concat('sqd_', replace(cast(gen_random_uuid() as text), '-', ''))")) @db.Text
+  event_id    String       @db.Text
+  squad_name  String
+  squad_date  DateTime     @db.Date
+  squad_time  String?      @db.Text
+  games       Int
+  sort_order  Int
+  lane_asmts  Lane_asmt[]
+  pots        Pot[]
+  brackets    Bracket[]
+  eliminators Eliminator[]
+  events      Event        @relation(fields: [event_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  createdAt   DateTime     @default(now())
+  updatedAt   DateTime     @updatedAt
+}
+
+model Pot {
+  id         String   @id @default(dbgenerated("concat('pot_', replace(cast(gen_random_uuid() as text), '-', ''))")) @db.Text
+  squad_id   String   @db.Text
+  div_id     String   @db.Text
+  sort_order Int
+  fee        Decimal  @db.Decimal(9, 2)
+  pot_type   String
+  div        Div      @relation(fields: [div_id], references: [id])
+  squad      Squad    @relation(fields: [squad_id], references: [id])
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+}
+
+model Bracket {
+  id         String   @id @default(dbgenerated("concat('brk_', replace(cast(gen_random_uuid() as text), '-', ''))")) @db.Text
+  squad_id   String   @db.Text
+  div_id     String   @db.Text
+  sort_order Int
+  start      Int
   games      Int
+  players    Int
+  fee        Decimal  @db.Decimal(9, 2)
+  first      Decimal  @db.Decimal(9, 2)
+  second     Decimal  @db.Decimal(9, 2)
+  admin      Decimal  @db.Decimal(9, 2)
+  div        Div      @relation(fields: [div_id], references: [id])
+  squad      Squad    @relation(fields: [squad_id], references: [id])
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+}
+
+model Eliminator {
+  id         String   @id @default(dbgenerated("concat('elm_', replace(cast(gen_random_uuid() as text), '-', ''))")) @db.Text
+  squad_id   String   @db.Text
+  div_id     String   @db.Text
   sort_order Int
-  lane_asmts Lane_asmt[]
-  events     Event       @relation(fields: [event_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
-  createdAt  DateTime    @default(now())
-  updatedAt  DateTime    @updatedAt
+  start      Int
+  games      Int
+  fee        Decimal  @db.Decimal(9, 2)
+  div        Div      @relation(fields: [div_id], references: [id])
+  squad      Squad    @relation(fields: [squad_id], references: [id])
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
 }
 
-model Feat {
-  id         String     @id @default(dbgenerated("concat('fea_', replace(cast(gen_random_uuid() as text), '-', ''))")) @db.Text
-  feat_name  String
-  entry_type String
-  sort_order Int
-  div_feats  Div_Feat[]
-  createdAt  DateTime   @default(now())
-  updatedAt  DateTime   @updatedAt
-}
+// model Feat {
+//   id         String     @id @default(dbgenerated("concat('fea_', replace(cast(gen_random_uuid() as text), '-', ''))")) @db.Text
+//   feat_name  String
+//   entry_type String
+//   sort_order Int
+//   div_feats  Div_Feat[]
+//   createdAt  DateTime   @default(now())
+//   updatedAt  DateTime   @updatedAt
+// }
 
-model Div_Feat {
-  id           String        @id @default(dbgenerated("concat('dvf_', replace(cast(gen_random_uuid() as text), '-', ''))")) @db.Text
-  div_id       String        @db.Text
-  feat_id      String        @db.Text
-  sort_order   Int
-  div          Div           @relation(fields: [div_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
-  feat         Feat          @relation(fields: [feat_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
-  se_div_feats Se_Div_Feat[]
-  el_div_feats El_Div_Feat[]
-  br_div_feats Br_Div_Feat[]
-  Br_Design    Br_Design[]
-  createdAt    DateTime      @default(now())
-  updatedAt    DateTime      @updatedAt
-}
+// model Div_Feat {
+//   id           String        @id @default(dbgenerated("concat('dvf_', replace(cast(gen_random_uuid() as text), '-', ''))")) @db.Text
+//   div_id       String        @db.Text
+//   feat_id      String        @db.Text
+//   sort_order   Int
+//   div          Div           @relation(fields: [div_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+//   feat         Feat          @relation(fields: [feat_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+//   se_div_feats Se_Div_Feat[]
+//   el_div_feats El_Div_Feat[]
+//   br_div_feats Br_Div_Feat[]
+//   Br_Design    Br_Design[]
+//   createdAt    DateTime      @default(now())
+//   updatedAt    DateTime      @updatedAt
+// }
 
-model Se_Div_Feat {
-  id          String   @id @default(dbgenerated("concat('sef_', replace(cast(gen_random_uuid() as text), '-', ''))")) @db.Text
-  div_feat_id String   @db.Text
-  sort_order  Int
-  fee         Decimal  @db.Decimal(9, 2)
-  div_feat    Div_Feat @relation(fields: [div_feat_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
-}
+// model Se_Div_Feat {
+//   id          String   @id @default(dbgenerated("concat('sef_', replace(cast(gen_random_uuid() as text), '-', ''))")) @db.Text
+//   div_feat_id String   @db.Text
+//   sort_order  Int
+//   fee         Decimal  @db.Decimal(9, 2)
+//   div_feat    Div_Feat @relation(fields: [div_feat_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+//   createdAt   DateTime @default(now())
+//   updatedAt   DateTime @updatedAt
+// }
 
-model El_Div_Feat {
-  id          String   @id @default(dbgenerated("concat('elf_', replace(cast(gen_random_uuid() as text), '-', ''))")) @db.Text
-  div_feat_id String   @db.Text
-  start       Int
-  games       Int
-  fee         Decimal  @db.Decimal(9, 2)
-  div_feat    Div_Feat @relation(fields: [div_feat_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
-}
+// model El_Div_Feat {
+//   id          String   @id @default(dbgenerated("concat('elf_', replace(cast(gen_random_uuid() as text), '-', ''))")) @db.Text
+//   div_feat_id String   @db.Text
+//   start       Int
+//   games       Int
+//   fee         Decimal  @db.Decimal(9, 2)
+//   div_feat    Div_Feat @relation(fields: [div_feat_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+//   createdAt   DateTime @default(now())
+//   updatedAt   DateTime @updatedAt
+// }
 
-model Br_Div_Feat {
-  id          String   @id @default(dbgenerated("concat('brf_', replace(cast(gen_random_uuid() as text), '-', ''))")) @db.Text
-  div_feat_id String   @db.Text
-  sort_order  Int
-  start       Int
-  div_feat    Div_Feat @relation(fields: [div_feat_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
-}
+// model Br_Div_Feat {
+//   id          String   @id @default(dbgenerated("concat('brf_', replace(cast(gen_random_uuid() as text), '-', ''))")) @db.Text
+//   div_feat_id String   @db.Text
+//   sort_order  Int
+//   start       Int
+//   div_feat    Div_Feat @relation(fields: [div_feat_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+//   createdAt   DateTime @default(now())
+//   updatedAt   DateTime @updatedAt
+// }
 
-model Br_Design {
-  id          String   @id @default(dbgenerated("concat('brd_', replace(cast(gen_random_uuid() as text), '-', ''))")) @db.Text
-  div_feat_id String   @db.Text
-  start       Int
-  games       Int
-  players     Int
-  fee         Decimal  @db.Decimal(9, 2)
-  first       Decimal  @db.Decimal(9, 2)
-  second      Decimal  @db.Decimal(9, 2)
-  admin       Decimal  @db.Decimal(9, 2)
-  div_feat    Div_Feat @relation(fields: [div_feat_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
-}
+// model Br_Design {
+//   id          String   @id @default(dbgenerated("concat('brd_', replace(cast(gen_random_uuid() as text), '-', ''))")) @db.Text
+//   div_feat_id String   @db.Text
+//   start       Int
+//   games       Int
+//   players     Int
+//   fee         Decimal  @db.Decimal(9, 2)
+//   first       Decimal  @db.Decimal(9, 2)
+//   second      Decimal  @db.Decimal(9, 2)
+//   admin       Decimal  @db.Decimal(9, 2)
+//   div_feat    Div_Feat @relation(fields: [div_feat_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+//   createdAt   DateTime @default(now())
+//   updatedAt   DateTime @updatedAt
+// }
 
 model Player {
   id         String      @id @default(dbgenerated("concat('ply_', replace(cast(gen_random_uuid() as text), '-', ''))")) @db.Text

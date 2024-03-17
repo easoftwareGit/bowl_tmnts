@@ -1,8 +1,8 @@
-import { eventType, divType, squadType, elimType, brktType } from "./types";
+import { eventType, divType, squadType, elimType, brktType, potType } from "./types";
 import { todayStr } from "@/lib/dateTools";
 
 export const initEvent: eventType = {
-  id: 1,
+  id: "1",
   name: "Singles",
   tabTitle: "Singles",
   team_size: 1,
@@ -29,9 +29,9 @@ export const initEvent: eventType = {
 };
 
 export const initDiv: divType = {
-  id: 1,
+  id: "1",
   name: "Division 1",
-  tabTitle: "Division 1",
+  tab_title: "Division 1",
   hdcp: 90,
   hdcp_from: 220,
   int_hdcp: true,
@@ -40,14 +40,17 @@ export const initDiv: divType = {
   hdcp_err: "",
   hdcp_from_err: "",
   errClassName: "",
+  pot: false,
+  brkt: false,
+  elim: false
 }
 
 export const initSquad: squadType = {
-  id: 1,
-  event_id: 1,  
+  id: "1",
+  event_id: "1",  
   event_id_err: '',
   name: "Squad 1",
-  tabTitle: "Squad 1",
+  tab_title: "Squad 1",
   squad_date: todayStr,
   squad_time: "",
   games: 3,
@@ -58,26 +61,28 @@ export const initSquad: squadType = {
   errClassName: "",
 }
 
-export const defaultElimGames = 3;
-
-export const initElim: elimType = {
-  id: '',
-  div_feat_id: '',
+export const initPot: potType = {
+  id: "1",   
+  div_id: '',
+  squad_id: '',
+  pot_type: '',
+  pot_type_err: '',  
+  div_name: '',  
+  div_err: '',
   fee: '',
-  fee_err: '',
-  start: '',
-  start_err: '',
-  games: defaultElimGames,
-  games_err: '',  
+  fee_err: '',  
+  errClassName: ''
 }
 
 export const defaultBrktGames = 3;
 export const defaultBrktPlayers = 8;
-
 export const initBrkt: brktType = {
-  id: '',
-  div_feat_id: '',  
-  start: '',
+  id: "1",
+  div_id: '',  
+  squad_id: '',
+  div_name: '',  
+  div_err: '',
+  start: 1,
   start_err: '',
   games: defaultBrktGames,
   games_err: '',
@@ -94,4 +99,59 @@ export const initBrkt: brktType = {
   fsa: '',
   fsa_valid: '',
   fsa_err: '',
+  errClassName: '',
 }
+
+export const defaultElimGames = 3;
+
+export const initElim: elimType = {
+  id: '1',
+  div_id: '',  
+  squad_id: '',
+  div_name: '',  
+  div_err: '',
+  fee: '',
+  fee_err: '',
+  start: 1,
+  start_err: '',
+  games: defaultElimGames,
+  games_err: '',  
+  errClassName: '',
+}
+
+
+export const initEvents: eventType[] = [
+  {
+    ...initEvent,
+  }
+]
+
+export const initDivs: divType[] = [
+  {
+    ...initDiv,
+  },
+];
+
+export const initSquads: squadType[] = [
+  {
+    ...initSquad,
+  },
+];
+
+export const initPots: potType[] = [
+  {
+    ...initPot,
+  }
+]
+
+export const initBrkts: brktType[] = [
+  {
+    ...initBrkt
+  }
+]
+
+export const initElims: elimType[] = [
+  {
+    ...initElim
+  }
+]

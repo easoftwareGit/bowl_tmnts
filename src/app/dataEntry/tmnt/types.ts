@@ -1,9 +1,5 @@
-import { Feat } from "@prisma/client"
-import { SetStateAction } from "react"
-import { Dispatch } from "redux"
-
 export type eventType = {
-  id: number,
+  id: string,
   name: string,
   tabTitle: string,
   team_size: number,
@@ -30,9 +26,9 @@ export type eventType = {
 }
 
 export type divType = {
-  id: number,
+  id: string,
   name: string,
-  tabTitle: string,
+  tab_title: string,
   hdcp: number,
   hdcp_from: number,
   int_hdcp: boolean,
@@ -41,14 +37,17 @@ export type divType = {
   hdcp_err: string,
   hdcp_from_err: string,
   errClassName: string,
+  pot: boolean,
+  brkt: boolean,
+  elim: boolean
 }
 
 export type squadType = {
-  id: number,
-  event_id: number,  
+  id: string,
+  event_id: string,  
   event_id_err: string,
   name: string,
-  tabTitle: string,
+  tab_title: string,
   squad_date: string,
   squad_time: string,
   games: number,  
@@ -59,45 +58,28 @@ export type squadType = {
   errClassName: string,
 }
 
-export type divFeatType = {
-  id: string,
-  div_id: string,
-  feat_id: string,
-  feat_name: string,
-  sort_order: number,
-  entry_type: string,
+export type PotCategories = "Game" | "Last Game" | "Series" | "";
+
+export type potType = {
+  id: string,   
+  div_id: string,  
+  squad_id: string,
+  pot_type: PotCategories,
+  pot_type_err: string,  
+  div_name: string,  
+  div_err: string,
+  fee: string,
+  fee_err: string,
   errClassName: string,
-}
-
-export type divFeatErrType = {
-  sort_order: number,
-  errClassName: string
-}
-
-export type seDivFeatType = {
-  id: string,
-  div_feat_id: string,
-  feat_name: string,
-  sort_order: number,
-  fee: string,
-  fee_err: string,
-}
-
-export type elimType = {
-  id: string,
-  div_feat_id: string,
-  start: string,
-  start_err: string,
-  games: number,
-  games_err: string,
-  fee: string,
-  fee_err: string,
 }
 
 export type brktType = {
   id: string,
-  div_feat_id: string,  
-  start: string,
+  div_id: string,  
+  squad_id: string,
+  div_name: string,  
+  div_err: string,
+  start: number,  
   start_err: string,
   games: number,
   games_err: string,
@@ -114,23 +96,55 @@ export type brktType = {
   fsa: string,
   fsa_valid: string,
   fsa_err: string,
+  errClassName: string,
 }
 
-export type featsParamsType = {
-  divFeats: divFeatType[];
-  setDivFeats: (divFeats: divFeatType[]) => void;
-  seDivFeats: seDivFeatType[];
-  setSeDivFeats: (seDivFeats: seDivFeatType[]) => void;
-  elim: elimType;
-  setElim: (elDivFeat: elimType) => void;
-  brkt: brktType;
-  setBrkt: (brDivfeat: brktType) => void;
-  featAcdnErr: AcdnErrType;
-  setFeatAcdnErr: (objAcdnErr: AcdnErrType) => void;
+export type elimType = {
+  id: string,
+  div_id: string,  
+  squad_id: string,
+  div_name: string,  
+  div_err: string,
+  start: number,
+  start_err: string,
+  games: number,
+  games_err: string,
+  fee: string,
+  fee_err: string,
+  errClassName: string,
 }
+
+// export type featsParamsType = {
+//   divFeats: divFeatType[];
+//   setDivFeats: (divFeats: divFeatType[]) => void;
+//   seDivFeats: seDivFeatType[];
+//   setSeDivFeats: (seDivFeats: seDivFeatType[]) => void;
+//   elim: elimType;
+//   setElim: (elDivFeat: elimType) => void;
+//   brkt: brktType;
+//   setBrkt: (brDivfeat: brktType) => void;
+//   featAcdnErr: AcdnErrType;
+//   setFeatAcdnErr: (objAcdnErr: AcdnErrType) => void;
+// }
 
 export type AcdnErrType = {
   errClassName: string,
   message: string,
 }
 
+export type tmntParamsType = {
+  events: eventType[];
+  setEvents: (events: eventType[]) => void;
+  divs: divType[];
+  setDivs: (divs: divType[]) => void;
+  squads: squadType[];
+  setSquads: (squads: squadType[]) => void;
+  pots: potType[];
+  setPots: (pots: potType[]) => void;
+  elims: elimType[];
+  setElims: (elims: elimType[]) => void;
+  brkts: brktType[];
+  setBrkts: (brkts: brktType[]) => void;
+  acdnErr: AcdnErrType;
+  setAcdnErr: (objAcdnErr: AcdnErrType) => void;
+}

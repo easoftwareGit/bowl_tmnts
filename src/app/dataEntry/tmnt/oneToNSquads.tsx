@@ -2,11 +2,9 @@ import React, { useState, ChangeEvent, Dispatch, SetStateAction } from "react";
 import { squadType, AcdnErrType, eventType } from "./types";
 import { initSquad } from "./initVals";
 import { Tabs, Tab } from "react-bootstrap";
-import ModalConfirm, {
-  initModalObj,
-  delConfTitle,
-} from "@/components/modal/confirmModel";
-import {
+import ModalConfirm, { delConfTitle } from "@/components/modal/confirmModal";
+import { initModalObj } from "@/components/modal/modalObjType";
+import { 
   objErrClassName,
   acdnErrClassName,
   getAcdnErrMsg,
@@ -25,7 +23,7 @@ interface ChildProps {
   setAcdnErr: (objAcdnErr: AcdnErrType) => void;
 }
 interface AddOrDelButtonProps {
-  id: number;
+  id: string;
 }
 
 const defaultTabKey = "squad1";
@@ -96,7 +94,7 @@ export const validateSquads = (
   setSquads(
     squads.map((squad) => {
       squadErrClassName = "";
-      const event = events.find(ev => ev.id === squad.id);
+      const event = events.find(ev => ev.id === squad.event_id);
       if (!event) {
         eventIdErr = "Event not found"
         setError(squad.name, eventIdErr);
@@ -186,9 +184,9 @@ const OneToNSquads: React.FC<ChildProps> = ({
   const handleAdd = () => {
     const newSquad: squadType = {
       ...initSquad,
-      id: squadId + 1,
+      id: '' + (squadId + 1),
       name: "Squad " + (squadId + 1),
-      tabTitle: "Squad " + (squadId + 1),
+      tab_title: "Squad " + (squadId + 1),
     };
     setSquadId(squadId + 1);
     setSquads([...squads, newSquad]);
@@ -197,8 +195,20 @@ const OneToNSquads: React.FC<ChildProps> = ({
   const confirmedDelete = () => {
     setModalObj(initModalObj); // reset modal object (hides modal)
 
+    // filter out deleted squad
     const updatedData = squads.filter((squad) => squad.id !== modalObj.id);
     setSquads(updatedData);
+
+    // deleted squad might have an acdn error, get next acdn error
+    const acdnErrMsg = getNextAcdnErrMsg(null, updatedData);
+    if (acdnErrMsg) {
+      setAcdnErr({
+        errClassName: acdnErrClassName,
+        message: acdnErrMsg
+      })
+    } else {
+      setAcdnErr(noAcdnErr)
+    }
 
     setTabKey(defaultTabKey); // refocus 1st event
   };
@@ -207,8 +217,8 @@ const OneToNSquads: React.FC<ChildProps> = ({
     setModalObj(initModalObj); // reset modal object (hides modal)
   };
 
-  const handleDelete = (id: number) => {
-    if (id === 1) {
+  const handleDelete = (id: string) => {
+    if (id === "1") {
       return;
     }
     const squadToDel = squads.find((squad) => squad.id === id);
@@ -216,87 +226,85 @@ const OneToNSquads: React.FC<ChildProps> = ({
     setModalObj({
       show: true,
       title: delConfTitle,
-      message: `Do you want to delete Squad: ${toDelName}`,
+      message: `Do you want to delete Squad: ${toDelName}?`,
       id: id,
     }); // deletion done in confirmedDelete
   };
 
-  const handleInputChange =
-    (id: number) => (e: ChangeEvent<HTMLInputElement>) => {
-      const { name, value } = e.target;
-      const nameErr = name + "_err";
-
-      setSquads(
-        squads.map((squad) => {
-          if (squad.id === id) {
-            let updatedSquad: squadType;
-            // set tabTitle changing name property value
-            if (name === "name") {
-              updatedSquad = {
-                ...squad,
-                name: value,
-                tabTitle: value,
-                name_err: "",
-              };
-            } else if (name === "squad_time") {
-              const valueAsDate = e.target.valueAsDate;
-              let timeStr = "";
-              if (valueAsDate) {
-                const offset = valueAsDate.getTimezoneOffset();
-                let currentDateTime = new Date(
-                  valueAsDate.getFullYear(),
-                  valueAsDate.getMonth() - 1,
-                  valueAsDate.getDate(),
-                  valueAsDate.getHours(),
-                  valueAsDate.getMinutes() + offset
-                );
-                timeStr = currentDateTime.toLocaleTimeString([], {
-                  hour: "2-digit",
-                  minute: "2-digit",
-                });
-                timeStr = twelveHourto24Hour(timeStr);
-              }
-              updatedSquad = {
-                ...squad,
-                squad_time: timeStr,
-                squad_time_err: "",
-              };
-            } else {
-              updatedSquad = {
-                ...squad,
-                [name]: value,
-                [nameErr]: "",
-              };
-            }
-            const acdnErrMsg = getNextAcdnErrMsg(updatedSquad, squads);
-            if (acdnErrMsg) {
-              setAcdnErr({
-                errClassName: acdnErrClassName,
-                message: acdnErrMsg,
+  const handleInputChange = (id: string) => (e: ChangeEvent<HTMLInputElement>) => {
+    const { name, value } = e.target;
+    const nameErr = name + "_err";
+    setSquads(
+      squads.map((squad) => {
+        if (squad.id === id) {
+          let updatedSquad: squadType;
+          // set tabTitle changing name property value
+          if (name === "name") {
+            updatedSquad = {
+              ...squad,
+              name: value,
+              tab_title: value,
+              name_err: "",
+            };
+          } else if (name === "squad_time") {
+            const valueAsDate = e.target.valueAsDate;
+            let timeStr = "";
+            if (valueAsDate) {
+              const offset = valueAsDate.getTimezoneOffset();
+              let currentDateTime = new Date(
+                valueAsDate.getFullYear(),
+                valueAsDate.getMonth() - 1,
+                valueAsDate.getDate(),
+                valueAsDate.getHours(),
+                valueAsDate.getMinutes() + offset
+              );
+              timeStr = currentDateTime.toLocaleTimeString([], {
+                hour: "2-digit",
+                minute: "2-digit",
               });
-            } else {
-              setAcdnErr(noAcdnErr);
+              timeStr = twelveHourto24Hour(timeStr);
             }
-            const errMsg = getSquadErrMsg(updatedSquad);
-            if (errMsg) {
-              return {
-                ...updatedSquad,
-                errClassName: objErrClassName,
-              };
-            } else {
-              return {
-                ...updatedSquad,
-                errClassName: "",
-              };
-            }
+            updatedSquad = {
+              ...squad,
+              squad_time: timeStr,
+              squad_time_err: "",
+            };
           } else {
-            return squad;
+            updatedSquad = {
+              ...squad,
+              [name]: value,
+              [nameErr]: "",
+            };
           }
-        })
-      );
-    };
+          const acdnErrMsg = getNextAcdnErrMsg(updatedSquad, squads);
+          if (acdnErrMsg) {
+            setAcdnErr({
+              errClassName: acdnErrClassName,
+              message: acdnErrMsg,
+            });
+          } else {
+            setAcdnErr(noAcdnErr);
+          }
+          const errMsg = getSquadErrMsg(updatedSquad);
+          if (errMsg) {
+            return {
+              ...updatedSquad,
+              errClassName: objErrClassName,
+            };
+          } else {
+            return {
+              ...updatedSquad,
+              errClassName: "",
+            };
+          }
+        } else {
+          return squad;
+        }
+      })
+    );
+  };
 
-  const handleBlur = (id: number) => (e: ChangeEvent<HTMLInputElement>) => {
+  const handleBlur = (id: string) => (e: ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
 
     if (!value.trim()) {
@@ -307,7 +315,7 @@ const OneToNSquads: React.FC<ChildProps> = ({
               return {
                 ...squad,
                 name: "Squad " + squad.id,
-                tabTitle: "Squad " + squad.id,
+                tab_title: "Squad " + squad.id,
                 name_err: "",
               };
             } else if (name === "games") {
@@ -351,14 +359,16 @@ const OneToNSquads: React.FC<ChildProps> = ({
     }
   };
 
-  const handleEventSelectChange = (id: number) => (e: ChangeEvent<HTMLSelectElement>) => {
-    const { value } = e.target;
+  const handleEventSelectChange = (id: string) => (e: ChangeEvent<HTMLSelectElement>) => {
+    const { selectedIndex } = e.target;
     setSquads(
       squads.map(squad => {
         if (squad.id === id) {
+          // get event id # from selectedIndex of events
+          const eventId = events[selectedIndex].id;
           return {
             ...squad, 
-            event_id: value,
+            event_id: eventId,
             event_nane_err: '',
           }
         } else {
@@ -369,52 +379,45 @@ const OneToNSquads: React.FC<ChildProps> = ({
   };
 
   const AddOrDelButton: React.FC<AddOrDelButtonProps> = ({ id }) => {
-    if (id === 1) {
+    if (id === "1") {
       return (
         <div className="col-sm-3">
           <label htmlFor="inputNumSquads" className="form-label">
-            # Squads
+            # Squads            
           </label>
-          <div className="input-group">
-            <input
-              type="text"
-              className="form-control"
-              id="inputNumSquads"
-              name="num_squads"
-              readOnly
-              value={squads.length}
-            />
-            <button
-              className="btn btn-success border border-start-0 rounded-end"
-              type="button"
-              tabIndex={-1}
-              id="event-plus"
-              onClick={handleAdd}
-            >
-              +
-            </button>
+          <div className="row g-0">
+            <div className="col-sm-8">
+              <input
+                disabled
+                type="text"
+                className="form-control"
+                id="inputNumSquads"
+                name="num_Squads"
+                value={squads.length}
+              />
+            </div>
+            <div className="d-grid col-sm-4">            
+              <button
+                className="btn btn-success"
+                id="squadAdd"
+                onClick={handleAdd}                
+              >
+                Add
+              </button>
+            </div>
           </div>
         </div>
       );
     } else {
       return (
         <div className="col-sm-3 d-flex justify-content-center align-items-end">
-          <div className="input-group">
-            <input
-              type="text"
-              className="form-control deleteInput"
-              readOnly
-              value="Delete Squad"
-            />
-            <button
-              className="btn btn-danger border rounded"
-              type="button"
-              tabIndex={-1}
-              onClick={() => handleDelete(id)}
-            >
-              -
-            </button>
-          </div>
+          <button
+            className="btn btn-danger"
+            id="squadDel"
+            onClick={() => handleDelete(id)}
+          >
+            Delete Squad
+          </button>
         </div>
       );
     }
@@ -447,7 +450,7 @@ const OneToNSquads: React.FC<ChildProps> = ({
           <Tab
             key={squad.id}
             eventKey={`squad${squad.id}`}
-            title={squad.tabTitle}
+            title={squad.tab_title}
             tabClassName={`${squad.errClassName}`}
           >
             <div className="row g-3 mb-3">
