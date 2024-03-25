@@ -53,9 +53,12 @@ const getNextBrktAcdnErrMsg = (
     errMsg = getBrktErrMsg(brkt);
     if (errMsg) {
       const errTabTitle =
-        brkt.id === "1"
+        // brkt.sort_order === 1
+        //   ? createBrktTitle
+        //   : `${brkt.div_name}: ${brkt.start}-${brkt.start + brkt.games - 1}`;
+        brkt.sort_order === 1
           ? createBrktTitle
-          : `${brkt.div_name}: ${brkt.start}-${brkt.start + brkt.games - 1}`;
+          : getBrktOrElimName(brkt.div_id, brkts) 
       acdnErrMsg = getAcdnErrMsg(errTabTitle, errMsg);
     }
     i++;
@@ -215,6 +218,7 @@ const ZeroToNBrackets: React.FC<ChildProps> = ({
         div_id: brkts[0].div_id,
         div_name: brkts[0].div_name,
         fee: brkts[0].fee,
+        sort_order: brktId + 1,
       };
       setBrktId(brktId + 1);
       const updatedBrkts = structuredClone(brkts);
@@ -238,10 +242,9 @@ const ZeroToNBrackets: React.FC<ChildProps> = ({
   };
 
   const handleDelete = (id: string) => { 
-    if (id === "1") return;
-
     const brktToDel = brkts.find((brkt) => brkt.id === id);
-    if (!brktToDel) return;
+    // if did not find brkt OR first brkt (1st brkt used for creating new brkts)
+    if (!brktToDel || brktToDel.sort_order === 1) return;
 
     const toDelName = getBrktOrElimName(id, brkts);
     setModalObj({
@@ -485,29 +488,35 @@ const ZeroToNBrackets: React.FC<ChildProps> = ({
           <Tab
             key={brkt.id}
             eventKey={`brkt${brkt.id}`}
-            title={(brkt.id === "1") ? createBrktTitle : getBrktOrElimName(brkt.id, brkts)}            
+            title={(brkt.sort_order === 1) ? createBrktTitle : getBrktOrElimName(brkt.id, brkts)}            
             tabClassName={`${brkt.errClassName}`}
           >
             <div className="row g-3 mb-3">
-              {brkt.id === "1" ? (
+              {brkt.sort_order === 1 ? (
                 <>                
                   <div className="col-sm-2">
-                    <label className="form-label">Division</label>
+                    <label
+                      className="form-label"
+                      data-testid="brktDivRadioLabel"
+                    >
+                      Division
+                    </label>
                     {divs.map((div) => (
                       <div key={div.id} className="form-check text-break">
                         <input
                           className="form-check-input"
                           type="radio"
                           name="brktsDivRadio"
-                          id={`div_name-${div.id}-${div.name}-brkts`}
-                          checked={brkts[0].div_name === div.name}
+                          id={`div_name-${div.id}-${div.div_name}-brkts`}
+                          // data-testid={`divRadio${div.sort_order}`}
+                          checked={brkts[0].div_name === div.div_name}
                           onChange={handleInputChange}
                         />
                         <label
                           className="form-check-label"
-                          htmlFor={`div_name-${div.id}-${div.name}-brkts`}
+                          htmlFor={`div_name-${div.id}-${div.div_name}-brkts`}
                         >
-                          {div.name}
+                          {div.div_name}
                         </label>
                       </div>
                     ))}

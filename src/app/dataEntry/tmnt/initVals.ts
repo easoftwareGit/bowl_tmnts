@@ -3,12 +3,14 @@ import { todayStr } from "@/lib/dateTools";
 
 export const initEvent: eventType = {
   id: "1",
-  name: "Singles",
-  tabTitle: "Singles",
+  sort_order: 1, 
+  tmnt_id: '',
+  tab_title: "Singles",
+  event_name: "Singles",
+  event_name_err: '',
   team_size: 1,
-  games: 3,
-  name_err: '',
   team_size_err: '',
+  games: 3,
   games_err: '',
   entry_fee: '',
   entry_fee_err: '',
@@ -30,34 +32,34 @@ export const initEvent: eventType = {
 
 export const initDiv: divType = {
   id: "1",
-  name: "Division 1",
+  event_id: "1",
+  div_name: "Division 1",  
+  div_name_err: "",
   tab_title: "Division 1",
-  hdcp: 90,
-  hdcp_from: 220,
-  int_hdcp: true,
-  hdcp_for: "game",
-  name_err: "",
+  hdcp: 100,
   hdcp_err: "",
+  hdcp_from: 230,
   hdcp_from_err: "",
+  int_hdcp: true,
+  hdcp_for: "Game",  
+  sort_order: 1,
   errClassName: "",
-  pot: false,
-  brkt: false,
-  elim: false
 }
 
 export const initSquad: squadType = {
   id: "1",
   event_id: "1",  
   event_id_err: '',
-  name: "Squad 1",
   tab_title: "Squad 1",
-  squad_date: todayStr,
-  squad_time: "",
-  games: 3,
-  name_err: "",
-  squad_date_err: "",
-  squad_time_err: "",
+  squad_name: "Squad 1",
+  squad_name_err: "",
+  games: 3,  
   games_err: "",
+  squad_date: todayStr,
+  squad_date_err: "",
+  squad_time: "",
+  squad_time_err: "",
+  sort_order: 1,
   errClassName: "",
 }
 
@@ -71,6 +73,7 @@ export const initPot: potType = {
   div_err: '',
   fee: '',
   fee_err: '',  
+  sort_order: 1,
   errClassName: ''
 }
 
@@ -99,11 +102,11 @@ export const initBrkt: brktType = {
   fsa: '',
   fsa_valid: '',
   fsa_err: '',
+  sort_order: 1,
   errClassName: '',
 }
 
 export const defaultElimGames = 3;
-
 export const initElim: elimType = {
   id: '1',
   div_id: '',  
@@ -118,7 +121,6 @@ export const initElim: elimType = {
   games_err: '',  
   errClassName: '',
 }
-
 
 export const initEvents: eventType[] = [
   {

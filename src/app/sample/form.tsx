@@ -2,7 +2,7 @@
 import React, { useState, ChangeEvent, useRef } from "react";
 import { sanitize } from "@/lib/sanitize";
 import { format, startOfToday, endOfToday, formatISO, isValid } from "date-fns";
-import { todayStr, dateTo_yyyyMMdd } from "@/lib/dateTools";
+import { todayStr, dateTo_yyyyMMdd, twelveHourto24Hour, getTimeString } from "@/lib/dateTools";
 import CurrencyInput, { formatValue } from "@/lib/currency";
 import { getLocaleConfig } from "@/lib/currency/components/utils";
 import { IntlConfig } from "@/lib/currency/components/CurrencyInputProps";
@@ -18,7 +18,22 @@ const ic: IntlConfig = {
 const localConfig = getLocaleConfig(ic);
 localConfig.prefix = '$'
 
-export const TestForm: React.FC = () => {  
+const eventsNames = [
+  {
+    id: 1,
+    name: 'Singles',
+  },
+  {
+    id: 2,
+    name: 'Doubles',
+  },
+  {
+    id: 3,
+    name: 'Mixed',
+  }
+];
+
+export const SampleForm: React.FC = () => {  
 
   const initVals = {
     start_date: todayStr,
@@ -26,8 +41,11 @@ export const TestForm: React.FC = () => {
     start_of_day: formatISO(startOfToday()),
     end_of_day: formatISO(endOfToday()),
     today_as_date: new Date(todayStr),
-    dollars: '123',    
-    anyString: '',
+    ten_am: "10:00",
+    two_pm: "14:00",
+    dollars: '123',
+    event_id: 2,
+    anyString: '',    
     sanitized: '',
     startGames: ''
   };
@@ -35,8 +53,7 @@ export const TestForm: React.FC = () => {
   // use ref to get access to internal "masked = ref.current.maskRef"
   const ref = useRef(null);
   const inputRef = useRef(null);
-  
-  
+    
   const [formData, setFormData] = useState(initVals);
 
   // const [className, setClassName] = useState('');
@@ -80,6 +97,33 @@ export const TestForm: React.FC = () => {
         }
       }
     }    
+  }
+
+  const handleTimeChange = (e: ChangeEvent<HTMLInputElement>) => {
+    const { name, value } = e.target;
+    const valueAsDate = e.target.valueAsDate;
+    
+    if (valueAsDate) {
+      const timeStr = getTimeString(valueAsDate);
+
+      // const offset = valueAsDate.getTimezoneOffset();
+      // let currentDateTime = new Date(
+      //   valueAsDate.getFullYear(),
+      //   valueAsDate.getMonth() - 1,
+      //   valueAsDate.getDate(),
+      //   valueAsDate.getHours(),
+      //   valueAsDate.getMinutes() + offset
+      // );
+      // timeStr = currentDateTime.toLocaleTimeString([], {
+      //   hour: "2-digit",
+      //   minute: "2-digit",
+      // });
+      // timeStr = twelveHourto24Hour(timeStr);
+      setFormData({
+        ...formData,
+        [name]: timeStr,
+      });
+    }
   }
 
   const validateValue = (value: string | undefined): void => {
@@ -140,12 +184,26 @@ export const TestForm: React.FC = () => {
   //     })
   //     const r = new IMask.MaskedRegExp({
   //       mask: /\d(\d)?(,(\d(\d)?)?)*$/
-  //     }) 
+  //     })
   //     const m = IMask(startGamesInput, {
         
   //     })
   //   }
   // }
+
+  const handleEventSelectChange = (e: ChangeEvent<HTMLSelectElement>) => {
+    const { selectedIndex } = e.target;
+    setFormData({
+      ...formData,
+      event_id: eventsNames[selectedIndex].id
+    })
+  }
+
+  const eventOptions = eventsNames.map(event => (
+    <option key={event.id} value={event.id}>
+      {event.name}
+    </option>
+  ))
 
   return (
     <>
@@ -212,33 +270,10 @@ export const TestForm: React.FC = () => {
             ref={ref}
             inputRef={inputRef}
             unmask={true}
-            // mask={/^\d+(,\d+)*$/}            
-            // mask={/^\d(\d)?(,\d(\d)?)*$/}
             mask={/\d(\d)?(,(\d(\d)?)?)*$/}
             className="form-control"            
             placeholder="#,#"
           />
-          {/* <label htmlFor="inputDollars" className="form-label">
-            Any Dollar
-          </label>
-          <EaCurrencyInput
-            id="inputDollars"
-            name="inputDollars"
-            className="form-control"
-            onValueChange={validateValue}    
-            value={formData.dollars}
-          /> */}
-          {/* <label htmlFor="inputStartOfDay" className="form-label">
-            Today as Date
-          </label>
-          <input
-            type="text"
-            className="form-control"
-            id="inputStartOfDay"
-            name="start_of_date"
-            value={formData.start_of_day}
-            readOnly
-          /> */}
         </div>
         <div className="col-md-3">
           <label htmlFor="inputAnyString" className="form-label">
@@ -273,6 +308,35 @@ export const TestForm: React.FC = () => {
             value={formData.sanitized}
             readOnly
           />
+        </div>
+      </div>
+      <div className="row g-3 mb-3">
+        <div className="col-md-3">
+          <label htmlFor="inputTime10AM" className="form-label">
+            Time 10AM
+          </label>
+          <input
+            type="time"
+            className="form-control"
+            id="inputTime10AM"
+            name="time_10am"
+            value={formData.ten_am}            
+            onChange={handleTimeChange}
+          />
+        </div>
+        <div className="col-md-3">
+          <label htmlFor="selectEvent" className="form-label">
+            Event
+          </label>
+          <select
+            id="selectEvent"            
+            className="form-select"
+            onChange={handleEventSelectChange}
+            defaultValue={eventsNames[0].id}
+            value={formData.event_id}
+          >
+            {eventOptions}
+          </select>
         </div>
       </div>
     </>

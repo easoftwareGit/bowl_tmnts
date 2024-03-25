@@ -14,7 +14,8 @@ import {
 } from "./errors";
 import { maxEventLength, minGames, maxGames } from "@/lib/validation";
 import { dateTo_yyyyMMdd, todayStr, twelveHourto24Hour } from "@/lib/dateTools";
-import { isValid, format } from "date-fns";
+import { isValid } from "date-fns";
+import { mockSquads } from "../../../../test/mocks/tmnts/singlesAndDoubles/mockSquads";
 
 interface ChildProps {
   squads: squadType[];
@@ -24,6 +25,7 @@ interface ChildProps {
 }
 interface AddOrDelButtonProps {
   id: string;
+  sortOrder: number;
 }
 
 const defaultTabKey = "squad1";
@@ -31,7 +33,7 @@ const defaultTabKey = "squad1";
 const getSquadErrMsg = (squad: squadType): string => {
 
   if (squad.event_id_err) return squad.event_id_err;
-  if (squad.name_err) return squad.name_err;
+  if (squad.squad_name_err) return squad.squad_name_err;
   if (squad.games_err) return squad.squad_date_err;  
   if (squad.squad_date_err) return squad.games_err;
   if (squad.squad_time_err) return squad.squad_time_err;
@@ -54,7 +56,7 @@ const getNextAcdnErrMsg = (
     }
     errMsg = getSquadErrMsg(squad);
     if (errMsg) {
-      acdnErrMsg = getAcdnErrMsg(squad.name, errMsg);
+      acdnErrMsg = getAcdnErrMsg(squad.squad_name, errMsg);
     }
     i++;
   }
@@ -97,42 +99,42 @@ export const validateSquads = (
       const event = events.find(ev => ev.id === squad.event_id);
       if (!event) {
         eventIdErr = "Event not found"
-        setError(squad.name, eventIdErr);
+        setError(squad.squad_name, eventIdErr);
         squadMaxGames = maxGames
       } else {
         squadMaxGames = event.games
         eventIdErr = "";
       }
-      if (!squad.name.trim()) {
+      if (!squad.squad_name.trim()) {
         nameErr = "Name is required";
-        setError(squad.name, nameErr);
+        setError(squad.squad_name, nameErr);
       } else if (isDuplicateName(squads, squad)) {
-        nameErr = `"${squad.name}" has already been used.`;
-        setError(squad.name, nameErr);
+        nameErr = `"${squad.squad_name}" has already been used.`;
+        setError(squad.squad_name, nameErr);
       } else {
         nameErr = "";
       }
       if (squad.games < minGames) {
         gameErr = "Squad Games must be more than " + (minGames - 1);
-        setError(squad.name, gameErr);
+        setError(squad.squad_name, gameErr);
       } else if (squad.games > squadMaxGames) {        
         gameErr = "Squad Games must be less than " + (squadMaxGames + 1);
-        setError(squad.name, gameErr);
+        setError(squad.squad_name, gameErr);
       } else {
         gameErr = "";
       }
       if (!squad.squad_date.trim()) {
         dateErr = "Date is required";
-        setError(squad.name, dateErr);
+        setError(squad.squad_name, dateErr);
       } else if (!isValid(new Date(squad.squad_date))) {
         dateErr = "Date is invalid";
-        setError(squad.name, dateErr);
+        setError(squad.squad_name, dateErr);
       } else if ((new Date(squad.squad_date)) < minDate) {
         dateErr = "Earliest date is " + dateTo_yyyyMMdd(minDate);
-        setError(squad.name, dateErr);
+        setError(squad.squad_name, dateErr);
       } else if ((new Date(squad.squad_date)) > maxDate) {
         dateErr = "Latest date is " + dateTo_yyyyMMdd(maxDate);
-        setError(squad.name, dateErr);
+        setError(squad.squad_name, dateErr);
       } else {
         dateErr = "";
       }
@@ -145,7 +147,7 @@ export const validateSquads = (
           timeErr = 'Time is required'
         } else if (isDuplicateDateTime(squads, squad)) {
           timeErr = `"${squad.squad_date}" - ${squad.squad_time} has already been used.`;
-          setError(squad.name, timeErr);
+          setError(squad.squad_name, timeErr);
         } else {
           timeErr = ""; 
         }
@@ -185,8 +187,9 @@ const OneToNSquads: React.FC<ChildProps> = ({
     const newSquad: squadType = {
       ...initSquad,
       id: '' + (squadId + 1),
-      name: "Squad " + (squadId + 1),
+      squad_name: "Squad " + (squadId + 1),
       tab_title: "Squad " + (squadId + 1),
+      sort_order: squadId + 1,
     };
     setSquadId(squadId + 1);
     setSquads([...squads, newSquad]);
@@ -218,11 +221,11 @@ const OneToNSquads: React.FC<ChildProps> = ({
   };
 
   const handleDelete = (id: string) => {
-    if (id === "1") {
-      return;
-    }
     const squadToDel = squads.find((squad) => squad.id === id);
-    const toDelName = squadToDel?.name;
+    // if did not find event OR first event (must have at least 1 event)
+    if (!squadToDel || squadToDel.sort_order === 1) return;
+
+    const toDelName = squadToDel.squad_name;
     setModalObj({
       show: true,
       title: delConfTitle,
@@ -242,9 +245,9 @@ const OneToNSquads: React.FC<ChildProps> = ({
           if (name === "name") {
             updatedSquad = {
               ...squad,
-              name: value,
+              squad_name: value,
               tab_title: value,
-              name_err: "",
+              squad_name_err: "",
             };
           } else if (name === "squad_time") {
             const valueAsDate = e.target.valueAsDate;
@@ -378,8 +381,8 @@ const OneToNSquads: React.FC<ChildProps> = ({
     )
   };
 
-  const AddOrDelButton: React.FC<AddOrDelButtonProps> = ({ id }) => {
-    if (id === "1") {
+  const AddOrDelButton: React.FC<AddOrDelButtonProps> = ({ id, sortOrder }) => {
+    if (sortOrder === 1) {
       return (
         <div className="col-sm-3">
           <label htmlFor="inputNumSquads" className="form-label">
@@ -392,6 +395,7 @@ const OneToNSquads: React.FC<ChildProps> = ({
                 type="text"
                 className="form-control"
                 id="inputNumSquads"
+                data-testid="inputNumSquads"
                 name="num_Squads"
                 value={squads.length}
               />
@@ -414,6 +418,7 @@ const OneToNSquads: React.FC<ChildProps> = ({
           <button
             className="btn btn-danger"
             id="squadDel"
+            data-testid={`id_${id}_sortOrder_${sortOrder}`}
             onClick={() => handleDelete(id)}
           >
             Delete Squad
@@ -424,8 +429,8 @@ const OneToNSquads: React.FC<ChildProps> = ({
   };
 
   const eventOptions = events.map(event => (
-    <option key={event.id} value={event.name}>
-      {event.name}
+    <option key={event.id} value={event.id}>
+      {event.event_name}
     </option>
   ));
 
@@ -455,7 +460,7 @@ const OneToNSquads: React.FC<ChildProps> = ({
           >
             <div className="row g-3 mb-3">
               {/* AddOrDelButton includes a <div className="col-sm-3">...</div> */}
-              <AddOrDelButton id={squad.id} />
+              <AddOrDelButton id={squad.id} sortOrder={squad.sort_order} />
               <div className="col-sm-3">
                 <label
                   htmlFor={`inputSquadName${squad.id}`}
@@ -465,15 +470,21 @@ const OneToNSquads: React.FC<ChildProps> = ({
                 </label>
                 <input
                   type="text"
-                  className={`form-control ${squad.name_err && "is-invalid"}`}
+                  className={`form-control ${squad.squad_name_err && "is-invalid"}`}
                   id={`inputSquadName${squad.id}`}
+                  data-testid="inputSquadName"
                   name="name"
                   maxLength={maxEventLength}
-                  value={squad.name}
+                  value={squad.squad_name}
                   onChange={handleInputChange(squad.id)}
                   onBlur={handleBlur(squad.id)}
                 />
-                <div className="text-danger">{squad.name_err}</div>
+                <div
+                  className="text-danger"
+                  data-testid="dangerSquadName"
+                >
+                  {squad.squad_name_err}
+                </div>
               </div>
               <div className="col-sm-3">
                 <label
@@ -489,12 +500,18 @@ const OneToNSquads: React.FC<ChildProps> = ({
                   step={1}
                   className={`form-control ${squad.games_err && "is-invalid"}`}
                   id={`inputSquadGames${squad.id}`}
+                  data-testid="inputSquadGames"
                   name="games"
                   value={squad.games}
                   onChange={handleInputChange(squad.id)}
                   onBlur={handleBlur(squad.id)}
                 />
-                <div className="text-danger">{squad.games_err}</div>
+                <div
+                  className="text-danger"
+                  data-testid="dangerSquadGames"
+                >
+                  {squad.games_err}
+                </div>
               </div>
             </div>
             <div className="row g-3">              
@@ -507,13 +524,20 @@ const OneToNSquads: React.FC<ChildProps> = ({
                 </label>
                 <select
                   id={`inputSquadEvent${squad.id}`}
+                  data-testid="inputSquadEvent"
                   className={`form-select ${squad.event_id_err && "is-invalid"}`}
                   onChange={handleEventSelectChange(squad.id)}
-                  defaultValue={events[0].name}
+                  defaultValue={events[0].id}
+                  value={squad.event_id}
                 >
-                {eventOptions}
-              </select>
-              <div className="text-danger">{squad.event_id_err}</div>
+                  {eventOptions}
+                </select>
+                <div
+                  className="text-danger"
+                  data-testid="dangerSquadEvent"
+                >
+                  {squad.event_id_err}
+                </div>
               </div>
               <div className="col-sm-3">
                 <label
@@ -528,12 +552,18 @@ const OneToNSquads: React.FC<ChildProps> = ({
                     squad.squad_date_err && "is-invalid"
                   }`}
                   id={`inputSquadDate${squad.id}`}
+                  data-testid="inputSquadDate"
                   name="squad_date"
                   value={squad.squad_date}
                   onChange={handleInputChange(squad.id)}
                   onBlur={handleBlur(squad.id)}
                 />
-                <div className="text-danger">{squad.squad_date_err}</div>
+                <div
+                  className="text-danger"
+                  data-testid="dangerSquadDate"
+                >
+                  {squad.squad_date_err}
+                </div>
               </div>
               <div className="col-sm-3">
                 <label
@@ -548,12 +578,18 @@ const OneToNSquads: React.FC<ChildProps> = ({
                     squad.squad_time_err && "is-invalid"
                   }`}
                   id={`inputSquadTime${squad.id}`}
+                  data-testid="inputSquadTime"
                   name="squad_time"
                   value={squad.squad_time}
                   onChange={handleInputChange(squad.id)}
                   onBlur={handleBlur(squad.id)}
                 />
-                <div className="text-danger">{squad.squad_time_err}</div>
+                <div
+                  className="text-danger"
+                  data-testid="dangerSquadTime"
+                >
+                  {squad.squad_time_err}
+                </div>
               </div>
             </div>
           </Tab>

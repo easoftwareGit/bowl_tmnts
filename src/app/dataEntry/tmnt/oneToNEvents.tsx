@@ -1,5 +1,5 @@
 import React, { useState, ChangeEvent, Dispatch, SetStateAction } from "react";
-import { eventType, AcdnErrType, squadType } from "./types";
+import { eventType, AcdnErrType, squadType, lpoxValidTypes } from "./types";
 import { initEvent } from "./initVals";
 import { Tabs, Tab } from "react-bootstrap";
 import ModalConfirm, { delConfTitle } from "@/components/modal/confirmModal";
@@ -33,7 +33,8 @@ interface ChildProps {
   setAcdnErr: (objAcdnErr: AcdnErrType) => void;  
 }
 interface AddOrDelButtonProps {
-  id: string;
+  id: string,
+  sortOrder: number;
 }
 
 const defaultTabKey = "event1";
@@ -48,7 +49,7 @@ const amountFields = [
 ];
 
 const getEventErrMsg = (event: eventType): string => {
-  if (event.name_err) return event.name_err;
+  if (event.event_name_err) return event.event_name_err;
   if (event.team_size_err) return event.team_size_err;
   if (event.games_err) return event.games_err;  
   if (event.added_money_err) return event.added_money_err;
@@ -73,7 +74,7 @@ const getNextAcdnErrMsg = (
     event = (events[i].id === updatedEvent?.id) ? updatedEvent : events[i];    
     errMsg = getEventErrMsg(event);
     if (errMsg) {
-      acdnErrMsg = getAcdnErrMsg(event.name, errMsg);
+      acdnErrMsg = getAcdnErrMsg(event.event_name, errMsg);
     }
     i++;
   }
@@ -108,67 +109,67 @@ export const validateEvents = (
   setEvents(
     events.map((event) => {
       eventErrClassName = '';
-      if (!event.name.trim()) {
+      if (!event.event_name.trim()) {
         nameErr = "Name is required";
-        setError(event.name, nameErr);
+        setError(event.event_name, nameErr);
       } else if (isDuplicateName(events, event)) {
-        nameErr = `"${event.name}" has already been used.`;
-        setError(event.name, nameErr);
+        nameErr = `"${event.event_name}" has already been used.`;
+        setError(event.event_name, nameErr);
       } else {
         nameErr = '';
       }
       if (event.team_size < minTeamSize) {
         teamErr = "Team Size must be more than " + (minTeamSize - 1);
-        setError(event.name, teamErr);
+        setError(event.event_name, teamErr);
       } else if (event.team_size > maxTeamSize) {
         teamErr = "Team Size must be less than " + (maxTeamSize + 1);
-        setError(event.name, teamErr);
+        setError(event.event_name, teamErr);
       } else {
         teamErr = '';
       }
       if (event.games < minGames) {
         gamesErr = "Event Games must be more than " + (minGames - 1);
-        setError(event.name, gamesErr);
+        setError(event.event_name, gamesErr);
       } else if (event.games > maxGames) {
         gamesErr = "Event Games must be less than " + (maxGames + 1);
-        setError(event.name, gamesErr);
+        setError(event.event_name, gamesErr);
       } else {
         gamesErr = '';
       }
       const addedMoney = Number(event.added_money)
       if (typeof addedMoney !== 'number') {
         addedMoneyErr = 'Invalid Added $'
-        setError(event.name, addedMoneyErr);
+        setError(event.event_name, addedMoneyErr);
       } else if (addedMoney < zeroAmount) {
         addedMoneyErr = 'Added $ cannot be less than ' + minMoneyText;
-        setError(event.name, addedMoneyErr);
+        setError(event.event_name, addedMoneyErr);
       } else if (addedMoney > maxMoney) {        
         addedMoneyErr = 'Added $ cannot be more than ' + maxMoneyText;
-        setError(event.name, addedMoneyErr);
+        setError(event.event_name, addedMoneyErr);
       } else {
         addedMoneyErr = '';
       }
       const entryFee = Number(event.entry_fee)      
       if (typeof entryFee !== 'number') {
         entryFeeErr = 'Invalid Entry Fee'
-        setError(event.name, entryFeeErr);
+        setError(event.event_name, entryFeeErr);
       } else if (entryFee < zeroAmount) {
         entryFeeErr = 'Entry Fee cannot be less than ' + minMoneyText;
-        setError(event.name, entryFeeErr);
+        setError(event.event_name, entryFeeErr);
       } else if (entryFee > maxMoney) {
         entryFeeErr = 'Entry Fee cannot be more than ' + maxMoneyText;
-        setError(event.name, entryFeeErr);
+        setError(event.event_name, entryFeeErr);
       } else {
         entryFeeErr = ''
       }
       const LPOX = Number(event.lpox)
       if (typeof LPOX !== 'number') {
         lpoxFeeErr = 'Invalid LPOX'
-        setError(event.name, lpoxFeeErr);
+        setError(event.event_name, lpoxFeeErr);
       }
       if (entryFee !== LPOX) {
         lpoxFeeErr = 'Entry Fee ≠ LPOX'
-        setError(event.name, lpoxFeeErr);
+        setError(event.event_name, lpoxFeeErr);
       } else {
         lpoxFeeErr = ''
       }
@@ -207,8 +208,9 @@ const OneToNEvents: React.FC<ChildProps> = ({
     const newEvent: eventType = {
       ...initEvent,      
       id: '' + (eventId + 1),
-      name: "Event " + (eventId + 1),
-      tabTitle: "Event " + (eventId + 1),
+      sort_order: eventId + 1,
+      event_name: "Event " + (eventId + 1),
+      tab_title: "Event " + (eventId + 1),
     };
     setEventId(eventId + 1);
     setEvents([...events, newEvent]);
@@ -238,6 +240,7 @@ const OneToNEvents: React.FC<ChildProps> = ({
   const canceledDelete = () => {
     setConfModalObj(initModalObj); // reset modal object (hides modal)
   };
+
   const canceledModalErr = () => {
     setErrModalObj(initModalObj); // reset modal object (hides modal)
   };
@@ -249,12 +252,11 @@ const OneToNEvents: React.FC<ChildProps> = ({
   }
 
   const handleDelete = (id: string) => {
-    if (id === "1") return;
-
     const eventToDel = events.find((event) => event.id === id);
-    if (!eventToDel) return;
-    
-    const toDelName = eventToDel.name;
+    // if did not find event OR first event (must have at least 1 event)
+    if (!eventToDel || eventToDel.sort_order === 1) return;
+
+    const toDelName = eventToDel.event_name;
     if (eventHasSquads(eventToDel)) {
       setErrModalObj({
         show: true,
@@ -276,6 +278,8 @@ const OneToNEvents: React.FC<ChildProps> = ({
     const nameErr = name + "_err";
     let rawValue = value === undefined ? 'undefined' : value;
     rawValue = (rawValue || ' ');
+
+    // console.log(`handleAmountValueChange; id: "${id}", name: "${name}", value: "${value}"`);    
 
     setEvents(
       events.map((event) => {
@@ -347,17 +351,19 @@ const OneToNEvents: React.FC<ChildProps> = ({
     const { name, value } = e.target;
     const nameErr = name + "_err";
 
+    // console.log('handleInputChange; name: ', name, 'value: ', value)
+
     setEvents(
       events.map((event) => {
         if (event.id === id) {
           let updatedEvent: eventType;
-          // set tabTitle changing name property value
-          if (name === "name") {
+          // set tabTitle changing event_name property value
+          if (name === "event_name") {
             updatedEvent = {
               ...event,
-              name: value,
-              tabTitle: value,
-              name_err: "",
+              event_name: value,
+              tab_title: value,
+              event_name_err: "",
             };
           } else if (name === 'games') {
             const gamesNum = Number(value)
@@ -424,6 +430,8 @@ const OneToNEvents: React.FC<ChildProps> = ({
     const nameErr = name + "_err";
     const valNoSymb = value.replace(currRexEx, '')
     let formattedValue = (value) ? formatValue2Dec(valNoSymb, localConfig) : '';
+    
+    // console.log(`updateLPOX; name: "${name}", value: "${value}", formattedValue: "${formattedValue}"`);
 
     if (formattedValue === 'NaN') {
       formattedValue = ''
@@ -441,7 +449,7 @@ const OneToNEvents: React.FC<ChildProps> = ({
       [nameErr]: '',
     }
     let lpoxStr = ''
-    let lpoxValid = ''
+    let lpoxValid: lpoxValidTypes = ''
     if (!temp_event.entry_fee
         && !temp_event.lineage
         && !temp_event.prize_fund
@@ -462,12 +470,14 @@ const OneToNEvents: React.FC<ChildProps> = ({
     return {
       ...temp_event,
       lpox: lpoxStr,
-      lpox_valid: lpoxValid      
+      lpox_valid: lpoxValid
     } 
   }
 
   const handleBlur = (id: string) => (e: ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
+    
+    // console.log(`handleBlur; name: "${name}", value: "${value}"`);
 
     if (amountFields.includes(name) && (value)) {
       setEvents(
@@ -529,8 +539,8 @@ const OneToNEvents: React.FC<ChildProps> = ({
     }
   };
 
-  const AddOrDelButton: React.FC<AddOrDelButtonProps> = ({ id }) => {
-    if (id === "1") {
+  const AddOrDelButton: React.FC<AddOrDelButtonProps> = ({ id, sortOrder }) => {
+    if (sortOrder === 1) {
       return (
         <div className="col-sm-3">
           <label htmlFor="inputNumEvents" className="form-label">
@@ -543,10 +553,11 @@ const OneToNEvents: React.FC<ChildProps> = ({
                 type="text"
                 className="form-control"
                 id="inputNumEvents"
+                data-testid="inputNumEvents"
                 name="num_events"
                 value={events.length}
               />
-            </div>
+            </div> 
             <div className="d-grid col-sm-4">            
               <button
                 className="btn btn-success"
@@ -601,12 +612,13 @@ const OneToNEvents: React.FC<ChildProps> = ({
           <Tab
             key={event.id}
             eventKey={`event${event.id}`}
-            title={event.tabTitle}
+            title={event.tab_title}
             tabClassName={`${event.errClassName}`}
+            data-testid="inputNumEvents1"
           >
             <div className="row g-3 mb-3">
               {/* AddOrDelButton includes a <div className="col-sm-3">...</div> */}
-              <AddOrDelButton id={event.id} />
+              <AddOrDelButton id={event.id} sortOrder={event.sort_order} />
               <div className="col-sm-3">
                 <label
                   htmlFor={`inputEventName${event.id}`}
@@ -616,15 +628,21 @@ const OneToNEvents: React.FC<ChildProps> = ({
                 </label>
                 <input
                   type="text"
-                  className={`form-control ${event.name_err && "is-invalid"}`}
-                  id={`inputEventName${event.id}`}
-                  name="name"
-                  value={event.name}
+                  name="event_name"
+                  className={`form-control ${event.event_name_err && "is-invalid"}`}
+                  id={`inputEventName${event.id}`}                  
+                  data-testid="inputEventName"                  
+                  value={event.event_name}
                   maxLength={maxEventLength}
                   onChange={handleInputChange(event.id)}
                   onBlur={handleBlur(event.id)}                  
                 />
-                <div className="text-danger">{event.name_err}</div>
+                <div
+                  className="text-danger"
+                  data-testid="dangerEventName"
+                >
+                  {event.event_name_err}
+                </div>
               </div>
               <div className="col-sm-2">
                 <label
@@ -641,12 +659,18 @@ const OneToNEvents: React.FC<ChildProps> = ({
                   step={1}
                   className={`form-control ${event.team_size_err && "is-invalid"}`}
                   id={`inputTeamSize${event.id}`}
+                  data-testid="inputTeamSize"
                   name="team_size"
                   value={event.team_size}
                   onChange={handleInputChange(event.id)}
                   onBlur={handleBlur(event.id)}
                 />
-                <div className="text-danger">{event.team_size_err}</div>
+                <div
+                  className="text-danger"
+                  data-testid="dangerTeamSize"
+                >
+                  {event.team_size_err}
+                </div>
               </div>
               <div className="col-sm-2">
                 <label
@@ -662,12 +686,18 @@ const OneToNEvents: React.FC<ChildProps> = ({
                   step={1}
                   className={`form-control ${event.games_err && "is-invalid"}`}
                   id={`inputEventGames${event.id}`}
+                  data-testid="inputEventGames"
                   name="games"
                   value={event.games}
                   onChange={handleInputChange(event.id)}
                   onBlur={handleBlur(event.id)}
                 />
-                <div className="text-danger">{event.games_err}</div>
+                <div
+                  className="text-danger"
+                  data-testid="dangerEventGames"
+                >
+                  {event.games_err}
+                </div>
               </div>
               <div className="col-sm-2">
                 <label
@@ -679,12 +709,18 @@ const OneToNEvents: React.FC<ChildProps> = ({
                 </label>
                 <EaCurrencyInput
                   id={`inputEventAddedMoney${event.id}`}
+                  data-testid="inputEventAddedMoney"
                   name="added_money"
                   className={`form-control ${event.added_money_err && "is-invalid"}`}
                   value={event.added_money}
                   onValueChange={handleAmountValueChange(event.id, 'added_money')}
                 />
-                <div className="text-danger">{event.added_money_err}</div>
+                <div
+                  className="text-danger"
+                  data-testid="dangerEventAddedMoney"
+                >
+                  {event.added_money_err}
+                </div>
               </div>
             </div>
             <div className="row g-3">
@@ -697,13 +733,19 @@ const OneToNEvents: React.FC<ChildProps> = ({
                 </label>
                 <EaCurrencyInput
                   id={`inputEventEntryFee${event.id}`}
+                  data-testid="inputEventEntryFee"
                   name="entry_fee"
                   className={`form-control ${event.entry_fee_err && "is-invalid"}`}
                   value={event.entry_fee}
                   onValueChange={handleAmountValueChange(event.id, 'entry_fee')}
                   onBlur={handleBlur(event.id)}
                 />
-                <div className="text-danger">{event.entry_fee_err}</div>
+                <div
+                  className="text-danger"
+                  data-testid="dangerEventEntryFee"
+                >
+                  {event.entry_fee_err}
+                </div>
               </div> 
               <div className="col-sm-2">
                 <label
@@ -714,13 +756,19 @@ const OneToNEvents: React.FC<ChildProps> = ({
                 </label>
                 <EaCurrencyInput
                   id={`inputEventLineage${event.id}`}
+                  data-testid="inputEventLineage"
                   name="lineage"
                   className={`form-control ${event.lineage_err && "is-invalid"}`}
                   value={event.lineage}
                   onValueChange={handleAmountValueChange(event.id, 'lineage')}
                   onBlur={handleBlur(event.id)}
                 />
-                <div className="text-danger">{event.lineage_err}</div>
+                <div
+                  className="text-danger"
+                  data-testid="dangerEventLineage"
+                >
+                  {event.lineage_err}
+                </div>
               </div>
               <div className="col-sm-2">
                 <label
@@ -731,13 +779,19 @@ const OneToNEvents: React.FC<ChildProps> = ({
                 </label>
                 <EaCurrencyInput
                   id={`inputEventPrizeFund${event.id}`}
+                  data-testid="inputEventPrizeFund"
                   name="prize_fund"
                   className={`form-control ${event.prize_fund_err && "is-invalid"}`}
                   value={event.prize_fund}
                   onValueChange={handleAmountValueChange(event.id, 'prize_fund')}
                   onBlur={handleBlur(event.id)}
                 />
-                <div className="text-danger">{event.prize_fund_err}</div>
+                <div
+                  className="text-danger"
+                  data-testid="dangerEventPrizeFund"
+                >
+                  {event.prize_fund_err}
+                </div>
               </div>
               <div className="col-sm-2">
                 <label
@@ -748,13 +802,19 @@ const OneToNEvents: React.FC<ChildProps> = ({
                 </label>
                 <EaCurrencyInput
                   id={`inputEventOther${event.id}`}
+                  data-testid="inputEventOther"
                   name="other"
                   className={`form-control ${event.other_err && "is-invalid"}`}
                   value={event.other}
                   onValueChange={handleAmountValueChange(event.id, 'other')}
                   onBlur={handleBlur(event.id)}
                 />
-                <div className="text-danger">{event.other_err}</div>
+                <div
+                  className="text-danger"
+                  data-testid="dangerEventOther"
+                >
+                  {event.other_err}
+                </div>
               </div>
               <div className="col-sm-2">
                 <label
@@ -765,13 +825,19 @@ const OneToNEvents: React.FC<ChildProps> = ({
                 </label>
                 <EaCurrencyInput
                   id={`inputEventExpenses${event.id}`}
+                  data-testid="inputEventExpenses"
                   name="expenses"
                   className={`form-control ${event.expenses_err && "is-invalid"}`}
                   value={event.expenses}
                   onValueChange={handleAmountValueChange(event.id, 'expenses')}
                   onBlur={handleBlur(event.id)}
                 />
-                <div className="text-danger">{event.expenses_err}</div>
+                <div
+                  className="text-danger"
+                  data-testid="dangerEventExpenses"
+                >
+                  {event.expenses_err}
+                </div>
               </div>
               <div className="col-sm-2">
                 <label
@@ -783,12 +849,18 @@ const OneToNEvents: React.FC<ChildProps> = ({
                 </label>
                 <EaCurrencyInput
                   id={`inputEventLPOX${event.id}`}
+                  data-testid="inputEventLpox"
                   name="lpox"
                   className={`form-control ${event.lpox_valid}`}
                   value={event.lpox}
-                  readOnly
+                  disabled
                 />
-                <div className="text-danger">{event.lpox_err}</div>
+                <div
+                  className="text-danger"
+                  data-testid="dangerEventLpox"
+                >
+                  {event.lpox_err}
+                </div>
               </div>
             </div>
           </Tab>

@@ -1,11 +1,14 @@
+export type lpoxValidTypes = "is-valid" | "is-invalid" | "";
+
 export type eventType = {
   id: string,
-  name: string,
-  tabTitle: string,
+  tmnt_id: string,
+  tab_title: string,
+  event_name: string,
+  event_name_err: string,
   team_size: number,
-  games: number,
-  name_err: string,
   team_size_err: string,
+  games: number,
   games_err: string,
   entry_fee: string,
   entry_fee_err: string,
@@ -20,45 +23,53 @@ export type eventType = {
   added_money: string,
   added_money_err: string,
   lpox: string,
-  lpox_valid: string,
+  lpox_valid: lpoxValidTypes,
   lpox_err: string,
+  sort_order: number,
   errClassName: string,
 }
 
+export type HdcpForTypes = "Game" | "Series";
+
 export type divType = {
   id: string,
-  name: string,
+  event_id: string,
+  div_name: string,
+  div_name_err: string,
   tab_title: string,
   hdcp: number,
-  hdcp_from: number,
-  int_hdcp: boolean,
-  hdcp_for: string,
-  name_err: string,
   hdcp_err: string,
+  hdcp_from: number,
   hdcp_from_err: string,
+  int_hdcp: boolean,
+  hdcp_for: HdcpForTypes,
+  sort_order: number,
   errClassName: string,
-  pot: boolean,
-  brkt: boolean,
-  elim: boolean
 }
 
 export type squadType = {
   id: string,
   event_id: string,  
   event_id_err: string,
-  name: string,
   tab_title: string,
-  squad_date: string,
-  squad_time: string,
+  squad_name: string,
+  squad_name_err: string,  
   games: number,  
-  name_err: string,
-  squad_date_err: string,
-  squad_time_err: string,
   games_err: string,
+  squad_date: string,
+  squad_date_err: string,
+  squad_time: string,
+  squad_time_err: string,
+  sort_order: number,
   errClassName: string,
 }
-
+  
 export type PotCategories = "Game" | "Last Game" | "Series" | "";
+
+export type PotCategoryObjType = {
+  id: number,
+  name: PotCategories,  
+}
 
 export type potType = {
   id: string,   
@@ -70,6 +81,7 @@ export type potType = {
   div_err: string,
   fee: string,
   fee_err: string,
+  sort_order: number,
   errClassName: string,
 }
 
@@ -96,6 +108,7 @@ export type brktType = {
   fsa: string,
   fsa_valid: string,
   fsa_err: string,
+  sort_order: number,
   errClassName: string,
 }
 

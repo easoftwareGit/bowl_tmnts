@@ -1,5 +1,5 @@
 import React, { useState, ChangeEvent, Dispatch, SetStateAction } from "react";
-import { divType, AcdnErrType, potType, brktType, elimType } from "./types";
+import { divType, AcdnErrType, potType, brktType, elimType, HdcpForTypes } from "./types";
 import { initDiv } from "./initVals";
 import { Tabs, Tab } from "react-bootstrap";
 import ModalConfirm, { delConfTitle } from "@/components/modal/confirmModal";
@@ -18,12 +18,13 @@ interface ChildProps {
 }
 interface AddOrDelButtonProps {
   id: string;
+  sortOrder: number;
 }
 
 const defaultTabKey = 'div1'
 
 const getDivErrMsg = (div: divType): string => {
-  if (div.name_err) return div.name_err;
+  if (div.div_name_err) return div.div_name_err;
   if (div.hdcp_err) return div.hdcp_err;
   if (div.hdcp_from_err) return div.hdcp_from_err;
   return '';
@@ -42,7 +43,7 @@ const getNextAcdnErrMsg = (updatedDiv: divType | null, divs: divType[]): string 
     }
     errMsg = getDivErrMsg(div)
     if (errMsg) {
-      acdnErrMsg = getAcdnErrMsg(div.name, errMsg)
+      acdnErrMsg = getAcdnErrMsg(div.div_name, errMsg)
     }              
     i++;
   }
@@ -75,30 +76,30 @@ export const validateDivs = (
   setDivs(
     divs.map((div) => {
       divErrClassName = '';
-      if (!div.name.trim()) {
+      if (!div.div_name.trim()) {
         nameErr = 'Name is required';
-        setError(div.name, nameErr);
+        setError(div.div_name, nameErr);
       } else if (isDuplicateName(divs, div)) {
-        nameErr = `"${div.name}" has already been used.`;
-        setError(div.name, nameErr);
+        nameErr = `"${div.div_name}" has already been used.`;
+        setError(div.div_name, nameErr);
       } else {
         nameErr = '';
       }
       if (div.hdcp < minHdcpPer) {
         hdcpErr = 'Hdcp % must be more than ' + (minHdcpPer - 1)
-        setError(div.name, hdcpErr);
+        setError(div.div_name, hdcpErr);
       } else if (div.hdcp > maxHdcpPer) {
         hdcpErr = 'Hdcp % must be less than ' + (maxHdcpPer + 1)
-        setError(div.name, hdcpErr);
+        setError(div.div_name, hdcpErr);
       } else {
         hdcpErr = ''
       }
       if (div.hdcp_from < minHdcpFrom) {
         hdcpFromErr = 'Event Games must be more than ' + (minHdcpFrom - 1)
-        setError(div.name, hdcpFromErr);
+        setError(div.div_name, hdcpFromErr);
       } else if (div.hdcp_from > maxHdcpFrom) {
         hdcpFromErr = 'Event Games must be less than ' + (maxHdcpFrom + 1)
-        setError(div.name, hdcpFromErr);
+        setError(div.div_name, hdcpFromErr);
       } else {
         hdcpFromErr = ''
       }
@@ -135,8 +136,9 @@ const OneToNDivs: React.FC<ChildProps> = ({
     const newDiv: divType = {
       ...initDiv,
       id: '' + (divId + 1),
-      name: "Division " + (divId + 1),
+      div_name: "Division " + (divId + 1),
       tab_title: "Division " + (divId + 1),
+      sort_order: divId + 1,
     };
     setDivId(divId + 1);
     setDivs([...divs, newDiv]);
@@ -159,7 +161,6 @@ const OneToNDivs: React.FC<ChildProps> = ({
     } else {
       setAcdnErr(noAcdnErr)
     }
-
     setTabKey(defaultTabKey);   // refocus 1st div
   }
 
@@ -174,20 +175,18 @@ const OneToNDivs: React.FC<ChildProps> = ({
     return pots.some((pot) => pot.div_id === divToDel.id)
   }
   const divHasBrkts = (divToDel: divType): boolean => {
-    return false
+    return brkts.some((brkt) => brkt.div_id === divToDel.id)
   }
   const divHasElims = (divToDel: divType): boolean => {
-    return false
+    return elims.some((elim) => elim.div_id === divToDel.id)
   }
 
   const handleDelete = (id: string) => {
-    if (id === "1") return
-
     const divToDel = divs.find((div) => div.id === id);
-    if (!divToDel) return;
+    // if did not find div OR first div (must have at least 1 event)
+    if (!divToDel || divToDel.sort_order === 1) return;
 
-    const toDelName = divToDel.name;
-
+    const toDelName = divToDel.div_name;
     if (divHasPots(divToDel)) {
       setErrModalObj({
         show: true,
@@ -228,22 +227,23 @@ const OneToNDivs: React.FC<ChildProps> = ({
         if (div.id === id) {
           let updatedDiv: divType
           // set tabTitle changing name property value
-          if (name === 'name') {
+          if (name === 'div_name') {
             updatedDiv = {
               ...div,
-              name: value,
+              div_name: value,
               tab_title: value,
-              name_err: ''
+              div_name_err: ''
             }
           } else if (name === "item.int_hdcp") {
             return {
               ...div,
               int_hdcp: checked,
             };
-          } else if (name.startsWith("hdcp_for")) {
+          } else if (name.startsWith('divHdcpRadio')) {
+            const hdcpFor: HdcpForTypes = (value === "Game") ? "Game" : "Series"            
             return {
               ...div,
-              hdcp_for: value,
+              hdcp_for: hdcpFor,
             };
           } else {
             updatedDiv = {
@@ -306,6 +306,11 @@ const OneToNDivs: React.FC<ChildProps> = ({
                 hdcp_from: 0,
                 hdcp_from_err: '',
               }
+            } else if (name.startsWith('divHdcpRadio')) {              
+              return {
+                ...div,
+                hdcp_for: 'Game',
+              }
             } else {
               return div
             }
@@ -334,8 +339,8 @@ const OneToNDivs: React.FC<ChildProps> = ({
     }
   };
 
-  const AddOrDelButton: React.FC<AddOrDelButtonProps> = ({ id }) => {
-    if (id === "1") {
+  const AddOrDelButton: React.FC<AddOrDelButtonProps> = ({ id, sortOrder }) => {
+    if (sortOrder === 1) {
       return (
         <div className="col-sm-3">
           <label htmlFor="inputNumDivs" className="form-label">
@@ -347,7 +352,8 @@ const OneToNDivs: React.FC<ChildProps> = ({
                 disabled
                 type="text"
                 className="form-control"
-                id="inputNumDivs"
+                id="inputNumDivs"                
+                data-testid="inputNumDivs"
                 name="num_Divs"
                 value={divs.length}
               />
@@ -411,22 +417,28 @@ const OneToNDivs: React.FC<ChildProps> = ({
           >
             <div className="row g-3 mb-3">
               {/* AddOrDelButton includes a <div className="col-sm-3">...</div> */}
-              <AddOrDelButton id={div.id} /> 
+              <AddOrDelButton id={div.id} sortOrder={div.sort_order} /> 
               <div className="col-sm-3">
                 <label htmlFor={`inputDivName${div.id}`} className="form-label">
                   Div Name
                 </label>
                 <input
                   type="text"
-                  className={`form-control ${div.name_err && "is-invalid"}`}
+                  className={`form-control ${div.div_name_err && "is-invalid"}`}
                   id={`inputDivName${div.id}`}
-                  name="name"
+                  data-testid="inputDivName"
+                  name="div_name"
                   maxLength={maxEventLength}
-                  value={div.name}
+                  value={div.div_name}
                   onChange={handleInputChange(div.id)}
                   onBlur={handleBlur(div.id)}
                 />
-                <div className="text-danger">{div.name_err}</div>
+                <div
+                  className="text-danger"
+                  data-testid="dangerDivName"
+                >
+                  {div.div_name_err}
+                </div>
               </div>
               <div className="col-sm-3">
                 <label
@@ -443,12 +455,18 @@ const OneToNDivs: React.FC<ChildProps> = ({
                   step={10}
                   className={`form-control ${div.hdcp_err && "is-invalid"}`}
                   id={`inputHdcp${div.id}`}
+                  data-testid="inputHdcp"
                   name="hdcp"
                   value={div.hdcp}
                   onChange={handleInputChange(div.id)}
                   onBlur={handleBlur(div.id)}
                 />
-                <div className="text-danger">{div.hdcp_err}</div>                
+                <div
+                  className="text-danger"
+                  data-testid="dangerHdcp"
+                >
+                  {div.hdcp_err}
+                </div>
               </div>
               <div className="col-sm-3">
                 <label htmlFor={`inputHdcpFrom${div.id}`} className="form-label">
@@ -461,12 +479,19 @@ const OneToNDivs: React.FC<ChildProps> = ({
                   step={10}        
                   className={`form-control ${div.hdcp_from_err && "is-invalid"}`}
                   id={`inputHdcpFrom${div.id}`}
+                  data-testid="inputHdcpFrom"
                   name="hdcp_from"
                   value={div.hdcp_from}                        
                   onChange={handleInputChange(div.id)}
                   onBlur={handleBlur(div.id)}
+                  disabled={div.hdcp === 0}
                 />
-                <div className="text-danger">{div.hdcp_from_err}</div>
+                <div
+                  className="text-danger"
+                  data-testid="dangerHdcpFrom"
+                >
+                  {div.hdcp_from_err}
+                </div>
               </div>
             </div>
             <div className="row g-3">
@@ -476,10 +501,12 @@ const OneToNDivs: React.FC<ChildProps> = ({
                 <input
                   type="checkbox"
                   className="form-check-input"
-                  id={`chkBoxIntHdcp${div.id}`}                        
+                  id={`chkBoxIntHdcp${div.id}`}  
+                  data-testid="chkBoxIntHdcp"
                   name='item.int_hdcp'
                   checked={div.int_hdcp}
                   onChange={handleInputChange(div.id)}
+                  disabled={div.hdcp === 0}
                 />
                 <label htmlFor={`chkBoxIntHdcp${div.id}`} className="form-label">
                   &nbsp;Integer Hdcp
@@ -493,10 +520,13 @@ const OneToNDivs: React.FC<ChildProps> = ({
                   type="radio"
                   className="form-check-input"
                   id={`radioHdcpForGame${div.id}`}
-                  name={`hdcp_for${div.id}`}
-                  value="game"
-                  checked={div.hdcp_for === 'game'}
+                  data-testid="radioHdcpForGame"
+                  // name="divHdcpRadio"                  
+                  name={`divHdcpRadio${div.sort_order}`}
+                  value="Game"
+                  checked={div.hdcp_for === 'Game'}
                   onChange={handleInputChange(div.id)}
+                  disabled={div.hdcp === 0}
                 />
                 <label htmlFor={`radioHdcpForGame${div.id}`} className="form-check-label">
                   &nbsp;Game &nbsp; 
@@ -505,10 +535,12 @@ const OneToNDivs: React.FC<ChildProps> = ({
                   type="radio"
                   className="form-check-input"
                   id={`radioHdcpForSeries${div.id}`}
-                  name={`hdcp_for${div.id}`}
-                  value="series"
-                  checked={div.hdcp_for !== 'game'}
+                  data-testid="radioHdcpForSeries"
+                  name={`divHdcpRadio${div.sort_order}`}
+                  value="Series"
+                  checked={div.hdcp_for !== 'Game'}
                   onChange={handleInputChange(div.id)}
+                  disabled={div.hdcp === 0}
                 />
                 <label htmlFor={`radioHdcpForSeries${div.id}`} className="form-check-label">
                   &nbsp;Series

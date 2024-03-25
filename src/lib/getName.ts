@@ -6,13 +6,13 @@ const findDiv = (id: string, divs: divType[]): divType | undefined => {
 
 export const getDivName = (id: string, divs: divType[]): string => {
   const foundDiv: divType | undefined = findDiv(id, divs)
-  return (foundDiv) ? foundDiv.name : '';
+  return (foundDiv) ? foundDiv.div_name : '';
 }
 
 export const getPotName = (pot: potType, divs: divType[]): string => {
   const foundDiv: divType | undefined = findDiv(pot.div_id, divs)
   return (foundDiv)
-    ? pot.pot_type + ' - ' + foundDiv.name
+    ? pot.pot_type + ' - ' + foundDiv.div_name
     : '';
 }
 

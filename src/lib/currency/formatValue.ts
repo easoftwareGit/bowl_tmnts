@@ -13,7 +13,7 @@ export const formatValueSymbSep2Dec = (value: string, localConfig: LocaleConfig)
   });
 }
 
-export const formatValue2Dec = (value: string, localConfig: LocaleConfig) => {
+export const formatValue2Dec = (value: string, localConfig: LocaleConfig): string => {
   return formatValue({
     value,
     decimalSeparator: localConfig.decimalSeparator,

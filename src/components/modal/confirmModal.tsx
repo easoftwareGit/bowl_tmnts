@@ -1,6 +1,5 @@
 import Button from 'react-bootstrap/Button';
 import Modal from 'react-bootstrap/Modal';
-import { modalObjectType, initModalObj } from './modalObjType';
 
 export const delConfTitle = 'Confirm Delete'
 
@@ -22,7 +21,7 @@ const ModalConfirm: React.FC<ChildProps> = ({
 
   return (
     <>
-      <Modal show={show} onHide={onCancel}>
+      <Modal show={show} onHide={onCancel} data-testid="modalConfirm">
         <Modal.Header closeButton>
           <Modal.Title>{heading}</Modal.Title>
         </Modal.Header>

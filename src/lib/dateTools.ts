@@ -13,6 +13,31 @@ export const dateTo_yyyyMMdd = (date: Date): string => {
 export const todayStr = dateTo_yyyyMMdd(startOfToday())
 
 /**
+ * formats a date into a 24 hour time string
+ *
+ * @param {Date} timeAsDate
+ * @return {*} {string} - HH:MM or ''
+ */
+export const getTimeString = (timeAsDate: Date): string => {  
+  if (timeAsDate) {
+    const offset = timeAsDate.getTimezoneOffset();
+    let currentDateTime = new Date(
+      timeAsDate.getFullYear(),
+      timeAsDate.getMonth() - 1,
+      timeAsDate.getDate(),
+      timeAsDate.getHours(),
+      timeAsDate.getMinutes() + offset
+    );
+    const timeStr = currentDateTime.toLocaleTimeString([], {
+      hour: "2-digit",
+      minute: "2-digit",
+    });
+    return twelveHourto24Hour(timeStr);
+  }
+  return "";
+}
+
+/**
  * converts a 12 hour format time into a 24 hour format time 
  * HH:MM AM => HH:MM,  HH:MM PM -> HH+12:MM
  * note: NO SECONDS!!!
