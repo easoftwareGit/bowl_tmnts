@@ -119,6 +119,7 @@ export const initElim: elimType = {
   start_err: '',
   games: defaultElimGames,
   games_err: '',  
+  sort_order: 1,
   errClassName: '',
 }
 

@@ -124,6 +124,7 @@ export type elimType = {
   games_err: string,
   fee: string,
   fee_err: string,
+  sort_order: number,
   errClassName: string,
 }
 

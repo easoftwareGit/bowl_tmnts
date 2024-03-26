@@ -1,5 +1,5 @@
 import { divType, squadType, potType, brktType, elimType } from "@/app/dataEntry/tmnt/types";
-import { defaultBrktGames, defaultBrktPlayers, defaultElimGames } from "@/app/dataEntry/tmnt/initVals";
+import { defaultBrktGames, defaultBrktPlayers, defaultElimGames, initElim } from "@/app/dataEntry/tmnt/initVals";
 import { initPot, initBrkt } from "@/app/dataEntry/tmnt/initVals";
 import { todayStr } from "@/lib/dateTools";
 
@@ -225,6 +225,9 @@ export const mockBrkts: brktType[] = [
 
 export const mockElims: elimType[] = [
   {
+    ...initElim,
+  },
+  {
     id: 'elm_8fe7ef034c8e4516993a49d7ab7df269',
     div_id: "div_578834e04e5e4885bbae79229d8b96e8",    
     squad_id: '',
@@ -236,6 +239,7 @@ export const mockElims: elimType[] = [
     start_err: '',
     games: defaultElimGames,
     games_err: '',  
+    sort_order: 2,
     errClassName: '',      
   },
   {
@@ -249,28 +253,30 @@ export const mockElims: elimType[] = [
     start: 4,
     start_err: '',
     games: defaultElimGames,
-    games_err: '',  
+    games_err: '',
+    sort_order: 3,
     errClassName: '',      
   },
   {
     id: 'elm_c6ac61110e1c46fe925911243fb89334',
     div_id: "div_24b1cd5dee0542038a1244fc2978e862",    
     squad_id: '',
-    div_name: 'HDCP',  
+    div_name: 'Hdcp',  
     div_err: '',
     fee: '10',
     fee_err: '',
     start: 1,
     start_err: '',
     games: defaultElimGames,
-    games_err: '',  
+    games_err: '',
+    sort_order: 4,
     errClassName: '',      
   },
   {
     id: 'elm_e32c25a2bf1340f5a76adf59157adcba',
     div_id: "div_24b1cd5dee0542038a1244fc2978e862",    
     squad_id: '',
-    div_name: 'HDCP',  
+    div_name: 'Hdcp',  
     div_err: '',
     fee: '10',
     fee_err: '',
@@ -278,6 +284,7 @@ export const mockElims: elimType[] = [
     start_err: '',
     games: defaultElimGames,
     games_err: '',  
+    sort_order: 5,
     errClassName: '',      
   },
 ]

@@ -430,6 +430,7 @@ const ZeroToNBrackets: React.FC<ChildProps> = ({
         <input
           type="number"
           id={`inputBrkt${property}${brkt.id}`}
+          data-testid={`inputBrkt_${property}${brkt.sort_order}`}
           name={`${property}`}
           className="form-control"
           value={value}          
@@ -458,6 +459,7 @@ const ZeroToNBrackets: React.FC<ChildProps> = ({
         )}
         <EaCurrencyInput          
           id={`${property}${brkt.id}`}
+          data-testid={`moneyBrkt_${property}${brkt.sort_order}`}
           name={`${property}`}
           className="form-control"
           value={value}          
@@ -507,8 +509,7 @@ const ZeroToNBrackets: React.FC<ChildProps> = ({
                           className="form-check-input"
                           type="radio"
                           name="brktsDivRadio"
-                          id={`div_name-${div.id}-${div.div_name}-brkts`}
-                          // data-testid={`divRadio${div.sort_order}`}
+                          id={`div_name-${div.id}-${div.div_name}-brkts`}                          
                           checked={brkts[0].div_name === div.div_name}
                           onChange={handleInputChange}
                         />
@@ -520,7 +521,12 @@ const ZeroToNBrackets: React.FC<ChildProps> = ({
                         </label>
                       </div>
                     ))}
-                    <div className="text-danger">{brkt.div_err}</div>
+                    <div
+                      className="text-danger"
+                      data-testid="dangerBrktDivRadio"
+                    >
+                      {brkt.div_err}
+                    </div>
                   </div>
                   <div className="col-sm-8">
                     <div className="row mb-3">                      
@@ -528,26 +534,38 @@ const ZeroToNBrackets: React.FC<ChildProps> = ({
                         <label
                           htmlFor={`inputBrktFee${brkt.id}`}
                           className="form-label"
+                          data-testid="createBrktFeeLabel"
                         >
                           Fee
                         </label>
                         <EaCurrencyInput
                           id={`inputBrktFee${brkt.id}`}                        
+                          data-testid="createBrktFeeInput"
                           name="fee"
                           className={`form-control ${brkt.fee_err && "is-invalid"}`}
                           value={brkt.fee}
                           onValueChange={handleAmountValueChange(brkt.id)}
                           onBlur={handleBlur(brkt.id)}
                         />
-                        <div className="text-danger">{brkt.fee_err}</div>
+                        <div
+                          className="text-danger"
+                          data-testid="dangerCreateBrktFee"
+                        >
+                          {brkt.fee_err}
+                        </div>
                       </div>
                       <div className="col-sm-3">
-                        <label htmlFor={`inputBrktStart${brkt.id}`} className="form-label">
+                        <label
+                          htmlFor={`inputBrktStart${brkt.id}`}
+                          className="form-label"
+                          data-testid="createBrktStartLabel"
+                        >
                           Start
                         </label>
                         <input
                           type="number"
                           id={`inputBrktStart${brkt.id}`}                          
+                          data-testid="createBrktStartInput"
                           name="start"
                           placeholder="#"
                           step={1}
@@ -555,7 +573,12 @@ const ZeroToNBrackets: React.FC<ChildProps> = ({
                           onChange={handleInputChange}
                           value={brkt.start}
                         />
-                        <div className="text-danger">{brkt.start_err}</div>
+                        <div
+                          className="text-danger"
+                          data-testid="dangerCreateBrktStart"
+                        >
+                          {brkt.start_err}
+                        </div>
                       </div>
                       <NumberEntry brkt={brkt} LabelText="Games" property="games" value={brkt.games}/>
                       <NumberEntry brkt={brkt} LabelText="Players" property="players" value={brkt.players}/>
@@ -576,11 +599,17 @@ const ZeroToNBrackets: React.FC<ChildProps> = ({
               ) : (
                 <>              
                   <div className="col-sm-2">
-                    <label className="form-label">Division</label>
+                    <label
+                      className="form-label"
+                      htmlFor={`brkt_div-${brkt.id}`}
+                    >
+                      Division
+                    </label>
                     <input
                       type="text"
                       className="form-control"
                       id={`brkt_div-${brkt.id}`}
+                      data-testid={`brktDiv${brkt.sort_order}`}
                       name="div_name"
                       value={brkt.div_name}
                       disabled
@@ -596,7 +625,8 @@ const ZeroToNBrackets: React.FC<ChildProps> = ({
                           Fee
                         </label>
                         <EaCurrencyInput
-                          id={`inputBrktFee${brkt.id}`}                        
+                          id={`inputBrktFee${brkt.id}`}        
+                          data-testid={`brktFee${brkt.sort_order}`}  
                           name="fee"
                           className={`form-control ${brkt.fee_err && "is-invalid"}`}
                           value={brkt.fee}
@@ -613,7 +643,7 @@ const ZeroToNBrackets: React.FC<ChildProps> = ({
                       <MoneyDisabled brkt={brkt} LabelText="First" property="first" value={brkt.first}/>
                       <MoneyDisabled brkt={brkt} LabelText="Second" property="second" value={brkt.second}/>
                       <MoneyDisabled brkt={brkt} LabelText="Admin" property="admin" value={brkt.admin}/>
-                      <MoneyDisabled brkt={brkt} LabelText="F+S+A" property="fsa" value={brkt.fsa} title="First + Second + Admin must equal Fee * Players"/>                        
+                      <MoneyDisabled brkt={brkt} LabelText="F+S+A" property="fsa" value={brkt.fsa} title="First + Second + Admin must equal Fee * Players"/>
                     </div>
                   </div>
                   <div className="col-sm-2 d-flex justify-content-center align-items-start">

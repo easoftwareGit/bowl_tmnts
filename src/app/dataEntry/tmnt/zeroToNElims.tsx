@@ -48,7 +48,7 @@ const getNextElimAcdnErrMsg = (
     errMsg = getElimErrMsg(elim);
     if (errMsg) {
       const errTabTitle =
-        elim.id === "1"
+        elim.sort_order === 1
           ? createElimTitle
           : `${elim.div_name}: ${elim.start}-${elim.start + elim.games - 1}`;
       acdnErrMsg = getAcdnErrMsg(errTabTitle, errMsg);
@@ -81,7 +81,7 @@ export const validateElims = (
 
   setElims(
     elims.map((elim) => {
-      if (elim.id === "1") {
+      if (elim.sort_order === 1) {
         return elim;
       } else {
         feeErr = '';
@@ -224,6 +224,7 @@ const ZeroToNElims: React.FC<ChildProps> = ({
         start: elims[0].start,
         games: elims[0].games,
         fee: elims[0].fee,
+        sort_order: elimId + 1,
       }
       setElimId(elimId + 1);
       const updatedElims = structuredClone(elims);
@@ -247,11 +248,10 @@ const ZeroToNElims: React.FC<ChildProps> = ({
     setModalObj(initModalObj); // reset modal object (hides modal)
   }
 
-  const handleDelete = (id: string) => {
-    if (id === "1") return;
-
-    const brktToDel = elims.find((elim) => elim.id === id);
-    if (!brktToDel) return;
+  const handleDelete = (id: string) => {    
+    const elimToDel = elims.find((elim) => elim.id === id);
+    // if did not find elim OR first elim (1st elim used for creating new elims)
+    if (!elimToDel || elimToDel.sort_order === 1) return;
 
     const toDelName = getBrktOrElimName(id, elims);
     setModalObj({
@@ -370,6 +370,7 @@ const ZeroToNElims: React.FC<ChildProps> = ({
         <input
           type="number"
           id={`inputElim${property}${elim.id}`}
+          data-testid={`inputElim_${property}${elim.sort_order}`}
           name={`${property}`}
           className="form-control"
           value={value}          
@@ -400,58 +401,80 @@ const ZeroToNElims: React.FC<ChildProps> = ({
           <Tab
             key={elim.id}
             eventKey={`elim${elim.id}`}
-            title={(elim.id === "1") ? createElimTitle : getBrktOrElimName(elim.id, elims)}
+            title={(elim.sort_order === 1) ? createElimTitle : getBrktOrElimName(elim.id, elims)}
             tabClassName={`${elim.errClassName}`}
           >
             <div className="row g-3 mb-3">
-              {elim.id === "1" ? (
+              {elim.sort_order === 1 ? (
                 <>
                   <div className="col-sm-3">
-                    <label className="form-label">Division</label>
+                    <label
+                      className="form-label"
+                      data-testid="elimDivRadioLabel"
+                    >
+                      Division
+                    </label>
                     {divs.map((div) => (
                       <div key={div.id} className="form-check text-break">
                         <input
                           className="form-check-input"
                           type="radio"
                           name="elimsDivRadio"
-                          id={`div_name-${div.id}-${div.name}-elims`}
-                          checked={elims[0].div_name === div.name}
+                          id={`div_name-${div.id}-${div.div_name}-elims`}
+                          checked={elims[0].div_name === div.div_name}
                           onChange={handleInputChange(elim.id)}
                         />
                         <label
                           className="form-check-label"
-                          htmlFor={`div_name-${div.id}-${div.name}-elims`}
+                          htmlFor={`div_name-${div.id}-${div.div_name}-elims`}
                         >
-                          {div.name}
+                          {div.div_name}
                         </label>
                       </div>
                     ))}
-                    <div className="text-danger">{elim.div_err}</div>
+                    <div
+                      className="text-danger"
+                      data-testid="dangerElimDivRadio"
+                    >
+                      {elim.div_err}
+                    </div>
                   </div>
                   <div className="col-sm-2">
                     <label
                       htmlFor={`inputElimFee${elim.id}`}
                       className="form-label"
+                      data-testid="createElimFeeLabel"
                     >
                       Fee
                     </label>
                     <EaCurrencyInput
-                      id={`inputElimFee${elim.id}`}                        
+                      id={`inputElimFee${elim.id}`}
+                      data-testid="createElimFeeInput"
                       name="fee"
                       className={`form-control ${elim.fee_err && "is-invalid"}`}
                       value={elim.fee}
                       onValueChange={handleAmountValueChange(elim.id, 'fee')}
                       onBlur={handleBlur(elim.id)}
                     />
-                    <div className="text-danger">{elim.fee_err}</div>
+                    <div
+                      className="text-danger"
+                      data-testid="dangerCreateElimFee"
+                    >
+                      {elim.fee_err}
+                    </div>
                   </div>
                   <div className="col-sm-2">
-                    <label htmlFor={`inputElimStart${elim.id}`} className="form-label">
+                    <label
+                      htmlFor={`inputElimStart${elim.id}`}
+                      className="form-label"
+                      data-testid="createElimStartLabel"
+                    >
                       Start
                     </label>
                     <input
                       type="number"
                       id={`inputElimStart${elim.id}`}
+                      data-testid="createElimStartInput"
                       name="start"
                       placeholder="#"
                       step={1}
@@ -459,15 +482,25 @@ const ZeroToNElims: React.FC<ChildProps> = ({
                       onChange={handleInputChange(elim.id)}
                       value={elim.start}
                     />
-                    <div className="text-danger">{elim.start_err}</div>
+                    <div
+                      className="text-danger"
+                      data-testid="dangerCreateElimStart"
+                    >
+                      {elim.start_err}
+                    </div>
                   </div>
                   <div className="col-sm-2">
-                    <label htmlFor={`inputElimGames${elim.id}`} className="form-label">
+                    <label
+                      htmlFor={`inputElimGames${elim.id}`}
+                      className="form-label"
+                      data-testid="createElimGamesLabel"
+                    >
                       Games
                     </label>
                     <input
                       type="number"
                       id={`inputElimGames${elim.id}`}
+                      data-testid="createElimGamesInput"
                       name="games"
                       placeholder="#"
                       step={1}
@@ -475,7 +508,12 @@ const ZeroToNElims: React.FC<ChildProps> = ({
                       onChange={handleInputChange(elim.id)}
                       value={elim.games}
                     />
-                    <div className="text-danger">{elim.games_err}</div>
+                    <div
+                      className="text-danger"
+                      data-testid="dangerCreateElimGames"
+                    >
+                      {elim.games_err}
+                    </div>
                   </div>
                   <div className="col-sm-3 d-flex justify-content-center align-items-start">
                     <button className="btn btn-success mx-3" onClick={handleAdd}>
@@ -486,11 +524,17 @@ const ZeroToNElims: React.FC<ChildProps> = ({
               ) : (
                 <>
                   <div className="col-sm-3">
-                    <label className="form-label">Division</label>
+                    <label
+                      className="form-label"
+                      htmlFor={`elim_div-${elim.id}`}
+                    >
+                      Division
+                    </label>
                     <input
                       type="text"
                       className="form-control"
                       id={`elim_div-${elim.id}`}
+                      data-testid={`elimDiv${elim.sort_order}`}
                       name="div_name"
                       value={elim.div_name}
                       disabled
@@ -504,7 +548,8 @@ const ZeroToNElims: React.FC<ChildProps> = ({
                       Fee
                     </label>
                     <EaCurrencyInput
-                      id={`inputElimFee${elim.id}`}                        
+                      id={`inputElimFee${elim.id}`}            
+                      data-testid={`elimFee${elim.sort_order}`}  
                       name="fee"
                       className={`form-control ${elim.fee_err && "is-invalid"}`}
                       value={elim.fee}
