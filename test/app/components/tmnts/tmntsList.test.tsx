@@ -1,10 +1,10 @@
 import React from 'react';
 import { render, screen, fireEvent } from '@testing-library/react';
-import TmntsList from '@/components/tmnts/tmntsList'; 
+import TmntsList, { getSortedStateOptions } from '@/components/tmnts/tmntsList'; 
 import { mockYears } from '../../../mocks/tmnts/mockYears';
 import { mockResults } from '../../../mocks/tmnts/mockResults';
 import { mockUpcoming } from '../../../mocks/tmnts/mockUpcoming';
-import { YearObj } from '@/lib/types/tmntType';
+import { YearObj } from '@/lib/types/types';
 
 const mockOnYearChange = jest.fn();
 
@@ -23,6 +23,19 @@ const mockUpcomingProps = {
 }
 
 describe("TmntsList - Component", () => {
+
+  describe('getSortedStateOptions', () => {
+    // also tests sortedIndex function in tmntsList component
+    it("returns an array of state options", () => { 
+
+      // ARRANGE
+      const stateOptions = getSortedStateOptions(mockResults);  // ACT
+      // ASSERT
+      expect(stateOptions.length).toBe(2);
+      expect(stateOptions[0].value).toBe("CA");
+      expect(stateOptions[1].value).toBe("NV");
+    })
+  })
 
   describe('TmntsList: Results', () => {
 
@@ -67,7 +80,6 @@ describe("TmntsList - Component", () => {
   })
 
   describe('TmntsList: Upcoming', () => { 
-
     it("renders the component with initial data", () => {
       render(<TmntsList {...mockUpcomingProps} />);  // ARRANGE            
       const stateLabel = screen.getByLabelText("Select State")  // ACT

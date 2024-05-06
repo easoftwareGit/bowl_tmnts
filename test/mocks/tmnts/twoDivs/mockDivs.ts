@@ -1,4 +1,4 @@
-import { divType, squadType, potType, brktType, elimType } from "@/app/dataEntry/tmnt/types";
+import { divType, squadType, potType, brktType, elimType } from "@/lib/types/types";
 import { defaultBrktGames, defaultBrktPlayers, defaultElimGames, initElim } from "@/app/dataEntry/tmnt/initVals";
 import { initPot, initBrkt } from "@/app/dataEntry/tmnt/initVals";
 import { todayStr } from "@/lib/dateTools";
@@ -12,7 +12,7 @@ export const mockDivs: divType[] = [
     tab_title: "Scratch",
     hdcp: 0,
     hdcp_err: "",
-    hdcp_from: 220,
+    hdcp_from: 230,
     int_hdcp: false,
     hdcp_for: "Series",
     hdcp_from_err: "",

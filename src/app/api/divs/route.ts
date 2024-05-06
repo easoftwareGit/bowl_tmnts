@@ -11,9 +11,6 @@ export async function GET(request: NextRequest) {
     const divs = await prisma.div.findMany({
       orderBy: [
         {
-          id: 'asc',
-        }, 
-        {
           event_id: 'asc',
         }, 
         {

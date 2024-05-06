@@ -43,24 +43,29 @@ export default function EaNavbar() {
             <Nav.Link as={Link} href="/contact" active={pathname === "/contact"}>Contact</Nav.Link>
             {/* <Nav.Link as={Link} href="/secret" active={pathname === "/secret"}>Secret</Nav.Link> */}
             <Nav.Link as={Link} href="/sample" active={pathname === "/sample"}>Sample</Nav.Link>
+            {/* leave tmnt data here for testing */}
             <Nav.Link as={Link} href="/dataEntry/tmnt" active={pathname === "/dataEntry/tmnt"}>Tmnt Data</Nav.Link>
             {status === 'authenticated' ? (              
-              <NavDropdown title={ data.user?.name } id="user-dropdown">
-                <NavDropdown.Item
-                  href="/user"
-                  className="user-nav-item"
-                >
-                  Account
-                </NavDropdown.Item>
-                <NavDropdown.Item
-                  role="button"
-                  href=""
-                  className="user-nav-item"
-                  onClick={() => setModalOpen(true)}
-                >
-                  Log out
-                </NavDropdown.Item>
-              </NavDropdown>
+              <>
+                {/* uncomment line below when done testing */}
+                {/* <Nav.Link as={Link} href="/dataEntry/tmnt" active={pathname === "/dataEntry/tmnt"}>Tmnt Data</Nav.Link> */}
+                <NavDropdown title={ data.user?.name } id="user-dropdown">
+                  <NavDropdown.Item
+                    href="/user"
+                    className="user-nav-item"
+                  >
+                    Account
+                  </NavDropdown.Item>
+                  <NavDropdown.Item
+                    role="button"
+                    href=""
+                    className="user-nav-item"
+                    onClick={() => setModalOpen(true)}
+                  >
+                    Log out
+                  </NavDropdown.Item>
+                </NavDropdown>
+              </>
             ) : (                
               <Nav.Link as={Link} href="/api/auth/signin" active={pathname === "/api/auth/signin"}>Log In</Nav.Link>
             ) }

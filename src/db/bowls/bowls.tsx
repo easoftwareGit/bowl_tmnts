@@ -3,20 +3,19 @@ import { baseBowlsApi } from "../apiPaths";
 import { testBaseBowlsApi } from "../../../test/testApi";
 
 /**
- * get array of years from today and before
+ * get array of bowls
  *
  * NOTE:
  * Do not use try / catch blocks here. Need the promise to be fulfilled
  * or rejected in /src/redux/features/bowls/bowlsSlice.tsx
  * which will have the appropriate response in the extraReducers.
  *
- * @returns { data: Bowl[] } - array of years;
+ * @returns { data: Bowl[] } - array bowls;
  */
-export const getBowls = async () => {
-  const year = new Date().getFullYear().toString();
+export const getBowls = async () => {  
   // for testing.
-  // if testing: tmntYearUrl = testbaseTmntYearsApi;
-  // if not testing: tmntYearUrl = baseTmntYearsApi
+  // if testing: tmntYearUrl = testBaseBowlsApi;
+  // if not testing: tmntYearUrl = baseBowlsApi
   const url = testBaseBowlsApi.startsWith("undefined")
     ? baseBowlsApi
     : testBaseBowlsApi;    

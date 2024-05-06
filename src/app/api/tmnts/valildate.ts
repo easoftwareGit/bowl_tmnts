@@ -1,16 +1,15 @@
 import { isValidBtDbId, maxTmntNameLength, ErrorCode } from "@/lib/validation";
 import { sanitize } from "@/lib/sanitize";
 import { startOfDay, isValid } from "date-fns";
+import { tmntType } from "@/lib/types/types";
 
-export type tmntToCheck = {
-  tmnt_name: string,
-  start_date: string,
-  end_date: string,
-  user_id: string,
-  bowl_id: string
-}
-
-export function gotTmntData(tmnt: tmntToCheck): ErrorCode { 
+/**
+ * checks for required data and returns error code if missing 
+ * 
+ * @param tmnt - tournament data to check
+ * @returns - {ErrorCode.MissingData, ErrorCode.None, ErrorCode.OtherError}
+ */
+export function gotTmntData(tmnt: tmntType): ErrorCode { 
 
   try {
     if (!sanitize(tmnt.tmnt_name)
@@ -26,7 +25,13 @@ export function gotTmntData(tmnt: tmntToCheck): ErrorCode {
   }
 }
 
-export function validTmntData(tmnt: tmntToCheck): ErrorCode { 
+/**
+ * checks if tournament adat is valid
+ * 
+ * @param tmnt - tournament data to check
+ * @returns - {ErrorCode.InvalidData, ErrorCode.None, ErrorCode.OtherError}
+ */
+export function validTmntData(tmnt: tmntType): ErrorCode { 
 
   try {           
     if (tmnt.tmnt_name && sanitize(tmnt.tmnt_name).length > maxTmntNameLength) {
@@ -58,7 +63,14 @@ export function validTmntData(tmnt: tmntToCheck): ErrorCode {
   }
 }
 
-export function validateTmnt(tmnt: tmntToCheck): ErrorCode { 
+
+/**
+ * valildates a tournament data object
+ * 
+ * @param tmnt - tournament data to check
+ * @returns - {ErrorCode.MissingData, ErrorCode.InvalidData, ErrorCode.None, ErrorCode.OtherError} 
+ */
+export function validateTmnt(tmnt: tmntType): ErrorCode { 
 
   try {
     const errCode = gotTmntData(tmnt)

@@ -1,9 +1,9 @@
-import { eventType } from "@/app/dataEntry/tmnt/types";
+import { eventType } from "@/lib/types/types";
 
 export const mockEvents: eventType[] = [
   {
     id: "evt_6ff6774e94884658be5bdebc68a6aa7c",
-    tmnt_id: "tmt_4ecd06d55d5245918a87b20ad96052b6",
+    tmnt_id: "tmt_e4b8f102381e4565a609511b0cb453c0",
     tab_title: "Singles",
     event_name: "Singles",
     event_name_err: '',
@@ -31,7 +31,7 @@ export const mockEvents: eventType[] = [
   },
   {
     id: "evt_20235232fd444241ace86e6e58b01ad8",
-    tmnt_id: "tmt_4ecd06d55d5245918a87b20ad96052b6",
+    tmnt_id: "tmt_e4b8f102381e4565a609511b0cb453c0",
     tab_title: "Doubles",
     event_name: "Doubles",
     event_name_err: '',

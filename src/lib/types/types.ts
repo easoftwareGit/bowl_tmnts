@@ -1,3 +1,38 @@
+export type YearObj = {
+  year: number,
+}
+
+export type BowlInTmntData = {  
+  bowl_name: string;
+  city: string;
+  state: string;
+  url: string;
+}
+
+export type tmntType = {
+  id: string,
+  user_id: string,
+  tmnt_name: string,
+  tmnt_name_err: string,
+  bowl_id: string,
+  bowls: BowlInTmntData
+  bowl_id_err: string,
+  start_date: string,
+  start_date_err: string,
+  end_date: string,
+  end_date_err: string,
+}
+
+export type bowlType = {
+  id: string,
+  bowl_name: string,
+  city: string,
+  state: string,
+  url: string
+  createdAt: string,
+  updatedAt: string,
+}
+
 export type lpoxValidTypes = "is-valid" | "is-invalid" | "";
 
 export type eventType = {
@@ -56,14 +91,32 @@ export type squadType = {
   squad_name_err: string,  
   games: number,  
   games_err: string,
+  lane_count: number,
+  lane_count_err: string,
+  starting_lane: number,
+  starting_lane_err: string,
   squad_date: string,
   squad_date_err: string,
   squad_time: string,
   squad_time_err: string,
   sort_order: number,
-  errClassName: string,
+  errClassName: string,  
 }
   
+export type laneType = {  
+  id: string,
+  lane: number,
+  squad_id: string,  
+}
+
+export type pairsOfLanesType = {
+  left_id: string,
+  left_lane: number,
+  right_id: string,
+  right_lane: number,
+  in_use: boolean,
+}
+
 export type PotCategories = "Game" | "Last Game" | "Series" | "";
 
 export type PotCategoryObjType = {
@@ -128,37 +181,37 @@ export type elimType = {
   errClassName: string,
 }
 
-// export type featsParamsType = {
-//   divFeats: divFeatType[];
-//   setDivFeats: (divFeats: divFeatType[]) => void;
-//   seDivFeats: seDivFeatType[];
-//   setSeDivFeats: (seDivFeats: seDivFeatType[]) => void;
-//   elim: elimType;
-//   setElim: (elDivFeat: elimType) => void;
-//   brkt: brktType;
-//   setBrkt: (brDivfeat: brktType) => void;
-//   featAcdnErr: AcdnErrType;
-//   setFeatAcdnErr: (objAcdnErr: AcdnErrType) => void;
-// }
-
 export type AcdnErrType = {
   errClassName: string,
   message: string,
 }
 
-export type tmntParamsType = {
+export type fullTmntDataType = {
+  tmnt: tmntType;
+  events: eventType[];
+  divs: divType[];
+  squads: squadType[];
+  lanes: laneType[];
+  pots: potType[];
+  brkts: brktType[];
+  elims: elimType[];
+}
+
+export type tmntPropsType = {
+  tmnt: tmntType;
+  setTmnt: (tmnt: tmntType) => void;
   events: eventType[];
   setEvents: (events: eventType[]) => void;
   divs: divType[];
   setDivs: (divs: divType[]) => void;
   squads: squadType[];
   setSquads: (squads: squadType[]) => void;
+  lanes: laneType[];
+  setLanes: (lanes: laneType[]) => void;
   pots: potType[];
   setPots: (pots: potType[]) => void;
   elims: elimType[];
   setElims: (elims: elimType[]) => void;
   brkts: brktType[];
   setBrkts: (brkts: brktType[]) => void;
-  acdnErr: AcdnErrType;
-  setAcdnErr: (objAcdnErr: AcdnErrType) => void;
 }

@@ -1,12 +1,7 @@
-import { brktType, divType, elimType, potType } from "@/app/dataEntry/tmnt/types";
+import { brktType, divType, elimType, potType } from "@/lib/types/types";
 
 const findDiv = (id: string, divs: divType[]): divType | undefined => {
   return divs.find((div) => div.id === id);
-}
-
-export const getDivName = (id: string, divs: divType[]): string => {
-  const foundDiv: divType | undefined = findDiv(id, divs)
-  return (foundDiv) ? foundDiv.div_name : '';
 }
 
 export const getPotName = (pot: potType, divs: divType[]): string => {

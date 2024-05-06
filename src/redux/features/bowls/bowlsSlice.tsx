@@ -23,24 +23,6 @@ export const fetchBowls = createAsyncThunk("bowls/fetchBowls", async () => {
   // rejected which will have the appropriate response in the extraReducers.
 
   return getBowls();
-
-  // const url = baseApi + "/bowls";
-  // const response = await axios.get(url);
-  // return response.data.bowls; // response.data.bowls is already JSON'ed
-
-  // Do not use try / catch blocks here. Need the promise to be fulfilled or
-  // rejected which will have the appropriate response in the extraReducers.
-  // try {
-  //   const response = await axios.get(url);
-  //   if (response.status === 200 && response.data) {
-  //     return response.data.bowls; // response.data.bowls is already JSON'ed
-  //   } else {
-  //     console.log('Bowls - Non error return, but not status 200');
-  //     return [];
-  //   }
-  // } catch (error) {
-  //   return [];
-  // }
 });
 
 export const bowlsSlice = createSlice({

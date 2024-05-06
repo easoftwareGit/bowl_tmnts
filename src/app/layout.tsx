@@ -2,7 +2,7 @@ import "bootstrap/dist/css/bootstrap.min.css";
 import "./globals.css";
 import type { Metadata } from "next";
 import { Inter } from "next/font/google";
-import { Container, SSRProvider } from "@/components/boostrap";
+import { Container } from "@/components/boostrap";
 import EaNavbar from "@/components/navBar/eaNavbar";
 import { ReduxProvider } from "@/redux/provider";
 import { Providers } from "./providers";

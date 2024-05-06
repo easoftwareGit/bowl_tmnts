@@ -1,10 +1,10 @@
 "use client";
 import { FC, useState, useEffect } from "react";
-import { TmntDataType, YearObj } from "@/lib/types/tmntType";
+import { tmntType, YearObj } from "@/lib/types/types";
 
 interface TmntListProps {
   yearsArr: YearObj[];
-  tmntsArr: TmntDataType[];
+  tmntsArr: tmntType[];
   onYearChange: (val: string) => void | undefined;
 }
 
@@ -49,10 +49,10 @@ function sortedIndex(
 /**
  * gets an array of sorted state objects, no duplicates
  *
- * @param {TmntDataType[]} tmnts
+ * @param {tmntType[]} tmnts
  * @return {*}  {SelectOption[]}
  */
-function getSortedStateOptions(tmnts: TmntDataType[]): SelectOption[] {
+export function getSortedStateOptions(tmnts: tmntType[]): SelectOption[] {
   if (!tmnts) return [];
   const stateOptions: SelectOption[] = [];
   tmnts.forEach((tmnt) => {
@@ -83,7 +83,7 @@ const TmntsList: FC<TmntListProps> = (props) => {
     setTmntYear(yearsArr[0]?.year)    
   }, [tmntsArr, yearsArr])
 
-  function filterTmnt(tmnt: TmntDataType): boolean {
+  function filterTmnt(tmnt: tmntType): boolean {
     if (stateFilter === "all") return true;
     return tmnt.bowls.state === stateFilter;
   }

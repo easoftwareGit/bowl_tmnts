@@ -103,20 +103,32 @@ model Hdcp {
 }
 
 model Squad {
-  id          String       @id @default(dbgenerated("concat('sqd_', replace(cast(gen_random_uuid() as text), '-', ''))")) @db.Text
-  event_id    String       @db.Text
-  squad_name  String
-  squad_date  DateTime     @db.Date
-  squad_time  String?      @db.Text
-  games       Int
-  sort_order  Int
-  lane_asmts  Lane_asmt[]
-  pots        Pot[]
-  brackets    Bracket[]
-  eliminators Eliminator[]
-  events      Event        @relation(fields: [event_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
-  createdAt   DateTime     @default(now())
-  updatedAt   DateTime     @updatedAt
+  id            String       @id @default(dbgenerated("concat('sqd_', replace(cast(gen_random_uuid() as text), '-', ''))")) @db.Text
+  event_id      String       @db.Text
+  squad_name    String
+  squad_date    DateTime     @db.Date
+  squad_time    String?      @db.Text
+  games         Int
+  lane_count    Int
+  starting_lane Int
+  sort_order    Int
+  lanes         Lanes[]
+  lane_asmts    Lane_asmt[]
+  pots          Pot[]
+  brackets      Bracket[]
+  eliminators   Eliminator[]
+  events        Event        @relation(fields: [event_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  createdAt     DateTime     @default(now())
+  updatedAt     DateTime     @updatedAt
+}
+
+model Lanes {
+  id        String   @id @default(dbgenerated("concat('lns_', replace(cast(gen_random_uuid() as text), '-', ''))")) @db.Text
+  lane      Int
+  squad_id  String   @db.Text
+  squad     Squad    @relation(fields: [squad_id], references: [id])
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 }
 
 model Pot {

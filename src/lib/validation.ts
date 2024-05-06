@@ -9,6 +9,10 @@ export const minTeamSize = 1;
 export const maxTeamSize = 5;
 export const minGames = 1;
 export const maxGames = 99;
+export const minStartLane = 1;
+export const maxStartLane = 199;
+export const minLaneCount = 2;
+export const maxLaneCount = 200;
 export const maxEvents = 10;
 export const minHdcpPer = 0;
 export const maxHdcpPer = 125;
@@ -22,7 +26,7 @@ export const minSortOrder = 1;
 export const maxSortOrder = 1000;
 
 export const minYear = 1900;
-export const maxYear = 2100;
+export const maxYear = 2200;
 
 export enum ErrorCode {
   None = 0,
@@ -66,12 +70,17 @@ const validIdTypes = [
   "evt",
   "div",
   "sqd",
+  'lan',
   "hdc",
   "pot",
   "brk",
   "elm",
   "ply",
 ];
+
+export const isValidBtDbType = (str: string): boolean => {
+  return validIdTypes.includes(str);
+}
 
 /**
  * checks if string is a valid BtDb id
@@ -84,19 +93,8 @@ const validIdTypes = [
  */
 export function isValidBtDbId(str: string): boolean {
   const idType = str.substring(0, 3);
-  if (!validIdTypes.includes(idType)) return false;
+  if (!isValidBtDbType(idType)) return false;  
   const regex = /^[a-z]{3}_[a-f0-9]{32}$/;
-  return regex.test(str);
-}
-
-/**
- * checks if a string is gruops of one or two digits, sererated by commas
- * 
- * @param {string} str 
- * @return {*}  {boolean} - true: str is a just numbers seperated by commas
- */
-export function isValidStartingGames(str: string): boolean {
-  const regex = /^\d(\d)?(,\d(\d)?)*$/;
   return regex.test(str);
 }
 
@@ -128,3 +126,23 @@ export const validTime = (time: string): boolean => {
       : /^(0[1-9]|1[0-2]):[0-5][0-9]\s(?:AM|PM)$/;
   return regex.test(time);
 };
+
+/**
+ * checks if a numeber is odd
+ * 
+ * @param num - number to test
+ * @returns {boolean} - true if number is odd
+ */
+export const isOdd = (num: number): boolean => {
+  return num % 2 !== 0;
+}
+
+/**
+ * checks if a numeber is even
+ * 
+ * @param num - number to test
+ * @returns {boolean} - true if number is odd
+ */
+export const isEven = (num: number): boolean => {
+  return !isOdd(num);
+}

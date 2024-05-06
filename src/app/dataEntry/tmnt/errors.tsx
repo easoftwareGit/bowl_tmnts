@@ -1,4 +1,4 @@
-import { eventType, divType, squadType, AcdnErrType, elimType, brktType } from "./types";
+import { eventType, divType, squadType, AcdnErrType, elimType, brktType } from "../../../lib/types/types";
 export const objErrClassName = 'objError';
 export const acdnErrClassName = 'acdnError';
 
@@ -6,19 +6,50 @@ export const getAcdnErrMsg = (objName: string, objErrMsg: string): string => {
   return `: Error in ${objName} - ${objErrMsg}`
 }
 /**
- * checks if the name property of an object has been used in another object
+ * checks if the event_name property of an event has been used in another event
  * 
- * @param arrOfObj - array of objects to check for duplicate names
- * @param obj - object to check if contains a duplicate name
+ * @param arrOfEvents - array of events to check for duplicate names
+ * @param event - event to check if contains a duplicate name
  * @returns {*} boolean: true if a duplicate name
  */
-export const isDuplicateName = (
-  arrOfObj: eventType[] | divType[] | squadType[],
-  obj: eventType | divType | squadType
-): boolean => {
+export const isDuplicateEventName = (arrOfEvents: eventType[], event: eventType): boolean => {
   let i = 0;
-  while (arrOfObj[i].id < obj.id && i < arrOfObj.length) {
-    if (arrOfObj[i].name.trim().toLowerCase() === obj.name.trim().toLowerCase()) {
+  while (i < arrOfEvents.length) {
+    if (arrOfEvents[i].sort_order > event.sort_order) {
+      return false;
+    }
+    if (arrOfEvents[i].id !== event.id &&
+        arrOfEvents[i].event_name.trim().toLowerCase() === event.event_name.trim().toLowerCase()) {
+      return true;
+    }
+    i++;
+  }
+  return false;
+}
+
+export const isDuplicateDivName = (arrOfDivs: divType[], div: divType): boolean => {
+  let i = 0;
+  while (i < arrOfDivs.length) {
+    if (arrOfDivs[i].sort_order > div.sort_order) {
+      return false;
+    }
+    if (arrOfDivs[i].id !== div.id &&
+        arrOfDivs[i].div_name.trim().toLowerCase() === div.div_name.trim().toLowerCase()) {
+      return true;
+    }
+    i++;
+  } 
+  return false;
+}
+
+export const isDuplicateSquadName = (arrOfSquads: squadType[], squad: squadType): boolean => {
+  let i = 0;
+  while (i < arrOfSquads.length) {
+    if (arrOfSquads[i].sort_order > squad.sort_order) {
+      return false;
+    }        
+    if (arrOfSquads[i].id !== squad.id &&
+        arrOfSquads[i].squad_name.trim().toLowerCase() === squad.squad_name.trim().toLowerCase()) {
       return true;
     }
     i++;
@@ -47,17 +78,20 @@ export const getBrktErrMsg = (brkt: brktType): string => {
 /**
  * checks if the date and time properties of an object has been used in another object
  * 
- * @param arrOfObj - array of objects to check for duplicate date & time
- * @param obj - object to check if contains a duplicate date & time
+ * @param arrOfSquads - array of squads to check for duplicate date & time
+ * @param squad - squad to check if contains a duplicate date & time
  * @returns {*} boolean: true if a duplicate date & time
  */
 export const isDuplicateDateTime = (
-  arrOfObj: squadType[],
-  obj: squadType
+  arrOfSquads: squadType[],
+  squad: squadType
 ): boolean => {
   let i = 0;
-  while (arrOfObj[i].id < obj.id && i < arrOfObj.length) {
-    if (arrOfObj[i].squad_date === obj.squad_date && arrOfObj[i].squad_time === obj.squad_time) {
+  while (i < arrOfSquads.length) {
+    if (arrOfSquads[i].sort_order >= squad.sort_order) {
+      return false;
+    }
+    if (arrOfSquads[i].squad_date === squad.squad_date && arrOfSquads[i].squad_time === squad.squad_time) {
       return true
     }
     i++

@@ -2,8 +2,10 @@ import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { sanitize } from "@/lib/sanitize";
 import { ErrorCode, isValidBtDbId } from "@/lib/validation";
-import { tmntToCheck, validTmntData, validateTmnt } from "@/app/api/tmnts/valildate"
+import { validTmntData, validateTmnt } from "@/app/api/tmnts/valildate"
+import { tmntType } from "@/lib/types/types";
 import { startOfDay } from "date-fns";
+import { initTmnt } from "@/app/dataEntry/tmnt/initVals";
 
 // routes /api/tmnts/:id
 
@@ -57,7 +59,8 @@ export async function PUT(
   try {
     const id = params.id;
     const { tmnt_name, start_date, end_date, user_id, bowl_id } = await request.json()
-    const toCheck: tmntToCheck = {
+    const toCheck: tmntType = {
+      ...initTmnt,
       tmnt_name,
       start_date,
       end_date,
@@ -91,10 +94,7 @@ export async function PUT(
     }
     
     const san_tmnt_name = sanitize(tmnt_name);
-    const updated = await prisma.tmnt.update({
-      where: {
-        id: id
-      },      
+    const created = await prisma.tmnt.create({
       data: {
         tmnt_name: san_tmnt_name,
         start_date: startOfDay(new Date(start_date)),
@@ -103,7 +103,7 @@ export async function PUT(
         bowl_id: bowl_id,
       }
     })
-    return NextResponse.json({updated}, {status: 200});    
+    return NextResponse.json({created}, {status: 200});    
   } catch (err: any) {
     return NextResponse.json(
       { error: "error updating tmnt" },
@@ -130,7 +130,8 @@ export async function PATCH(
   try {
     const id = params.id
     const { tmnt_name, start_date, end_date, user_id, bowl_id } = await request.json()
-    const toCheck: tmntToCheck = {
+    const toCheck: tmntType = {
+      ...initTmnt,
       tmnt_name,
       start_date,
       end_date,

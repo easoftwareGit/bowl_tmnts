@@ -1,5 +1,5 @@
 import React, { useState, ChangeEvent, Dispatch, SetStateAction } from "react";
-import { divType, squadType, AcdnErrType, PotCategoryObjType, potType } from "./types";
+import { divType, squadType, AcdnErrType, PotCategoryObjType, potType } from "../../../lib/types/types";
 import ModalConfirm, { delConfTitle } from "@/components/modal/confirmModal";
 import { Tab, Tabs } from "react-bootstrap";
 import { initModalObj } from "@/components/modal/modalObjType";
@@ -20,13 +20,12 @@ import { getPotName } from "@/lib/getName";
 interface ChildProps {
   pots: potType[];
   setPots: (pots: potType[]) => void;
-  divs: divType[];
-  squads: squadType[];
+  divs: divType[];  
   setAcdnErr: (objAcdnErr: AcdnErrType) => void;
 }
 
 const createPotTitle = "Create Pot";
-const duplicatePotErrMsg = "Pot Type - Division already exists";
+// const duplicatePotErrMsg = "Pot Type - Division already exists";
 const defaultTabKey = "pot1";
 const potCategories: PotCategoryObjType[] = [
   {
@@ -74,15 +73,17 @@ const getNextPotAcdnErrMsg = (
 
 export const validatePots = (
   pots: potType[],
-  setPots: Dispatch<SetStateAction<potType[]>>,
-  setAcdnErr: Dispatch<SetStateAction<AcdnErrType>>
+  setPots: (pots: potType[]) => void,
+  setAcdnErr: (objAcdnErr: AcdnErrType) => void
 ): boolean => {
   let arePotsValid = true;
   let feeErr = "";
   let potErrClassName = "";
 
+  const newPotErrMsg = getPotErrMsg(pots[0]);
+
   const setError = (potName: string, errMsg: string) => {
-    if (arePotsValid) {
+    if (arePotsValid && !newPotErrMsg) {
       setAcdnErr({
         errClassName: acdnErrClassName,
         message: getAcdnErrMsg(potName, errMsg),
@@ -103,7 +104,7 @@ export const validatePots = (
       } else if (fee < minFee) {
         feeErr = "Fee cannot be less than " + minFeeText;
       } else if (fee > maxMoney) {
-        feeErr = "Fee cannot be greater than " + maxMoneyText;
+        feeErr = "Fee cannot be more than " + maxMoneyText;
       }
       if (feeErr) {
         setError(pot.pot_type + " - " + pot.div_name, feeErr);
@@ -116,7 +117,7 @@ export const validatePots = (
     })
   );
   if (arePotsValid) {
-    setAcdnErr(noAcdnErr);
+    setAcdnErr(noAcdnErr);    
   }
   return arePotsValid;
 };
@@ -124,8 +125,7 @@ export const validatePots = (
 const ZeroToNPots: React.FC<ChildProps> = ({
   pots,
   setPots,
-  divs,
-  squads,
+  divs,  
   setAcdnErr,
 }) => {
   const [modalObj, setModalObj] = useState(initModalObj);
@@ -166,7 +166,7 @@ const ZeroToNPots: React.FC<ChildProps> = ({
       feeErr = "Fee cannot be less than " + minFeeText;
       setError(feeErr);
     } else if (fee > maxMoney) {
-      feeErr = "Fee cannot be greater than " + maxMoneyText;
+      feeErr = "Fee cannot be more than " + maxMoneyText;
       setError(feeErr);
     }
 
@@ -178,6 +178,7 @@ const ZeroToNPots: React.FC<ChildProps> = ({
           pot.pot_type === newPot.pot_type && pot.div_id === newPot.div_id
       );
       if (duplicatePot) {
+        const duplicatePotErrMsg = `Pot: ${newPot.pot_type} - ${newPot.div_name} already exists`;
         potErr = duplicatePotErrMsg;
         setError(potErr);
       }
@@ -205,7 +206,8 @@ const ZeroToNPots: React.FC<ChildProps> = ({
     return isPotValid;
   };
 
-  const handleAdd = () => {
+  const handleAdd = (e: React.FormEvent) => {
+    e.preventDefault();
     if (validNewPot(pots[0])) {
       const newPot: potType = {
         ...initPot,
@@ -267,7 +269,7 @@ const ZeroToNPots: React.FC<ChildProps> = ({
         div_err: "",
       };
 
-      if (pots[0].pot_type_err === duplicatePotErrMsg) {
+      if (pots[0].pot_type_err.includes('already exists')) {
         updatedPot.pot_type_err = "";
       }
     } else {
@@ -373,8 +375,7 @@ const ZeroToNPots: React.FC<ChildProps> = ({
                 <>
                   <div className="col-sm-3">
                     <label
-                      className="form-label"
-                      data-testid="potTypeRadioLabel"
+                      className="form-label"                      
                     >
                       Pot Type
                     </label>
@@ -403,8 +404,7 @@ const ZeroToNPots: React.FC<ChildProps> = ({
                   </div>
                   <div className="col-sm-3">
                     <label
-                      className="form-label"
-                      data-testid="divRadioLabel"
+                      className="form-label"                      
                     >
                       Division
                     </label>
@@ -436,8 +436,7 @@ const ZeroToNPots: React.FC<ChildProps> = ({
                       Fee
                     </label>
                     <EaCurrencyInput
-                      id="inputPotFee"
-                      data-testid="inputPotFee"
+                      id="inputPotFee"                      
                       name="inputPotFee"
                       className={`form-control ${pot.fee_err && "is-invalid"}`}
                       value={pot.fee}
@@ -468,8 +467,7 @@ const ZeroToNPots: React.FC<ChildProps> = ({
                     <input
                       type="text"
                       className="form-control"
-                      id={`pot_type-${pot.id}`}
-                      data-testid={`potType${pot.sort_order}`}
+                      id={`pot_type-${pot.id}`}                      
                       name={`pot_type-${pot.id}`}
                       value={pot.pot_type}
                       disabled
@@ -485,8 +483,7 @@ const ZeroToNPots: React.FC<ChildProps> = ({
                     <input
                       type="text"
                       className="form-control"
-                      id={`div_name-${pot.id}`}
-                      data-testid={`divName${pot.sort_order}`}
+                      id={`div_name-${pot.id}`}                      
                       name={`div_name-${pot.id}`}
                       value={pot.div_name}
                       disabled
@@ -497,8 +494,7 @@ const ZeroToNPots: React.FC<ChildProps> = ({
                       Fee
                     </label>
                     <EaCurrencyInput
-                      id={`potFee-${pot.id}`}
-                      data-testid={`potFee${pot.sort_order}`}
+                      id={`potFee-${pot.id}`}                      
                       name={`potFee-${pot.id}`}
                       className={`form-control ${pot.fee_err && "is-invalid"}`}
                       value={pot.fee}

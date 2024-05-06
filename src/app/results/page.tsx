@@ -4,7 +4,7 @@ import { useSelector, useDispatch } from "react-redux";
 import { AppDispatch, RootState } from "@/redux/store";
 import { fetchTmnts } from "@/redux/features/tmnts/tmntsSlice";
 import { fetchTmntYears } from "@/redux/features/tmnts/yearsSlice";
-import { TmntDataType, YearObj } from "../../lib/types/tmntType";
+import { tmntType, YearObj } from "../../lib/types/types";
 import TmntsList from "@/components/tmnts/tmntsList";
 
 export default function TmntResultsPage() {
@@ -17,7 +17,7 @@ export default function TmntResultsPage() {
   }, [tmntYear, dispatch]);
 
   const stateTmnts = useSelector((state: RootState) => state.tmnts); 
-  const tmntsArr: TmntDataType[] = stateTmnts.tmnts;
+  const tmntsArr: tmntType[] = stateTmnts.tmnts;
 
   useEffect(() => {
     dispatch(fetchTmntYears());    

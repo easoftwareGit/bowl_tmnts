@@ -2,8 +2,10 @@ import { NextResponse, NextRequest } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { sanitize } from "@/lib/sanitize";
 import { ErrorCode } from "@/lib/validation";
-import { tmntToCheck, validateTmnt } from "./valildate";
+import { tmntType } from "@/lib/types/types";
+import { validateTmnt } from "./valildate";
 import { startOfDay } from "date-fns";
+import { initTmnt } from "@/app/dataEntry/tmnt/initVals";
 
 // routes /api/tmnts
 
@@ -37,7 +39,8 @@ export async function POST(request: Request) {
 
   try {
     const { tmnt_name, start_date, end_date, user_id, bowl_id } = await request.json()    
-    const toCheck: tmntToCheck = {
+    const toCheck: tmntType = {
+      ...initTmnt, 
       tmnt_name,
       start_date,
       end_date,

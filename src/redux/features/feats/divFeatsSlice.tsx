@@ -1,6 +1,6 @@
 import { createAsyncThunk, createSlice, PayloadAction } from '@reduxjs/toolkit'
 import { Div_Feat } from '@prisma/client';
-import { divFeatType } from '@/app/dataEntry/tmnt/types';
+import { divFeatType } from '@/lib/types/types';
 import { loadStatusType } from "@/redux/statusTypes";
 import { RootState } from "@/redux/store";
 

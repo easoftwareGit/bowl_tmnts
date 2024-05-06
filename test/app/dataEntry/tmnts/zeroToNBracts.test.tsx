@@ -5,7 +5,7 @@ import ZeroToNBrackets from "../../../../src/app/dataEntry/tmnt/zeroToNBrackets"
 import { mockBrkts, mockDivs, mockSquads } from "../../../mocks/tmnts/twoDivs/mockDivs";
 import { localConfig } from "@/lib/currency/const";
 import { formatValueSymbSep2Dec } from "@/lib/currency/formatValue";
-import { initBrkt } from "@/app/dataEntry/tmnt/initVals";
+import { defaultBrktGames, defaultBrktPlayers, initBrkt } from "@/app/dataEntry/tmnt/initVals";
 import exp from "constants";
 import { getBrktOrElimName } from "@/lib/getName";
 
@@ -25,120 +25,123 @@ describe("ZeroToNBrackets - Component", () => {
   describe("render the component", () => {
     
     describe('render the Create Bracket tab', () => { 
-      it("render division radio label", () => {
+      it('render "Division" labels', () => {
         // ARRANGE
         // const user = userEvent.setup()
         render(<ZeroToNBrackets {...mockZeroToNBrktsProps} />);
-        // ACT
-        const brktRaidoLabel = screen.getByTestId("brktDivRadioLabel");
+        // ACT        
+        const brktLabels = screen.getAllByText(/division/i);
         // ASSERT
-        expect(brktRaidoLabel).toBeInTheDocument();
+        expect(brktLabels).toHaveLength(mockBrkts.length);        
       })
       it('render the "Scratch" radio button', () => { 
         render(<ZeroToNBrackets {...mockZeroToNBrktsProps} />);
-        const scratchRadio = screen.getByLabelText("Scratch");
+        const scratchRadio = screen.getByRole('radio', { name: /scratch/i }) as HTMLInputElement;
         expect(scratchRadio).not.toBeChecked();        
       })
       it('render the "Hdcp" radio button', () => { 
         render(<ZeroToNBrackets {...mockZeroToNBrktsProps} />);
-        const hdcpRadio = screen.getByLabelText("Hdcp"); 
+        const hdcpRadio = screen.getByRole('radio', { name: /hdcp/i }) as HTMLInputElement;
         expect(hdcpRadio).not.toBeChecked();        
       })
-      it('render the "Fee" label', () => {
+      it('render the "Fee" labels', () => {
         render(<ZeroToNBrackets {...mockZeroToNBrktsProps} />);
-        const brktFeeLabel = screen.getByTestId("createBrktFeeLabel");
-        expect(brktFeeLabel).toBeInTheDocument();
+        const feeLabels = screen.getAllByText("Fee");
+        expect(feeLabels).toHaveLength(mockBrkts.length);
       })
       it('render the "Fee" input', () => {
         render(<ZeroToNBrackets {...mockZeroToNBrktsProps} />);
-        const brktFeeInput = screen.getByTestId("createBrktFeeInput");
-        expect(brktFeeInput).toBeInTheDocument();
+        const fees = screen.getAllByRole('textbox', { name: /fee/i }) as HTMLInputElement[];        
+        expect(fees).toHaveLength(mockBrkts.length);
+        expect(fees[0]).toHaveValue('');
       })
       it('DO NOT render the create bracket fee error', () => {
         render(<ZeroToNBrackets {...mockZeroToNBrktsProps} />);
         const brktFeeError = screen.queryByTestId("dangerCreateBrktFee");
         expect(brktFeeError).toHaveTextContent("");
       })
-      it('render the create bracket "Start" label', () => { 
+      it('render the "Start" labels', () => { 
         render(<ZeroToNBrackets {...mockZeroToNBrktsProps} />);
-        const brktStartLabel = screen.getByTestId("createBrktStartLabel");
-        expect(brktStartLabel).toBeInTheDocument();
+        const startLabels = screen.getAllByText(/start/i);
+        expect(startLabels).toHaveLength(mockBrkts.length);
       })
       it('render the create bracket "Start" input', () => { 
-        render(<ZeroToNBrackets {...mockZeroToNBrktsProps} />);
-        const brktStartInput = screen.getByTestId("createBrktStartInput");
-        expect(brktStartInput).toBeInTheDocument();
-        expect(brktStartInput).toHaveValue(1);
+        render(<ZeroToNBrackets {...mockZeroToNBrktsProps} />);        
+        const startInputs = screen.getAllByRole('spinbutton', { name: /start/i }) as HTMLInputElement[];        
+        expect(startInputs).toHaveLength(mockBrkts.length);
+        expect(startInputs[0]).toHaveValue(1);
       })
       it('DO NOT render the create bracket "Start" error', () => { 
         render(<ZeroToNBrackets {...mockZeroToNBrktsProps} />);
         const brktStartError = screen.queryByTestId("dangerCreateBrktStart");
         expect(brktStartError).toHaveTextContent("");
       })
-      it('render the "Games" label', () => { 
+      it('render the "Games" labels', () => { 
         render(<ZeroToNBrackets {...mockZeroToNBrktsProps} />);
-        const brktGamesLabels = screen.getAllByLabelText("Games");
-        expect(brktGamesLabels).toHaveLength(mockBrkts.length);
+        const gamesLabels = screen.getAllByText("Games");
+        expect(gamesLabels).toHaveLength(mockBrkts.length);
       })
       it('render the "Games" input', () => { 
-        render(<ZeroToNBrackets {...mockZeroToNBrktsProps} />);
-        const brktGamesInput = screen.getByTestId("inputBrkt_games1");
-        expect(brktGamesInput).toBeInTheDocument
-        expect(brktGamesInput).toBeDisabled();
+        render(<ZeroToNBrackets {...mockZeroToNBrktsProps} />); 
+        const gamesInputs = screen.getAllByRole('spinbutton', { name: /games/i }) as HTMLInputElement[];
+        expect(gamesInputs).toHaveLength(mockBrkts.length);
+        expect(gamesInputs[0]).toHaveValue(defaultBrktGames)
+        expect(gamesInputs[0]).toBeDisabled();
       })
-      it('render the "Players" label', () => { 
+      it('render the "Players" labels', () => { 
         render(<ZeroToNBrackets {...mockZeroToNBrktsProps} />);
-        const brktPlayersLabels = screen.getAllByLabelText("Players");
+        const brktPlayersLabels = screen.getAllByText(/players/i);
         expect(brktPlayersLabels).toHaveLength(mockBrkts.length);
       })
       it('render the "Players" input', () => {
-        render(<ZeroToNBrackets {...mockZeroToNBrktsProps} />);
-        const brktPlayersInput = screen.getByTestId("inputBrkt_players1");
-        expect(brktPlayersInput).toBeInTheDocument();
-        expect(brktPlayersInput).toBeDisabled();
+        render(<ZeroToNBrackets {...mockZeroToNBrktsProps} />);        
+        const brktPlayersInputs = screen.getAllByRole('spinbutton', { name: /players/i }) as HTMLInputElement[];        
+        expect(brktPlayersInputs).toHaveLength(mockBrkts.length);
+        expect(brktPlayersInputs[0]).toHaveValue(defaultBrktPlayers)
+        expect(brktPlayersInputs[0]).toBeDisabled();
       })
       it('render the "Add Bracket" button', () => {
-        render(<ZeroToNBrackets {...mockZeroToNBrktsProps} />);
-        const addBtn = screen.getByText("Add Bracket");
+        render(<ZeroToNBrackets {...mockZeroToNBrktsProps} />);        
+        const addBtn = screen.getByRole("button", { name: /add bracket/i });
         expect(addBtn).toBeInTheDocument();
       })
-      it('render the bracket "First" label', () => { 
+      it('render the bracket "First" labels', () => { 
         render(<ZeroToNBrackets {...mockZeroToNBrktsProps} />);
-        const brktFirstLabels = screen.getAllByLabelText("First");
+        const brktFirstLabels = screen.getAllByText("First");
         expect(brktFirstLabels).toHaveLength(mockBrkts.length);
       })
       it('render the bracket "First" input', () => { 
-        render(<ZeroToNBrackets {...mockZeroToNBrktsProps} />);
-        const brktFirstInput = screen.getByTestId("moneyBrkt_first1");
-        expect(brktFirstInput).toBeInTheDocument();
-        expect(brktFirstInput).toBeDisabled();
-        expect(brktFirstInput).toHaveTextContent("");        
+        render(<ZeroToNBrackets {...mockZeroToNBrktsProps} />);        
+        const brktFirstInputs = screen.getAllByRole('textbox', { name: /first/i }) as HTMLInputElement[];
+        expect(brktFirstInputs).toHaveLength(mockBrkts.length);
+        expect(brktFirstInputs[0]).toBeDisabled();
+        expect(brktFirstInputs[0]).toHaveValue("");        
       })
-      it('render the bracket "Second" label', () => {
+      it('render the bracket "Second" labels', () => {
         render(<ZeroToNBrackets {...mockZeroToNBrktsProps} />);
-        const brktSecondLabels = screen.getAllByLabelText("Second");
+        const brktSecondLabels = screen.getAllByText("Second");
         expect(brktSecondLabels).toHaveLength(mockBrkts.length);
       })
       it('render the bracket "Second" input', () => {
-        render(<ZeroToNBrackets {...mockZeroToNBrktsProps} />);
-        const brktSecondInput = screen.getByTestId("moneyBrkt_second1");
-        expect(brktSecondInput).toBeInTheDocument();
-        expect(brktSecondInput).toBeDisabled();
-        expect(brktSecondInput).toHaveTextContent("");
+        render(<ZeroToNBrackets {...mockZeroToNBrktsProps} />);        
+        const brktSecondInputs = screen.getAllByRole('textbox', { name: /second/i }) as HTMLInputElement[];        
+        expect(brktSecondInputs).toHaveLength(mockBrkts.length);
+        expect(brktSecondInputs[0]).toBeDisabled();
+        expect(brktSecondInputs[0]).toHaveValue("");
       })
       it('render the bracket "Admin" label', () => { 
         render(<ZeroToNBrackets {...mockZeroToNBrktsProps} />);
-        const brktAdminLabels = screen.getAllByLabelText("Admin");
+        const brktAdminLabels = screen.getAllByText("Admin");
         expect(brktAdminLabels).toHaveLength(mockBrkts.length);
       })
       it('render the bracket "Admin" input', () => {
-        render(<ZeroToNBrackets {...mockZeroToNBrktsProps} />);
-        const brktAdminInput = screen.getByTestId("moneyBrkt_admin1");
-        expect(brktAdminInput).toBeInTheDocument();
-        expect(brktAdminInput).toBeDisabled();
-        expect(brktAdminInput).toHaveTextContent("");
+        render(<ZeroToNBrackets {...mockZeroToNBrktsProps} />);        
+        const brktAdminInputs = screen.getAllByRole('textbox', { name: /admin/i }) as HTMLInputElement[];        
+        expect(brktAdminInputs).toHaveLength(mockBrkts.length);
+        expect(brktAdminInputs[0]).toBeDisabled();
+        expect(brktAdminInputs[0]).toHaveValue("");
       })
-      it('render the bracket "FSA" label', () => { 
+      it('render the bracket "FSA" labels', () => { 
         render(<ZeroToNBrackets {...mockZeroToNBrktsProps} />);
         const brktFSAs = screen.getAllByLabelText(/F\+S\+A/i);
         expect(brktFSAs).toHaveLength(mockBrkts.length);
@@ -150,11 +153,11 @@ describe("ZeroToNBrackets - Component", () => {
         expect(fsaTitles[0]).toHaveTextContent("?");
       });
       it('render "FSA" input', () => { 
-        render(<ZeroToNBrackets {...mockZeroToNBrktsProps} />);
-        const fsaInput = screen.getByTestId("moneyBrkt_fsa1");
-        expect(fsaInput).toBeInTheDocument();
-        expect(fsaInput).toBeDisabled();
-        expect(fsaInput).toHaveTextContent("");        
+        render(<ZeroToNBrackets {...mockZeroToNBrktsProps} />);        
+        const fsaInputs = screen.getAllByRole('textbox', { name: /F\+S\+A/i }) as HTMLInputElement[];        
+        expect(fsaInputs).toHaveLength(mockBrkts.length);
+        expect(fsaInputs[0]).toBeDisabled();
+        expect(fsaInputs[0]).toHaveValue("");        
       })
       it('render the tabs', async () => { 
         const user = userEvent.setup()
@@ -193,108 +196,92 @@ describe("ZeroToNBrackets - Component", () => {
         expect(tabs[3]).toHaveAttribute("aria-selected", "false");
         expect(tabs[4]).toHaveAttribute("aria-selected", "false");
       })
-      it('render the Division label', async () => {
+      it('render the Division value', async () => {
         const user = userEvent.setup()
         render(<ZeroToNBrackets {...mockZeroToNBrktsProps} />);
         const tabs = screen.getAllByRole("tab");
         await user.click(tabs[1]);
-        const divLabels = screen.getAllByLabelText("Division");
-        expect(divLabels).toHaveLength(mockBrkts.length - 1);
-      })
-      it('render the Division input', async () => {
-        const user = userEvent.setup()
-        render(<ZeroToNBrackets {...mockZeroToNBrktsProps} />);
-        const tabs = screen.getAllByRole("tab");
-        await user.click(tabs[1]);
-        const divInput = screen.getByTestId("brktDiv2") as HTMLInputElement;
-        expect(divInput).toBeInTheDocument();
-        expect(divInput.value).toBe(mockBrkts[1].div_name);        
+        const divInputs = screen.getAllByRole('textbox', { name: /division/i }) as HTMLInputElement[];        
+        expect(divInputs).toHaveLength(mockBrkts.length - 1);
+        expect(divInputs[0]).toHaveValue(mockBrkts[1].div_name);
       })
       it('render the Fee input', async () => {
         const user = userEvent.setup()
         render(<ZeroToNBrackets {...mockZeroToNBrktsProps} />);
         const tabs = screen.getAllByRole("tab");
         await user.click(tabs[1]);
-        const feeInput = screen.getByTestId("brktFee2") as HTMLInputElement;
-        expect(feeInput).toBeInTheDocument();
-        expect(feeInput.value).toBe(formatValueSymbSep2Dec(mockBrkts[1].fee, localConfig));
+        const feeInputs = screen.getAllByRole('textbox', { name: /fee/i }) as HTMLInputElement[];        
+        expect(feeInputs[1]).toHaveValue(formatValueSymbSep2Dec(mockBrkts[1].fee, localConfig));
       })
       it('render the Start input', async () => {
         const user = userEvent.setup()
         render(<ZeroToNBrackets {...mockZeroToNBrktsProps} />);
         const tabs = screen.getAllByRole("tab");
         await user.click(tabs[1]);
-        const startInput = screen.getByTestId("inputBrkt_start2") as HTMLInputElement;
-        expect(startInput).toBeInTheDocument();
-        expect(startInput.value).toBe(mockBrkts[1].start.toString());
-        expect(startInput).toBeDisabled();
+        const startInputs = screen.getAllByRole('spinbutton', { name: /start/i }) as HTMLInputElement[];                
+        expect(startInputs[1]).toHaveValue(mockBrkts[1].start);
+        expect(startInputs[1]).toBeDisabled();
       })
       it('render the Games input', async () => { 
         const user = userEvent.setup()
         render(<ZeroToNBrackets {...mockZeroToNBrktsProps} />);
         const tabs = screen.getAllByRole("tab");
         await user.click(tabs[1]);
-        const gamesInput = screen.getByTestId("inputBrkt_games2") as HTMLInputElement;
-        expect(gamesInput).toBeInTheDocument();
-        expect(gamesInput.value).toBe(mockBrkts[1].games.toString());
-        expect(gamesInput).toBeDisabled();
+        const gamesInputs = screen.getAllByRole('spinbutton', { name: /games/i }) as HTMLInputElement[];        
+        expect(gamesInputs[1]).toHaveValue(mockBrkts[1].games);
+        expect(gamesInputs[1]).toBeDisabled();
       })
       it('render the Players input', async () => { 
         const user = userEvent.setup()
         render(<ZeroToNBrackets {...mockZeroToNBrktsProps} />);
         const tabs = screen.getAllByRole("tab");
         await user.click(tabs[1]);
-        const playersInput = screen.getByTestId("inputBrkt_players2") as HTMLInputElement;
-        expect(playersInput).toBeInTheDocument();
-        expect(playersInput.value).toBe(mockBrkts[1].players.toString());
-        expect(playersInput).toBeDisabled();
+        const playersInputs = screen.getAllByRole('spinbutton', { name: /players/i }) as HTMLInputElement[];                
+        expect(playersInputs[1]).toHaveValue(mockBrkts[1].players);
+        expect(playersInputs[1]).toBeDisabled();
       })
       it('input the First input', async () => { 
         const user = userEvent.setup()
         render(<ZeroToNBrackets {...mockZeroToNBrktsProps} />);
         const tabs = screen.getAllByRole("tab");
         await user.click(tabs[1]);
-        const firstInput = screen.getByTestId("moneyBrkt_first2") as HTMLInputElement;
-        expect(firstInput).toBeInTheDocument();
-        expect(firstInput.value).toBe(formatValueSymbSep2Dec(mockBrkts[1].first, localConfig));        
-        expect(firstInput).toBeDisabled();
+        const firstInputs = screen.getAllByRole('textbox', { name: /first/i }) as HTMLInputElement[];        
+        expect(firstInputs[1]).toHaveValue(formatValueSymbSep2Dec(mockBrkts[1].first, localConfig));        
+        expect(firstInputs[1]).toBeDisabled();
       })
       it('input the Second input', async () => {
         const user = userEvent.setup()
         render(<ZeroToNBrackets {...mockZeroToNBrktsProps} />);
         const tabs = screen.getAllByRole("tab");
         await user.click(tabs[1]);
-        const secondInput = screen.getByTestId("moneyBrkt_second2") as HTMLInputElement;
-        expect(secondInput).toBeInTheDocument();
-        expect(secondInput.value).toBe(formatValueSymbSep2Dec(mockBrkts[1].second, localConfig));
-        expect(secondInput).toBeDisabled();
+        const secondInputs = screen.getAllByRole('textbox', { name: /second/i }) as HTMLInputElement[];                
+        expect(secondInputs[1]).toHaveValue(formatValueSymbSep2Dec(mockBrkts[1].second, localConfig));
+        expect(secondInputs[1]).toBeDisabled();
       })
       it('input the Admin input', async () => { 
         const user = userEvent.setup()
         render(<ZeroToNBrackets {...mockZeroToNBrktsProps} />);
         const tabs = screen.getAllByRole("tab");
         await user.click(tabs[1]);
-        const adminInput = screen.getByTestId("moneyBrkt_admin2") as HTMLInputElement;
-        expect(adminInput).toBeInTheDocument();
-        expect(adminInput.value).toBe(formatValueSymbSep2Dec(mockBrkts[1].admin, localConfig));
-        expect(adminInput).toBeDisabled();
+        const adminInputs = screen.getAllByRole('textbox', { name: /admin/i }) as HTMLInputElement[];                
+        expect(adminInputs[1]).toHaveValue(formatValueSymbSep2Dec(mockBrkts[1].admin, localConfig));
+        expect(adminInputs[1]).toBeDisabled();
       })
       it('render the FSA input', async () => { 
         const user = userEvent.setup()
         render(<ZeroToNBrackets {...mockZeroToNBrktsProps} />);
         const tabs = screen.getAllByRole("tab");
         await user.click(tabs[1]);
-        const fsaInput = screen.getByTestId("moneyBrkt_fsa2") as HTMLInputElement;
-        expect(fsaInput).toBeInTheDocument();
-        expect(fsaInput.value).toBe(formatValueSymbSep2Dec(mockBrkts[1].fsa, localConfig));
-        expect(fsaInput).toBeDisabled();
+        const fsaInputs = screen.getAllByRole('textbox', { name: /F\+S\+A/i }) as HTMLInputElement[];                
+        expect(fsaInputs[1]).toHaveValue(formatValueSymbSep2Dec(mockBrkts[1].fsa, localConfig));
+        expect(fsaInputs[1]).toBeDisabled();
       })
       it('render the Delete Bracket button', async () => {
         const user = userEvent.setup()
         render(<ZeroToNBrackets {...mockZeroToNBrktsProps} />);
         const tabs = screen.getAllByRole("tab");
         await user.click(tabs[1]);
-        const delBtns = screen.getAllByText("Delete Bracket");
+        const delBtns = screen.getAllByRole("button", { name: /delete bracket/i });        
         expect(delBtns).toHaveLength(mockBrkts.length - 1) // add button shown in Create Bracket tab      
       })
     })
@@ -322,88 +309,79 @@ describe("ZeroToNBrackets - Component", () => {
         render(<ZeroToNBrackets {...mockZeroToNBrktsProps} />);
         const tabs = screen.getAllByRole("tab");
         await user.click(tabs[2]);
-        const divInput = screen.getByTestId("brktDiv3") as HTMLInputElement;
-        expect(divInput).toBeInTheDocument();
-        expect(divInput.value).toBe(mockBrkts[2].div_name);        
+        const divInputs = screen.getAllByRole('textbox', { name: /division/i }) as HTMLInputElement[];                
+        expect(divInputs[1]).toHaveValue(mockBrkts[2].div_name);        
       })
       it('render the Fee input', async () => {
         const user = userEvent.setup()
         render(<ZeroToNBrackets {...mockZeroToNBrktsProps} />);
         const tabs = screen.getAllByRole("tab");
         await user.click(tabs[2]);
-        const feeInput = screen.getByTestId("brktFee3") as HTMLInputElement;
-        expect(feeInput).toBeInTheDocument();
-        expect(feeInput.value).toBe(formatValueSymbSep2Dec(mockBrkts[2].fee, localConfig));
+        const feeInputs = screen.getAllByRole('textbox', { name: /fee/i }) as HTMLInputElement[];                
+        expect(feeInputs[2]).toHaveValue(formatValueSymbSep2Dec(mockBrkts[2].fee, localConfig));
       })
       it('render the Start input', async () => {
         const user = userEvent.setup()
         render(<ZeroToNBrackets {...mockZeroToNBrktsProps} />);
         const tabs = screen.getAllByRole("tab");
         await user.click(tabs[2]);
-        const startInput = screen.getByTestId("inputBrkt_start3") as HTMLInputElement;
-        expect(startInput).toBeInTheDocument();
-        expect(startInput.value).toBe(mockBrkts[2].start.toString());
-        expect(startInput).toBeDisabled();
+        const startInputs = screen.getAllByRole('spinbutton', { name: /start/i }) as HTMLInputElement[];                
+        expect(startInputs[2]).toHaveValue(mockBrkts[2].start);
+        expect(startInputs[2]).toBeDisabled();
       })
       it('render the Games input', async () => { 
         const user = userEvent.setup()
         render(<ZeroToNBrackets {...mockZeroToNBrktsProps} />);
         const tabs = screen.getAllByRole("tab");
         await user.click(tabs[2]);
-        const gamesInput = screen.getByTestId("inputBrkt_games3") as HTMLInputElement;
-        expect(gamesInput).toBeInTheDocument();
-        expect(gamesInput.value).toBe(mockBrkts[2].games.toString());
-        expect(gamesInput).toBeDisabled();
+        const gamesInputs = screen.getAllByRole('spinbutton', { name: /games/i }) as HTMLInputElement[];        
+        expect(gamesInputs[2]).toHaveValue(mockBrkts[2].games);
+        expect(gamesInputs[2]).toBeDisabled();
       })
       it('render the Players input', async () => { 
         const user = userEvent.setup()
         render(<ZeroToNBrackets {...mockZeroToNBrktsProps} />);
         const tabs = screen.getAllByRole("tab");
         await user.click(tabs[2]);
-        const playersInput = screen.getByTestId("inputBrkt_players3") as HTMLInputElement;
-        expect(playersInput).toBeInTheDocument();
-        expect(playersInput.value).toBe(mockBrkts[2].players.toString());
-        expect(playersInput).toBeDisabled();
+        const playersInputs = screen.getAllByRole('spinbutton', { name: /players/i }) as HTMLInputElement[];                
+        expect(playersInputs[2]).toHaveValue(mockBrkts[2].players);
+        expect(playersInputs[2]).toBeDisabled();
       })
       it('input the First input', async () => { 
         const user = userEvent.setup()
         render(<ZeroToNBrackets {...mockZeroToNBrktsProps} />);
         const tabs = screen.getAllByRole("tab");
         await user.click(tabs[2]);
-        const firstInput = screen.getByTestId("moneyBrkt_first3") as HTMLInputElement;
-        expect(firstInput).toBeInTheDocument();
-        expect(firstInput.value).toBe(formatValueSymbSep2Dec(mockBrkts[2].first, localConfig));        
-        expect(firstInput).toBeDisabled();
+        const firstInputs = screen.getAllByRole('textbox', { name: /first/i }) as HTMLInputElement[];        
+        expect(firstInputs[2]).toHaveValue(formatValueSymbSep2Dec(mockBrkts[2].first, localConfig));        
+        expect(firstInputs[2]).toBeDisabled();
       })
       it('input the Second input', async () => {
         const user = userEvent.setup()
         render(<ZeroToNBrackets {...mockZeroToNBrktsProps} />);
         const tabs = screen.getAllByRole("tab");
         await user.click(tabs[2]);
-        const secondInput = screen.getByTestId("moneyBrkt_second3") as HTMLInputElement;
-        expect(secondInput).toBeInTheDocument();
-        expect(secondInput.value).toBe(formatValueSymbSep2Dec(mockBrkts[2].second, localConfig));
-        expect(secondInput).toBeDisabled();
+        const secondInputs = screen.getAllByRole('textbox', { name: /second/i }) as HTMLInputElement[];                
+        expect(secondInputs[2]).toHaveValue(formatValueSymbSep2Dec(mockBrkts[2].second, localConfig));
+        expect(secondInputs[2]).toBeDisabled();
       })
       it('input the Admin input', async () => { 
         const user = userEvent.setup()
         render(<ZeroToNBrackets {...mockZeroToNBrktsProps} />);
         const tabs = screen.getAllByRole("tab");
         await user.click(tabs[2]);
-        const adminInput = screen.getByTestId("moneyBrkt_admin3") as HTMLInputElement;
-        expect(adminInput).toBeInTheDocument();
-        expect(adminInput.value).toBe(formatValueSymbSep2Dec(mockBrkts[2].admin, localConfig));
-        expect(adminInput).toBeDisabled();
+        const adminInputs = screen.getAllByRole('textbox', { name: /admin/i }) as HTMLInputElement[];                
+        expect(adminInputs[2]).toHaveValue(formatValueSymbSep2Dec(mockBrkts[2].admin, localConfig));
+        expect(adminInputs[2]).toBeDisabled();
       })
       it('render the FSA input', async () => { 
         const user = userEvent.setup()
         render(<ZeroToNBrackets {...mockZeroToNBrktsProps} />);
         const tabs = screen.getAllByRole("tab");
         await user.click(tabs[2]);
-        const fsaInput = screen.getByTestId("moneyBrkt_fsa3") as HTMLInputElement;
-        expect(fsaInput).toBeInTheDocument();
-        expect(fsaInput.value).toBe(formatValueSymbSep2Dec(mockBrkts[2].fsa, localConfig));
-        expect(fsaInput).toBeDisabled();
+        const fsaInputs = screen.getAllByRole('textbox', { name: /F\+S\+A/i }) as HTMLInputElement[];                
+        expect(fsaInputs[2]).toHaveValue(formatValueSymbSep2Dec(mockBrkts[2].fsa, localConfig));
+        expect(fsaInputs[2]).toBeDisabled();
       })
     })
 
@@ -430,88 +408,79 @@ describe("ZeroToNBrackets - Component", () => {
         render(<ZeroToNBrackets {...mockZeroToNBrktsProps} />);
         const tabs = screen.getAllByRole("tab");
         await user.click(tabs[3]);
-        const divInput = screen.getByTestId("brktDiv4") as HTMLInputElement;
-        expect(divInput).toBeInTheDocument();
-        expect(divInput.value).toBe(mockBrkts[3].div_name);        
+        const divInputs = screen.getAllByRole('textbox', { name: /division/i }) as HTMLInputElement[];
+        expect(divInputs[2]).toHaveValue(mockBrkts[3].div_name);        
       })
       it('render the Fee input', async () => {
         const user = userEvent.setup()
         render(<ZeroToNBrackets {...mockZeroToNBrktsProps} />);
         const tabs = screen.getAllByRole("tab");
-        await user.click(tabs[3]);
-        const feeInput = screen.getByTestId("brktFee4") as HTMLInputElement;
-        expect(feeInput).toBeInTheDocument();
-        expect(feeInput.value).toBe(formatValueSymbSep2Dec(mockBrkts[3].fee, localConfig));
+        await user.click(tabs[3]);        
+        const feeInputs = screen.getAllByRole('textbox', { name: /fee/i }) as HTMLInputElement[];                
+        expect(feeInputs[3]).toHaveValue(formatValueSymbSep2Dec(mockBrkts[3].fee, localConfig));
       })
       it('render the Start input', async () => {
         const user = userEvent.setup()
         render(<ZeroToNBrackets {...mockZeroToNBrktsProps} />);
         const tabs = screen.getAllByRole("tab");
         await user.click(tabs[3]);
-        const startInput = screen.getByTestId("inputBrkt_start4") as HTMLInputElement;
-        expect(startInput).toBeInTheDocument();
-        expect(startInput.value).toBe(mockBrkts[3].start.toString());
-        expect(startInput).toBeDisabled();
+        const startInputs = screen.getAllByRole('spinbutton', { name: /start/i }) as HTMLInputElement[];                
+        expect(startInputs[3]).toHaveValue(mockBrkts[3].start);
+        expect(startInputs[3]).toBeDisabled();
       })
       it('render the Games input', async () => { 
         const user = userEvent.setup()
         render(<ZeroToNBrackets {...mockZeroToNBrktsProps} />);
         const tabs = screen.getAllByRole("tab");
         await user.click(tabs[3]);
-        const gamesInput = screen.getByTestId("inputBrkt_games4") as HTMLInputElement;
-        expect(gamesInput).toBeInTheDocument();
-        expect(gamesInput.value).toBe(mockBrkts[3].games.toString());
-        expect(gamesInput).toBeDisabled();
+        const gamesInputs = screen.getAllByRole('spinbutton', { name: /games/i }) as HTMLInputElement[];        
+        expect(gamesInputs[3]).toHaveValue(mockBrkts[3].games);
+        expect(gamesInputs[3]).toBeDisabled();
       })
       it('render the Players input', async () => { 
         const user = userEvent.setup()
         render(<ZeroToNBrackets {...mockZeroToNBrktsProps} />);
         const tabs = screen.getAllByRole("tab");
         await user.click(tabs[3]);
-        const playersInput = screen.getByTestId("inputBrkt_players4") as HTMLInputElement;
-        expect(playersInput).toBeInTheDocument();
-        expect(playersInput.value).toBe(mockBrkts[3].players.toString());
-        expect(playersInput).toBeDisabled();
+        const playersInputs = screen.getAllByRole('spinbutton', { name: /players/i }) as HTMLInputElement[];                
+        expect(playersInputs[3]).toHaveValue(mockBrkts[3].players);
+        expect(playersInputs[3]).toBeDisabled();
       })
       it('input the First input', async () => { 
         const user = userEvent.setup()
         render(<ZeroToNBrackets {...mockZeroToNBrktsProps} />);
         const tabs = screen.getAllByRole("tab");
         await user.click(tabs[3]);
-        const firstInput = screen.getByTestId("moneyBrkt_first4") as HTMLInputElement;
-        expect(firstInput).toBeInTheDocument();
-        expect(firstInput.value).toBe(formatValueSymbSep2Dec(mockBrkts[3].first, localConfig));        
-        expect(firstInput).toBeDisabled();
+        const firstInputs = screen.getAllByRole('textbox', { name: /first/i }) as HTMLInputElement[];        
+        expect(firstInputs[3]).toHaveValue(formatValueSymbSep2Dec(mockBrkts[3].first, localConfig));        
+        expect(firstInputs[3]).toBeDisabled();
       })
       it('input the Second input', async () => {
         const user = userEvent.setup()
         render(<ZeroToNBrackets {...mockZeroToNBrktsProps} />);
         const tabs = screen.getAllByRole("tab");
         await user.click(tabs[3]);
-        const secondInput = screen.getByTestId("moneyBrkt_second4") as HTMLInputElement;
-        expect(secondInput).toBeInTheDocument();
-        expect(secondInput.value).toBe(formatValueSymbSep2Dec(mockBrkts[3].second, localConfig));
-        expect(secondInput).toBeDisabled();
+        const secondInputs = screen.getAllByRole('textbox', { name: /second/i }) as HTMLInputElement[];                
+        expect(secondInputs[3]).toHaveValue(formatValueSymbSep2Dec(mockBrkts[3].second, localConfig));
+        expect(secondInputs[3]).toBeDisabled();
       })
       it('input the Admin input', async () => { 
         const user = userEvent.setup()
         render(<ZeroToNBrackets {...mockZeroToNBrktsProps} />);
         const tabs = screen.getAllByRole("tab");
         await user.click(tabs[3]);
-        const adminInput = screen.getByTestId("moneyBrkt_admin4") as HTMLInputElement;
-        expect(adminInput).toBeInTheDocument();
-        expect(adminInput.value).toBe(formatValueSymbSep2Dec(mockBrkts[3].admin, localConfig));
-        expect(adminInput).toBeDisabled();
+        const adminInputs = screen.getAllByRole('textbox', { name: /admin/i }) as HTMLInputElement[];                
+        expect(adminInputs[3]).toHaveValue(formatValueSymbSep2Dec(mockBrkts[3].admin, localConfig));
+        expect(adminInputs[3]).toBeDisabled();
       })
       it('render the FSA input', async () => { 
         const user = userEvent.setup()
         render(<ZeroToNBrackets {...mockZeroToNBrktsProps} />);
         const tabs = screen.getAllByRole("tab");
         await user.click(tabs[3]);
-        const fsaInput = screen.getByTestId("moneyBrkt_fsa4") as HTMLInputElement;
-        expect(fsaInput).toBeInTheDocument();
-        expect(fsaInput.value).toBe(formatValueSymbSep2Dec(mockBrkts[3].fsa, localConfig));
-        expect(fsaInput).toBeDisabled();
+        const fsaInputs = screen.getAllByRole('textbox', { name: /F\+S\+A/i }) as HTMLInputElement[];                
+        expect(fsaInputs[3]).toHaveValue(formatValueSymbSep2Dec(mockBrkts[3].fsa, localConfig));
+        expect(fsaInputs[3]).toBeDisabled();
       })
     })
 
@@ -538,89 +507,91 @@ describe("ZeroToNBrackets - Component", () => {
         render(<ZeroToNBrackets {...mockZeroToNBrktsProps} />);
         const tabs = screen.getAllByRole("tab");
         await user.click(tabs[4]);
-        const divInput = screen.getByTestId("brktDiv5") as HTMLInputElement;
-        expect(divInput).toBeInTheDocument();
-        expect(divInput.value).toBe(mockBrkts[4].div_name);        
+        const divInputs = screen.getAllByRole('textbox', { name: /division/i }) as HTMLInputElement[];                
+        expect(divInputs[3]).toHaveValue(mockBrkts[4].div_name);        
       })
       it('render the Fee input', async () => {
         const user = userEvent.setup()
         render(<ZeroToNBrackets {...mockZeroToNBrktsProps} />);
         const tabs = screen.getAllByRole("tab");
         await user.click(tabs[4]);
-        const feeInput = screen.getByTestId("brktFee5") as HTMLInputElement;
-        expect(feeInput).toBeInTheDocument();
-        expect(feeInput.value).toBe(formatValueSymbSep2Dec(mockBrkts[4].fee, localConfig));
+        const feeInputs = screen.getAllByRole('textbox', { name: /fee/i }) as HTMLInputElement[];                
+        expect(feeInputs[4]).toHaveValue(formatValueSymbSep2Dec(mockBrkts[4].fee, localConfig));
       })
       it('render the Start input', async () => {
         const user = userEvent.setup()
         render(<ZeroToNBrackets {...mockZeroToNBrktsProps} />);
         const tabs = screen.getAllByRole("tab");
         await user.click(tabs[4]);
-        const startInput = screen.getByTestId("inputBrkt_start5") as HTMLInputElement;
-        expect(startInput).toBeInTheDocument();
-        expect(startInput.value).toBe(mockBrkts[4].start.toString());
-        expect(startInput).toBeDisabled();
+        const startInputs = screen.getAllByRole('spinbutton', { name: /start/i }) as HTMLInputElement[];                
+        expect(startInputs[4]).toHaveValue(mockBrkts[4].start);
+        expect(startInputs[4]).toBeDisabled();
       })
       it('render the Games input', async () => { 
         const user = userEvent.setup()
         render(<ZeroToNBrackets {...mockZeroToNBrktsProps} />);
         const tabs = screen.getAllByRole("tab");
         await user.click(tabs[4]);
-        const gamesInput = screen.getByTestId("inputBrkt_games5") as HTMLInputElement;
-        expect(gamesInput).toBeInTheDocument();
-        expect(gamesInput.value).toBe(mockBrkts[4].games.toString());
-        expect(gamesInput).toBeDisabled();
+        const gamesInputs = screen.getAllByRole('spinbutton', { name: /games/i }) as HTMLInputElement[];        
+        expect(gamesInputs[4]).toHaveValue(mockBrkts[4].games);
+        expect(gamesInputs[4]).toBeDisabled();
       })
       it('render the Players input', async () => { 
         const user = userEvent.setup()
         render(<ZeroToNBrackets {...mockZeroToNBrktsProps} />);
         const tabs = screen.getAllByRole("tab");
         await user.click(tabs[4]);
-        const playersInput = screen.getByTestId("inputBrkt_players5") as HTMLInputElement;
-        expect(playersInput).toBeInTheDocument();
-        expect(playersInput.value).toBe(mockBrkts[4].players.toString());
-        expect(playersInput).toBeDisabled();
+        const playersInputs = screen.getAllByRole('spinbutton', { name: /players/i }) as HTMLInputElement[];                
+        expect(playersInputs[4]).toHaveValue(mockBrkts[4].players);
+        expect(playersInputs[4]).toBeDisabled();
       })
       it('input the First input', async () => { 
         const user = userEvent.setup()
         render(<ZeroToNBrackets {...mockZeroToNBrktsProps} />);
         const tabs = screen.getAllByRole("tab");
         await user.click(tabs[4]);
-        const firstInput = screen.getByTestId("moneyBrkt_first5") as HTMLInputElement;
-        expect(firstInput).toBeInTheDocument();
-        expect(firstInput.value).toBe(formatValueSymbSep2Dec(mockBrkts[4].first, localConfig));        
-        expect(firstInput).toBeDisabled();
+        const firstInputs = screen.getAllByRole('textbox', { name: /first/i }) as HTMLInputElement[];        
+        expect(firstInputs[4]).toHaveValue(formatValueSymbSep2Dec(mockBrkts[4].first, localConfig));        
+        expect(firstInputs[4]).toBeDisabled();
       })
       it('input the Second input', async () => {
         const user = userEvent.setup()
         render(<ZeroToNBrackets {...mockZeroToNBrktsProps} />);
         const tabs = screen.getAllByRole("tab");
-        await user.click(tabs[4]);
-        const secondInput = screen.getByTestId("moneyBrkt_second5") as HTMLInputElement;
-        expect(secondInput).toBeInTheDocument();
-        expect(secondInput.value).toBe(formatValueSymbSep2Dec(mockBrkts[4].second, localConfig));
-        expect(secondInput).toBeDisabled();
+        await user.click(tabs[4]);        
+        const secondInputs = screen.getAllByRole('textbox', { name: /second/i }) as HTMLInputElement[];                
+        expect(secondInputs[4]).toHaveValue(formatValueSymbSep2Dec(mockBrkts[4].second, localConfig));
+        expect(secondInputs[4]).toBeDisabled();
       })
       it('input the Admin input', async () => { 
         const user = userEvent.setup()
         render(<ZeroToNBrackets {...mockZeroToNBrktsProps} />);
         const tabs = screen.getAllByRole("tab");
         await user.click(tabs[4]);
-        const adminInput = screen.getByTestId("moneyBrkt_admin5") as HTMLInputElement;
-        expect(adminInput).toBeInTheDocument();
-        expect(adminInput.value).toBe(formatValueSymbSep2Dec(mockBrkts[4].admin, localConfig));
-        expect(adminInput).toBeDisabled();
+        const adminInputs = screen.getAllByRole('textbox', { name: /admin/i }) as HTMLInputElement[];                
+        expect(adminInputs[4]).toHaveValue(formatValueSymbSep2Dec(mockBrkts[4].admin, localConfig));
+        expect(adminInputs[4]).toBeDisabled();
       })
       it('render the FSA input', async () => { 
         const user = userEvent.setup()
         render(<ZeroToNBrackets {...mockZeroToNBrktsProps} />);
         const tabs = screen.getAllByRole("tab");
         await user.click(tabs[4]);
-        const fsaInput = screen.getByTestId("moneyBrkt_fsa5") as HTMLInputElement;
-        expect(fsaInput).toBeInTheDocument();
-        expect(fsaInput.value).toBe(formatValueSymbSep2Dec(mockBrkts[4].fsa, localConfig));
-        expect(fsaInput).toBeDisabled();
+        const fsaInputs = screen.getAllByRole('textbox', { name: /F\+S\+A/i }) as HTMLInputElement[];                
+        expect(fsaInputs[4]).toHaveValue(formatValueSymbSep2Dec(mockBrkts[4].fsa, localConfig));
+        expect(fsaInputs[4]).toBeDisabled();
       })
+    })
+
+    describe('render radio buttons, buttons in group have the same name', () => { 
+      it("pot type radio buttons have the same name", () => {
+        // const user = userEvent.setup()
+        render(<ZeroToNBrackets {...mockZeroToNBrktsProps} />);
+        const scratchRadio = screen.getByRole('radio', { name: /scratch/i }) as HTMLInputElement;
+        const hdcpRadio = screen.getByRole('radio', { name: /hdcp/i }) as HTMLInputElement;
+        expect(scratchRadio).toHaveAttribute('name', 'brktsDivRadio');
+        expect(hdcpRadio).toHaveAttribute('name', 'brktsDivRadio');
+      })  
     })
 
     describe('render the create bracket with errors', () => { 
@@ -653,80 +624,80 @@ describe("ZeroToNBrackets - Component", () => {
         expect(startError).toHaveTextContent('test start error');
       })
     })
+  })
 
-    describe('add a bracket', () => { 
-      beforeAll(() => {
-        mockBrkts.push({
-          ...initBrkt,
-          id: "test-id",
-          div_id: "div_578834e04e5e4885bbae79229d8b96e8",  
-          div_name: 'Scratch',
-          start: 2,
-          fee: '10',
-          first: '50',
-          second: '20',
-          admin: '10',
-          fsa: '80',      
-          sort_order: 5
-        })
-      })
-      afterAll(() => {
-        if (mockBrkts.length === 6) mockBrkts.pop();
-      })
-      it('test if added bracket has correct title', async () => {
-        // ARRANGE
-        const user = userEvent.setup();
-        render(<ZeroToNBrackets {...mockZeroToNBrktsProps} />);
-        const addBtn = screen.getByText("Add Bracket");
-        // ACT
-        await user.click(addBtn);
-        // ASSERT
-        expect(mockZeroToNBrktsProps.setBrkts).toHaveBeenCalled();
-
-        // ACT
-        const tabs = screen.getAllByRole("tab");
-        // ASSERT
-        expect(tabs.length).toBe(6);
-        const tabTitle = getBrktOrElimName(mockBrkts[5].id, mockZeroToNBrktsProps.brkts)
-        expect(tabs[5]).toHaveTextContent(tabTitle);        
+  describe('add a bracket', () => { 
+    beforeAll(() => {
+      mockBrkts.push({
+        ...initBrkt,
+        id: "test-id",
+        div_id: "div_578834e04e5e4885bbae79229d8b96e8",  
+        div_name: 'Scratch',
+        start: 2,
+        fee: '10',
+        first: '50',
+        second: '20',
+        admin: '10',
+        fsa: '80',      
+        sort_order: 5
       })
     })
-
-    describe('remove a bracket', () => {
-      beforeAll(() => {
-        mockBrkts.push({
-          ...initBrkt,
-          id: "test-id",
-          div_id: "div_578834e04e5e4885bbae79229d8b96e8",  
-          div_name: 'Scratch',
-          start: 2,
-          fee: '10',
-          first: '50',
-          second: '20',
-          admin: '10',
-          fsa: '80',      
-          sort_order: 5
-        })
-      })
-      afterAll(() => {
-        if (mockBrkts.length === 6) mockBrkts.pop();
-      })
-      it('delete bracket', async () => {
-        // ARRANGE
-        const user = userEvent.setup();
-        render(<ZeroToNBrackets {...mockZeroToNBrktsProps} />);
-        // ACT
-        const tabs = screen.getAllByRole("tab");
-        // ARRANGE
-        await user.click(tabs[5]);
-        const delBtns = screen.getAllByText("Delete Bracket");
-        // ASSERT
-        expect(delBtns.length).toBe(5);
-        // ACT
-        await user.click(delBtns[4]);
-        // ASSERT
-        expect(mockZeroToNBrktsProps.setBrkts).toHaveBeenCalled();                    
-      })      
+    afterAll(() => {
+      if (mockBrkts.length === 6) mockBrkts.pop();
     })
+    it('test if added bracket has correct title', async () => {
+      // ARRANGE
+      const user = userEvent.setup();
+      render(<ZeroToNBrackets {...mockZeroToNBrktsProps} />);
+      const addBtn = screen.getByText("Add Bracket");
+      // ACT
+      await user.click(addBtn);
+      // ASSERT
+      expect(mockZeroToNBrktsProps.setBrkts).toHaveBeenCalled();
+
+      // ACT
+      const tabs = screen.getAllByRole("tab");
+      // ASSERT
+      expect(tabs.length).toBe(6);
+      const tabTitle = getBrktOrElimName(mockBrkts[5].id, mockZeroToNBrktsProps.brkts)
+      expect(tabs[5]).toHaveTextContent(tabTitle);        
+    })
+  })
+
+  describe('remove a bracket', () => {
+    beforeAll(() => {
+      mockBrkts.push({
+        ...initBrkt,
+        id: "test-id",
+        div_id: "div_578834e04e5e4885bbae79229d8b96e8",  
+        div_name: 'Scratch',
+        start: 2,
+        fee: '10',
+        first: '50',
+        second: '20',
+        admin: '10',
+        fsa: '80',      
+        sort_order: 5
+      })
+    })
+    afterAll(() => {
+      if (mockBrkts.length === 6) mockBrkts.pop();
+    })
+    it('delete bracket', async () => {
+      // ARRANGE
+      const user = userEvent.setup();
+      render(<ZeroToNBrackets {...mockZeroToNBrktsProps} />);
+      // ACT
+      const tabs = screen.getAllByRole("tab");
+      // ARRANGE
+      await user.click(tabs[5]);
+      const delBtns = screen.getAllByText("Delete Bracket");
+      // ASSERT
+      expect(delBtns.length).toBe(5);
+      // ACT
+      await user.click(delBtns[4]);
+      // ASSERT
+      expect(mockZeroToNBrktsProps.setBrkts).toHaveBeenCalled();                    
+    })      
   })
 })

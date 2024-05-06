@@ -1,0 +1,32 @@
+import { eventType } from "@/lib/types/types";
+
+export const mockEvent: eventType[] = [
+  {
+    id: "evt_9a58f0a486cb4e6c92ca3348702b1a62",
+    tmnt_id: "tmt_fe8ac53dad0f400abe6354210a8f4cd1",
+    tab_title: "Singles",
+    event_name: "Singles",
+    event_name_err: '',
+    team_size: 1,
+    team_size_err: '',
+    games: 6,
+    games_err: '',
+    entry_fee: '80',
+    entry_fee_err: '',
+    lineage: '21',
+    lineage_err: '',
+    prize_fund: '55',
+    prize_fund_err: '',
+    other: '',
+    other_err: '',
+    expenses: '4',
+    expenses_err: '',
+    added_money: '0',
+    added_money_err: '',
+    lpox: '80',
+    lpox_valid: 'is-valid',
+    lpox_err: '',
+    sort_order: 1,
+    errClassName: "",
+  },
+]

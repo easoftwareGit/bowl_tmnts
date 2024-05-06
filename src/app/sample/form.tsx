@@ -1,8 +1,8 @@
 "use client";
 import React, { useState, ChangeEvent, useRef } from "react";
 import { sanitize } from "@/lib/sanitize";
-import { format, startOfToday, endOfToday, formatISO, isValid } from "date-fns";
-import { todayStr, dateTo_yyyyMMdd, twelveHourto24Hour, getTimeString } from "@/lib/dateTools";
+import { format, startOfToday, endOfToday, formatISO, isValid, startOfDay, addDays, interval } from "date-fns";
+import { todayStr, dateTo_UTC_yyyyMMdd, twelveHourto24Hour, getTimeString, dateTo_UTC_MMddyyyy } from "@/lib/dateTools";
 import CurrencyInput, { formatValue } from "@/lib/currency";
 import { getLocaleConfig } from "@/lib/currency/components/utils";
 import { IntlConfig } from "@/lib/currency/components/CurrencyInputProps";
@@ -37,8 +37,9 @@ export const SampleForm: React.FC = () => {
 
   const initVals = {
     start_date: todayStr,
-    end_date: todayStr,
-    start_of_day: formatISO(startOfToday()),
+    end_date: todayStr,    
+    // start_of_day: formatISO(startOfToday()),    
+    start_of_day: dateTo_UTC_MMddyyyy(startOfDay(new Date(todayStr))),
     end_of_day: formatISO(endOfToday()),
     today_as_date: new Date(todayStr),
     ten_am: "10:00",
@@ -49,6 +50,15 @@ export const SampleForm: React.FC = () => {
     sanitized: '',
     startGames: ''
   };
+
+  const testDate = startOfDay(new Date(todayStr))
+  const testDate2 = new Date(initVals.start_date)
+  const startDate = startOfToday()
+  const diff = interval(testDate, startDate)
+
+  console.log('testDate: ', testDate) 
+  console.log('startDate: ', startDate)
+  console.log('diff: ', diff)
 
   // use ref to get access to internal "masked = ref.current.maskRef"
   const ref = useRef(null);
@@ -75,7 +85,7 @@ export const SampleForm: React.FC = () => {
           const endDateInput = document.getElementById("inputEndDate") as HTMLInputElement;
           if (endDateInput && endDateInput.value === "") { 
             endDate = new Date(value)
-            endDateStr = dateTo_yyyyMMdd(endDate)
+            endDateStr = dateTo_UTC_yyyyMMdd(endDate)
             setFormData({
               ...formData,
               start_date: value,
@@ -152,13 +162,6 @@ export const SampleForm: React.FC = () => {
 
   const handleDebug = (e: React.MouseEvent<HTMLElement>) => { 
 
-    // const safeText = sanitize(formData.anyString)    
-    // const safeText = formData.anyString + ': ' +  DateTime.fromISO(formData.anyString)
-    // setFormData({
-    //   ...formData,
-    //   sanitized: '->' + safeText + '<-'
-    // });
-
     setFormData({
       ...formData,
       sanitized: formatValue({
@@ -171,7 +174,7 @@ export const SampleForm: React.FC = () => {
         disableGroupSeparators: false,
       }),
       anyString: (Number(formData.dollars) || 0).toString()
-      // anyString: navigator.language,
+
     })
   }
 

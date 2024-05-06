@@ -1,10 +1,10 @@
 import { createAsyncThunk, createSlice } from "@reduxjs/toolkit";
 import { loadStatusType } from "@/redux/statusTypes";
 import { getTmnts } from "@/db/tmnts/tmnts";
-import { TmntDataType } from "@/lib/types/tmntType";
+import { tmntType } from "@/lib/types/types";
 
 export interface TmntSliceState {
-  tmnts: TmntDataType[];
+  tmnts: tmntType[];
   status: loadStatusType;  
   error: string | undefined;
 }

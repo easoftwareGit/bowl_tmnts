@@ -3,7 +3,7 @@ import { useEffect, useState } from "react";
 import { useSelector, useDispatch } from "react-redux";
 import { AppDispatch, RootState } from "@/redux/store";
 import { fetchTmnts } from "@/redux/features/tmnts/tmntsSlice";
-import { YearObj } from "@/lib/types/tmntType" 
+import { YearObj } from "@/lib/types/types" 
 import TmntsList from "@/components/tmnts/tmntsList";
 
 export default function TmntUpcomingPage() {

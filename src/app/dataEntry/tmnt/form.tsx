@@ -4,55 +4,42 @@ import { useSelector, useDispatch } from "react-redux";
 import { AppDispatch, RootState, store } from "@/redux/store";
 import { fetchBowls, selectAllBowls, getBowlsStatus, getBowlsError } from "@/redux/features/bowls/bowlsSlice";
 import { maxTmntNameLength } from "@/lib/validation";
-import { Accordion, AccordionCollapse, AccordionItem } from "react-bootstrap";
-import { eventType, divType, squadType, elimType, brktType, AcdnErrType, potType } from "./types";
+import { Accordion, AccordionItem } from "react-bootstrap";
+import { tmntType, tmntPropsType } from "../../../lib/types/types";
 import { noAcdnErr } from "./errors";
 import OneToNEvents, { validateEvents } from "./oneToNEvents";
 import OneToNDivs, { validateDivs } from "./oneToNDivs";
 import OneToNSquads, { validateSquads } from "./oneToNSquads";
-import { initEvents, initDivs, initSquads, initElims, initBrkts, initPots } from "./initVals";
+import OneToNLanes from "./oneToNLanes";
 import { todayStr } from "@/lib/dateTools";
 import { isValid } from "date-fns";
 import ZeroToNPots, { validatePots } from "./zeroToNPots";
-import "./form.css";
 import ZeroToNBrackets, { validateBrkts } from "./zeroToNBrackets";
 import ZeroToNElims, { validateElims } from "./zeroToNElims";
+import "./form.css";
 
-export const TmntDataForm = () => {   
+interface FormProps {
+  tmntProps: tmntPropsType
+}
+
+export const TmntDataForm: React.FC<FormProps> = ({ tmntProps }) => {     
+  const {
+    tmnt, setTmnt,
+    events, setEvents,
+    divs, setDivs,
+    squads, setSquads,
+    lanes, setLanes,
+    pots, setPots,
+    brkts, setBrkts,
+    elims, setElims
+  } = tmntProps;
   const dispatch = useDispatch<AppDispatch>();
 
-  const initVals = {
-    tmnt_name: "",
-    bowl_id: "",
-    start_date: todayStr,
-    end_date: todayStr,
-  };
-  const initErrors = {
-    tmnt_name: "",
-    bowl_id: "",
-    start_date: "",
-    end_date: "",
-  };
-
-  const [formData, setFormData] = useState(initVals);
-  const [formErrors, setFormErrors] = useState(initErrors);
-
-  const [events, setEvents] = useState(initEvents);
   const [eventAcdnErr, setEventAcdnErr] = useState(noAcdnErr);
-
-  const [divs, setDivs] = useState(initDivs);
-  const [divAcdnErr, setDivAcdnErr] = useState(noAcdnErr);
-
-  const [squads, setSquads] = useState(initSquads);
-  const [squadAcdnErr, setSquadAcdnErr] = useState(noAcdnErr); 
-  
-  const [pots, setPots] = useState(initPots)
-  const [potAcdnErr, setPotAcdnErr] = useState(noAcdnErr); 
-
-  const [brkts, setBrkts] = useState(initBrkts)
-  const [brktAcdnErr, setBrktAcdnErr] = useState(noAcdnErr); 
-
-  const [elims, setElims] = useState(initElims)
+  const [divAcdnErr, setDivAcdnErr] = useState(noAcdnErr);  
+  const [squadAcdnErr, setSquadAcdnErr] = useState(noAcdnErr);   
+  const [potAcdnErr, setPotAcdnErr] = useState(noAcdnErr);   
+  const [brktAcdnErr, setBrktAcdnErr] = useState(noAcdnErr);   
   const [elimAcdnErr, setElimAcdnErr] = useState(noAcdnErr); 
 
   const bowlsStatus = useSelector(getBowlsStatus);
@@ -71,29 +58,24 @@ export const TmntDataForm = () => {
 
   const handleBowlSelectChange = (e: ChangeEvent<HTMLSelectElement>) => {
     const { value } = e.target;
-    setFormData({
-      ...formData,
+
+    setTmnt({
+      ...tmnt,
       bowl_id: value,
-    });
-    setFormErrors({
-      ...formErrors,
-      bowl_id: "",
-    });
+      bowl_id_err: "",
+    })
   };
 
   const handleInputChange = (e: ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
-    setFormData({
-      ...formData,
+    const nameErr = name + "_err"; 
+    setTmnt({
+      ...tmnt,
       [name]: value,
-    });
-    setFormErrors({
-      ...formErrors,
-      [name]: "",
-    });
+      [nameErr]: "",
+    })
     if (name === "start_date") {
-      if (value) {
-        // const startDate = DateTime.fromISO(value);
+      if (value) {        
         const startDate = new Date(value);
         if (isValid(startDate)) {
           // set end date if not set
@@ -103,25 +85,24 @@ export const TmntDataForm = () => {
           if (endDateInput && endDateInput.value === "") {
             endDate = new Date(value);
             endDateStr = endDate.toISOString().split("T")[0];
-            setFormData({
-              ...formData,
+            setTmnt({
+              ...tmnt,
               start_date: value,
+              start_date_err: "",
               end_date: value,
-            });
-            setFormErrors({
-              ...formErrors,
-              start_date: "",
-              end_date: "",
-            });
+              end_date_err: "",
+            })
             endDateInput.value = endDateStr;
           } else {
-            endDate = new Date(formData.end_date);
+            endDate = new Date(tmnt.end_date);
             if (endDate < startDate) {
-              setFormData({
-                ...formData,
+              setTmnt({
+                ...tmnt,
                 start_date: value,
+                start_date_err: "",
                 end_date: value,
-              });
+                end_date_err: "",
+              })              
             }
           }
           // make sure squad dates are within the start and end dates for the event
@@ -158,40 +139,91 @@ export const TmntDataForm = () => {
     const { name, value } = e.target;
 
     if (!value.trim()) {
-      let updatedData: typeof formData;
-      if (name === "start_date") {
+      let updatedData: tmntType;
+      if (name === "start_date") { 
         updatedData = {
-          ...formData,
+          ...tmnt,
           start_date: todayStr,
+          start_date_err: "",
         };
-        setFormData(updatedData);
+        setTmnt(updatedData);
       } else if (name === "end_date") {
-        const updatedDateStr =
-          formData.start_date !== todayStr ? formData.start_date : todayStr;
+        const updatedDateStr = tmnt.start_date !== todayStr ? tmnt.start_date : todayStr;
         updatedData = {
-          ...formData,
+          ...tmnt,
           end_date: updatedDateStr,
+          end_date_err: "",
         };
-        setFormData(updatedData);
+        setTmnt(updatedData);
       }
     }
   };
 
+  const validateTmntInfo = (): boolean => {
+    let istmntInfoValid = true;
+
+    let nameErr = '';
+    let bowlErr = '';
+    let startErr = '';
+    let endErr = '';
+
+    if (!tmnt.tmnt_name.trim()) {
+      nameErr = "Tournament Name is required";
+      istmntInfoValid = false;
+    }
+    if (!tmnt.bowl_id) {
+      bowlErr = "Bowl Name is required";
+      istmntInfoValid = false;
+    }
+    if (!tmnt.start_date) {
+      startErr = "Start date is required";
+      istmntInfoValid = false;
+    }    
+    if (!tmnt.end_date) {
+      endErr = "End date is required";
+      istmntInfoValid = false;
+    }    
+    if (!startErr && !endErr) {
+      if (new Date(tmnt.end_date) < new Date(tmnt.start_date)) {
+        endErr = "End date cannot be before start date";
+        istmntInfoValid = false;
+      }
+    }
+    if (nameErr || bowlErr || startErr || endErr) {
+      setTmnt({
+        ...tmnt,
+        tmnt_name_err: nameErr,
+        bowl_id_err: bowlErr,
+        start_date_err: startErr,
+        end_date_err: endErr,
+      });
+    }
+
+    return istmntInfoValid;
+  }
+
   const validateTmnt = (): boolean => {
     let isTmntValid = true;
+    if (!validateTmntInfo()) {
+      isTmntValid = false;
+    }
     if (!validateEvents(events, setEvents, setEventAcdnErr)) {
       isTmntValid = false;
     }
     if (!validateDivs(divs, setDivs, setDivAcdnErr)) {
       isTmntValid = false;
     }
-    if (!validateSquads(squads, setSquads, events, setSquadAcdnErr, formData.start_date, formData.end_date)) {
+    if (!validateSquads(squads, setSquads, events, setSquadAcdnErr, tmnt.start_date, tmnt.end_date)) {
       isTmntValid = false;
     }
+
     if (!validatePots(pots, setPots, setPotAcdnErr)) {
       isTmntValid = false;
     }
     if (!validateBrkts(brkts, setBrkts, setBrktAcdnErr)) {
+      isTmntValid = false;
+    }
+    if (!validateElims(elims, setElims, setElimAcdnErr)) { 
       isTmntValid = false;
     }
     return isTmntValid;
@@ -215,8 +247,8 @@ export const TmntDataForm = () => {
     // console.log("Pots are valid: ", postAreValid);
     // const brktsAreValid = validateBrkts(brkts, setBrkts, setBrktAcdnErr);
     // console.log('brktsAreValid', brktsAreValid);
-    const elimsAreValid = validateElims(elims, setElims, setElimAcdnErr);
-    console.log('elimsAreValid', elimsAreValid);
+    // const elimsAreValid = validateElims(elims, setElims, setElimAcdnErr);
+    // console.log('elimsAreValid', elimsAreValid);
 
     // events.forEach((event) => {
     //   console.log(`event ${event.id}: `, event);
@@ -233,14 +265,19 @@ export const TmntDataForm = () => {
     // brkts.forEach((brkt) => {
     //   console.log(`brkt ${brkt.id}: `, brkt);
     // })
-    elims.forEach((elim) => {
-      console.log(`elim ${elim.id}: `, elim);
-    })
+    // elims.forEach((elim) => {
+    //   console.log(`elim ${elim.id}: `, elim);
+    // })
   };
 
   const handleSubmit = (e: React.FormEvent) => {
-    console.log("Submitted");
+    // console.log("Submitted");
     e.preventDefault();
+    if (validateTmnt()) {
+      // console.log("Tournament valid");
+    } else {
+      // console.log("Tournament invalid");
+    }
   };
 
   return (
@@ -259,32 +296,43 @@ export const TmntDataForm = () => {
               <input
                 type="text"
                 className={`form-control ${
-                  formErrors.tmnt_name && "is-invalid"
+                  tmnt.tmnt_name_err && "is-invalid"
                 }`}
-                id="inputTmntName"
+                id="inputTmntName"                
                 name="tmnt_name"
-                value={formData.tmnt_name}
+                value={tmnt.tmnt_name}
                 maxLength={maxTmntNameLength}
                 onChange={handleInputChange}
               />
-              <div className="text-danger">{formErrors.tmnt_name}</div>
+              <div
+                className="text-danger"
+                data-testid="dangerTmntName"
+              >
+                {tmnt.tmnt_name_err}
+              </div>
             </div>
             <div className="col-md-6">
-              <label htmlFor="inputTmntName" className="form-label">
+              <label htmlFor="inputBowlName" className="form-label">
                 Bowl Name
               </label>
               <select
                 id="inputBowlName"
-                className={`form-select ${formErrors.bowl_id && "is-invalid"}`}
+                data-testid="inputBowlName"
+                className={`form-select ${tmnt.bowl_id_err && "is-invalid"}`}
                 onChange={handleBowlSelectChange}
-                defaultValue='Choose...'
+                value={tmnt.bowl_id === '' ? 'Choose...' : tmnt.bowl_id}
               >
                 <option disabled>                
                   Choose...
                 </option>
                 {bowlOptions}
               </select>
-              <div className="text-danger">{formErrors.bowl_id}</div>
+              <div
+                className="text-danger"
+                data-testid="dangerBowlName"
+              >
+                {tmnt.bowl_id_err}
+              </div>
             </div>
           </div>
           <div className="row g-3 mb-3">
@@ -295,15 +343,20 @@ export const TmntDataForm = () => {
               <input
                 type="date"
                 className={`form-control ${
-                  formErrors.start_date && "is-invalid"
+                  tmnt.start_date_err && "is-invalid"
                 }`}
                 id="inputStartDate"
                 name="start_date"
-                value={formData.start_date}
+                value={tmnt.start_date}
                 onChange={handleInputChange}
                 onBlur={handleBlur}
               />
-              <div className="text-danger">{formErrors.start_date}</div>
+              <div
+                className="text-danger"
+                data-testid="dangerStartDate"
+              >
+                {tmnt.start_date_err}
+              </div>
             </div>
             <div className="col-md-3">
               <label htmlFor="inputEndDate" className="form-label">
@@ -312,17 +365,30 @@ export const TmntDataForm = () => {
               <input
                 type="date"
                 className={`form-control ${
-                  formErrors.end_date && "is-invalid"
+                  tmnt.end_date_err && "is-invalid"
                 }`}
                 id="inputEndDate"
                 name="end_date"
-                value={formData.end_date}
+                value={tmnt.end_date}
                 onChange={handleInputChange}
                 onBlur={handleBlur}
               />
-              <div className="text-danger">{formErrors.end_date}</div>
+              <div
+                className="text-danger"
+                data-testid="dangerEndDate"
+              >
+                {tmnt.end_date_err}
+              </div>
             </div>
-            <div className="col-sm-3">
+            <div className="col-md-6 d-flex justify-content-center align-items-center">
+              <button
+                className="btn btn-success"
+                onClick={handleSubmit}
+              >
+                Save Tournament
+              </button>
+            </div>
+            {/* <div className="col-sm-3">
               <button 
                 className="btn btn-info"
                 onClick={handleDebug}
@@ -330,14 +396,14 @@ export const TmntDataForm = () => {
               >
                 Debug
               </button>
-            </div>
+            </div> */}
           </div>
           <Accordion>
-            <AccordionItem eventKey="events">
-              <Accordion.Header className={eventAcdnErr.errClassName}>
+            <AccordionItem eventKey="events" >
+              <Accordion.Header className={eventAcdnErr.errClassName} data-testid="acndEvents">
                 Events{eventAcdnErr.message}
               </Accordion.Header>
-              <Accordion.Body>
+              <Accordion.Body data-testid="eventAcdn">
                 <OneToNEvents
                   events={events}
                   setEvents={setEvents}
@@ -374,8 +440,24 @@ export const TmntDataForm = () => {
                 <OneToNSquads
                   squads={squads}
                   setSquads={setSquads}
+                  lanes={lanes}
+                  setLanes={setLanes}
                   events={events}
                   setAcdnErr={setSquadAcdnErr}
+                />
+              </Accordion.Body>
+            </AccordionItem>
+          </Accordion>
+          <Accordion>
+            <AccordionItem eventKey="lanes">
+              {/* <no errors in Lanes */}
+              <Accordion.Header>
+                Lanes
+              </Accordion.Header>
+              <Accordion.Body>
+                <OneToNLanes  
+                  lanes={lanes}                                  
+                  squads={squads}                  
                 />
               </Accordion.Body>
             </AccordionItem>
@@ -389,8 +471,7 @@ export const TmntDataForm = () => {
                 <ZeroToNPots
                   pots={pots}
                   setPots={setPots}
-                  divs={divs}
-                  squads={squads}
+                  divs={divs}                  
                   setAcdnErr={setPotAcdnErr}
                 />
               </Accordion.Body>

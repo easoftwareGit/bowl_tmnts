@@ -3,7 +3,7 @@ import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import OneToNDivs from "../../../../src/app/dataEntry/tmnt/oneToNDivs";
 import { mockDivs, mockPots, mockBrkts, mockElims } from '../../../mocks/tmnts/twoDivs/mockDivs'
-import { initDiv } from "@/app/dataEntry/tmnt/initVals";
+import { defaultHdcpFrom, initDiv } from "@/app/dataEntry/tmnt/initVals";
 
 const mockSetDivs = jest.fn();
 const mockSetAcdnErr = jest.fn();
@@ -27,32 +27,33 @@ describe("OneToNDivs - Component", () => {
         // const user = userEvent.setup()
         render(<OneToNDivs {...mockOneToNDivsProps} />)      
         // ACT
-        const divLabel = screen.getByLabelText("# Divisions");
+        const divLabel = screen.getByText("# Divisions");
         // ASSERT
         expect(divLabel).toBeInTheDocument()
       })
       it('render num divs', () => {         
         render(<OneToNDivs {...mockOneToNDivsProps} />)      
-        const numDivs = screen.getByTestId('inputNumDivs') as HTMLInputElement;
+        // const numDivs = screen.getByTestId('inputNumDivs') as HTMLInputElement;
+        const numDivs = screen.getByRole('textbox', { name: /# divisions/i }) as HTMLInputElement;
         expect(numDivs).toBeInTheDocument()        
-        expect(numDivs.value).toBe('2')
+        expect(numDivs).toHaveValue('2')
         expect(numDivs).toBeDisabled()          
       })
       it('render add button', () => {        
-        render(<OneToNDivs {...mockOneToNDivsProps} />)      
-        const addBtn = screen.getByText('Add');          
+        render(<OneToNDivs {...mockOneToNDivsProps} />) 
+        const addBtn = screen.getByRole("button", { name: /add/i });        
         expect(addBtn).toBeInTheDocument()          
       })
-      it('render div name lables', () => {        
+      it('render div name labels', () => {        
         render(<OneToNDivs {...mockOneToNDivsProps} />)      
-        const nameLabels = screen.getAllByLabelText('Div Name');
-        expect(nameLabels.length).toBe(2)          
+        const nameLabels = screen.getAllByText('Div Name');
+        expect(nameLabels).toHaveLength(2)
       })
       it('render div name inputs', () => {        
         render(<OneToNDivs {...mockOneToNDivsProps} />)      
-        const divNames = screen.getAllByTestId('inputDivName') as HTMLInputElement[];
-        expect(divNames.length).toBe(2)
-        expect(divNames[0].value).toBe('Scratch')
+        const divNames = screen.getAllByRole('textbox', { name: /div name/i }) as HTMLInputElement[];
+        expect(divNames).toHaveLength(2)
+        expect(divNames[0]).toHaveValue('Scratch')
       })
       it('DO NOT render div name errors', () => { 
         render(<OneToNDivs {...mockOneToNDivsProps} />);
@@ -62,8 +63,8 @@ describe("OneToNDivs - Component", () => {
       })
       it('render hdcp % labels', () => {        
         render(<OneToNDivs {...mockOneToNDivsProps} />)      
-        const hdcplabels = screen.getAllByLabelText(/hdcp %/i);  
-        expect(hdcplabels.length).toBe(2)
+        const hdcplabels = screen.getAllByText(/hdcp %/i);  
+        expect(hdcplabels).toHaveLength(2)
       })
       it("render hdcp % titles", () => {
         render(<OneToNDivs {...mockOneToNDivsProps} />);
@@ -72,10 +73,10 @@ describe("OneToNDivs - Component", () => {
         expect(hdcpTitles[0]).toHaveTextContent("?");
       });
       it('render hdcp % inputs', () => {        
-        render(<OneToNDivs {...mockOneToNDivsProps} />)      
-        const hdcps = screen.getAllByTestId('inputHdcp') as HTMLInputElement[];  
-        expect(hdcps.length).toBe(2)
-        expect(hdcps[0].value).toBe('0')
+        render(<OneToNDivs {...mockOneToNDivsProps} />)              
+        const hdcps = screen.getAllByRole('spinbutton', { name: /hdcp %/i }) as HTMLInputElement[];
+        expect(hdcps).toHaveLength(2)
+        expect(hdcps[0]).toHaveValue(0)
       })
       it('DO NOT render hdcp % errors', () => { 
         render(<OneToNDivs {...mockOneToNDivsProps} />);
@@ -85,14 +86,14 @@ describe("OneToNDivs - Component", () => {
       })
       it('render hdcp from labels', () => {        
         render(<OneToNDivs {...mockOneToNDivsProps} />)      
-        const hdcpFromLabels = screen.getAllByLabelText('Hdcp From');  
-        expect(hdcpFromLabels.length).toBe(2)
+        const hdcpFromLabels = screen.getAllByText('Hdcp From');  
+        expect(hdcpFromLabels).toHaveLength(2)
       })
       it('render hdcp from inputs', () => {        
-        render(<OneToNDivs {...mockOneToNDivsProps} />)      
-        const hdcpFroms = screen.getAllByTestId('inputHdcpFrom') as HTMLInputElement[];
-        expect(hdcpFroms.length).toBe(2)  
-        expect(hdcpFroms[0].value).toBe('220')
+        render(<OneToNDivs {...mockOneToNDivsProps} />)              
+        const hdcpFroms = screen.getAllByRole('spinbutton', { name: /hdcp from/i }) as HTMLInputElement[];
+        expect(hdcpFroms).toHaveLength(2)
+        expect(hdcpFroms[0]).toHaveValue(defaultHdcpFrom)
         expect(hdcpFroms[0]).toBeDisabled()
       })
       it('DO NOT render hdcp from errors', () => { 
@@ -103,31 +104,27 @@ describe("OneToNDivs - Component", () => {
       })
       it('render int hdcp checkbox', () => {        
         render(<OneToNDivs {...mockOneToNDivsProps} />)      
-        const intHdcps = screen.getAllByTestId('chkBoxIntHdcp') as HTMLInputElement[];
-        expect(intHdcps.length).toBe(2)  
+        const intHdcps = screen.getAllByRole('checkbox', { name: /integer hdcp/i }) as HTMLInputElement[];
+        expect(intHdcps).toHaveLength(2)
         // 0 hdcp % will have this disabled, not checked in mock for testing
         expect(intHdcps[0]).not.toBeChecked()
         expect(intHdcps[0]).toBeDisabled()
       })
       it('render hdcp for game radio', () => {
-        render(<OneToNDivs {...mockOneToNDivsProps} />)      
-        const hdcpForGames = screen.getAllByTestId('radioHdcpForGame') as HTMLInputElement[];  
-        expect(hdcpForGames.length).toBe(2)
+        render(<OneToNDivs {...mockOneToNDivsProps} />)               
+        const hdcpForGames = screen.getAllByRole('radio', { name: /game/i }) as HTMLInputElement[];
+        expect(hdcpForGames).toHaveLength(2)
         // 0 hdcp % will have this disabled, not checked in mock for testing
         expect(hdcpForGames[0]).not.toBeChecked()
         expect(hdcpForGames[0]).toBeDisabled()
-        const gameTexts = screen.getAllByLabelText('Game');
-        expect(gameTexts).toHaveLength(2);
       })
       it('render hdcp for series radio', () => {        
-        render(<OneToNDivs {...mockOneToNDivsProps} />)      
-        const hdcpForSeries = screen.getAllByTestId('radioHdcpForSeries') as HTMLInputElement[];  
-        expect(hdcpForSeries.length).toBe(2)
+        render(<OneToNDivs {...mockOneToNDivsProps} />)              
+        const hdcpForSeries = screen.getAllByRole('radio', { name: /series/i }) as HTMLInputElement[];
+        expect(hdcpForSeries).toHaveLength(2)
         // 0 hdcp % will have this disabled, checked in mock for testing
         expect(hdcpForSeries[0]).toBeChecked()  
         expect(hdcpForSeries[0]).toBeDisabled()
-        const seriesTexts = screen.getAllByLabelText('Series');
-        expect(seriesTexts).toHaveLength(2);
       })
       it('render tabs', async () => {
         const user = userEvent.setup()
@@ -170,7 +167,7 @@ describe("OneToNDivs - Component", () => {
         render(<OneToNDivs {...mockOneToNDivsProps} />)      
         const tabs = screen.getAllByRole('tab');  
         await user.click(tabs[1]);
-        const delBtn = screen.getByText('Delete Div');
+        const delBtn = screen.getByRole("button", { name: /delete div/i });        
         expect(delBtn).toBeInTheDocument();
       })
       it('render div name inputs', async () => {        
@@ -178,9 +175,9 @@ describe("OneToNDivs - Component", () => {
         render(<OneToNDivs {...mockOneToNDivsProps} />)      
         const tabs = screen.getAllByRole('tab');  
         await user.click(tabs[1]);
-        const divNames = screen.getAllByTestId('inputDivName') as HTMLInputElement[];
+        const divNames = screen.getAllByRole('textbox', { name: /div name/i }) as HTMLInputElement[];        
         expect(divNames[1]).toHaveClass("is-invalid");
-        expect(divNames[1].value).toBe('Hdcp')
+        expect(divNames[1]).toHaveValue('Hdcp')
       })
       it('render 2nd div name errors', async () => { 
         const user = userEvent.setup()
@@ -196,9 +193,9 @@ describe("OneToNDivs - Component", () => {
         render(<OneToNDivs {...mockOneToNDivsProps} />)      
         const tabs = screen.getAllByRole('tab');  
         await user.click(tabs[1]);
-        const hdcps = screen.getAllByTestId('inputHdcp') as HTMLInputElement[];  
+        const hdcps = screen.getAllByRole('spinbutton', { name: /hdcp %/i }) as HTMLInputElement[];        
         expect(hdcps[1]).toHaveClass("is-invalid");
-        expect(hdcps[1].value).toBe('100')
+        expect(hdcps[1]).toHaveValue(100)
       })
       it('render 2nd hdcp % errors', async () => { 
         const user = userEvent.setup()
@@ -214,9 +211,9 @@ describe("OneToNDivs - Component", () => {
         render(<OneToNDivs {...mockOneToNDivsProps} />)      
         const tabs = screen.getAllByRole('tab');  
         await user.click(tabs[1]);
-        const hdcpFroms = screen.getAllByTestId('inputHdcpFrom') as HTMLInputElement[];
+        const hdcpFroms = screen.getAllByRole('spinbutton', { name: /hdcp from/i }) as HTMLInputElement[];        
         expect(hdcpFroms[1]).toHaveClass("is-invalid");
-        expect(hdcpFroms[1].value).toBe('230')
+        expect(hdcpFroms[1]).toHaveValue(230)
         expect(hdcpFroms[1]).toBeEnabled()
       })
       it('render 2nd hdcp % errors', async () => { 
@@ -233,8 +230,8 @@ describe("OneToNDivs - Component", () => {
         render(<OneToNDivs {...mockOneToNDivsProps} />)      
         const tabs = screen.getAllByRole('tab');  
         await user.click(tabs[1]);
-        const intHdcps = screen.getAllByTestId('chkBoxIntHdcp') as HTMLInputElement[];
-        expect(intHdcps.length).toBe(2)  
+        const intHdcps = screen.getAllByRole('checkbox', { name: /integer hdcp/i }) as HTMLInputElement[];        
+        expect(intHdcps).toHaveLength(2)
         expect(intHdcps[1]).toBeChecked()
         expect(intHdcps[1]).toBeEnabled()
       })
@@ -243,8 +240,8 @@ describe("OneToNDivs - Component", () => {
         render(<OneToNDivs {...mockOneToNDivsProps} />)      
         const tabs = screen.getAllByRole('tab');  
         await user.click(tabs[1]);
-        const hdcpForGames = screen.getAllByTestId('radioHdcpForGame') as HTMLInputElement[];  
-        expect(hdcpForGames.length).toBe(2)
+        const hdcpForGames = screen.getAllByRole('radio', { name: /game/i }) as HTMLInputElement[];        
+        expect(hdcpForGames).toHaveLength(2)
         expect(hdcpForGames[1]).toBeChecked()
         expect(hdcpForGames[1]).toBeEnabled()
       })
@@ -253,8 +250,8 @@ describe("OneToNDivs - Component", () => {
         render(<OneToNDivs {...mockOneToNDivsProps} />)      
         const tabs = screen.getAllByRole('tab');  
         await user.click(tabs[1]);
-        const hdcpForSeries = screen.getAllByTestId('radioHdcpForSeries') as HTMLInputElement[];  
-        expect(hdcpForSeries.length).toBe(2)
+        const hdcpForSeries = screen.getAllByRole('radio', { name: /series/i }) as HTMLInputElement[];        
+        expect(hdcpForSeries).toHaveLength(2)
         expect(hdcpForSeries[1]).not.toBeChecked()  
         expect(hdcpForSeries[1]).toBeEnabled()
       })
@@ -263,10 +260,10 @@ describe("OneToNDivs - Component", () => {
 
   describe('radio buttons per divsion should have same name (group)', () => { 
     it('test if "Scratch" div radio buttons have same name', () => {      
-      render(<OneToNDivs {...mockOneToNDivsProps} />)      
-      const ganeRadios = screen.getAllByLabelText("Game");
-      const seriesRadios = screen.getAllByLabelText("Series");
-      expect(ganeRadios[0]).toHaveAttribute('name', 'divHdcpRadio1');
+      render(<OneToNDivs {...mockOneToNDivsProps} />)  
+      const gameRadios = screen.getAllByRole('radio', { name: /game/i }) as HTMLInputElement[];
+      const seriesRadios = screen.getAllByRole('radio', { name: /series/i }) as HTMLInputElement[];
+      expect(gameRadios[0]).toHaveAttribute('name', 'divHdcpRadio1');
       expect(seriesRadios[0]).toHaveAttribute('name', 'divHdcpRadio1');
     })
     it('test if "Hdcp" div radio buttons have same name', async () => {
@@ -274,9 +271,9 @@ describe("OneToNDivs - Component", () => {
       render(<OneToNDivs {...mockOneToNDivsProps} />)      
       const tabs = screen.getAllByRole('tab');  
       await user.click(tabs[1]);
-      const ganeRadios = screen.getAllByLabelText("Game");
-      const seriesRadios = screen.getAllByLabelText("Series");
-      expect(ganeRadios[1]).toHaveAttribute('name', 'divHdcpRadio2');
+      const gameRadios = screen.getAllByRole('radio', { name: /game/i }) as HTMLInputElement[];
+      const seriesRadios = screen.getAllByRole('radio', { name: /series/i }) as HTMLInputElement[];
+      expect(gameRadios[1]).toHaveAttribute('name', 'divHdcpRadio2');
       expect(seriesRadios[1]).toHaveAttribute('name', 'divHdcpRadio2');    
     })
   })
@@ -310,7 +307,7 @@ describe("OneToNDivs - Component", () => {
       // ACT
       const tabs = screen.getAllByRole("tab");
       // ASSERT
-      expect(tabs.length).toBe(3);
+      expect(tabs).toHaveLength(3)
       expect(tabs[2]).toHaveTextContent("50+");
     })
 
@@ -328,46 +325,49 @@ describe("OneToNDivs - Component", () => {
       // ACT
       const tabs = screen.getAllByRole("tab");
       // ASSERT
-      expect(tabs.length).toBe(3);
+      expect(tabs).toHaveLength(3)
 
       // ARRANGE
       await user.click(tabs[2]);
       
       // ACT
-      const hdcpForGames = screen.getAllByTestId('radioHdcpForGame') as HTMLInputElement[];  
-      const hdcpForSeries = screen.getAllByTestId('radioHdcpForSeries') as HTMLInputElement[];  
+      const gameRadios = screen.getAllByRole('radio', { name: /game/i }) as HTMLInputElement[];
+      const seriesRadios = screen.getAllByRole('radio', { name: /series/i }) as HTMLInputElement[];
+
+      // const hdcpForGames = screen.getAllByTestId('radioHdcpForGame') as HTMLInputElement[];  
+      // const hdcpForSeries = screen.getAllByTestId('radioHdcpForSeries') as HTMLInputElement[];  
 
       // ASSERT
-      expect(hdcpForGames.length).toBe(3)
-      expect(hdcpForSeries.length).toBe(3)      
+      expect(gameRadios).toHaveLength(3)
+      expect(seriesRadios).toHaveLength(3)
               
-      expect(hdcpForGames[2]).toBeChecked()
-      expect(hdcpForSeries[2]).not.toBeChecked()
+      expect(gameRadios[2]).toBeChecked()
+      expect(seriesRadios[2]).not.toBeChecked()
 
       // <input> atribute checked is set as: 
       // checked={div.hdcp_for === 'Game'}
-      await user.click(hdcpForSeries[2]);
+      await user.click(seriesRadios[2]);
       mockDivs[2].hdcp_for = "Series";
       try {
-        expect(hdcpForGames[2]).not.toBeChecked()
+        expect(gameRadios[2]).not.toBeChecked()
       } catch (error) {
         expect(mockOneToNDivsProps.divs[2].hdcp_for).toBe("Series");
       }
       try {
-        expect(hdcpForSeries[2]).toBeChecked()  
+        expect(seriesRadios[2]).toBeChecked()  
       } catch (error) {
         expect(mockOneToNDivsProps.divs[2].hdcp_for).toBe("Series");
       }
       
-      await user.click(hdcpForGames[2]);
+      await user.click(gameRadios[2]);
       mockDivs[2].hdcp_for = "Game";
       try {
-        expect(hdcpForGames[2]).toBeChecked()  
+        expect(gameRadios[2]).toBeChecked()  
       } catch (error) {
         expect(mockOneToNDivsProps.divs[2].hdcp_for).toBe("Game");
       }
       try {
-        expect(hdcpForSeries[2]).not.toBeChecked()        
+        expect(seriesRadios[2]).not.toBeChecked()        
       } catch (error) {
         expect(mockOneToNDivsProps.divs[2].hdcp_for).toBe("Game");
       }            
@@ -397,10 +397,10 @@ describe("OneToNDivs - Component", () => {
       // ACT
       const tabs = screen.getAllByRole("tab");
       // ARRANGE
-      await user.click(tabs[2]);
-      const delBtns = screen.getAllByText("Delete Div");
+      await user.click(tabs[2]);      
+      const delBtns = screen.getAllByRole("button", { name: /delete div/i });
       // ASSERT
-      expect(delBtns.length).toBe(2);
+      expect(delBtns).toHaveLength(2)
       // ACT
       await user.click(delBtns[1]);
       // ASSERT

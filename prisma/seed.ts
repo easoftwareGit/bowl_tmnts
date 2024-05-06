@@ -5,7 +5,7 @@ const prisma = new PrismaClient();
 
 async function userUpsert() {
   const testPassword = await hash("test", 12);
-  
+
   try {
     let user = await prisma.user.upsert({
       where: {
@@ -80,12 +80,12 @@ async function userUpsert() {
     console.log("Upserted users:", 5);
     return 5;
   } catch (error) {
-    console.log(error)
+    console.log(error);
     return -1;
   }
 }
 
-async function bowlUpsert() {  
+async function bowlUpsert() {
   try {
     let bowl = await prisma.bowl.upsert({
       where: {
@@ -129,12 +129,12 @@ async function bowlUpsert() {
     console.log("Upserted bowls:", 3);
     return 3;
   } catch (error) {
-    console.log(error)
+    console.log(error);
     return -1;
   }
 }
 
-async function tmntUpsert() {  
+async function tmntUpsert() {
   try {
     let tmnt = await prisma.tmnt.upsert({
       where: {
@@ -277,15 +277,14 @@ async function tmntUpsert() {
       },
     });
     console.log("Upserted tmnts:", 10);
-    return 10
+    return 10;
   } catch (error) {
-    console.log(error)
+    console.log(error);
     return -1;
   }
 }
 
 async function eventUpsert() {
-
   try {
     let event = await prisma.event.upsert({
       where: {
@@ -304,9 +303,9 @@ async function eventUpsert() {
         other: 2,
         expenses: 5,
         added_money: 0,
-        sort_order: 1
+        sort_order: 1,
       },
-    });      
+    });
     event = await prisma.event.upsert({
       where: {
         id: "evt_dadfd0e9c11a4aacb87084f1609a0afd",
@@ -324,9 +323,9 @@ async function eventUpsert() {
         other: 0,
         expenses: 0,
         added_money: 0,
-        sort_order: 1
+        sort_order: 1,
       },
-    });  
+    });
     event = await prisma.event.upsert({
       where: {
         id: "evt_06055deb80674bd592a357a4716d8ef2",
@@ -344,9 +343,9 @@ async function eventUpsert() {
         other: 0,
         expenses: 5,
         added_money: 0,
-        sort_order: 1
+        sort_order: 1,
       },
-    });  
+    });
     event = await prisma.event.upsert({
       where: {
         id: "evt_9a58f0a486cb4e6c92ca3348702b1a62",
@@ -364,18 +363,18 @@ async function eventUpsert() {
         other: 0,
         expenses: 5,
         added_money: 0,
-        sort_order: 1
+        sort_order: 1,
       },
-    });  
+    });
     console.log("Upserted events:", 4);
-    return 4
+    return 4;
   } catch (error) {
-    console.log(error)
-    return -1
+    console.log(error);
+    return -1;
   }
 }
 
-async function divUpsert() { 
+async function divUpsert() {
   try {
     let div = await prisma.div.upsert({
       where: {
@@ -386,10 +385,10 @@ async function divUpsert() {
         id: "div_f30aea2c534f4cfe87f4315531cef8ef",
         event_id: "evt_cb97b73cb538418ab993fc867f860510",
         div_name: "Scratch",
-        hdcp_per: 0,        
-        sort_order: 1
+        hdcp_per: 0,
+        sort_order: 1,
       },
-    });      
+    });
     div = await prisma.div.upsert({
       where: {
         id: "div_26230803eb454a6588476b64eab1963a",
@@ -399,10 +398,10 @@ async function divUpsert() {
         id: "div_26230803eb454a6588476b64eab1963a",
         event_id: "evt_cb97b73cb538418ab993fc867f860510",
         div_name: "50+ Scratch",
-        hdcp_per: 0,        
-        sort_order: 2
+        hdcp_per: 0,
+        sort_order: 2,
       },
-    });      
+    });
     div = await prisma.div.upsert({
       where: {
         id: "div_1f42042f9ef24029a0a2d48cc276a087",
@@ -413,9 +412,9 @@ async function divUpsert() {
         event_id: "evt_dadfd0e9c11a4aacb87084f1609a0afd",
         div_name: "Scratch",
         hdcp_per: 0,
-        sort_order: 1
+        sort_order: 1,
       },
-    });      
+    });
     div = await prisma.div.upsert({
       where: {
         id: "div_578834e04e5e4885bbae79229d8b96e8",
@@ -426,9 +425,9 @@ async function divUpsert() {
         event_id: "evt_9a58f0a486cb4e6c92ca3348702b1a62",
         div_name: "Scratch",
         hdcp_per: 0,
-        sort_order: 1
+        sort_order: 1,
       },
-    });      
+    });
     div = await prisma.div.upsert({
       where: {
         id: "div_24b1cd5dee0542038a1244fc2978e862",
@@ -439,9 +438,9 @@ async function divUpsert() {
         event_id: "evt_9a58f0a486cb4e6c92ca3348702b1a62",
         div_name: "Hdcp",
         hdcp_per: 90,
-        sort_order: 2
+        sort_order: 2,
       },
-    });      
+    });
     div = await prisma.div.upsert({
       where: {
         id: "div_fe72ab97edf8407186c8e6df7f7fb741",
@@ -452,18 +451,18 @@ async function divUpsert() {
         event_id: "evt_9a58f0a486cb4e6c92ca3348702b1a62",
         div_name: "Hdcp 50+",
         hdcp_per: 90,
-        sort_order: 3
+        sort_order: 3,
       },
-    });      
+    });
     console.log("Upserted divs:", 6);
-    return 6
+    return 6;
   } catch (error) {
-    console.log(error)
-    return -1
+    console.log(error);
+    return -1;
   }
 }
 
-async function hdcpUpsert() { 
+async function hdcpUpsert() {
   try {
     let hdcp = await prisma.hdcp.upsert({
       where: {
@@ -475,9 +474,9 @@ async function hdcpUpsert() {
         div_id: "div_24b1cd5dee0542038a1244fc2978e862",
         hdcp_from: 220,
         int_hdcp: true,
-        game: true
+        game: true,
       },
-    }); 
+    });
     hdcp = await prisma.hdcp.upsert({
       where: {
         id: "hdc_d97abb6a776f4ab289d9e913ea7ada46",
@@ -488,18 +487,18 @@ async function hdcpUpsert() {
         div_id: "div_fe72ab97edf8407186c8e6df7f7fb741",
         hdcp_from: 220,
         int_hdcp: true,
-        game: true
+        game: true,
       },
-    }); 
+    });
     console.log("Upserted hdcps:", 2);
-    return 2
+    return 2;
   } catch (error) {
-    console.log(error)
-    return -1
+    console.log(error);
+    return -1;
   }
 }
 
-async function squadUpsert() { 
+async function squadUpsert() {
   try {
     let squad = await prisma.squad.upsert({
       where: {
@@ -513,9 +512,11 @@ async function squadUpsert() {
         squad_date: new Date("10/23/2022"),
         squad_time: null,
         games: 6,
-        sort_order: 1
+        lane_count: 12,
+        starting_lane: 29,
+        sort_order: 1,
       },
-    });      
+    });
     squad = await prisma.squad.upsert({
       where: {
         id: "sqd_1a6c885ee19a49489960389193e8f819",
@@ -528,19 +529,447 @@ async function squadUpsert() {
         squad_date: new Date("01/02/2023"),
         squad_time: null,
         games: 6,
-        sort_order: 1
+        lane_count: 24,
+        starting_lane: 9,
+        sort_order: 1,
       },
-    });      
+    });
     console.log("Upserted squads:", 2);
-    return 2
+    return 2;
   } catch (error) {
-    console.log(error)
-    return -1
+    console.log(error);
+    return -1;
+  }
+}
+
+async function lanesUpsert() {
+  async function lanesUpsert_GoldPin() {
+    try {
+      let lanes = await prisma.lanes.upsert({
+        where: {
+          id: "lan_7b5b9d9e6b6e4c5b9f6b7d9e7f9b6c5d",
+        },
+        update: {},
+        create: {
+          id: "lan_7b5b9d9e6b6e4c5b9f6b7d9e7f9b6c5d",
+          lane: 29,
+          squad_id: "sqd_7116ce5f80164830830a7157eb093396",
+        },
+      });
+      lanes = await prisma.lanes.upsert({
+        where: {
+          id: "lan_7b5b9d9e6b6e4c5b9f6b7d9e7f9b6c5d",
+        },
+        update: {},
+        create: {
+          id: "lan_7b5b9d9e6b6e4c5b9f6b7d9e7f9b6c5d",
+          lane: 30,
+          squad_id: "sqd_7116ce5f80164830830a7157eb093396",
+        },
+      });
+      lanes = await prisma.lanes.upsert({
+        where: {
+          id: "lan_8b78890d8b8e4c5b9f6b7d9e7f9b6c5d",
+        },
+        update: {},
+        create: {
+          id: "lan_8b78890d8b8e4c5b9f6b7d9e7f9b6c5d",
+          lane: 31,
+          squad_id: "sqd_7116ce5f80164830830a7157eb093396",
+        },
+      });
+      lanes = await prisma.lanes.upsert({
+        where: {
+          id: "lan_8b78890d8b8e4c5b9f6b7d9e7f9b6123",
+        },
+        update: {},
+        create: {
+          id: "lan_8b78890d8b8e4c5b9f6b7d9e7f9b6123",
+          lane: 32,
+          squad_id: "sqd_7116ce5f80164830830a7157eb093396",
+        },
+      });
+      lanes = await prisma.lanes.upsert({
+        where: {
+          id: "lan_8b78890d8b8e4c5b9f6b7d9e7f9b6234",
+        },
+        update: {},
+        create: {
+          id: "lan_8b78890d8b8e4c5b9f6b7d9e7f9b6234",
+          lane: 33,
+          squad_id: "sqd_7116ce5f80164830830a7157eb093396",
+        },
+      });
+      lanes = await prisma.lanes.upsert({
+        where: {
+          id: "lan_8b78890d8b8e4c5b9f6b7d9e7f9b6345",
+        },
+        update: {},
+        create: {
+          id: "lan_8b78890d8b8e4c5b9f6b7d9e7f9b6345",
+          lane: 34,
+          squad_id: "sqd_7116ce5f80164830830a7157eb093396",
+        },
+      });
+      lanes = await prisma.lanes.upsert({
+        where: {
+          id: "lan_8b78890d8b8e4c5b9f6b7d9e7f9b6456",
+        },
+        update: {},
+        create: {
+          id: "lan_8b78890d8b8e4c5b9f6b7d9e7f9b6456",
+          lane: 35,
+          squad_id: "sqd_7116ce5f80164830830a7157eb093396",
+        },
+      });
+      lanes = await prisma.lanes.upsert({
+        where: {
+          id: "lan_8b78890d8b8e4c5b9f6b7d9e7f9b6567",
+        },
+        update: {},
+        create: {
+          id: "lan_8b78890d8b8e4c5b9f6b7d9e7f9b6567",
+          lane: 36,
+          squad_id: "sqd_7116ce5f80164830830a7157eb093396",
+        },
+      });
+      lanes = await prisma.lanes.upsert({
+        where: {
+          id: "lan_8b78890d8b8e4c5b9f6b7d9e7f9b6678",
+        },
+        update: {},
+        create: {
+          id: "lan_8b78890d8b8e4c5b9f6b7d9e7f9b6678",
+          lane: 37,          
+          squad_id: "sqd_7116ce5f80164830830a7157eb093396",
+        },
+      });
+      lanes = await prisma.lanes.upsert({
+        where: {
+          id: "lan_8b78890d8b8e4c5b9f6b7d9e7f9b6789",
+        },
+        update: {},
+        create: {
+          id: "lan_8b78890d8b8e4c5b9f6b7d9e7f9b6789",
+          lane: 38,
+          squad_id: "sqd_7116ce5f80164830830a7157eb093396",
+        },
+      });
+      lanes = await prisma.lanes.upsert({
+        where: {
+          id: "lan_8b78890d8b8e4c5b9f6b7d9e7f9b6890",
+        },
+        update: {},
+        create: {
+          id: "lan_8b78890d8b8e4c5b9f6b7d9e7f9b6890",
+          lane: 39,
+          squad_id: "sqd_7116ce5f80164830830a7157eb093396",
+        },
+      });
+      lanes = await prisma.lanes.upsert({
+        where: {
+          id: "lan_8b78890d8b8e4c5b9f6b7d9e7f9b6abc",
+        },
+        update: {},
+        create: {
+          id: "lan_8b78890d8b8e4c5b9f6b7d9e7f9b6abc",
+          lane: 40,
+          squad_id: "sqd_7116ce5f80164830830a7157eb093396",
+        },
+      });
+      return 12;
+    } catch (error) {
+      console.log(error);
+      return -1;
+    }
+  }
+
+  async function lanesUpsert_YosemiteLanes() {
+    try {
+      let lanes = await prisma.lanes.upsert({
+        where: {
+          id: "lan_4e24c5cc04f6463d89f24e6e19a126a2",
+        },
+        update: {},
+        create: {
+          id: "lan_4e24c5cc04f6463d89f24e6e19a126a2",
+          lane: 9,
+          squad_id: "sqd_1a6c885ee19a49489960389193e8f819",
+        }
+      })
+      lanes = await prisma.lanes.upsert({
+        where: {
+          id: "lan_4e24c5cc04f6463d89f24e6e19a11234",
+        },
+        update: {},
+        create: {
+          id: "lan_4e24c5cc04f6463d89f24e6e19a11234",
+          lane: 10,
+          squad_id: "sqd_1a6c885ee19a49489960389193e8f819",
+        }
+      })
+      lanes = await prisma.lanes.upsert({
+        where: {
+          id: "lan_4e24c5cc04f6463d89f24e6e19a11235",
+        },
+        update: {},
+        create: {
+          id: "lan_4e24c5cc04f6463d89f24e6e19a11235",
+          lane: 11,
+          squad_id: "sqd_1a6c885ee19a49489960389193e8f819",
+        }
+      })
+      lanes = await prisma.lanes.upsert({
+        where: {
+          id: "lan_4e24c5cc04f6463d89f24e6e19a11236",
+        },
+        update: {},
+        create: {
+          id: "lan_4e24c5cc04f6463d89f24e6e19a11236",
+          lane: 12,
+          squad_id: "sqd_1a6c885ee19a49489960389193e8f819",
+        }
+      })
+      lanes = await prisma.lanes.upsert({
+        where: {
+          id: "lan_4e24c5cc04f6463d89f24e6e19a11237",
+        },
+        update: {},
+        create: {
+          id: "lan_4e24c5cc04f6463d89f24e6e19a11237",
+          lane: 13,
+          squad_id: "sqd_1a6c885ee19a49489960389193e8f819",
+        }
+      })
+      lanes = await prisma.lanes.upsert({
+        where: {
+          id: "lan_4e24c5cc04f6463d89f24e6e19a11238",
+        },
+        update: {},
+        create: {
+          id: "lan_4e24c5cc04f6463d89f24e6e19a11238",
+          lane: 14,
+          squad_id: "sqd_1a6c885ee19a49489960389193e8f819",
+        }
+      })
+      lanes = await prisma.lanes.upsert({
+        where: {
+          id: "lan_4e24c5cc04f6463d89f24e6e19a11239",
+        },
+        update: {},
+        create: {
+          id: "lan_4e24c5cc04f6463d89f24e6e19a11239",
+          lane: 15,
+          squad_id: "sqd_1a6c885ee19a49489960389193e8f819",
+        }
+      })
+      lanes = await prisma.lanes.upsert({
+        where: {
+          id: "lan_4e24c5cc04f6463d89f24e6e19a11240",
+        },
+        update: {},
+        create: {
+          id: "lan_4e24c5cc04f6463d89f24e6e19a11240",
+          lane: 16,
+          squad_id: "sqd_1a6c885ee19a49489960389193e8f819",
+        }
+      })
+      lanes = await prisma.lanes.upsert({
+        where: {
+          id: "lan_4e24c5cc04f6463d89f24e6e19a11241",
+        },
+        update: {},
+        create: {
+          id: "lan_4e24c5cc04f6463d89f24e6e19a11241",
+          lane: 17,
+          squad_id: "sqd_1a6c885ee19a49489960389193e8f819",
+        }
+      })
+      lanes = await prisma.lanes.upsert({
+        where: {
+          id: "lan_4e24c5cc04f6463d89f24e6e19a11242",
+        },
+        update: {},
+        create: {
+          id: "lan_4e24c5cc04f6463d89f24e6e19a11242",
+          lane: 18,
+          squad_id: "sqd_1a6c885ee19a49489960389193e8f819",
+        }
+      })
+      lanes = await prisma.lanes.upsert({
+        where: {
+          id: "lan_4e24c5cc04f6463d89f24e6e19a11243",
+        },
+        update: {},
+        create: {
+          id: "lan_4e24c5cc04f6463d89f24e6e19a11243",
+          lane: 19,
+          squad_id: "sqd_1a6c885ee19a49489960389193e8f819",
+        }
+      })
+      lanes = await prisma.lanes.upsert({
+        where: {
+          id: "lan_4e24c5cc04f6463d89f24e6e19a11244",
+        },
+        update: {},
+        create: {
+          id: "lan_4e24c5cc04f6463d89f24e6e19a11244",
+          lane: 20,
+          squad_id: "sqd_1a6c885ee19a49489960389193e8f819",
+        }
+      })
+      lanes = await prisma.lanes.upsert({
+        where: {
+          id: "lan_4e24c5cc04f6463d89f24e6e19a11245",
+        },
+        update: {},
+        create: {
+          id: "lan_4e24c5cc04f6463d89f24e6e19a11245",
+          lane: 21,
+          squad_id: "sqd_1a6c885ee19a49489960389193e8f819",
+        }
+      })
+      lanes = await prisma.lanes.upsert({
+        where: {
+          id: "lan_4e24c5cc04f6463d89f24e6e19a11246",
+        },
+        update: {},
+        create: {
+          id: "lan_4e24c5cc04f6463d89f24e6e19a11246",
+          lane: 22,
+          squad_id: "sqd_1a6c885ee19a49489960389193e8f819",
+        }
+      })
+      lanes = await prisma.lanes.upsert({
+        where: {
+          id: "lan_4e24c5cc04f6463d89f24e6e19a11247",
+        },
+        update: {},
+        create: {
+          id: "lan_4e24c5cc04f6463d89f24e6e19a11247",
+          lane: 23,
+          squad_id: "sqd_1a6c885ee19a49489960389193e8f819",
+        }
+      })
+      lanes = await prisma.lanes.upsert({
+        where: {
+          id: "lan_4e24c5cc04f6463d89f24e6e19a11248",
+        },
+        update: {},
+        create: {
+          id: "lan_4e24c5cc04f6463d89f24e6e19a11248",
+          lane: 24,
+          squad_id: "sqd_1a6c885ee19a49489960389193e8f819",
+        }
+      })
+      lanes = await prisma.lanes.upsert({
+        where: {
+          id: "lan_4e24c5cc04f6463d89f24e6e19a11249",
+        },
+        update: {},
+        create: {
+          id: "lan_4e24c5cc04f6463d89f24e6e19a11249",
+          lane: 25,
+          squad_id: "sqd_1a6c885ee19a49489960389193e8f819",
+        }
+      })
+      lanes = await prisma.lanes.upsert({
+        where: {
+          id: "lan_4e24c5cc04f6463d89f24e6e19a11250",
+        },
+        update: {},
+        create: {
+          id: "lan_4e24c5cc04f6463d89f24e6e19a11250",
+          lane: 26,
+          squad_id: "sqd_1a6c885ee19a49489960389193e8f819",
+        }
+      })
+      lanes = await prisma.lanes.upsert({
+        where: {
+          id: "lan_4e24c5cc04f6463d89f24e6e19a11251",
+        },
+        update: {},
+        create: {
+          id: "lan_4e24c5cc04f6463d89f24e6e19a11251",
+          lane: 27,
+          squad_id: "sqd_1a6c885ee19a49489960389193e8f819",
+        }
+      })
+      lanes = await prisma.lanes.upsert({
+        where: {
+          id: "lan_4e24c5cc04f6463d89f24e6e19a11252",
+        },
+        update: {},
+        create: {
+          id: "lan_4e24c5cc04f6463d89f24e6e19a11252",
+          lane: 28,
+          squad_id: "sqd_1a6c885ee19a49489960389193e8f819",
+        }
+      })
+      lanes = await prisma.lanes.upsert({
+        where: {
+          id: "lan_4e24c5cc04f6463d89f24e6e19a11253",
+        },
+        update: {},
+        create: {
+          id: "lan_4e24c5cc04f6463d89f24e6e19a11253",
+          lane: 29,
+          squad_id: "sqd_1a6c885ee19a49489960389193e8f819",
+        }
+      })
+      lanes = await prisma.lanes.upsert({
+        where: {
+          id: "lan_4e24c5cc04f6463d89f24e6e19a11254",
+        },
+        update: {},
+        create: {
+          id: "lan_4e24c5cc04f6463d89f24e6e19a11254",
+          lane: 30,
+          squad_id: "sqd_1a6c885ee19a49489960389193e8f819",
+        }
+      })
+      lanes = await prisma.lanes.upsert({
+        where: {
+          id: "lan_4e24c5cc04f6463d89f24e6e19a11255",
+        },
+        update: {},
+        create: {
+          id: "lan_4e24c5cc04f6463d89f24e6e19a11255",
+          lane: 31,
+          squad_id: "sqd_1a6c885ee19a49489960389193e8f819",
+        }
+      })
+      lanes = await prisma.lanes.upsert({
+        where: {
+          id: "lan_4e24c5cc04f6463d89f24e6e19a11256",
+        },
+        update: {},
+        create: {
+          id: "lan_4e24c5cc04f6463d89f24e6e19a11256",
+          lane: 32,
+          squad_id: "sqd_1a6c885ee19a49489960389193e8f819",
+        }
+      })
+
+      return 24
+    } catch (error) {
+      console.log(error)
+      return -1
+    }
+  }
+
+  try {
+    const gpCount = await lanesUpsert_GoldPin();
+    const yCount = await lanesUpsert_YosemiteLanes()    
+    console.log("Upserted lanes: ", gpCount + yCount);
+    return 36;
+  } catch (error) {
+    console.log(error);
+    return -1;
   }
 }
 
 async function potsUpsert() {
-
   try {
     let pot = await prisma.pot.upsert({
       where: {
@@ -553,9 +982,9 @@ async function potsUpsert() {
         div_id: "div_f30aea2c534f4cfe87f4315531cef8ef",
         sort_order: 1,
         fee: 20,
-        pot_type: 'Game',
+        pot_type: "Game",
       },
-    });      
+    });
     pot = await prisma.pot.upsert({
       where: {
         id: "pot_ef6e06e06abb4d96a47017553f9a5e9e",
@@ -567,9 +996,9 @@ async function potsUpsert() {
         div_id: "div_f30aea2c534f4cfe87f4315531cef8ef",
         sort_order: 2,
         fee: 10,
-        pot_type: 'Last_Game',
+        pot_type: "Last_Game",
       },
-    });  
+    });
     pot = await prisma.pot.upsert({
       where: {
         id: "pot_ef6e06e06abb4d96a47017553f9a5e9e",
@@ -581,9 +1010,9 @@ async function potsUpsert() {
         div_id: "div_f30aea2c534f4cfe87f4315531cef8ef",
         sort_order: 2,
         fee: 10,
-        pot_type: 'Last_Game',
+        pot_type: "Last_Game",
       },
-    });  
+    });
     pot = await prisma.pot.upsert({
       where: {
         id: "pot_ef6e06e06abb4d96a47017553f9a5e9e",
@@ -595,9 +1024,9 @@ async function potsUpsert() {
         div_id: "div_26230803eb454a6588476b64eab1963a",
         sort_order: 3,
         fee: 20,
-        pot_type: 'Game',
+        pot_type: "Game",
       },
-    });  
+    });
     pot = await prisma.pot.upsert({
       where: {
         id: "pot_dd99ba49394f4837aef26ec7e5781137",
@@ -609,9 +1038,9 @@ async function potsUpsert() {
         div_id: "div_26230803eb454a6588476b64eab1963a",
         sort_order: 4,
         fee: 10,
-        pot_type: 'Series',
+        pot_type: "Series",
       },
-    });  
+    });
     pot = await prisma.pot.upsert({
       where: {
         id: "pot_98b3a008619b43e493abf17d9f462a65",
@@ -623,9 +1052,9 @@ async function potsUpsert() {
         div_id: "div_1f42042f9ef24029a0a2d48cc276a087",
         sort_order: 1,
         fee: 10,
-        pot_type: 'Game',
+        pot_type: "Game",
       },
-    });  
+    });
     pot = await prisma.pot.upsert({
       where: {
         id: "pot_ab80213899ea424b938f52a062deacfe",
@@ -637,20 +1066,19 @@ async function potsUpsert() {
         div_id: "div_1f42042f9ef24029a0a2d48cc276a087",
         sort_order: 2,
         fee: 10,
-        pot_type: 'Last Gane',
+        pot_type: "Last Gane",
       },
-    });  
+    });
 
     console.log("Upserted pots:", 6);
-    return 6
+    return 6;
   } catch (error) {
-    console.log(error)
-    return -1
+    console.log(error);
+    return -1;
   }
 }
 
 async function brktUpsert() {
-
   try {
     let brkt = await prisma.bracket.upsert({
       where: {
@@ -670,7 +1098,7 @@ async function brktUpsert() {
         second: 10,
         admin: 5,
       },
-    });      
+    });
     brkt = await prisma.bracket.upsert({
       where: {
         id: "brk_6ede2512c7d4409ca7b055505990a499",
@@ -689,7 +1117,7 @@ async function brktUpsert() {
         second: 10,
         admin: 5,
       },
-    });      
+    });
     brkt = await prisma.bracket.upsert({
       where: {
         id: "brk_aa3da3a411b346879307831b6fdadd5f",
@@ -708,7 +1136,7 @@ async function brktUpsert() {
         second: 10,
         admin: 5,
       },
-    });      
+    });
     brkt = await prisma.bracket.upsert({
       where: {
         id: "brk_37345eb6049946ad83feb9fdbb43a307",
@@ -727,18 +1155,17 @@ async function brktUpsert() {
         second: 10,
         admin: 5,
       },
-    });      
+    });
 
     console.log("Upserted brackets:", 4);
-    return 4
+    return 4;
   } catch (error) {
-    console.log(error)
-    return -1
+    console.log(error);
+    return -1;
   }
 }
 
 async function elimUpsert() {
-
   try {
     let elim = await prisma.eliminator.upsert({
       where: {
@@ -754,7 +1181,7 @@ async function elimUpsert() {
         games: 3,
         fee: 5,
       },
-    });      
+    });
     elim = await prisma.eliminator.upsert({
       where: {
         id: "elm_9d01015272b54962a375cf3c91007a12",
@@ -769,7 +1196,7 @@ async function elimUpsert() {
         games: 3,
         fee: 5,
       },
-    });      
+    });
     elim = await prisma.eliminator.upsert({
       where: {
         id: "brk_aa3da3a411b346879307831b6fdadd5f",
@@ -784,7 +1211,7 @@ async function elimUpsert() {
         games: 3,
         fee: 5,
       },
-    });      
+    });
     elim = await prisma.eliminator.upsert({
       where: {
         id: "brk_37345eb6049946ad83feb9fdbb43a307",
@@ -799,18 +1226,17 @@ async function elimUpsert() {
         games: 3,
         fee: 5,
       },
-    });      
+    });
 
     console.log("Upserted eliminators:", 4);
-    return 4
+    return 4;
   } catch (error) {
-    console.log(error)
-    return -1
+    console.log(error);
+    return -1;
   }
 }
 
 async function main() {
-  
   let count = await userUpsert();
   if (count < 0) return;
 
@@ -826,10 +1252,13 @@ async function main() {
   count = await divUpsert();
   if (count < 0) return;
 
-  count = await hdcpUpsert()
+  count = await hdcpUpsert();
   if (count < 0) return;
 
   count = await squadUpsert();
+  if (count < 0) return;
+
+  count = await lanesUpsert();
   if (count < 0) return;
 
   count = await potsUpsert();

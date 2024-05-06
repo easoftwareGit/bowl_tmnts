@@ -1,11 +1,11 @@
-import React, { useState, ChangeEvent, Dispatch, SetStateAction } from "react";
-import { divType, AcdnErrType, potType, brktType, elimType, HdcpForTypes } from "./types";
-import { initDiv } from "./initVals";
+import React, { useState, ChangeEvent } from "react";
+import { divType, AcdnErrType, potType, brktType, elimType, HdcpForTypes } from "../../../lib/types/types";
+import { defaultHdcpFrom, initDiv } from "./initVals";
 import { Tabs, Tab } from "react-bootstrap";
 import ModalConfirm, { delConfTitle } from "@/components/modal/confirmModal";
 import ModalErrorMsg, { cannotDeleteTitle } from "@/components/modal/errorModal";
 import { initModalObj } from "@/components/modal/modalObjType";
-import { objErrClassName, acdnErrClassName, getAcdnErrMsg, noAcdnErr, isDuplicateName } from "./errors";
+import { objErrClassName, acdnErrClassName, getAcdnErrMsg, noAcdnErr, isDuplicateDivName } from "./errors";
 import { maxEventLength, minHdcpPer, maxHdcpPer, minHdcpFrom, maxHdcpFrom } from "@/lib/validation";
 
 interface ChildProps {
@@ -52,8 +52,8 @@ const getNextAcdnErrMsg = (updatedDiv: divType | null, divs: divType[]): string 
 
 export const validateDivs = (
   divs: divType[],
-  setDivs: Dispatch<SetStateAction<divType[]>>,
-  setAcdnErr: Dispatch<SetStateAction<AcdnErrType>>
+  setDivs: (divs: divType[]) => void,
+  setAcdnErr: (objAcdnErr: AcdnErrType) => void
 ): boolean => {
 
   let areDivsValid = true;
@@ -77,35 +77,37 @@ export const validateDivs = (
     divs.map((div) => {
       divErrClassName = '';
       if (!div.div_name.trim()) {
-        nameErr = 'Name is required';
-        setError(div.div_name, nameErr);
-      } else if (isDuplicateName(divs, div)) {
+        nameErr = 'Div Name is required';
+        setError("Divisions", nameErr);
+      } else if (isDuplicateDivName(divs, div)) {
         nameErr = `"${div.div_name}" has already been used.`;
         setError(div.div_name, nameErr);
       } else {
         nameErr = '';
       }
-      if (div.hdcp < minHdcpPer) {
+      const hdcp = Number(div.hdcp);
+      if (hdcp < minHdcpPer) {
         hdcpErr = 'Hdcp % must be more than ' + (minHdcpPer - 1)
         setError(div.div_name, hdcpErr);
-      } else if (div.hdcp > maxHdcpPer) {
+      } else if (hdcp > maxHdcpPer) {
         hdcpErr = 'Hdcp % must be less than ' + (maxHdcpPer + 1)
         setError(div.div_name, hdcpErr);
       } else {
         hdcpErr = ''
       }
-      if (div.hdcp_from < minHdcpFrom) {
-        hdcpFromErr = 'Event Games must be more than ' + (minHdcpFrom - 1)
+      const hdcpFrom = Number(div.hdcp_from)
+      if (hdcpFrom < minHdcpFrom) {
+        hdcpFromErr = 'Hdcp From must be more than ' + (minHdcpFrom - 1)
         setError(div.div_name, hdcpFromErr);
       } else if (div.hdcp_from > maxHdcpFrom) {
-        hdcpFromErr = 'Event Games must be less than ' + (maxHdcpFrom + 1)
+        hdcpFromErr = 'Hdcp From must be less than ' + (maxHdcpFrom + 1)
         setError(div.div_name, hdcpFromErr);
       } else {
         hdcpFromErr = ''
       }
       return {
         ...div,
-        name_err: nameErr,
+        div_name_err: nameErr,
         hdcp_err: hdcpErr,
         hdcp_from_err: hdcpFromErr,
         errClassName: divErrClassName
@@ -167,6 +169,7 @@ const OneToNDivs: React.FC<ChildProps> = ({
   const canceledDelete = () => {    
     setConfModalObj(initModalObj)   // reset modal object (hides modal)    
   }
+
   const canceledModalErr = () => {
     setErrModalObj(initModalObj); // reset modal object (hides modal)
   };
@@ -235,21 +238,39 @@ const OneToNDivs: React.FC<ChildProps> = ({
               div_name_err: ''
             }
           } else if (name === "item.int_hdcp") {
-            return {
+            updatedDiv = {
               ...div,
               int_hdcp: checked,
             };
           } else if (name.startsWith('divHdcpRadio')) {
-            const hdcpFor: HdcpForTypes = (value === "Game") ? "Game" : "Series"            
-            return {
+            const hdcpFor: HdcpForTypes = (value === "Game") ? "Game" : "Series"
+            updatedDiv = {
               ...div,
               hdcp_for: hdcpFor,
             };
-          } else {
+          } else if (name === 'hdcp') {
+            const hdcpNum = Number(value);
             updatedDiv = {
               ...div,
-              [name]: value,
-              [nameErr]: ''
+              hdcp: hdcpNum,
+              hdcp_err: ''
+            }
+            // do check AFETR setting updatedDiv above
+            // need to clear hdcp_from_err because if hdcp is 0,
+            // hdcp_from spineditis disabled, so user can't clear error
+            if (hdcpNum === 0 && (div.hdcp_from < minHdcpFrom || div.hdcp_from > maxHdcpFrom)) {
+              updatedDiv = {
+                ...updatedDiv,
+                hdcp_from: defaultHdcpFrom,
+                hdcp_from_err: ''
+              }
+            }
+          } else { // hdcp_from
+            const hdcpFromNum = Number(value);
+            updatedDiv = {
+              ...div,
+              hdcp_from: hdcpFromNum,
+              hdcp_from_err: ''
             }
           }
           const acdnErrMsg = getNextAcdnErrMsg(updatedDiv, divs);
@@ -353,7 +374,6 @@ const OneToNDivs: React.FC<ChildProps> = ({
                 type="text"
                 className="form-control"
                 id="inputNumDivs"                
-                data-testid="inputNumDivs"
                 name="num_Divs"
                 value={divs.length}
               />
@@ -425,8 +445,7 @@ const OneToNDivs: React.FC<ChildProps> = ({
                 <input
                   type="text"
                   className={`form-control ${div.div_name_err && "is-invalid"}`}
-                  id={`inputDivName${div.id}`}
-                  data-testid="inputDivName"
+                  id={`inputDivName${div.id}`}                  
                   name="div_name"
                   maxLength={maxEventLength}
                   value={div.div_name}
@@ -454,8 +473,7 @@ const OneToNDivs: React.FC<ChildProps> = ({
                   max={maxHdcpPer}
                   step={10}
                   className={`form-control ${div.hdcp_err && "is-invalid"}`}
-                  id={`inputHdcp${div.id}`}
-                  data-testid="inputHdcp"
+                  id={`inputHdcp${div.id}`}                  
                   name="hdcp"
                   value={div.hdcp}
                   onChange={handleInputChange(div.id)}
@@ -479,7 +497,6 @@ const OneToNDivs: React.FC<ChildProps> = ({
                   step={10}        
                   className={`form-control ${div.hdcp_from_err && "is-invalid"}`}
                   id={`inputHdcpFrom${div.id}`}
-                  data-testid="inputHdcpFrom"
                   name="hdcp_from"
                   value={div.hdcp_from}                        
                   onChange={handleInputChange(div.id)}
@@ -502,7 +519,6 @@ const OneToNDivs: React.FC<ChildProps> = ({
                   type="checkbox"
                   className="form-check-input"
                   id={`chkBoxIntHdcp${div.id}`}  
-                  data-testid="chkBoxIntHdcp"
                   name='item.int_hdcp'
                   checked={div.int_hdcp}
                   onChange={handleInputChange(div.id)}
@@ -520,8 +536,6 @@ const OneToNDivs: React.FC<ChildProps> = ({
                   type="radio"
                   className="form-check-input"
                   id={`radioHdcpForGame${div.id}`}
-                  data-testid="radioHdcpForGame"
-                  // name="divHdcpRadio"                  
                   name={`divHdcpRadio${div.sort_order}`}
                   value="Game"
                   checked={div.hdcp_for === 'Game'}
@@ -535,7 +549,6 @@ const OneToNDivs: React.FC<ChildProps> = ({
                   type="radio"
                   className="form-check-input"
                   id={`radioHdcpForSeries${div.id}`}
-                  data-testid="radioHdcpForSeries"
                   name={`divHdcpRadio${div.sort_order}`}
                   value="Series"
                   checked={div.hdcp_for !== 'Game'}

@@ -1,12 +1,26 @@
 import React, { useState, ChangeEvent, Dispatch, SetStateAction } from "react";
-import { divType, squadType, AcdnErrType, brktType } from "./types";
+import { divType, squadType, AcdnErrType, brktType } from "../../../lib/types/types";
 import { initModalObj } from "@/components/modal/modalObjType";
 import ModalConfirm, { delConfTitle } from "@/components/modal/confirmModal";
 import { Tab, Tabs } from "react-bootstrap";
-import EaCurrencyInput, { maxMoneyText, minFeeText } from "@/components/currency/eaCurrencyInput";
+import EaCurrencyInput, {
+  maxMoneyText,
+  minFeeText,
+} from "@/components/currency/eaCurrencyInput";
 import { defaultBrktGames, defaultBrktPlayers, initBrkt } from "./initVals";
-import { maxGames, maxMoney, minFee, minGames, zeroAmount } from "@/lib/validation";
-import { acdnErrClassName, getAcdnErrMsg, noAcdnErr, objErrClassName } from "./errors";
+import {
+  maxGames,
+  maxMoney,
+  minFee,
+  minGames,
+  zeroAmount,
+} from "@/lib/validation";
+import {
+  acdnErrClassName,
+  getAcdnErrMsg,
+  noAcdnErr,
+  objErrClassName,
+} from "./errors";
 import { getBrktOrElimName } from "@/lib/getName";
 import { currRexEx, localConfig } from "@/lib/currency/const";
 import { formatValue2Dec } from "@/lib/currency/formatValue";
@@ -33,11 +47,11 @@ const createBrktTitle = "Create Bracket";
 const duplicateBrktErrMsg = "Bracket - Division & Start already exists";
 const defaultTabKey = "brkt1";
 
-const getBrktErrMsg = (brkt: brktType): string => {  
+const getBrktErrMsg = (brkt: brktType): string => {
   if (brkt.div_err) return brkt.div_err;
   if (brkt.start_err) return brkt.start_err;
   if (brkt.fee_err) return brkt.fee_err;
-  return '';
+  return "";
 };
 
 const getNextBrktAcdnErrMsg = (
@@ -53,12 +67,9 @@ const getNextBrktAcdnErrMsg = (
     errMsg = getBrktErrMsg(brkt);
     if (errMsg) {
       const errTabTitle =
-        // brkt.sort_order === 1
-        //   ? createBrktTitle
-        //   : `${brkt.div_name}: ${brkt.start}-${brkt.start + brkt.games - 1}`;
         brkt.sort_order === 1
           ? createBrktTitle
-          : getBrktOrElimName(brkt.div_id, brkts) 
+          : getBrktOrElimName(brkt.id, brkts);
       acdnErrMsg = getAcdnErrMsg(errTabTitle, errMsg);
     }
     i++;
@@ -68,16 +79,17 @@ const getNextBrktAcdnErrMsg = (
 
 export const validateBrkts = (
   brkts: brktType[],
-  setBrkts: Dispatch<SetStateAction<brktType[]>>,
-  setAcdnErr: Dispatch<SetStateAction<AcdnErrType>>
-): boolean => { 
-
+  setBrkts: (brkts: brktType[]) => void,
+  setAcdnErr: (objAcdnErr: AcdnErrType) => void
+): boolean => {
   let areBrktsValid = true;
   let feeErr = "";
-  let brktErrClassName = "";
+  let brktErrClassName = "";  
+
+  const newBrktErrMsg = getBrktErrMsg(brkts[0]);
 
   const setError = (brktName: string, errMsg: string) => {
-    if (areBrktsValid) {
+    if (areBrktsValid && !newBrktErrMsg) {
       setAcdnErr({
         errClassName: acdnErrClassName,
         message: getAcdnErrMsg(brktName, errMsg),
@@ -86,35 +98,36 @@ export const validateBrkts = (
     areBrktsValid = false;
     brktErrClassName = objErrClassName;
   };
-  
+
   setBrkts(
     brkts.map((brkt) => {
-      if (brkt.id === '1') {  // no error checking for first bracket
+      if (brkt.sort_order === 1) {
+        // no error checking for first bracket
         return brkt;
       } else {
         feeErr = "";
         brktErrClassName = "";
-        const fee = Number(brkt.fee);
-        if (typeof fee !== 'number') {
-          feeErr = 'Invalid Fee';          
-        } else if (fee < minFee) {
+        const feeNum = Number(brkt.fee);
+        if (typeof feeNum !== "number") {
+          feeErr = "Invalid Fee";
+        } else if (feeNum < minFee) {
           feeErr = "Fee cannot be less than " + minFeeText;
-        } else if (fee > maxMoney) {
-          feeErr = "Fee cannot be greater than " + maxMoneyText;
-        }   
+        } else if (feeNum > maxMoney) {
+          feeErr = "Fee cannot be more than " + maxMoneyText;
+        }
         if (feeErr) {
           setError(getBrktOrElimName(brkt.id, brkts), feeErr);
         }
         return {
           ...brkt,
           fee_err: feeErr,
-          errClassName: feeErr ? objErrClassName : '',
-        }
+          errClassName: feeErr ? objErrClassName : "",
+        };
       }
     })
-  )
+  );
   if (areBrktsValid) {
-    setAcdnErr(noAcdnErr)
+    setAcdnErr(noAcdnErr);
   }
   return areBrktsValid;
 };
@@ -151,35 +164,33 @@ const ZeroToNBrackets: React.FC<ChildProps> = ({
     };
 
     if (newBrkt.start < 1) {
-      startErr = 'Start cannot be less than 1';
+      startErr = "Start cannot be less than 1";
       setError(startErr);
     } else if (newBrkt.start > maxStartGame) {
-      startErr = 'Start cannot be greater than ' + maxStartGame;
+      startErr = "Start cannot be more than " + maxStartGame;
       setError(startErr);
     }
     if (newBrkt.div_name === "") {
       divErr = "Division is required";
       setError(divErr);
     }
-    const fee = Number(newBrkt.fee);
-    if (typeof fee !== "number") {
+    const feeNum = Number(newBrkt.fee);
+    if (typeof feeNum !== "number") {
       feeErr = "Invalid Fee";
       setError(feeErr);
-    } else if (fee < minFee) {
+    } else if (feeNum < minFee) {
       feeErr = "Fee cannot be less than " + minFeeText;
       setError(feeErr);
-    } else if (fee > maxMoney) {
-      feeErr = "Fee cannot be greater than " + maxMoneyText;
+    } else if (feeNum > maxMoney) {
+      feeErr = "Fee cannot be more than " + maxMoneyText;
       setError(feeErr);
     }
 
     if (isBrktValid) {
       // DO NOT check brkt with ID 1
-      const brktsToCheck = brkts.filter(brkt => brkt.id !== "1")
+      const brktsToCheck = brkts.filter((brkt) => brkt.id !== "1");
       const duplicateBrkt = brktsToCheck.find(
-        (brkt) =>
-          brkt.start === newBrkt.start &&
-          brkt.div_id === newBrkt.div_id
+        (brkt) => brkt.start === newBrkt.start && brkt.div_id === newBrkt.div_id
       );
       if (duplicateBrkt) {
         startErr = duplicateBrktErrMsg;
@@ -196,11 +207,11 @@ const ZeroToNBrackets: React.FC<ChildProps> = ({
             div_err: divErr,
             fee_err: feeErr,
             errClassName: brktErrClassName,
-          }
+          };
         }
         return brkt;
       })
-    )
+    );
 
     if (isBrktValid) {
       setAcdnErr(noAcdnErr);
@@ -209,11 +220,12 @@ const ZeroToNBrackets: React.FC<ChildProps> = ({
     return isBrktValid;
   };
 
-  const handleAdd = () => {
+  const handleAdd = (e: React.FormEvent) => {
+    e.preventDefault();
     if (validNewBrkt(brkts[0])) {
       const newBrkt = {
         ...brkts[0],
-        id: '' + (brktId + 1),
+        id: "" + (brktId + 1),
         start: brkts[0].start,
         div_id: brkts[0].div_id,
         div_name: brkts[0].div_name,
@@ -223,25 +235,25 @@ const ZeroToNBrackets: React.FC<ChildProps> = ({
       setBrktId(brktId + 1);
       const updatedBrkts = structuredClone(brkts);
       updatedBrkts[0] = {
-        ...initBrkt
-      }
+        ...initBrkt,
+      };
       updatedBrkts.push(newBrkt);
       setBrkts(updatedBrkts);
     }
   };
 
-  const confirmedDelete = () => { 
-    setModalObj(initModalObj)   // reset modal object (hides modal)
+  const confirmedDelete = () => {
+    setModalObj(initModalObj); // reset modal object (hides modal)
     const updatedData = brkts.filter((brkt) => brkt.id !== modalObj.id);
     setBrkts(updatedData);
-    setTabKey(defaultTabKey);   // refocus 1st pot
-  }; 
+    setTabKey(defaultTabKey); // refocus 1st pot
+  };
 
   const canceledDelete = () => {
     setModalObj(initModalObj); // reset modal object (hides modal)
   };
 
-  const handleDelete = (id: string) => { 
+  const handleDelete = (id: string) => {
     const brktToDel = brkts.find((brkt) => brkt.id === id);
     // if did not find brkt OR first brkt (1st brkt used for creating new brkts)
     if (!brktToDel || brktToDel.sort_order === 1) return;
@@ -254,22 +266,22 @@ const ZeroToNBrackets: React.FC<ChildProps> = ({
       id: id,
     });
   };
-  
+
   const handleInputChange = (e: ChangeEvent<HTMLInputElement>) => {
-    const { id, value } = e.target;      
+    const { id, value } = e.target;
     const ids = id.split("-");
-    const name = ids[0];    
-    
+    const name = ids[0];
+
     // only brkts[0] has editable div_name and start
     let updatedBrkt: brktType;
 
-    if (name === 'div_name') { 
+    if (name === "div_name") {
       updatedBrkt = {
         ...brkts[0],
         div_name: ids[2],
         div_id: ids[1],
         div_err: "",
-      }
+      };
       if (brkts[0].div_err === duplicateBrktErrMsg) {
         updatedBrkt.div_err = "";
       }
@@ -278,7 +290,7 @@ const ZeroToNBrackets: React.FC<ChildProps> = ({
         ...brkts[0],
         start: Number(value),
         start_err: "",
-      }
+      };
     }
     updatedBrkt.errClassName = "";
     const acdnErrMsg = getNextBrktAcdnErrMsg(updatedBrkt, brkts);
@@ -295,124 +307,125 @@ const ZeroToNBrackets: React.FC<ChildProps> = ({
         if (brkt.id === updatedBrkt.id) {
           return updatedBrkt;
         }
-        return brkt
+        return brkt;
       })
-    )
+    );
   };
 
   const handleAmountValueChange = (id: string) => (value: string | undefined): void => {
-    let rawValue = value === undefined ? "undefined" : value;
-    rawValue = rawValue || " ";
+      let rawValue = value === undefined ? "undefined" : value;
+      rawValue = rawValue || " ";
 
-    setBrkts(
-      brkts.map((brkt) => {
-        if (brkt.id === id) {
-          if (rawValue && Number.isNaN(Number(rawValue))) {
-            rawValue = "";
-          }
-          let updatedBrkt: brktType;
-          updatedBrkt = {
-            ...brkt,
-            fee: rawValue,
-            fee_err: '',
-            errClassName: '',
-          };
-          const acdnErrMsg = getNextBrktAcdnErrMsg(updatedBrkt, brkts);
-          if (acdnErrMsg) {
-            setAcdnErr({
-              errClassName: acdnErrClassName,
-              message: acdnErrMsg,
-            });
-          } else {
-            setAcdnErr(noAcdnErr);
-          }
-          const errMsg = getBrktErrMsg(updatedBrkt);
-          if (errMsg) {
-            return {
-              ...updatedBrkt,
-              errClassName: objErrClassName,
-            };
-          } else {
-            return {
-              ...updatedBrkt,
-              errClassName: '',
-            };
-          }          
-        } else {
-          return brkt;
-        }        
-      })
-    )    
-  };
-
-  const updateFSA = (brkt: brktType, value: string): brktType => {
-    const valNoSymb = value.replace(currRexEx, '')    
-    let formattedValue = (value) ? formatValue2Dec(valNoSymb, localConfig) : '';
-    if (formattedValue === 'NaN') {
-      formattedValue = ''
-    }
-    if (typeof (Number(formattedValue)) !== 'number') {
-      formattedValue = ''
-    }
-    const valueNum = Number(formattedValue)
-    if (valueNum < zeroAmount || valueNum > maxMoney) {
-      formattedValue = ''
-    }
-    const temp_brkt = {
-      ...brkt,
-      fee: formattedValue,
-      fee_err: '',         
-    }
-    if (temp_brkt.fee) {
-      const feeNum = Number(temp_brkt.fee)
-      temp_brkt.first = formatValue2Dec((feeNum * 5).toString(), localConfig);
-      temp_brkt.second = formatValue2Dec((feeNum * 2).toString(), localConfig);
-      temp_brkt.admin = formatValue2Dec(feeNum.toString(), localConfig);
-      temp_brkt.fsa = formatValue2Dec((feeNum * 8).toString(), localConfig);
-    } else {
-      temp_brkt.first = '';
-      temp_brkt.second = '';
-      temp_brkt.admin = '';
-      temp_brkt.fsa = ''; 
-    }
-    return {
-      ...temp_brkt
-    }
-  } 
-
-  const handleBlur = (id: string) => (e: ChangeEvent<HTMLInputElement>) => { 
-    const { name, value } = e.target;
-    if (value) {
       setBrkts(
         brkts.map((brkt) => {
           if (brkt.id === id) {
-            const temp_brkt = updateFSA(brkt, value)
-            return {
-              ...temp_brkt
+            if (rawValue && Number.isNaN(Number(rawValue))) {
+              rawValue = "";
+            }
+            let updatedBrkt: brktType;
+            updatedBrkt = {
+              ...brkt,
+              fee: rawValue,
+              fee_err: "",
+              errClassName: "",
+            };
+            const acdnErrMsg = getNextBrktAcdnErrMsg(updatedBrkt, brkts);
+            if (acdnErrMsg) {
+              setAcdnErr({
+                errClassName: acdnErrClassName,
+                message: acdnErrMsg,
+              });
+            } else {
+              setAcdnErr(noAcdnErr);
+            }
+            const errMsg = getBrktErrMsg(updatedBrkt);
+            if (errMsg) {
+              return {
+                ...updatedBrkt,
+                errClassName: objErrClassName,
+              } 
+            } else {
+              return {
+                ...updatedBrkt,
+                errClassName: "",
+              }
             }
           } else {
             return brkt;
           }
         })
-      )
+      );
+    };
+
+  const updateFSA = (brkt: brktType, value: string): brktType => {
+    const valNoSymb = value.replace(currRexEx, "");
+    let formattedValue = value ? formatValue2Dec(valNoSymb, localConfig) : "";
+    if (formattedValue === "NaN") {
+      formattedValue = "";
     }
-    
-    if (!value.trim()) {  // if cleared entry
+    if (typeof Number(formattedValue) !== "number") {
+      formattedValue = "";
+    }
+    const valueNum = Number(formattedValue);
+    if (valueNum < zeroAmount || valueNum > maxMoney) {
+      formattedValue = "";
+    }
+    const temp_brkt = {
+      ...brkt,
+      fee: formattedValue,
+      fee_err: "",
+    };
+    if (temp_brkt.fee) {
+      const feeNum = Number(temp_brkt.fee);
+      temp_brkt.first = formatValue2Dec((feeNum * 5).toString(), localConfig);
+      temp_brkt.second = formatValue2Dec((feeNum * 2).toString(), localConfig);
+      temp_brkt.admin = formatValue2Dec(feeNum.toString(), localConfig);
+      temp_brkt.fsa = formatValue2Dec((feeNum * 8).toString(), localConfig);
+    } else {
+      temp_brkt.first = "";
+      temp_brkt.second = "";
+      temp_brkt.admin = "";
+      temp_brkt.fsa = "";
+    }
+    return {
+      ...temp_brkt,
+    };
+  };
+
+  const handleBlur = (id: string) => (e: ChangeEvent<HTMLInputElement>) => {
+    const { name, value } = e.target;
+    if (value) {
       setBrkts(
         brkts.map((brkt) => {
           if (brkt.id === id) {
-            const temp_brkt = updateFSA(brkt, value)
+            const temp_brkt = updateFSA(brkt, value);
             return {
               ...temp_brkt,
-              fee: '',
-              fee_err: '',              
-            }
+            };
+          } else {
+            return brkt;
           }
-          return brkt
         })
-      )
+      );
     }
-  }
+
+    if (!value.trim()) {
+      // if cleared entry
+      setBrkts(
+        brkts.map((brkt) => {
+          if (brkt.id === id) {
+            const temp_brkt = updateFSA(brkt, value);
+            return {
+              ...temp_brkt,
+              fee: "",
+              fee_err: "",
+            };
+          }
+          return brkt;
+        })
+      );
+    }
+  };
 
   const handleTabSelect = (key: string | null) => {
     if (key) {
@@ -420,28 +433,39 @@ const ZeroToNBrackets: React.FC<ChildProps> = ({
     }
   };
 
-  const NumberEntry: React.FC<NumberProps> = ({ brkt, LabelText, property, value }) => { 
-
+  const NumberEntry: React.FC<NumberProps> = ({
+    brkt,
+    LabelText,
+    property,
+    value,
+  }) => {
     return (
       <div className="col-sm-3">
-        <label htmlFor={`inputBrkt${property}${brkt.id}`} className="form-label">
+        <label
+          htmlFor={`inputBrkt${property}${brkt.id}`}
+          className="form-label"
+        >
           {LabelText}
         </label>
         <input
           type="number"
           id={`inputBrkt${property}${brkt.id}`}
-          data-testid={`inputBrkt_${property}${brkt.sort_order}`}
           name={`${property}`}
           className="form-control"
-          value={value}          
-          disabled          
-        />        
+          value={value}
+          disabled
+        />
       </div>
-    )
-  }
+    );
+  };
 
-  const MoneyDisabled: React.FC<NumberProps> = ({ brkt, LabelText, property, value, title="" }) => { 
-    
+  const MoneyDisabled: React.FC<NumberProps> = ({
+    brkt,
+    LabelText,
+    property,
+    value,
+    title = "",
+  }) => {
     return (
       <div className="col-sm-3">
         {title === "" ? (
@@ -454,20 +478,19 @@ const ZeroToNBrackets: React.FC<ChildProps> = ({
             className="form-label"
             title={title}
           >
-            {LabelText} <span className="popup-help">&nbsp;?&nbsp;</span>               
-          </label>  
+            {LabelText} <span className="popup-help">&nbsp;?&nbsp;</span>
+          </label>
         )}
-        <EaCurrencyInput          
+        <EaCurrencyInput
           id={`${property}${brkt.id}`}
-          data-testid={`moneyBrkt_${property}${brkt.sort_order}`}
           name={`${property}`}
           className="form-control"
-          value={value}          
-          disabled          
-        />        
+          value={value}
+          disabled
+        />
       </div>
-    )
-  }
+    );
+  };
 
   return (
     <>
@@ -490,26 +513,25 @@ const ZeroToNBrackets: React.FC<ChildProps> = ({
           <Tab
             key={brkt.id}
             eventKey={`brkt${brkt.id}`}
-            title={(brkt.sort_order === 1) ? createBrktTitle : getBrktOrElimName(brkt.id, brkts)}            
+            title={
+              brkt.sort_order === 1
+                ? createBrktTitle
+                : getBrktOrElimName(brkt.id, brkts)
+            }
             tabClassName={`${brkt.errClassName}`}
           >
             <div className="row g-3 mb-3">
               {brkt.sort_order === 1 ? (
-                <>                
+                <>
                   <div className="col-sm-2">
-                    <label
-                      className="form-label"
-                      data-testid="brktDivRadioLabel"
-                    >
-                      Division
-                    </label>
+                    <label className="form-label">Division</label>
                     {divs.map((div) => (
                       <div key={div.id} className="form-check text-break">
                         <input
                           className="form-check-input"
                           type="radio"
                           name="brktsDivRadio"
-                          id={`div_name-${div.id}-${div.div_name}-brkts`}                          
+                          id={`div_name-${div.id}-${div.div_name}-brkts`}
                           checked={brkts[0].div_name === div.div_name}
                           onChange={handleInputChange}
                         />
@@ -529,23 +551,23 @@ const ZeroToNBrackets: React.FC<ChildProps> = ({
                     </div>
                   </div>
                   <div className="col-sm-8">
-                    <div className="row mb-3">                      
+                    <div className="row mb-3">
                       <div className="col-sm-3">
                         <label
                           htmlFor={`inputBrktFee${brkt.id}`}
                           className="form-label"
-                          data-testid="createBrktFeeLabel"
                         >
                           Fee
                         </label>
                         <EaCurrencyInput
-                          id={`inputBrktFee${brkt.id}`}                        
-                          data-testid="createBrktFeeInput"
+                          id={`inputBrktFee${brkt.id}`}
                           name="fee"
-                          className={`form-control ${brkt.fee_err && "is-invalid"}`}
+                          className={`form-control ${
+                            brkt.fee_err && "is-invalid"
+                          }`}
                           value={brkt.fee}
                           onValueChange={handleAmountValueChange(brkt.id)}
-                          onBlur={handleBlur(brkt.id)}
+                          onBlur={handleBlur(brkt.id)}                            
                         />
                         <div
                           className="text-danger"
@@ -558,18 +580,18 @@ const ZeroToNBrackets: React.FC<ChildProps> = ({
                         <label
                           htmlFor={`inputBrktStart${brkt.id}`}
                           className="form-label"
-                          data-testid="createBrktStartLabel"
                         >
                           Start
                         </label>
                         <input
                           type="number"
-                          id={`inputBrktStart${brkt.id}`}                          
-                          data-testid="createBrktStartInput"
+                          id={`inputBrktStart${brkt.id}`}
                           name="start"
                           placeholder="#"
                           step={1}
-                          className={`form-control ${brkt.start_err && "is-invalid"}`}
+                          className={`form-control ${
+                            brkt.start_err && "is-invalid"
+                          }`}
                           onChange={handleInputChange}
                           value={brkt.start}
                         />
@@ -580,24 +602,58 @@ const ZeroToNBrackets: React.FC<ChildProps> = ({
                           {brkt.start_err}
                         </div>
                       </div>
-                      <NumberEntry brkt={brkt} LabelText="Games" property="games" value={brkt.games}/>
-                      <NumberEntry brkt={brkt} LabelText="Players" property="players" value={brkt.players}/>
+                      <NumberEntry
+                        brkt={brkt}
+                        LabelText="Games"
+                        property="games"
+                        value={brkt.games}
+                      />
+                      <NumberEntry
+                        brkt={brkt}
+                        LabelText="Players"
+                        property="players"
+                        value={brkt.players}
+                      />
                     </div>
-                    <div className="row">                      
-                      <MoneyDisabled brkt={brkt} LabelText="First" property="first" value={brkt.first}/>
-                      <MoneyDisabled brkt={brkt} LabelText="Second" property="second" value={brkt.second}/>
-                      <MoneyDisabled brkt={brkt} LabelText="Admin" property="admin" value={brkt.admin}/>
-                      <MoneyDisabled brkt={brkt} LabelText="F+S+A" property="fsa" value={brkt.fsa} title="First + Second + Admin must equal Fee * Players"/>
+                    <div className="row">
+                      <MoneyDisabled
+                        brkt={brkt}
+                        LabelText="First"
+                        property="first"
+                        value={brkt.first}
+                      />
+                      <MoneyDisabled
+                        brkt={brkt}
+                        LabelText="Second"
+                        property="second"
+                        value={brkt.second}
+                      />
+                      <MoneyDisabled
+                        brkt={brkt}
+                        LabelText="Admin"
+                        property="admin"
+                        value={brkt.admin}
+                      />
+                      <MoneyDisabled
+                        brkt={brkt}
+                        LabelText="F+S+A"
+                        property="fsa"
+                        value={brkt.fsa}
+                        title="First + Second + Admin must equal Fee * Players"
+                      />
                     </div>
                   </div>
                   <div className="col-sm-2 d-flex justify-content-center align-items-start">
-                    <button className="btn btn-success mx-3" onClick={handleAdd}>
+                    <button
+                      className="btn btn-success mx-3"
+                      onClick={handleAdd}
+                    >
                       Add Bracket
                     </button>
-                  </div>                
+                  </div>
                 </>
               ) : (
-                <>              
+                <>
                   <div className="col-sm-2">
                     <label
                       className="form-label"
@@ -609,7 +665,6 @@ const ZeroToNBrackets: React.FC<ChildProps> = ({
                       type="text"
                       className="form-control"
                       id={`brkt_div-${brkt.id}`}
-                      data-testid={`brktDiv${brkt.sort_order}`}
                       name="div_name"
                       value={brkt.div_name}
                       disabled
@@ -625,25 +680,67 @@ const ZeroToNBrackets: React.FC<ChildProps> = ({
                           Fee
                         </label>
                         <EaCurrencyInput
-                          id={`inputBrktFee${brkt.id}`}        
-                          data-testid={`brktFee${brkt.sort_order}`}  
+                          id={`inputBrktFee${brkt.id}`}
                           name="fee"
-                          className={`form-control ${brkt.fee_err && "is-invalid"}`}
+                          className={`form-control ${
+                            brkt.fee_err && "is-invalid"
+                          }`}
                           value={brkt.fee}
                           onValueChange={handleAmountValueChange(brkt.id)}
                           onBlur={handleBlur(brkt.id)}
                         />
-                        <div className="text-danger">{brkt.fee_err}</div>
-                      </div> 
-                      <NumberEntry brkt={brkt} LabelText="Start" property="start" value={brkt.start}/>
-                      <NumberEntry brkt={brkt} LabelText="Games" property="games" value={brkt.games}/>
-                      <NumberEntry brkt={brkt} LabelText="Players" property="players" value={brkt.players}/>                        
+                        <div
+                          className="text-danger"                            
+                          data-testid={`dangerBrktFee${brkt.sort_order}`}
+                        >
+                          {brkt.fee_err}
+                        </div>
+                      </div>
+                      <NumberEntry
+                        brkt={brkt}
+                        LabelText="Start"
+                        property="start"
+                        value={brkt.start}
+                      />
+                      <NumberEntry
+                        brkt={brkt}
+                        LabelText="Games"
+                        property="games"
+                        value={brkt.games}
+                      />
+                      <NumberEntry
+                        brkt={brkt}
+                        LabelText="Players"
+                        property="players"
+                        value={brkt.players}
+                      />
                     </div>
                     <div className="row">
-                      <MoneyDisabled brkt={brkt} LabelText="First" property="first" value={brkt.first}/>
-                      <MoneyDisabled brkt={brkt} LabelText="Second" property="second" value={brkt.second}/>
-                      <MoneyDisabled brkt={brkt} LabelText="Admin" property="admin" value={brkt.admin}/>
-                      <MoneyDisabled brkt={brkt} LabelText="F+S+A" property="fsa" value={brkt.fsa} title="First + Second + Admin must equal Fee * Players"/>
+                      <MoneyDisabled
+                        brkt={brkt}
+                        LabelText="First"
+                        property="first"
+                        value={brkt.first}
+                      />
+                      <MoneyDisabled
+                        brkt={brkt}
+                        LabelText="Second"
+                        property="second"
+                        value={brkt.second}
+                      />
+                      <MoneyDisabled
+                        brkt={brkt}
+                        LabelText="Admin"
+                        property="admin"
+                        value={brkt.admin}
+                      />
+                      <MoneyDisabled
+                        brkt={brkt}
+                        LabelText="F+S+A"
+                        property="fsa"
+                        value={brkt.fsa}
+                        title="First + Second + Admin must equal Fee * Players"
+                      />
                     </div>
                   </div>
                   <div className="col-sm-2 d-flex justify-content-center align-items-start">
@@ -653,7 +750,7 @@ const ZeroToNBrackets: React.FC<ChildProps> = ({
                     >
                       Delete Bracket
                     </button>
-                  </div>                
+                  </div>
                 </>
               )}
             </div>

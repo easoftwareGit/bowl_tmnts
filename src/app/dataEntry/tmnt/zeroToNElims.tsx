@@ -1,5 +1,5 @@
-import React, { ChangeEvent, Dispatch, SetStateAction, useState } from 'react'
-import { elimType, divType, squadType, AcdnErrType } from "./types";
+import React, { ChangeEvent, useState } from 'react'
+import { elimType, divType, squadType, AcdnErrType } from "../../../lib/types/types";
 import { initModalObj } from '@/components/modal/modalObjType';
 import ModalConfirm, { delConfTitle } from '@/components/modal/confirmModal';
 import { Tab, Tabs } from 'react-bootstrap';
@@ -60,16 +60,18 @@ const getNextElimAcdnErrMsg = (
 
 export const validateElims = (
   elims: elimType[],
-  setElims: Dispatch<SetStateAction<elimType[]>>,
-  setAcdnErr: Dispatch<SetStateAction<AcdnErrType>>
+  setElims: (elims: elimType[]) => void,
+  setAcdnErr: (objAcdnErr: AcdnErrType) => void
 ): boolean => {
   
   let areElimsValid = true;
   let feeErr = '';
   let elimErrClassName = '';
 
+  const newElimErrMsg = getElimErrMsg(elims[0]);
+
   const setError = (elimName: string, errMsg: string) => {
-    if (areElimsValid) {
+    if (areElimsValid && !newElimErrMsg) {
       setAcdnErr({
         errClassName: acdnErrClassName,
         message: getAcdnErrMsg(elimName, errMsg),
@@ -88,14 +90,14 @@ export const validateElims = (
         elimErrClassName = '';
         const fee = Number(elim.fee);
         if (typeof fee !== "number") {
-          feeErr = "Invalid Fee";
-          setError(elim.div_name, feeErr);
+          feeErr = "Invalid Fee";          
         } else if (fee < minFee) {
-          feeErr = "Fee cannot be less than " + minFeeText;
-          setError(elim.div_name, feeErr);
+          feeErr = "Fee cannot be less than " + minFeeText;          
         } else if (fee > maxMoney) {
-          feeErr = "Fee cannot be greater than " + maxMoneyText;
-          setError(elim.div_name, feeErr);
+          feeErr = "Fee cannot be more than " + maxMoneyText;          
+        }
+        if (feeErr) { 
+          setError(getBrktOrElimName(elim.id, elims), feeErr);
         }
         if (feeErr) {
           return {
@@ -157,7 +159,7 @@ const ZeroToNElims: React.FC<ChildProps> = ({
       feeErr = "Fee cannot be less than " + minFeeText;
       setError(feeErr);
     } else if (fee > maxMoney) {
-      feeErr = "Fee cannot be greater than " + maxMoneyText;
+      feeErr = "Fee cannot be more than " + maxMoneyText;
       setError(feeErr);
     }
     if (newElim.start < 1) {
@@ -169,7 +171,7 @@ const ZeroToNElims: React.FC<ChildProps> = ({
       setError(gamesErr);
     }
     if (newElim.games > maxGames) {
-      gamesErr = 'Games cannot be greater than ' + maxGames;
+      gamesErr = 'Games cannot be more than ' + maxGames;
       setError(gamesErr);
     }
     if (newElim.start + newElim.games - 1 > squads[0].games) {
@@ -214,7 +216,8 @@ const ZeroToNElims: React.FC<ChildProps> = ({
     return isElimValid;
   }
 
-  const handleAdd = () => { 
+  const handleAdd = (e: React.FormEvent) => { 
+    e.preventDefault();
     if (validNewElim(elims[0])) {
       const newElim = {
         ...elims[0],
@@ -241,7 +244,6 @@ const ZeroToNElims: React.FC<ChildProps> = ({
     const updatedData = elims.filter((elim) => elim.id !== modalObj.id);
     setElims(updatedData);
     setTabKey(defaultTabKey);   // refocus 1st pot
-
   }
 
   const canceledDelete = () => { 
@@ -370,7 +372,7 @@ const ZeroToNElims: React.FC<ChildProps> = ({
         <input
           type="number"
           id={`inputElim${property}${elim.id}`}
-          data-testid={`inputElim_${property}${elim.sort_order}`}
+          // data-testid={`inputElim_${property}${elim.sort_order}`}
           name={`${property}`}
           className="form-control"
           value={value}          
@@ -410,7 +412,7 @@ const ZeroToNElims: React.FC<ChildProps> = ({
                   <div className="col-sm-3">
                     <label
                       className="form-label"
-                      data-testid="elimDivRadioLabel"
+                      // data-testid="elimDivRadioLabel"
                     >
                       Division
                     </label>
@@ -443,13 +445,13 @@ const ZeroToNElims: React.FC<ChildProps> = ({
                     <label
                       htmlFor={`inputElimFee${elim.id}`}
                       className="form-label"
-                      data-testid="createElimFeeLabel"
+                      // data-testid="createElimFeeLabel"
                     >
                       Fee
                     </label>
                     <EaCurrencyInput
                       id={`inputElimFee${elim.id}`}
-                      data-testid="createElimFeeInput"
+                      // data-testid="createElimFeeInput"
                       name="fee"
                       className={`form-control ${elim.fee_err && "is-invalid"}`}
                       value={elim.fee}
@@ -467,14 +469,14 @@ const ZeroToNElims: React.FC<ChildProps> = ({
                     <label
                       htmlFor={`inputElimStart${elim.id}`}
                       className="form-label"
-                      data-testid="createElimStartLabel"
+                      // data-testid="createElimStartLabel"
                     >
                       Start
                     </label>
                     <input
                       type="number"
                       id={`inputElimStart${elim.id}`}
-                      data-testid="createElimStartInput"
+                      // data-testid="createElimStartInput"
                       name="start"
                       placeholder="#"
                       step={1}
@@ -493,20 +495,21 @@ const ZeroToNElims: React.FC<ChildProps> = ({
                     <label
                       htmlFor={`inputElimGames${elim.id}`}
                       className="form-label"
-                      data-testid="createElimGamesLabel"
+                      // data-testid="createElimGamesLabel"
                     >
                       Games
                     </label>
                     <input
                       type="number"
                       id={`inputElimGames${elim.id}`}
-                      data-testid="createElimGamesInput"
+                      // data-testid="createElimGamesInput"
                       name="games"
                       placeholder="#"
                       step={1}
                       className={`form-control ${elim.games_err && "is-invalid"}`}
                       onChange={handleInputChange(elim.id)}
                       value={elim.games}
+                      data-testid="createElimGames"
                     />
                     <div
                       className="text-danger"
@@ -534,7 +537,7 @@ const ZeroToNElims: React.FC<ChildProps> = ({
                       type="text"
                       className="form-control"
                       id={`elim_div-${elim.id}`}
-                      data-testid={`elimDiv${elim.sort_order}`}
+                      // data-testid={`elimDiv${elim.sort_order}`}
                       name="div_name"
                       value={elim.div_name}
                       disabled
@@ -549,14 +552,19 @@ const ZeroToNElims: React.FC<ChildProps> = ({
                     </label>
                     <EaCurrencyInput
                       id={`inputElimFee${elim.id}`}            
-                      data-testid={`elimFee${elim.sort_order}`}  
+                      // data-testid={`elimFee${elim.sort_order}`}  
                       name="fee"
                       className={`form-control ${elim.fee_err && "is-invalid"}`}
                       value={elim.fee}
                       onValueChange={handleAmountValueChange(elim.id, 'fee')}
                       onBlur={handleBlur(elim.id)}
                     />
-                    <div className="text-danger">{elim.fee_err}</div>
+                    <div
+                      className="text-danger"
+                      data-testid={`dangerElimFee${elim.sort_order}`}
+                    >
+                      {elim.fee_err}
+                    </div>
                   </div>                  
                   <NumberEntry elim={elim} LabelText='Start' property='start' value={elim.start} />
                   <NumberEntry elim={elim} LabelText='Games' property='games' value={elim.games} />                  
