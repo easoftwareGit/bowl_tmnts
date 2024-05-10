@@ -18,15 +18,15 @@ model User {
   // @defaul: the default value for the field
   // @id: indicates the field is the primary key
   // @db.Text: tells prisma to map the field as a text field
-  id         String   @id @default(dbgenerated("concat('usr_', replace(cast(gen_random_uuid() as text), '-', ''))")) @db.Text
-  email      String   @unique(map: "users_email_idx") @db.VarChar
-  password   String?
-  first_name String   @db.VarChar
-  last_name  String   @db.VarChar
-  phone      String?  @db.VarChar
-  tmnts      Tmnt[]   @relation("UserTmnts")
-  createdAt  DateTime @default(now())
-  updatedAt  DateTime @updatedAt
+  id            String   @id @default(dbgenerated("concat('usr_', replace(cast(gen_random_uuid() as text), '-', ''))")) @db.Text
+  email         String   @unique(map: "users_email_idx") @db.VarChar
+  password_hash String?
+  first_name    String   @db.VarChar
+  last_name     String   @db.VarChar
+  phone         String?  @db.VarChar
+  tmnts         Tmnt[]   @relation("UserTmnts")
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
 }
 
 model Bowl {

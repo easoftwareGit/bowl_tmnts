@@ -7,7 +7,7 @@ import { mockSDTmnt } from "../../../mocks/tmnts/singlesAndDoubles/mockSinglesDo
 import { mockEvents } from "../../../mocks/tmnts/singlesAndDoubles/mockEvents";
 import { mockSquads } from "../../../mocks/tmnts/singlesAndDoubles/mockSquads";
 import { fullTmntDataType } from "@/lib/types/types";
-import { initBrkts, initDivs, initElims, initEvents, initLanes, initPots, initSquads } from "@/app/dataEntry/tmnt/initVals";
+import { initBrkts, initDivs, initElims, initEvents, initLanes, initPots, initSquads } from "@/db/initVals";
 import { dateTo_UTC_MMddyyyy, todayStr } from "@/lib/dateTools";
 
 describe('TmntDataPage - Squads Component', () => { 

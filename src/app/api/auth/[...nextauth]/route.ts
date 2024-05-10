@@ -58,13 +58,13 @@ export const authOptions: NextAuthOptions = {
         }
 
         // make sure got password from database (google log in user might not have password)
-        if (!user.password || user.password === "") {
+        if (!user.password_hash || user.password_hash === "") {
           return null;
         }
         // compare the entered password vs the saved password
         const isPasswordValid = await compare(
           credentials.password,
-          user.password
+          user.password_hash
         );
         if (!isPasswordValid) {
           return null;

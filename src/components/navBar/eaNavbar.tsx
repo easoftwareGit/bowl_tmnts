@@ -43,6 +43,8 @@ export default function EaNavbar() {
             <Nav.Link as={Link} href="/contact" active={pathname === "/contact"}>Contact</Nav.Link>
             {/* <Nav.Link as={Link} href="/secret" active={pathname === "/secret"}>Secret</Nav.Link> */}
             <Nav.Link as={Link} href="/sample" active={pathname === "/sample"}>Sample</Nav.Link>
+            {/* leave dbTest here for testing */}
+            <Nav.Link as={Link} href="/dbTest" active={pathname === "/dbTest"}>Db Test</Nav.Link>
             {/* leave tmnt data here for testing */}
             <Nav.Link as={Link} href="/dataEntry/tmnt" active={pathname === "/dataEntry/tmnt"}>Tmnt Data</Nav.Link>
             {status === 'authenticated' ? (              

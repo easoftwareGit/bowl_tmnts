@@ -5,7 +5,7 @@ import ZeroToNPots from "../../../../src/app/dataEntry/tmnt/zeroToNPots";
 import { mockPots, mockDivs, mockSquads } from "../../../mocks/tmnts/twoDivs/mockDivs";
 import { localConfig } from "@/lib/currency/const";
 import { formatValueSymbSep2Dec } from "@/lib/currency/formatValue";
-import { initPot } from "@/app/dataEntry/tmnt/initVals";
+import { initPot } from "@/db/initVals";
 import { getPotName } from "@/lib/getName";
 import { mock } from "node:test";
 

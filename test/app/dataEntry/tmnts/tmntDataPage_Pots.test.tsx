@@ -14,7 +14,7 @@ import {
   initLanes,
   initPots,
   initSquads,
-} from "@/app/dataEntry/tmnt/initVals";
+} from "@/db/initVals";
 import { fullTmntDataType } from "@/lib/types/types";
 
 describe("TmntDataPage - Pots Component", () => {

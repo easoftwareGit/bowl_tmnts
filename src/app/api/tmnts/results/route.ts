@@ -35,8 +35,7 @@ export async function GET(request: NextRequest) {
     },
     skip: skip ? parseInt(skip, 10) : undefined,
     take: take ? parseInt(take, 10) : undefined,
-  });
-  // return NextResponse.json(resultsData);
+  });  
 
   return NextResponse.json({ data: tmntData }, { status: 200 });
 }

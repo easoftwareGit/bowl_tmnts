@@ -5,7 +5,7 @@ import ZeroToNBrackets from "../../../../src/app/dataEntry/tmnt/zeroToNBrackets"
 import { mockBrkts, mockDivs, mockSquads } from "../../../mocks/tmnts/twoDivs/mockDivs";
 import { localConfig } from "@/lib/currency/const";
 import { formatValueSymbSep2Dec } from "@/lib/currency/formatValue";
-import { defaultBrktGames, defaultBrktPlayers, initBrkt } from "@/app/dataEntry/tmnt/initVals";
+import { defaultBrktGames, defaultBrktPlayers, initBrkt } from "@/db/initVals";
 import exp from "constants";
 import { getBrktOrElimName } from "@/lib/getName";
 

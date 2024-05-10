@@ -1,7 +1,7 @@
 "use client";
 import React, { useState, ChangeEvent } from "react";
 import { squadType, AcdnErrType, laneType } from "../../../lib/types/types";
-import { initLanes } from "./initVals";
+import { initLanes } from "../../../db/initVals";
 import { Tabs, Tab } from "react-bootstrap";
 import { objErrClassName, acdnErrClassName, getAcdnErrMsg, noAcdnErr } from "./errors";
 import ModalConfirm from "@/components/modal/confirmModal";

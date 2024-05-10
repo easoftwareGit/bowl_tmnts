@@ -1,52 +1,130 @@
-import { NextRequest } from 'next/server';
-import { prisma } from '@/lib/prisma';
-// import { GET } from '../../../../src/app/api/bowls/route';
 import { GET } from '@/app/api/bowls/route';
+import { NextRequest } from 'next/server';
+// import { prisma } from '@/lib/prisma';
+import { baseApi } from '@/lib/tools';
 
-describe("tests for api/bowls/route", () => {
+// jest.mock('@/lib/prisma', () => ({
+//   prisma: {
+//     bowl: {
+//       findMany: jest.fn(),
+//     },
+//   },
+// }));
 
-  beforeAll(async () => {
-    await prisma.bowl.createMany({
-      // per C:\Projects 2017\Codecademy\Portfolio\bowl_tmnts\prisma\schema.prisma, 
-      // new records will have id genereated
-      data: [
-        {         
-          bowl_name: 'Bowl 1',
-          city: 'City 1',
-          state: 'XX',
-          url: 'https://www.google.com',          
-        },
-        {          
-          bowl_name: 'Bowl 2',
-          city: 'City 2',
-          state: 'XX',
-          url: 'https://www.yahoo.com',
-          
-        },
-        {         
-          bowl_name: 'Bowl 3',
-          city: 'City 3',
-          state: 'XX',
-          url: 'https://www.bing.com',          
-        },
-      ]
-    })
-  })
-  
-  afterAll(async () => {
-    await prisma.bowl.deleteMany({
-      where: {
-        state: 'XX'
-      }
-    })
-  })
+const prisma = {
+  bowl: {
+    findMany: jest.fn().mockResolvedValue([
+      {
+        id: 1,
+        bowl_name: 'Bowl 1',
+        // include other fields here...
+      },
+      {
+        id: 2,
+        bowl_name: 'Bowl 2',
+        // include other fields here...
+      },
+      // add more mock bowls here...
+    ]),
+  },
+};
 
-  describe ("GET", () => {
-    it("should return 200", async () => {
-      // const requestMock = {} as NextRequest;
-      // const response = await GET(requestMock);
-      // expect(response.status).toBe(200);
-      expect(200).toBe(200);
-    })
-  })
-})
+
+describe('GET /api/bowls', () => {
+  // afterEach(() => {
+  //   jest.clearAllMocks();
+  // });
+
+  it('should return list of bowls', async () => {
+    const bowlsData = [
+      { id: 1, bowl_name: 'Bowl 1' },
+      { id: 2, bowl_name: 'Bowl 2' },
+    ];
+    (prisma.bowl.findMany as jest.Mock).mockResolvedValueOnce(bowlsData);
+
+    const req = new NextRequest(baseApi + '/bowls');
+    const response = await GET(req);
+
+    expect(prisma.bowl.findMany).toHaveBeenCalledWith({
+      orderBy: {
+        bowl_name: 'asc',
+      },
+    });
+
+    expect(response.status).toBe(200);
+    expect(response.body).toEqual({ data: bowlsData });
+  });
+
+  it('should handle errors', async () => {
+    const errorMessage = 'Database error';
+    (prisma.bowl.findMany as jest.Mock).mockRejectedValueOnce(new Error(errorMessage));
+
+    const req = new NextRequest(baseApi + '/bowls');
+    const response = await GET(req);
+
+    expect(prisma.bowl.findMany).toHaveBeenCalledWith({
+      orderBy: {
+        bowl_name: 'asc',
+      },
+    });
+
+    expect(response.status).toBe(500);
+    expect(response.body).toEqual({ error: errorMessage });
+  });
+});
+
+// Mock Prisma Client
+
+// import { GET } from '@/app/api/bowls/route';
+// import { baseApi } from '@/lib/tools';
+// import { NextRequest } from 'next/server';
+
+// const prisma = {
+//   bowl: {
+//     findMany: jest.fn().mockResolvedValue([
+//       {
+//         id: "1",
+//         bowl_name: 'Bowl 1',
+//         city: 'City 1',
+//         state: 'XX',
+//         url: 'https://example.com',        
+//       },
+//       {
+//         id: "2",
+//         bowl_name: 'Bowl 2',
+//         city: 'City 2',
+//         state: 'XX',
+//         url: 'https://google.com',
+//       },      
+//     ]),
+//   },
+// };
+
+// describe('GET /api/bowls', () => {
+
+//   it('should return list of bowls', async () => {
+//     const req = new NextRequest('http://localhost:3000/api/bowls'); 
+//     const res = await GET(req);      
+
+//     expect(res).toEqual({
+//       data: [
+//         {
+//           id: "1",
+//           bowl_name: 'Bowl 1',
+//           city: 'City 1',
+//           state: 'XX',
+//           url: 'https://example.com',        
+//         },
+//         {
+//           id: "2",
+//           bowl_name: 'Bowl 2',
+//           city: 'City 2',
+//           state: 'XX',
+//           url: 'https://google.com',
+//         },
+//       ],
+//       status: 200,
+//     });  
+//   })
+
+// })

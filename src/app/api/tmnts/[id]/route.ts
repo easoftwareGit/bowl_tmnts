@@ -5,7 +5,7 @@ import { ErrorCode, isValidBtDbId } from "@/lib/validation";
 import { validTmntData, validateTmnt } from "@/app/api/tmnts/valildate"
 import { tmntType } from "@/lib/types/types";
 import { startOfDay } from "date-fns";
-import { initTmnt } from "@/app/dataEntry/tmnt/initVals";
+import { initTmnt } from "@/db/initVals";
 
 // routes /api/tmnts/:id
 
@@ -43,7 +43,7 @@ export async function GET(
   } 
 }
 
-// tmt_fd99387c33d9c78aba290286576ddce5
+// tmt_fd99387c33d9c78aba290286576ddcff
 // {    
 //   "tmnt_name": "Silver Pin",
 //   "start_date": "2023-12-31",
@@ -176,7 +176,7 @@ export async function PATCH(
   }
 }
 
-// tmt_fd99387c33d9c78aba290286576ddce5
+// tmt_fd99387c33d9c78aba290286576ddcff
 
 export async function DELETE(
   request: Request,
@@ -203,7 +203,7 @@ export async function DELETE(
     let errStatus: number    
     switch (err.code) {
       case 'P2003':
-        errStatus = 422        
+        errStatus = 422       
         break;    
       case 'P2025':
         errStatus = 404

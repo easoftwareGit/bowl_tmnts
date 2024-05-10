@@ -3,7 +3,7 @@
 import React, { ChangeEvent, useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
-import { maxEmailLength, isEmail } from "@/lib/validation";
+import { maxEmailLength, isEmail, maxPasswordLength } from "@/lib/validation";
 import { signIn } from "next-auth/react";
 import { useSearchParams, useRouter } from "next/navigation";
 import { Alert } from "@/components/ui/index";
@@ -46,10 +46,11 @@ export const LoginForm = () => {
     if (!formData.password.trim()) {
       errors.password = 'Password is required';
       isValid = false;
+    } else if ((formData.password.trim()).length > maxPasswordLength) {
+      errors.password = `Password must be less than ${maxPasswordLength} characters`;      
     } else {
       errors.password = '';
     }
-
     setFormErrors(errors);
     return isValid;
   }

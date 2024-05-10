@@ -3,7 +3,7 @@ import { useState, ChangeEvent, useEffect } from "react";
 // import { useDispatch, useSelector } from "react-redux";
 // import { AppDispatch } from "@/redux/store";
 import { eventType } from "../../lib/types/types";
-import { initEvent } from "../dataEntry/tmnt/initVals";
+import { initEvent } from "../../db/initVals";
 // import {
 //   fetchBowls,
 //   selectAllBowls,

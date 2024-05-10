@@ -2,6 +2,7 @@ export const maxFirstNameLength = 15;
 export const maxLastNameLength = 20;
 export const maxEmailLength = 30;
 export const maxPhoneLength = 20;
+export const maxPasswordLength = 20;
 export const maxTmntNameLength = 30;
 export const maxEventLength = 20;
 

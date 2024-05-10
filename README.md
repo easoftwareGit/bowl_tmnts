@@ -34,3 +34,54 @@ You can check out [the Next.js GitHub repository](https://github.com/vercel/next
 The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
 
 Check out our [Next.js deployment documentation](https://nextjs.org/docs/deployment) for more details.
+
+## Debug client side
+
+1) 
+to debug client side operations, visit:
+https://nextjs.org/docs/pages/building-your-application/configuring/debugging
+
+2) 
+add/copy the three configuration objects into .vscode/launch.json
+{
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "name": "Next.js: debug server-side",
+      "type": "node-terminal",
+      "request": "launch",
+      "command": "npm run dev"
+    },
+    {
+      "name": "Next.js: debug client-side",
+      "type": "chrome",
+      "request": "launch",
+      "url": "http://localhost:3000"
+    },
+    {
+      "name": "Next.js: debug full stack",
+      "type": "node",
+      "request": "launch",
+      "program": "${workspaceFolder}/node_modules/.bin/next",
+      "runtimeArgs": ["--inspect"],
+      "skipFiles": ["<node_internals>/**"],
+      "serverReadyAction": {
+        "action": "debugWithEdge",
+        "killOnServerStop": true,
+        "pattern": "- Local:.+(https?://.+)",
+        "uriFormat": "%s",
+        "webRoot": "${workspaceFolder}"
+      }
+    }
+  ]
+}
+
+3) to start debugging, 
+  a) stop/close any open "npm run dev" sessions in the terminal
+  b) open the RUN AND DEBUG window (Ctrl+Shift+D)
+  c) in the RUN AND DEBUG combobox, select "Next.js: debug server-side"
+  d) click the green run button at the left oft he combobox in step 3
+  e) server starts at http://localhost:3000 (if port 3000 is being used, will start on another port)
+  f) set break points in service side code
+  g) open new tab in chrome
+  h) in new tab, go to http://localost:3000

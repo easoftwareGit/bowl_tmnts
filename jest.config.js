@@ -10,7 +10,10 @@ const createJestConfig = nextJest({
 const config = {
   setupFiles: ["<rootDir>/test/setup-tests.ts"],
   // Add more setup options before each test is run
-  setupFilesAfterEnv: ["<rootDir>/jest.setup.js"],
+  // for regular tests, use jest.setup.js - .js for javascript
+  // setupFilesAfterEnv: ["<rootDir>/jest.setup.js"],
+  // for testing with prisma user jest.setup.ts - .ts for typescript
+  setupFilesAfterEnv: ["<rootDir>/jest.setup.ts"],
   testEnvironment: "jest-environment-jsdom",
   preset: "ts-jest",
   verbose: true,

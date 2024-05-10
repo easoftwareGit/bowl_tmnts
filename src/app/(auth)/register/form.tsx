@@ -1,10 +1,11 @@
 "use client";
 import React, { ChangeEvent, useState } from "react";
+import { useRouter } from "next/navigation";
 import Image from "next/image";
 import Link from "next/link";
 import axios from "axios";
 import { signIn } from "next-auth/react";
-import { baseApi } from "@/lib/tools";
+import { baseApi, baseOrigin } from "@/lib/tools";
 import { Alert } from "@/components/ui/index";
 import { sanitize } from "@/lib/sanitize";
 import {
@@ -17,6 +18,9 @@ import {
 } from "@/lib/validation";
 import { phone as phoneChecking } from "phone";
 import "./form.css";
+import { userType } from "@/lib/types/types";
+import { initUser } from "@/db/initVals";
+import { sanitizeUser } from "@/app/api/users/validate";
 
 const blankValues = {
   first_name: "",
@@ -27,17 +31,23 @@ const blankValues = {
   confirm: "",
 };
 
-export const RegisterForm = () => {
+const signInUrl = baseApi + "/auth/signin";
+const loginUrl = baseOrigin + "/login";
+
+export const RegisterForm = () => {  
+
+  const router = useRouter();
+
   const [formData, setFormData] = useState(blankValues);
   const [formErrors, setFormErrors] = useState(blankValues);
   const [usedEmail, setUsedEmail] = useState("");
-
-  const sanitized = {
-    first_name: "",
-    last_name: "",
-    email: "",
-    phone: "",
-  };
+  
+  // const sanitized = {
+  //   first_name: "",
+  //   last_name: "",
+  //   email: "",
+  //   phone: "",
+  // };
 
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirm, setShowConfirm] = useState(false);
@@ -52,9 +62,9 @@ export const RegisterForm = () => {
       confirm: "",
     };
     let isValid = true;
-    sanitized.first_name = "";
-    sanitized.last_name = "";
-    sanitized.email = "";
+    // sanitized.first_name = "";
+    // sanitized.last_name = "";
+    // sanitized.email = "";
     setUsedEmail("");
 
     // first name
@@ -63,7 +73,7 @@ export const RegisterForm = () => {
       isValid = false;
     } else {
       errors.first_name = "";
-      sanitized.first_name = sanitize(formData.first_name);
+      // sanitized.first_name = sanitize(formData.first_name);
     }
 
     // last name
@@ -72,7 +82,7 @@ export const RegisterForm = () => {
       isValid = false;
     } else {
       errors.last_name = "";
-      sanitized.last_name = sanitize(formData.last_name);
+      // sanitized.last_name = sanitize(formData.last_name);
     }
 
     // email
@@ -84,7 +94,7 @@ export const RegisterForm = () => {
       isValid = false;
     } else {
       errors.email = "";
-      sanitized.email = formData.email;
+      // sanitized.email = formData.email;
     }
 
     // phone
@@ -97,7 +107,7 @@ export const RegisterForm = () => {
         isValid = false;
       } else {
         errors.phone = "";
-        sanitized.phone = phoneCheck.phoneNumber;
+        // sanitized.phone = phoneCheck.phoneNumber;
       }
     }
 
@@ -157,11 +167,18 @@ export const RegisterForm = () => {
     if (validateForm()) {
       try {
         const url = baseApi + "/auth/register";
+        const toScrub: userType = {
+          ...initUser,
+          first_name: formData.first_name,
+          last_name: formData.last_name,          
+          phone: formData.phone,          
+        }
+        const sanitizedUser = sanitizeUser(toScrub);
         var userJson = JSON.stringify({
-          first_name: sanitized.first_name,
-          last_name: sanitized.last_name,
-          email: sanitized.email,
-          phone: sanitized.phone,
+          first_name: sanitizedUser.first_name,
+          last_name: sanitizedUser.last_name,
+          email: formData.email,
+          phone: sanitizedUser.phone,
           password: formData.password,
         });
         const response = await axios({
@@ -170,11 +187,12 @@ export const RegisterForm = () => {
           withCredentials: true,
           url: url,
         });
-        if (response.status === 200) {
-          signIn();
+        if (response.status === 201) {
+          // signIn();
+          router.push(loginUrl)            
         }
       } catch (error: any) {
-        if (error.response.status === 409) {
+        if (error.response?.status === 409) {
           setUsedEmail("Email already in use");
         } else {
           console.log("Error creating user");

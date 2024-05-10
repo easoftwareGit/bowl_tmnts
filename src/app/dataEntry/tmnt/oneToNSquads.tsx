@@ -1,6 +1,6 @@
 import React, { useState, ChangeEvent } from "react";
 import { squadType, AcdnErrType, eventType, laneType, pairsOfLanesType } from "../../../lib/types/types";
-import { initSquad } from "./initVals";
+import { initSquad } from "../../../db/initVals";
 import { Tabs, Tab } from "react-bootstrap";
 import ModalConfirm, { delConfTitle } from "@/components/modal/confirmModal";
 import { initModalObj } from "@/components/modal/modalObjType";

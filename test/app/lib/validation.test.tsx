@@ -1,4 +1,4 @@
-import { isEmail, isValidBtDbId, validYear, validTime, isValidBtDbType } from '../../../src/lib/validation';
+import { isEmail, isPassword8to20, isValidBtDbId, validYear, validTime, isValidBtDbType, isOdd, isEven } from '../../../src/lib/validation';
 
 describe('tests for validation functions', () => {
 
@@ -24,6 +24,30 @@ describe('tests for validation functions', () => {
         expect(isEmail('')).toBe(false);
       });
     });    
+  })
+
+  describe('isPassword8To20 function', () => {
+    it('should return true for a valid password', () => {
+      expect(isPassword8to20('Test123!')).toBe(true);
+    })
+    it('should return false for an invalid password (no upper case)', () => {
+      expect(isPassword8to20('test123!')).toBe(false);
+    })
+    it('should return false for an invalid password (no lower case)', () => {
+      expect(isPassword8to20('TEST123!')).toBe(false);
+    })
+    it('should return false for an invalid password (no digits)', () => {
+      expect(isPassword8to20('TESTtest!')).toBe(false);
+    })
+    it('should return false for an invalid password (no special char)', () => {
+      expect(isPassword8to20('TEST1234')).toBe(false);
+    })
+    it('should return false for an invalid password (less than 8 chars long)', () => {
+      expect(isPassword8to20('Test12!')).toBe(false);
+    })
+    it('should return false for an invalid password (more than 20 chars long)', () => {
+      expect(isPassword8to20('Test12345!Test12345!1')).toBe(false);
+    })
   })
 
   describe('isValidBtDbType function', () => { 
@@ -107,7 +131,7 @@ describe('tests for validation functions', () => {
     });
   });
   
-  describe('isValidYear', () => {
+  describe('validYear', () => {
 
     it('valid year should return true', () => {
       expect(validYear('2017')).toBe(true);
@@ -171,5 +195,21 @@ describe('tests for validation functions', () => {
     });
   
   });  
+
+  describe('isOdd and IsEven functions', () => { 
+    it('should return true for odd number', () => {
+      expect(isOdd(5)).toBe(true);
+    });
+    it('should return false for even number', () => {
+      expect(isOdd(4)).toBe(false);
+    });
+    it('should return true for even number', () => {
+      expect(isEven(4)).toBe(true);
+    });
+    it('should return false for odd number', () => {
+      expect(isEven(5)).toBe(false);
+    });
+  })
+
 });
 

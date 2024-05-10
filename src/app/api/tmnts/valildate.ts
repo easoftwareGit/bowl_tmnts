@@ -2,6 +2,7 @@ import { isValidBtDbId, maxTmntNameLength, ErrorCode } from "@/lib/validation";
 import { sanitize } from "@/lib/sanitize";
 import { startOfDay, isValid } from "date-fns";
 import { tmntType } from "@/lib/types/types";
+import { initTmnt } from "@/db/initVals";
 
 /**
  * checks for required data and returns error code if missing 
@@ -9,13 +10,12 @@ import { tmntType } from "@/lib/types/types";
  * @param tmnt - tournament data to check
  * @returns - {ErrorCode.MissingData, ErrorCode.None, ErrorCode.OtherError}
  */
-export function gotTmntData(tmnt: tmntType): ErrorCode { 
+const gotTmntData = (tmnt: tmntType): ErrorCode =>{ 
 
   try {
     if (!sanitize(tmnt.tmnt_name)
-      || !tmnt.start_date
-      || !tmnt.end_date
-      || !tmnt.user_id
+      || (!tmnt.start_date && tmnt.end_date)
+      || (tmnt.start_date && !tmnt.end_date)
       || !tmnt.bowl_id) {
       return ErrorCode.MissingData
     }
@@ -25,28 +25,23 @@ export function gotTmntData(tmnt: tmntType): ErrorCode {
   }
 }
 
+export const validTmntName = (tmntName: string): boolean => {  
+  return (tmntName.length > 0 && sanitize(tmntName).length <= maxTmntNameLength)
+}
+
 /**
- * checks if tournament adat is valid
+ * checks if tournament data is valid
  * 
  * @param tmnt - tournament data to check
  * @returns - {ErrorCode.InvalidData, ErrorCode.None, ErrorCode.OtherError}
  */
-export function validTmntData(tmnt: tmntType): ErrorCode { 
+const validTmntData = (tmnt: tmntType): ErrorCode => { 
 
   try {           
-    if (tmnt.tmnt_name && sanitize(tmnt.tmnt_name).length > maxTmntNameLength) {
+    if (!validTmntName(tmnt.tmnt_name)) {
       return ErrorCode.InvalidData
     }
-    if (tmnt.user_id && !isValidBtDbId(tmnt.user_id)) {
-      return ErrorCode.InvalidData
-    }
-    if (tmnt.bowl_id && !isValidBtDbId(tmnt.bowl_id)) {
-      return ErrorCode.InvalidData
-    }
-    // have to have either both dates or niether date
-    if (!tmnt.start_date && tmnt.end_date || tmnt.start_date && !tmnt.end_date) {
-      return ErrorCode.InvalidData
-    }
+    // if both start and end dates, end cannot be before start
     if (tmnt.start_date && tmnt.end_date) {
       const startDate = startOfDay(new Date(tmnt.start_date))
       const endDate = startOfDay(new Date(tmnt.end_date))
@@ -63,6 +58,14 @@ export function validTmntData(tmnt: tmntType): ErrorCode {
   }
 }
 
+export const sanitizeTmnt = (tmnt: tmntType): tmntType => { 
+
+  const sanditizedTmnt: tmntType = {
+    ...initTmnt
+  }  
+  sanditizedTmnt.tmnt_name = sanitize(tmnt.tmnt_name)
+  return sanditizedTmnt
+}
 
 /**
  * valildates a tournament data object
@@ -70,7 +73,7 @@ export function validTmntData(tmnt: tmntType): ErrorCode {
  * @param tmnt - tournament data to check
  * @returns - {ErrorCode.MissingData, ErrorCode.InvalidData, ErrorCode.None, ErrorCode.OtherError} 
  */
-export function validateTmnt(tmnt: tmntType): ErrorCode { 
+export const validateTmnt = (tmnt: tmntType): ErrorCode => { 
 
   try {
     const errCode = gotTmntData(tmnt)

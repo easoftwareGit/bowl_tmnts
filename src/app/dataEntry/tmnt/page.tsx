@@ -10,7 +10,7 @@ import {
   initPots,
   initSquads,
   initTmnt,
-} from "./initVals";
+} from "../../../db/initVals";
 import { todayStr } from "@/lib/dateTools";
 import { fullTmntDataType, tmntPropsType } from "../../../lib/types/types";
 

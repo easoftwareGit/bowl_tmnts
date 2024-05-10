@@ -1,6 +1,6 @@
 import { divType, squadType, potType, brktType, elimType } from "@/lib/types/types";
-import { defaultBrktGames, defaultBrktPlayers, defaultElimGames, initElim } from "@/app/dataEntry/tmnt/initVals";
-import { initPot, initBrkt } from "@/app/dataEntry/tmnt/initVals";
+import { defaultBrktGames, defaultBrktPlayers, defaultElimGames, initElim } from "@/db/initVals";
+import { initPot, initBrkt } from "@/db/initVals";
 import { todayStr } from "@/lib/dateTools";
 
 export const mockDivs: divType[] = [

@@ -5,7 +5,7 @@ import RootLayout from '../../../../src/app/layout';
 import TmntDataPage from "../../../../src/app/dataEntry/tmnt/page";
 import { dateTo_UTC_MMddyyyy, todayStr } from "@/lib/dateTools";
 import { mockTmnt } from "../../../mocks/tmnts/mockTmnt";
-import { initBrkts, initDivs, initElims, initEvents, initPots, initSquads } from "@/app/dataEntry/tmnt/initVals";
+import { initBrkts, initDivs, initElims, initEvents, initPots, initSquads } from "@/db/initVals";
 import { fullTmntDataType } from "@/lib/types/types";
 
 describe('TmntDataPage - Event Component', () => { 

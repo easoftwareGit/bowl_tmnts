@@ -10,6 +10,7 @@ import {
   isEmail,
   isPassword8to20,
 } from "@/lib/validation";
+import { findUserByEmail } from "@/lib/db/users";
 
 // routes /api/users
 
@@ -19,8 +20,7 @@ export async function GET(request: NextRequest) {
 }
 
 export async function POST(request: Request) {
-
-  // note: NO data check if email has already been used. 
+  
   // use route api/register  
   try {
     const { first_name, last_name, email, phone, password } = await request.json();
@@ -45,6 +45,15 @@ export async function POST(request: Request) {
         { status: 422 }
       );        
     }    
+
+    const oldUser = await findUserByEmail(email);
+    if (oldUser) {
+      return NextResponse.json(
+        { error: "email already in use" },
+        { status: 409 }
+      );
+    }
+
     const saltRoundsStr: any = process.env.SALT_ROUNDS;
     const saltRounds = parseInt(saltRoundsStr);
     const hashed = await hash(password, saltRounds);
@@ -55,7 +64,7 @@ export async function POST(request: Request) {
         last_name: san_last_name,
         email,
         phone: phoneCheck.phoneNumber,
-        password: hashed,
+        password_hash: hashed,
       },
     });
     return NextResponse.json(

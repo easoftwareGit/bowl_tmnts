@@ -4,7 +4,7 @@ import { hash } from "bcrypt";
 const prisma = new PrismaClient();
 
 async function userUpsert() {
-  const testPassword = await hash("test", 12);
+  const testPassword = await hash("Test123!", 12);
 
   try {
     let user = await prisma.user.upsert({
@@ -15,7 +15,7 @@ async function userUpsert() {
       create: {
         id: "usr_5bcefb5d314fff1ff5da6521a2fa7bde",
         email: "adam@email.com",
-        password: testPassword,
+        password_hash: testPassword,
         first_name: "Adam",
         last_name: "Smith",
         phone: "+18005551212",
@@ -29,7 +29,7 @@ async function userUpsert() {
       create: {
         id: "usr_516a113083983234fc316e31fb695b85",
         email: "chad@email.com",
-        password: testPassword,
+        password_hash: testPassword,
         first_name: "Chad",
         last_name: "White",
         phone: "+18005557890",
@@ -43,7 +43,7 @@ async function userUpsert() {
       create: {
         id: "usr_5735c309d480323662da31e13c35b91e",
         email: "doug@email.com",
-        password: testPassword,
+        password_hash: testPassword,
         first_name: "Doug",
         last_name: "Jones",
         phone: "+18005552211",
@@ -57,7 +57,7 @@ async function userUpsert() {
       create: {
         id: "usr_a24894ed10c5dd835d5cbbfea7ac6dca",
         email: "eric@email.com",
-        password: testPassword,
+        password_hash: testPassword,
         first_name: "Eric",
         last_name: "Johnson",
         phone: "+18005551234",
@@ -71,7 +71,7 @@ async function userUpsert() {
       create: {
         id: "usr_07de11929565179487c7a04759ff9866",
         email: "fred@email.com",
-        password: testPassword,
+        password_hash: testPassword,
         first_name: "Fred",
         last_name: "Green",
         phone: "+18005554321",
@@ -230,8 +230,8 @@ async function tmntUpsert() {
         user_id: "usr_5bcefb5d314fff1ff5da6521a2fa7bde",
         tmnt_name: "Masters",
         bowl_id: "bwl_8b4a5c35ad1247049532ff53a12def0a",
-        start_date: new Date("01/05/2023"),
-        end_date: new Date("01/05/2023"),
+        start_date: new Date("01/05/2024"),
+        end_date: new Date("01/05/2024"),
       },
     });
     tmnt = await prisma.tmnt.upsert({
@@ -258,8 +258,8 @@ async function tmntUpsert() {
         user_id: "usr_5bcefb5d314fff1ff5da6521a2fa7bde",
         tmnt_name: "2-Day event",
         bowl_id: "bwl_561540bd64974da9abdd97765fdb3659",
-        start_date: new Date("04/20/2024"),
-        end_date: new Date("04/21/2024"),
+        start_date: new Date("12/20/2024"),
+        end_date: new Date("12/21/2024"),
       },
     });
     tmnt = await prisma.tmnt.upsert({

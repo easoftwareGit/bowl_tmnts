@@ -5,7 +5,7 @@ import { ErrorCode } from "@/lib/validation";
 import { tmntType } from "@/lib/types/types";
 import { validateTmnt } from "./valildate";
 import { startOfDay } from "date-fns";
-import { initTmnt } from "@/app/dataEntry/tmnt/initVals";
+import { initTmnt } from "@/db/initVals";
 
 // routes /api/tmnts
 

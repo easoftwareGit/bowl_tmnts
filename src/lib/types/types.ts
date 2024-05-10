@@ -1,3 +1,20 @@
+export type userType = {
+  id: string
+  email: string
+  password: string
+  first_name: string
+  last_name: string
+  phone: string
+}
+
+export type bowlType = {
+  id: string,
+  bowl_name: string,
+  city: string,
+  state: string,
+  url: string
+}
+
 export type YearObj = {
   year: number,
 }
@@ -21,16 +38,6 @@ export type tmntType = {
   start_date_err: string,
   end_date: string,
   end_date_err: string,
-}
-
-export type bowlType = {
-  id: string,
-  bowl_name: string,
-  city: string,
-  state: string,
-  url: string
-  createdAt: string,
-  updatedAt: string,
 }
 
 export type lpoxValidTypes = "is-valid" | "is-invalid" | "";
