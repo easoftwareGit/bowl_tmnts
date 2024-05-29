@@ -212,13 +212,30 @@ export async function PATCH(request: Request,
 export async function DELETE(request: Request,
   { params }: { params: { id: string } }
 ) {
-  const id = params.id
-
-  const deleted = await prisma.user.delete({
-    where: {
-      id: id
+  try {
+    const id = params.id
+    const deleted = await prisma.user.delete({
+      where: {
+        id: id
+      }
+    })
+    return NextResponse.json({deleted}, {status: 200});    
+  } catch (error: any) {
+    let errStatus: number  
+    switch (error.code) {      
+      case 'P2003': // parent has child rows
+        errStatus = 409
+        break;
+      case 'P2025': // record not found
+        errStatus = 404 
+        break;      
+      default:
+        errStatus = 500
+        break;
     }
-  })
-
-  return NextResponse.json({deleted}, {status: 200});
+    return NextResponse.json(
+      { error: "Error deleting user" },
+      { status: errStatus }
+    );            
+  }
 }

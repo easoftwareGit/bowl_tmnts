@@ -1,10 +1,14 @@
+export type roleTypes = "ADMIN" | "DIRECTOR" | "USER"
+
 export type userType = {
   id: string
   email: string
   password: string
+  password_hash: string
   first_name: string
   last_name: string
   phone: string
+  role: roleTypes
 }
 
 export type bowlType = {

@@ -9,8 +9,10 @@ import {
   maxEmailLength,  
   isEmail,
   isPassword8to20,
+  isValidBtDbId,
 } from "@/lib/validation";
 import { findUserByEmail } from "@/lib/db/users";
+import { validPostUserId } from "./validate";
 
 // routes /api/users
 
@@ -23,7 +25,7 @@ export async function POST(request: Request) {
   
   // use route api/register  
   try {
-    const { first_name, last_name, email, phone, password } = await request.json();
+    const { id, first_name, last_name, email, phone, password } = await request.json();
     if (!first_name || !last_name || !email || !password) {
       return NextResponse.json(
         { error: "missing data" },
@@ -33,6 +35,16 @@ export async function POST(request: Request) {
     const san_first_name = sanitize(first_name)
     const san_last_name = sanitize(last_name)
     const phoneCheck = phoneChecking(phone);
+    let postId = '';
+    if (id) { 
+      postId = validPostUserId(id);
+      if (!postId) {
+        return NextResponse.json(
+          { error: "invalid id data" },
+          { status: 422 }
+        );
+      }
+    }    
     // no need to check for phone.length, because
     // phoneCheck.isValid will be false if length too long
     if (san_first_name.length > maxFirstNameLength || 
@@ -58,17 +70,40 @@ export async function POST(request: Request) {
     const saltRounds = parseInt(saltRoundsStr);
     const hashed = await hash(password, saltRounds);
 
+    type userDataType = {
+      first_name: string,
+      last_name: string,
+      email: string,
+      phone: string,
+      password_hash: string,
+      id?: string;
+    }
+    let userData: userDataType = {
+      first_name: san_first_name,
+      last_name: san_last_name,
+      email,
+      phone: phoneCheck.phoneNumber,
+      password_hash: hashed,
+    }
+    if (postId) {
+      userData = {
+        ...userData,
+        id: postId
+      }
+    }
+
     const user = await prisma.user.create({
-      data: {
-        first_name: san_first_name,
-        last_name: san_last_name,
-        email,
-        phone: phoneCheck.phoneNumber,
-        password_hash: hashed,
-      },
+      data: userData,
+      // data: {        
+      //   first_name: san_first_name,
+      //   last_name: san_last_name,
+      //   email,
+      //   phone: phoneCheck.phoneNumber,
+      //   password_hash: hashed,
+      // },
     });
     return NextResponse.json(
-      { user: user.email },
+      { user: user },
       { status: 201 }
     );    
   } catch (err: any) {

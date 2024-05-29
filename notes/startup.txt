@@ -39,8 +39,3 @@ steps to start
   B) npm i -D @types/bcrypt
 16) seed the database
      npx prisma db seed
-17) create single prisma database connection 
-  A) create a new \lib folder under \app
-  B) create a new prisma.ts file in \lib folder 
-  C) add code to create a global prisma object
-  D) to use prisma client, import from \app\lib\prisma

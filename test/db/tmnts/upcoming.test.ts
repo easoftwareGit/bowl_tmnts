@@ -1,7 +1,9 @@
 import { getTmnts } from "@/db/tmnts/tmnts";
+import { getTmntResults } from "@/lib/db/tmnts";
 import { server } from "../../mocks/server";
 import { rest } from "msw";
 import { testbaseTmntsUpcomingApi } from "../../testApi";
+import axios from "axios";
 
 describe('tmnts upcoming test', () => { 
 

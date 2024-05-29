@@ -7,7 +7,6 @@ import axios from "axios";
 import { signIn } from "next-auth/react";
 import { baseApi, baseOrigin } from "@/lib/tools";
 import { Alert } from "@/components/ui/index";
-import { sanitize } from "@/lib/sanitize";
 import {
   isEmail,
   isPassword8to20,
@@ -30,9 +29,6 @@ const blankValues = {
   password: "",
   confirm: "",
 };
-
-const signInUrl = baseApi + "/auth/signin";
-const loginUrl = baseOrigin + "/login";
 
 export const RegisterForm = () => {  
 
@@ -62,9 +58,6 @@ export const RegisterForm = () => {
       confirm: "",
     };
     let isValid = true;
-    // sanitized.first_name = "";
-    // sanitized.last_name = "";
-    // sanitized.email = "";
     setUsedEmail("");
 
     // first name
@@ -72,8 +65,7 @@ export const RegisterForm = () => {
       errors.first_name = "First Name is required";
       isValid = false;
     } else {
-      errors.first_name = "";
-      // sanitized.first_name = sanitize(formData.first_name);
+      errors.first_name = "";      
     }
 
     // last name
@@ -81,8 +73,7 @@ export const RegisterForm = () => {
       errors.last_name = "Last Name is required";
       isValid = false;
     } else {
-      errors.last_name = "";
-      // sanitized.last_name = sanitize(formData.last_name);
+      errors.last_name = "";      
     }
 
     // email
@@ -93,8 +84,7 @@ export const RegisterForm = () => {
       errors.email = "Email is not valid";
       isValid = false;
     } else {
-      errors.email = "";
-      // sanitized.email = formData.email;
+      errors.email = "";      
     }
 
     // phone
@@ -106,8 +96,7 @@ export const RegisterForm = () => {
         errors.phone = "Phone not valid";
         isValid = false;
       } else {
-        errors.phone = "";
-        // sanitized.phone = phoneCheck.phoneNumber;
+        errors.phone = "";        
       }
     }
 
@@ -188,8 +177,7 @@ export const RegisterForm = () => {
           url: url,
         });
         if (response.status === 201) {
-          // signIn();
-          router.push(loginUrl)            
+          signIn();              
         }
       } catch (error: any) {
         if (error.response?.status === 409) {

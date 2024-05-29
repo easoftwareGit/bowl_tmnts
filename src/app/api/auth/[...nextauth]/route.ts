@@ -1,3 +1,4 @@
+import { findUserByEmail } from "@/lib/db/users";
 import { prisma } from "@/lib/prisma";
 import { User } from "@prisma/client";
 import { compare } from "bcrypt";
@@ -30,7 +31,7 @@ export const authOptions: NextAuthOptions = {
         email: {
           label: "Email",
           type: "email",
-          placeholder: "hello@example.com",
+          // placeholder: "hello@example.com",
         },
         password: {
           label: "Password",
@@ -41,6 +42,8 @@ export const authOptions: NextAuthOptions = {
         // Handle Auth - start with simple hard coded user
         // const user = { id: "usr_5sbcefb5d314fff1ff5da6521a2fa7bde", email: "adam@email.com", name: 'Adam Smith' }
         // return users
+
+        console.log('01 credentials', credentials)
 
         // if no credentials, return null tells authJs credentials not correct
         if (!credentials?.email || !credentials.password) {
@@ -76,19 +79,31 @@ export const authOptions: NextAuthOptions = {
           name: user.first_name + " " + user.last_name,
           first_name: user.first_name,
           last_name: user.last_name,
+          role: user.role
         };
       },
     }),
     GoogleProvider({
+      profile(profile: GoogleProfile) {
+        console.log('google profile: ', profile)
+        return {
+          ...profile,
+          role: profile.role ?? 'USER',
+          id: '', 
+        }
+      },
       clientId: GOOGLE_CLIENT_ID,
       clientSecret: GOOGLE_CLIENT_SECRET,
     }),
   ],
   callbacks: {
     // session & jwt are used for CredentialsProvider (look up user in database)
-    // signIn is for GoogleProvider
-    session: ({ session, token, user }) => {
-      // console.log("Session Callback", { session, token, user });
+    // signIn is for GoogleProvider    
+    async session({ session, token, user }) {
+      // session if used in client components
+      console.log("Session Callback", { session, token, user });
+
+      if (session?.user) session.user.role = token.role;
       return {
         ...session,
         user: {
@@ -99,21 +114,32 @@ export const authOptions: NextAuthOptions = {
         },
       };
     },
-    jwt: ({ token, user, account }) => {
-      // console.log("JWT Callback", { token, user, account });
+    async jwt({ token, user, account }) {
+
+      console.log("JWT Callback", { token, user, account });
+
+      if (user) token.role = user.role;
+
       if (user) {
-        const u = user as unknown as User;
-        if (account?.provider === "credentials") {          
+        if (account?.provider === "credentials") {     
+          const u = user as User;
+
+          console.log('credentials u: ', u)
+
           return {
             ...token,
             id: user.id,
             first_name: u.first_name,
             last_name: u.last_name,
+            role: u.role
           };
           // } else if (account?.provider === 'google') {
         } else {
           // using else now becsue only oauth is google
           // extract first and last name from name
+
+          console.log('oAuth Google User: ', user)
+
           let firstName
           let lastName
           try {
@@ -160,7 +186,9 @@ export const authOptions: NextAuthOptions = {
 
         // need to extract first name and last name from profile
         const googleInfo = profile as unknown as GoogleProfile;
-        // console.log("GoogleInfo", googleInfo);
+
+        console.log("GoogleInfo", googleInfo);
+
         let fName = googleInfo.given_name;
         if (!fName || fName === "") {
           fName = "none";
@@ -188,6 +216,13 @@ export const authOptions: NextAuthOptions = {
             last_name: lName,
           },
         });
+
+        const googleUser = await findUserByEmail(googleInfo.email)        
+        if (googleUser && googleUser.id) {
+          user.id = googleUser?.id          
+          console.log('user', user)
+        }
+
         // user was authenticated and upserted
         return true;
       }

@@ -971,7 +971,7 @@ describe('TmntDataPage - Event Component', () => {
       const eventGames = screen.getAllByRole('spinbutton', { name: /event games/i }) as HTMLInputElement[];
       const singlesTabs = await screen.findAllByRole('tab', { name: /singles/i })
       const doublesTabs = await screen.findAllByRole('tab', { name: /doubles/i })
-      const acdnEvent = await screen.findByTestId('acndEvents');
+      const acdnEvent = await screen.findByTestId('acdnEvents');
       expect(teamSizes[0]).toHaveValue(6);
       expect(teamSizes[1]).toHaveValue(2);
       expect(eventGames[0]).toHaveValue(3);

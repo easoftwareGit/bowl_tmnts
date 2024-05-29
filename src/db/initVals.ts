@@ -16,9 +16,11 @@ export const initUser: userType = {
   id: "1",  
   email: "",  
   password: "",
+  password_hash: "",
   first_name: "",
   last_name: "",
   phone: "",
+  role: 'USER'
 }
 
 export const initBowl: bowlType = {

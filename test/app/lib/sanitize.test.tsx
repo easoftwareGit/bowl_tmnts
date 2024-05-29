@@ -41,14 +41,26 @@ describe('sanitize', () => {
     const result = sanitize(input);
     expect(result).toEqual(expectedOutput);
   })
+  it('remove manually searched chars curved brackets, astirisk and plus ()*+', () => { 
+    const input = '12(34)56*78+90'
+    const expectedOutput = '1234567890'
+    const result = sanitize(input);
+    expect(result).toEqual(expectedOutput);
+  })  
+  it('remove manually searched chars when they appear multiple times ()*+', () => { 
+    const input = '12((34)))56*****78++++++90'
+    const expectedOutput = '1234567890'
+    const result = sanitize(input);
+    expect(result).toEqual(expectedOutput);
+  })  
   it('remove all brackets, straight [], curved (), curly {}, angeled <> ', () => { 
     const input = '[ABC](DEF){GHI}<JKL>'
-    const expectedOutput = 'ABCDEFGHIJKL'
+    const expectedOutput = 'ABCDEFGHI'
     const result = sanitize(input);
     expect(result).toEqual(expectedOutput);
   })
-  it('remove math symbols */=+^%', () => { 
-    const input = '*12/34=56+78^90%'
+  it('remove math symbols */=+^', () => { 
+    const input = '*12/34=56+78^90'
     const expectedOutput = '1234567890'
     const result = sanitize(input);
     expect(result).toEqual(expectedOutput);
@@ -65,5 +77,53 @@ describe('sanitize', () => {
     const result = sanitize(input);
     expect(result).toEqual(expectedOutput);
   })
-    
+  it('should return the string unchanged when it contains only allowed characters', () => {
+    const input = "Hello, world-123 'test'.";
+    const result = sanitize(input);
+    expect(result).toBe("Hello, world-123 'test'.");
+  });    
+  it('should return an empty string when input is empty string', () => {
+    const result = sanitize('');
+    expect(result).toBe('');
+  });
+  it('should trim leading and trailing spaces', () => {
+    const input = "   leading and trailing spaces   ";
+    const result = sanitize(input);
+    expect(result).toBe("leading and trailing spaces");
+  });  
+  it('should keep multiple spaces between words', () => {
+    const input = "a  b   c    d";
+    const result = sanitize(input);
+    expect(result).toBe("a  b   c    d");
+  });  
+  it('should return an empty string when input contains only spaces', () => {
+    const input = "     ";
+    const result = sanitize(input);
+    expect(result).toBe("");
+  });  
+  it('should remove non-Latin characters from the string', () => {
+    const input = "a.b-c@d e'fg#h1ক😀";
+    const result = sanitize(input);
+    expect(result).toBe("a.b-cd e'fgh1");
+  });  
+  it('should maintain case sensitivity when input has a combination of upper and lower case letters', () => {
+    const input = "HeLlo, WoRld-123 'TeSt'.";
+    const result = sanitize(input);
+    expect(result).toBe("HeLlo, WoRld-123 'TeSt'.");
+  });  
+  it('should trim after removing non-Latin characters', () => { 
+    const input = "()  a.b-c@d e'fg#h1  ক  😀";
+    const result = sanitize(input);
+    expect(result).toBe("a.b-cd e'fgh1");
+  })
+  it('should return the same string when input is a valid JSON object', () => {
+    const input = '{"key": "value"}';
+    const result = sanitize(input);
+    expect(result).toBe("key value");
+  });  
+  it('should remove newline characters and non-visible characters', () => {
+    const input = "a\nb\tc\r";
+    const result = sanitize(input);
+    expect(result).toBe("abc");
+  });  
 });

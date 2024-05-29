@@ -23,3 +23,7 @@
   text-align: right;
   border-style: none;
 }
+
+textarea {
+  width: 100%;
+}

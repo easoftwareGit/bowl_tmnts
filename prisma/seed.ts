@@ -19,6 +19,7 @@ async function userUpsert() {
         first_name: "Adam",
         last_name: "Smith",
         phone: "+18005551212",
+        role: 'ADMIN',
       },
     });
     user = await prisma.user.upsert({
@@ -32,7 +33,7 @@ async function userUpsert() {
         password_hash: testPassword,
         first_name: "Chad",
         last_name: "White",
-        phone: "+18005557890",
+        phone: "+18005557890",        
       },
     });
     user = await prisma.user.upsert({
@@ -61,6 +62,7 @@ async function userUpsert() {
         first_name: "Eric",
         last_name: "Johnson",
         phone: "+18005551234",
+        role: 'DIRECTOR',
       },
     });
     user = await prisma.user.upsert({
@@ -171,7 +173,7 @@ async function tmntUpsert() {
       update: {},
       create: {
         id: "tmt_d9b1af944d4941f65b2d2d4ac160cdea",
-        user_id: "usr_5735c309d480323662da31e13c35b91e",
+        user_id: "usr_a24894ed10c5dd835d5cbbfea7ac6dca",
         tmnt_name: "Coconut 5 Gamer",
         bowl_id: "bwl_ff4cd62b03f24017beea81c1d6e047e7",
         start_date: new Date("08/21/2022"),
@@ -199,7 +201,7 @@ async function tmntUpsert() {
       update: {},
       create: {
         id: "tmt_02e9022687d13c2c922d43682e6b6a80",
-        user_id: "usr_5735c309d480323662da31e13c35b91e",
+        user_id: "usr_a24894ed10c5dd835d5cbbfea7ac6dca",
         tmnt_name: "Coconut Singles & Doubles",
         bowl_id: "bwl_ff4cd62b03f24017beea81c1d6e047e7",
         start_date: new Date("01/01/2023"),

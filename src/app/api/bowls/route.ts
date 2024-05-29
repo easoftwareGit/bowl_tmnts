@@ -11,3 +11,9 @@ export async function GET(request: NextRequest) {
   })
   return NextResponse.json({data: bowls}, {status: 200});
 }
+
+export async function POST(request: NextRequest) {
+  // only admin and super admins can create new bowls
+  const {bowl_name, city, state } = await request.json();
+
+}

@@ -57,7 +57,7 @@ describe('tmnt table data validation', () => {
       }
       expect(validateTmnt(testTmnt)).toBe(ErrorCode.None)
     })
-    it('should return invalid data error code when invalid tmnt_name', () => { 
+    it('should return invalid data error code when tmnt_name too long', () => { 
       testTmnt = {
         ...mockTmnt,
         tmnt_name: '1234567890123456789012345678901'

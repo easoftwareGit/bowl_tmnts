@@ -16,12 +16,16 @@ export function sanitize(str: string): string {
   if (!str) {
     return ''
   }
-  const trimmed = str.trim();
-  if (trimmed) {
-    // remove special chars. added replaces for ()*+
-    return trimmed.replace(stringRegEx, '').replace('(', '').replace(')', '').replace('*', '').replace('+', '');    
-  } else {
+  try {
+    let san = decodeURIComponent(str);
+    san = san.replace(/<[^>]*>/g, '').replace(stringRegEx, '').replace(/\(/g, '').replace(/\)/g, '').replace(/\*/g, '').replace(/\+/g, ''); 
+    if (san) {
+      return san.trim();
+    } else {
+      return '';
+    }    
+  } catch (error) {
     return '';
-  }  
+  }
 }
 

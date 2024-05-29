@@ -1,8 +1,7 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
-import { sanitize } from "@/lib/sanitize";
 import { ErrorCode, isValidBtDbId } from "@/lib/validation";
-import { validTmntData, validateTmnt } from "@/app/api/tmnts/valildate"
+import { sanitizeTmnt, validateTmnt } from "@/app/api/tmnts/valildate"
 import { tmntType } from "@/lib/types/types";
 import { startOfDay } from "date-fns";
 import { initTmnt } from "@/db/initVals";
@@ -92,15 +91,15 @@ export async function PUT(
         { status: 422 }
       );
     }
-    
-    const san_tmnt_name = sanitize(tmnt_name);
+        
+    const toPut: tmntType = sanitizeTmnt(toCheck);    
     const created = await prisma.tmnt.create({
       data: {
-        tmnt_name: san_tmnt_name,
-        start_date: startOfDay(new Date(start_date)),
-        end_date: startOfDay(new Date(end_date)),
-        user_id: user_id, 
-        bowl_id: bowl_id,
+        tmnt_name: toPut.tmnt_name,
+        start_date: startOfDay(new Date(toPut.start_date)),
+        end_date: startOfDay(new Date(toPut.end_date)),
+        user_id: toPut.user_id, 
+        bowl_id: toPut.bowl_id,
       }
     })
     return NextResponse.json({created}, {status: 200});    
@@ -138,20 +137,20 @@ export async function PATCH(
       user_id,
       bowl_id
     }
-    if (validTmntData(toCheck) !== ErrorCode.None) {
+    if (validateTmnt(toCheck) !== ErrorCode.None) {
       return NextResponse.json(
         { error: 'invalid data' },
         { status: 422 }
       );
     }
-
-    const san_tmnt_name = sanitize(tmnt_name);
+    
+    const toPatch = sanitizeTmnt(toCheck);
     let startDate = undefined
     let endDate = undefined
-    if (start_date) {
+    if (toPatch.start_date) {
       startDate = startOfDay(new Date(start_date))
     }      
-    if (end_date) {
+    if (toPatch.end_date) {
       endDate = startOfDay(new Date(end_date))
     }          
 
@@ -160,7 +159,7 @@ export async function PATCH(
         id: id
       },    
       data: {
-        tmnt_name: san_tmnt_name || undefined,
+        tmnt_name: toPatch.start_date || undefined,
         start_date: startDate,
         end_date: endDate,
         user_id: user_id || undefined,

@@ -400,7 +400,7 @@ export const TmntDataForm: React.FC<FormProps> = ({ tmntProps }) => {
           </div>
           <Accordion>
             <AccordionItem eventKey="events" >
-              <Accordion.Header className={eventAcdnErr.errClassName} data-testid="acndEvents">
+              <Accordion.Header className={eventAcdnErr.errClassName} data-testid="acdnEvents">
                 Events{eventAcdnErr.message}
               </Accordion.Header>
               <Accordion.Body data-testid="eventAcdn">

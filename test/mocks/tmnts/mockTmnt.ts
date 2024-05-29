@@ -8,6 +8,7 @@ export const mockUser: userType = {
   first_name: "John",
   last_name: "Doe",
   phone: "800-555-1234",
+  role: "USER"
 }
 
 export const mockTmnt: tmntType = {

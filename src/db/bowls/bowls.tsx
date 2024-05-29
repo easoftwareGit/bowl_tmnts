@@ -10,7 +10,7 @@ import { testBaseBowlsApi } from "../../../test/testApi";
  * or rejected in /src/redux/features/bowls/bowlsSlice.tsx
  * which will have the appropriate response in the extraReducers.
  *
- * @returns { data: Bowl[] } - array bowls;
+ * @returns { data: Bowl[] } - array of bowls;
  */
 export const getBowls = async () => {  
   // for testing.

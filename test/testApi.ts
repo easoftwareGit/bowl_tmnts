@@ -11,3 +11,4 @@ export const testbaseTmntsUpcomingApi = testBaseApi + '/tmnts/upcoming'
 export const testbaseTmntsYearsApi = testBaseApi + '/tmnts/years/'
 
 export const testBaseBowlsApi = testBaseApi + '/bowls'
+export const testBaseUsersApi = testBaseApi + '/users'

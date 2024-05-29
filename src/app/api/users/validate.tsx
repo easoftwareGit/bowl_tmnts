@@ -1,7 +1,8 @@
-import { ErrorCode, maxFirstNameLength, maxLastNameLength, isEmail, isPassword8to20 } from "@/lib/validation";
+import { ErrorCode, maxFirstNameLength, maxLastNameLength, isEmail, isPassword8to20, isValidBtDbId } from "@/lib/validation";
 import { sanitize } from "@/lib/sanitize";
 import { userType } from "@/lib/types/types";
 import { phone as phoneChecking } from "phone";
+import { nextPostSecret } from "@/lib/tools";
 
 /**
  * checks for required data and returns error code if missing 
@@ -117,4 +118,29 @@ export function validateUser(user: userType, checkPhoneAndPass: boolean = true):
   } catch (error) {
     return ErrorCode.OtherError
   }
+}
+
+/**
+ * checks if post id is valid
+ *
+ * @export
+ * @param {string} id
+ * @return {string} - the valid user id if: str starts with postSecret and ends with a valid user BtDb id;
+ *                  - otherwise returns an empty string
+ */
+export function validPostUserId(id: string): string {   
+  if (id?.startsWith(nextPostSecret as string)) {
+    const postId = id.replace(nextPostSecret as string, '');
+    if (postId.startsWith('usr') && isValidBtDbId(postId)) {
+      return postId
+    }
+    return ''
+  } else {
+    return ''
+  }
+}
+
+export const exportedForTesting = {
+  gotUserData,
+  validUserData 
 }

@@ -24,6 +24,7 @@ model User {
   first_name    String   @db.VarChar
   last_name     String   @db.VarChar
   phone         String?  @db.VarChar
+  role          String   @default("USER")
   tmnts         Tmnt[]   @relation("UserTmnts")
   createdAt     DateTime @default(now())
   updatedAt     DateTime @updatedAt
