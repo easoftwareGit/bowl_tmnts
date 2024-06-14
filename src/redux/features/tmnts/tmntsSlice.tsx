@@ -45,7 +45,7 @@ export const tmntsSlice = createSlice({
     });
     builder.addCase(fetchTmnts.fulfilled, (state: TmntSliceState, action) => {
       state.status = "succeeded";      
-      state.tmnts = action.payload.data;
+      state.tmnts = action.payload.tmnts;
       state.error = "";
     });
     builder.addCase(fetchTmnts.rejected, (state: TmntSliceState, action) => {

@@ -6,14 +6,14 @@ import {
   validUserEmail,
   validUserPhone,
   validUserPassword,
-  exportedForTesting, 
-  validPostUserId
+  exportedForTesting,   
 } from "@/app/api/users/validate";
 import { userType } from "@/lib/types/types";
 import { mockUser } from "../../../mocks/tmnts/mockTmnt";
-import { ErrorCode } from "@/lib/validation";
+import { ErrorCode, validPostId } from "@/lib/validation";
+import { nextPostSecret } from "@/lib/tools";
 
-const {gotUserData, validUserData } = exportedForTesting;
+const { gotUserData, validUserData } = exportedForTesting;
 
 describe("user table data validation", () => {  
 
@@ -49,7 +49,7 @@ describe("user table data validation", () => {
     it("should return missing data error code when last_name has just special chars", () => {
       const testUser: userType = {
         ...mockUser,
-        last_name: "++++",
+        last_name: "****",
       };
       expect(gotUserData(testUser)).toBe(ErrorCode.MissingData);
     });    
@@ -84,6 +84,138 @@ describe("user table data validation", () => {
     }); 
         
   });
+
+  describe('validUserFirstName function', () => {
+    it('should return true when first name is valid', () => {
+      expect(validUserFirstName("John")).toBe(true);
+    });
+    it('should return false when first name is too long', () => {
+      expect(validUserFirstName("1234567890123456")).toBe(false);
+    });
+    it('should return false when first name is empty', () => {
+      expect(validUserFirstName("")).toBe(false);
+    });
+    it('should return false when first name has just special chars', () => {
+      expect(validUserFirstName("***")).toBe(false);
+    });
+    it('should return false when first name is null', () => {
+      expect(validUserFirstName(null as any)).toBe(false);
+    });
+    it('should return false when first name is undefined', () => {
+      expect(validUserFirstName(undefined as any)).toBe(false);
+    });
+    it('should return true when passed html tag (tags remove)', () => { 
+      // will be John
+      expect(validUserFirstName("<b>John</b>")).toBe(true);
+      // will be alerthello
+      expect(validUserFirstName("<script>alert('hello')</script>")).toBe(true);
+    })
+  });
+
+  describe('validUserLastName function', () => {
+    it('should return true when last name is valid', () => {
+      expect(validUserLastName("Doe")).toBe(true);
+    });
+    it('should return false when last name is too long', () => {
+      expect(validUserLastName("123456789012345678901")).toBe(false);
+    });
+    it('should return false when last name is empty', () => {
+      expect(validUserLastName("")).toBe(false);
+    });
+    it('should return false when last name has just special chars', () => {
+      expect(validUserLastName("<<<>>>")).toBe(false);
+    });
+    it('should return false when last name is null', () => {
+      expect(validUserLastName(null as any)).toBe(false);
+    });
+    it('should return false when last name is undefined', () => {
+      expect(validUserLastName(undefined as any)).toBe(false);
+    });
+    it('should return true when passed html tag (tags remove)', () => { 
+      // will be Jones
+      expect(validUserLastName("<b>Jones</b>")).toBe(true);
+      // will be alerthello
+      expect(validUserLastName("<script>alert('hello')</script>")).toBe(true);
+    })
+  });
+
+  describe('validUserEmail function', () => {
+    it('should return true when email is valid', () => {
+      expect(validUserEmail("a@b.com")).toBe(true);
+      expect(validUserEmail("test@example.com")).toBe(true);
+    });
+    it('should return false when email is invalid', () => {
+      expect(validUserEmail("a@b")).toBe(false);
+    });
+    it('should return false when email is empty', () => {
+      expect(validUserEmail("")).toBe(false);
+    });
+    it('should return false when email is null', () => {
+      expect(validUserEmail(null as any)).toBe(false);
+    });
+    it('should return false when email is undefined', () => {
+      expect(validUserEmail(undefined as any)).toBe(false);
+    });
+    it('should return false when passed html tag (tags remove)', () => { 
+      expect(validUserEmail("<b>a@b.com</b>")).toBe(false);
+    })
+    it('should return false when passed invalid characters', () => { 
+      expect(validUserEmail('invalid**test@email.com')).toBe(false);      
+    })
+    it('should return false when passed not exaclty one @', () => { 
+      expect(validUserEmail('inv@alid@email.com')).toBe(false);
+      expect(validUserEmail('invalidemail.com')).toBe(false);
+    })
+    it('should return false when passed email will no domain', () => {       
+      expect(validUserEmail('invalid@emailcom')).toBe(false);
+    })
+  });
+
+  describe('validUserPhone function', () => {
+    it('should return true when phone is valid', () => {
+      expect(validUserPhone("2345678901")).toBe(true);
+    });
+    it('should return false when phone is invalid', () => {
+      expect(validUserPhone("12345678901")).toBe(true);
+      expect(validUserPhone("abc")).toBe(false);
+    });
+    it('should return false when phone is empty', () => {
+      expect(validUserPhone("")).toBe(false);
+    });
+    it('should return false when phone is null', () => {
+      expect(validUserPhone(null as any)).toBe(false);
+    });
+    it('should return false when phone is undefined', () => {
+      expect(validUserPhone(undefined as any)).toBe(false);
+    });
+    it('should return false when passed invalid characters', () => {
+      expect(validUserPassword("1234567890a")).toBe(false);
+      expect(validUserPassword("  1234567890 ")).toBe(false);
+      expect(validUserPassword("12345678%0")).toBe(false);
+      expect(validUserPassword("12345678@0")).toBe(false);
+    })
+    it('should return false when passed html tag)', () => { 
+      expect(validUserPhone("<b>2345678901</b>")).toBe(true);
+    })
+  });
+
+  describe('valueUserPassword function', () => { 
+    it('should return true when password is valid', () => { 
+      expect(validUserPassword("Test123!")).toBe(true);
+    });
+    it('should return false when no uppercase letter', () => { 
+      expect(validUserPassword("test123!")).toBe(false);
+    })
+    it('should return false when no lowercase letter', () => { 
+      expect(validUserPassword("TEST123!")).toBe(false);
+    })
+    it('should return false when no number', () => { 
+      expect(validUserPassword("Testtest!")).toBe(false);
+    })
+    it('should return false when no special char', () => { 
+      expect(validUserPassword("Test1234")).toBe(false);
+    })
+  })
 
   describe("validUserData function - invalid data", () => {
     it("should return a None error code when valid user object", () => {
@@ -183,45 +315,49 @@ describe("user table data validation", () => {
         ...mockUser,
         first_name: "   J>o<h@n-P#aকu😀l",
         last_name: "O'Conner, Jr.   ",
-        phone: "(800) 555-1234",
+        phone: "<b>(800) 555-1234</b>",
       };
       const sanitized = sanitizeUser(testUser);
       expect(sanitized.first_name).toEqual("John-Paul");
       expect(sanitized.last_name).toEqual("O'Conner, Jr.");
       expect(sanitized.phone).toEqual("+18005551234");
     });
+    it("should return a sanitized user object without email or password", () => {
+      const testUser: userType = {
+        ...mockUser,
+        email: 'johndoe.com',
+        password: "Test123",
+      };
+      const sanitized = sanitizeUser(testUser);
+      expect(sanitized.email).toEqual("");
+      expect(sanitized.password).toEqual("");      
+    });
+
   });
 
-  describe("validate validPostUserId function", () => { 
+  describe("validate validPostId function", () => { 
     const testUserId = 'usr_a1b2c3d4e5f678901234567890abcdef'
-    it('should return true when id starts with postSecret and follows with a valid usr BtDb id', () => {
-      const validId = process.env.POST_SECRET + testUserId;
-      expect(validPostUserId(validId)).toBe(testUserId);
+    it('should return true when id starts with postSecret and follows with a valid BtDb id', () => {
+      const validId = nextPostSecret + testUserId;
+      expect(validPostId(validId, 'usr')).toBe(testUserId);
     });
-    it('should return false when id starts with postSecret but does not follow with \'usr\'', () => {
-      const invalidId = process.env.POST_SECRET + 'abc_a1b2c3d4e5f678901234567890abcdef';
-      expect(validPostUserId(invalidId)).toBe('');
+    it('should return false when id starts with postSecret but does idType does not match idtype in postId', () => {
+      const invalidId = nextPostSecret + testUserId;
+      expect(validPostId(invalidId, 'bwl')).toBe('');
     });
-    it('should return false when id starts with postSecret but does not follow with a valid BtDb id', () => {
-      const invalidId = process.env.POST_SECRET + 'usr_invalidid';
-      expect(validPostUserId(invalidId)).toBe('');
+    it('should return false when id starts with postSecret but does idType is invalid', () => {
+      const invalidId = nextPostSecret + testUserId;
+      expect(validPostId(invalidId, '123' as any)).toBe('');
+    });
+    it('should return false when id starts with postSecret but does not follow with valid BtDb idType', () => {
+      const invalidId = nextPostSecret + 'abc_a1b2c3d4e5f678901234567890abcdef';
+      expect(validPostId(invalidId, 'usr')).toBe('');
     });
     it('should return false when id does not start with postSecret', () => {
       const invalidId = testUserId;
-      expect(validPostUserId(invalidId)).toBe('');
+      expect(validPostId(invalidId, 'usr')).toBe('');
     });
-    it('should return false when id is blank', () => {
-      const invalidId = '';
-      expect(validPostUserId(invalidId)).toBe('');
-    });
-    it('should return false when id is null', () => {
-      const invalidId:any = null;
-      expect(validPostUserId(invalidId)).toBe('');
-    });
-    it('should return false when id is undefined', () => {
-      const invalidId:any = undefined;
-      expect(validPostUserId(invalidId)).toBe('');
-    });
+
   })
 
 });

@@ -1,5 +1,7 @@
 export type roleTypes = "ADMIN" | "DIRECTOR" | "USER"
 
+export type idTypes = 'usr' | 'bwl' | 'tmt' | 'evt' | 'div' | 'sqd' | 'lan' | 'hdc' | 'pot' | 'brk' | 'elm' | 'ply'
+
 export type userType = {
   id: string
   email: string
@@ -73,18 +75,20 @@ export type eventType = {
   lpox_err: string,
   sort_order: number,
   errClassName: string,
+  [key: string]: any;
 }
 
 export type HdcpForTypes = "Game" | "Series";
 
 export type divType = {
   id: string,
-  event_id: string,
+  tmnt_id: string,
   div_name: string,
   div_name_err: string,
   tab_title: string,
-  hdcp: number,
-  hdcp_err: string,
+  hdcp_per: number,
+  hdcp_per_str: string,
+  hdcp_per_err: string,
   hdcp_from: number,
   hdcp_from_err: string,
   int_hdcp: boolean,
@@ -116,7 +120,7 @@ export type squadType = {
   
 export type laneType = {  
   id: string,
-  lane: number,
+  lane_number: number,
   squad_id: string,  
 }
 

@@ -12,10 +12,10 @@ export async function GET(
 ) {   
   try {
     const id = params.id;
-    if (!isValidBtDbId(id)) {
+    if (!isValidBtDbId(id, 'evt')) {
       return NextResponse.json(
         { error: "invalid request" },
-        { status: 400 }
+        { status: 404 }
       );        
     }
     const squads = await prisma.squad.findMany({

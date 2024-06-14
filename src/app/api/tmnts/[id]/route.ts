@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { ErrorCode, isValidBtDbId } from "@/lib/validation";
-import { sanitizeTmnt, validateTmnt } from "@/app/api/tmnts/valildate"
+import { sanitizeTmnt, validateTmnt, validTmntDates, validTmntFkId, validTmntName } from "@/app/api/tmnts/valildate"
 import { tmntType } from "@/lib/types/types";
 import { startOfDay } from "date-fns";
 import { initTmnt } from "@/db/initVals";
@@ -16,12 +16,13 @@ export async function GET(
 ) {   
   try {
     const id = params.id;
-    if (!isValidBtDbId(id)) {
+    if (!isValidBtDbId(id, 'tmt')) {
       return NextResponse.json(
-        { error: "invalid request" },
-        { status: 400 }
-      );        
+        { error: 'not found' },
+        { status: 404 }
+      );
     }
+
     const tmnt = await prisma.tmnt.findUnique({
       where: {
         id: id
@@ -29,7 +30,7 @@ export async function GET(
     })    
     if (!tmnt) {
       return NextResponse.json(
-        { error: "no tmnt found" },
+        { error: "not found" },
         { status: 404 }
       );            
     }
@@ -57,6 +58,13 @@ export async function PUT(
 ) {
   try {
     const id = params.id;
+    if (!isValidBtDbId(id, 'tmt')) {
+      return NextResponse.json(
+        { error: 'not found' },
+        { status: 404 }
+      );
+    }
+
     const { tmnt_name, start_date, end_date, user_id, bowl_id } = await request.json()
     const toCheck: tmntType = {
       ...initTmnt,
@@ -67,12 +75,7 @@ export async function PUT(
       bowl_id
     }
 
-    let errCode = validateTmnt(toCheck);
-    if (errCode === ErrorCode.None) {
-      if (!isValidBtDbId(id)) {
-        errCode = ErrorCode.InvalidData;
-      }
-    }
+    const errCode = validateTmnt(toCheck);
     if (errCode !== ErrorCode.None) {      
       let errMsg: string;
       switch (errCode) {
@@ -93,20 +96,32 @@ export async function PUT(
     }
         
     const toPut: tmntType = sanitizeTmnt(toCheck);    
-    const created = await prisma.tmnt.create({
+    const tmnt = await prisma.tmnt.update({
+      where: {
+        id: id
+      },
       data: {
         tmnt_name: toPut.tmnt_name,
-        start_date: startOfDay(new Date(toPut.start_date)),
-        end_date: startOfDay(new Date(toPut.end_date)),
+        start_date: toPut.start_date,
+        end_date:toPut.end_date,
         user_id: toPut.user_id, 
         bowl_id: toPut.bowl_id,
       }
     })
-    return NextResponse.json({created}, {status: 200});    
-  } catch (err: any) {
+    return NextResponse.json({ tmnt }, { status: 200 });        
+  } catch (error: any) {
+    let errStatus: number  
+    switch (error.code) {      
+      case 'P2025':
+        errStatus = 404  
+        break;      
+      default:
+        errStatus = 500
+        break;
+    }
     return NextResponse.json(
-      { error: "error updating tmnt" },
-      { status: 500 }
+      { error: "Error putting bowl" },
+      { status: errStatus }
     );        
   } 
 }
@@ -128,49 +143,105 @@ export async function PATCH(
 ) {
   try {
     const id = params.id
-    const { tmnt_name, start_date, end_date, user_id, bowl_id } = await request.json()
-    const toCheck: tmntType = {
-      ...initTmnt,
-      tmnt_name,
-      start_date,
-      end_date,
-      user_id,
-      bowl_id
-    }
-    if (validateTmnt(toCheck) !== ErrorCode.None) {
+    if (!isValidBtDbId(id, 'tmt')) {
       return NextResponse.json(
-        { error: 'invalid data' },
-        { status: 422 }
+        { error: 'not found' },
+        { status: 404 }
       );
     }
-    
-    const toPatch = sanitizeTmnt(toCheck);
-    let startDate = undefined
-    let endDate = undefined
-    if (toPatch.start_date) {
-      startDate = startOfDay(new Date(start_date))
-    }      
-    if (toPatch.end_date) {
-      endDate = startOfDay(new Date(end_date))
-    }          
 
-    const updated = await prisma.tmnt.update({
+    const json = await request.json()
+    // populate toCheck with json
+    const jsonProps = Object.getOwnPropertyNames(json);
+    const toCheck: tmntType = {
+      ...initTmnt,
+    }
+    let errCode = ErrorCode.None;
+    if (jsonProps.includes('tmnt_name')) { 
+      if(!validTmntName(json.tmnt_name)) {
+        errCode = ErrorCode.InvalidData
+      } else {
+        toCheck.tmnt_name = json.tmnt_name
+      }
+    }
+    let gotEmptyStartDate = undefined;
+    let gotEmptyEndDate = undefined;
+    if (jsonProps.includes('start_date') || jsonProps.includes('end_date')) { 
+      if (!validTmntDates(json.start_date, json.end_date)) {
+        errCode = ErrorCode.InvalidData
+      } else {        
+        toCheck.start_date = json.start_date
+        toCheck.end_date = json.end_date
+        if (!json.start_date && !json.end_date) {
+          gotEmptyStartDate = '';
+          gotEmptyEndDate = '';
+        }
+      }
+    } 
+    if (jsonProps.includes('bowl_id')) {
+      if (!validTmntFkId(json.bowl_id, 'bwl')) {
+        errCode = ErrorCode.InvalidData
+      } else {
+        toCheck.bowl_id = json.bowl_id
+      }     
+    }
+    if (jsonProps.includes('user_id')) {
+      if (!validTmntFkId(json.user_id, 'usr')) {
+        errCode = ErrorCode.InvalidData
+      } else {
+        toCheck.user_id = json.user_id
+      }     
+    }
+    if (errCode !== ErrorCode.None) { 
+      let errMsg: string;
+      switch (errCode as ErrorCode) {
+        case ErrorCode.MissingData:
+          errMsg = 'missing data'
+          break;
+        case ErrorCode.InvalidData:
+          errMsg = 'invalid data'
+          break;
+        default:
+          errMsg = 'unknown error'
+          break;        
+      }
+      return NextResponse.json(
+        { error: errMsg },
+        { status: 422 }
+      )
+    }    
+
+    const toPatch = sanitizeTmnt(toCheck); 
+    const tmnt = await prisma.tmnt.update({
       where: {
         id: id
-      },    
+      },
+      // remove data if not sent
       data: {
-        tmnt_name: toPatch.start_date || undefined,
-        start_date: startDate,
-        end_date: endDate,
-        user_id: user_id || undefined,
-        bowl_id: bowl_id || undefined
+        tmnt_name: toPatch.tmnt_name || undefined,
+        start_date: toPatch.start_date || gotEmptyStartDate,
+        end_date: toPatch.end_date || gotEmptyEndDate,        
+        bowl_id: toPatch.bowl_id || undefined,
+        user_id: toPatch.user_id || undefined
       }
     })
-    return NextResponse.json({updated}, {status: 200});    
-  } catch (err: any) {
+    return NextResponse.json({ tmnt }, { status: 200 });    
+  } catch (error: any) {
+    let errStatus: number  
+    switch (error.code) {      
+      case 'P2003':
+        errStatus = 422
+        break;
+      case 'P2025':
+        errStatus = 404  
+        break;      
+      default:
+        errStatus = 500
+        break;
+    }
     return NextResponse.json(
-      { error: "error patching tmnt" },
-      { status: 500 }
+      { error: "Error pasting tmnt" },
+      { status: errStatus }
     );            
   }
 }
@@ -181,28 +252,26 @@ export async function DELETE(
   request: Request,
   { params }: { params: { id: string } }
 ) {
-
   try {
     const id = params.id
-    if (!isValidBtDbId(id)) {
+    if (!isValidBtDbId(id, 'tmt')) {
       return NextResponse.json(
-        { error: 'invalid data' },
-        { status: 422 }
+        { error: 'not found' },
+        { status: 404 }
       );
     }
+
     const deleted = await prisma.tmnt.delete({
       where: {
         id: id
       }
     })
-
-    return NextResponse.json({deleted}, {status: 200});
-    
+    return NextResponse.json({deleted}, {status: 200});    
   } catch (err: any) {
     let errStatus: number    
     switch (err.code) {
       case 'P2003':
-        errStatus = 422       
+        errStatus = 409      
         break;    
       case 'P2025':
         errStatus = 404

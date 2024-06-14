@@ -1,8 +1,8 @@
-import { ErrorCode, maxFirstNameLength, maxLastNameLength, isEmail, isPassword8to20, isValidBtDbId } from "@/lib/validation";
+import { ErrorCode, maxFirstNameLength, maxLastNameLength, isEmail, isPassword8to20 } from "@/lib/validation";
 import { sanitize } from "@/lib/sanitize";
 import { userType } from "@/lib/types/types";
 import { phone as phoneChecking } from "phone";
-import { nextPostSecret } from "@/lib/tools";
+import { initUser } from "@/db/initVals";
 
 /**
  * checks for required data and returns error code if missing 
@@ -14,9 +14,9 @@ import { nextPostSecret } from "@/lib/tools";
 const gotUserData = (user: userType, checkPhoneAndPass: boolean = true): ErrorCode => {
   try {
     if (!sanitize(user.first_name)
-      || !sanitize(user.last_name)
-      || !(user.email)) {
-        return ErrorCode.MissingData
+        || !sanitize(user.last_name)
+        || !(user.email)) {
+      return ErrorCode.MissingData
     }
     if (checkPhoneAndPass) {
       if (!user.phone || !user.password) {
@@ -30,18 +30,23 @@ const gotUserData = (user: userType, checkPhoneAndPass: boolean = true): ErrorCo
 }
 
 export const validUserFirstName = (firstName: string): boolean => {  
-  return (firstName.length > 0 && sanitize(firstName).length <= maxFirstNameLength)
+  const sanitized = sanitize(firstName);  
+  return (sanitized.length > 0 && sanitized.length <= maxFirstNameLength)
 }
 export const validUserLastName = (lastName: string): boolean => {  
-  return (lastName.length > 0 && sanitize(lastName).length <= maxLastNameLength)
+  const sanitized = sanitize(lastName);
+  return (sanitized.length > 0 && sanitized.length <= maxLastNameLength)  
 }
-export const validUserEmail = (email: string): boolean => {
-  return (email.length > 0 && isEmail(email))
+export const validUserEmail = (email: string): boolean => {  
+  if (!email) return false
+  return (isEmail.length > 0 && isEmail(email))
 }
 export const validUserPhone = (phone: string): boolean => {
+  if (!phone) return false
   return (phone.length > 0 && phoneChecking(phone).isValid)
 }
 export const validUserPassword = (password: string): boolean => {
+  if (!password) return false
   return (password.length > 0 && isPassword8to20(password))
 }
 
@@ -88,15 +93,20 @@ const validUserData = (user: userType, checkPhoneAndPass: boolean = true): Error
  */
 export const sanitizeUser = (user: userType): userType => {
 
-  const sanitizedUser: userType = {
-    ...user,    
-  }
+  const sanitizedUser: userType = { ...initUser }
+
   sanitizedUser.first_name = sanitize(user.first_name)
   sanitizedUser.last_name = sanitize(user.last_name)
-  const phoneCheck = phoneChecking(user.phone);  
-  if (phoneCheck.isValid) {
+  const phoneCheck = phoneChecking(user.phone); 
+  if (phoneCheck.isValid) { 
     sanitizedUser.phone = phoneCheck.phoneNumber
   }  
+  if (isEmail(user.email)) {
+    sanitizedUser.email = user.email
+  }
+  if (isPassword8to20(user.password)) {
+    sanitizedUser.password = sanitize(user.password)
+  }
   return sanitizedUser
 }
 
@@ -117,26 +127,6 @@ export function validateUser(user: userType, checkPhoneAndPass: boolean = true):
     return validUserData(user, checkPhoneAndPass)
   } catch (error) {
     return ErrorCode.OtherError
-  }
-}
-
-/**
- * checks if post id is valid
- *
- * @export
- * @param {string} id
- * @return {string} - the valid user id if: str starts with postSecret and ends with a valid user BtDb id;
- *                  - otherwise returns an empty string
- */
-export function validPostUserId(id: string): string {   
-  if (id?.startsWith(nextPostSecret as string)) {
-    const postId = id.replace(nextPostSecret as string, '');
-    if (postId.startsWith('usr') && isValidBtDbId(postId)) {
-      return postId
-    }
-    return ''
-  } else {
-    return ''
   }
 }
 

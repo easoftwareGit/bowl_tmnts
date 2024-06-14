@@ -12,10 +12,10 @@ export async function GET(
 ) {   
   try {
     const id = params.id;
-    if (!isValidBtDbId(id)) {
+    if (!isValidBtDbId(id, 'div')) {
       return NextResponse.json(
-        { error: "invalid request" },
-        { status: 400 }
+        { error: "not found" },
+        { status: 404 }
       );        
     }
     // one to one, so findOne, not findMany

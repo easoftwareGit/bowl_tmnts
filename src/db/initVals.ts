@@ -79,16 +79,17 @@ export const initEvent: eventType = {
   errClassName: "",
 };
 
-export const defaultHdcp = 100;
+export const defaultHdcpPer = 1.0;
 export const defaultHdcpFrom = 230;
 export const initDiv: divType = {
   id: "1",
-  event_id: "1",
+  tmnt_id: "1",
   div_name: "Division 1",
   div_name_err: "",
   tab_title: "Division 1",
-  hdcp: defaultHdcp,
-  hdcp_err: "",
+  hdcp_per: defaultHdcpPer,
+  hdcp_per_str: (defaultHdcpPer * 100).toFixed(2),
+  hdcp_per_err: "",
   hdcp_from: defaultHdcpFrom,
   hdcp_from_err: "",
   int_hdcp: true,
@@ -118,6 +119,12 @@ export const initSquad: squadType = {
   squad_time_err: "",
   sort_order: 1,
   errClassName: "",
+};
+
+export const initLane: laneType = {
+  id: "1",
+  squad_id: "1",
+  lane_number: 1,
 };
 
 export const initPot: potType = {
@@ -201,12 +208,12 @@ export const initSquads: squadType[] = [
 export const initLanes: laneType[] = [
   {
     id: "1",
-    lane: 1,
+    lane_number: 1,
     squad_id: "1",
   },
   {
     id: "2",
-    lane: 2,
+    lane_number: 2,
     squad_id: "1",
   },
 ];

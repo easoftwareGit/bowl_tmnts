@@ -143,12 +143,12 @@ describe("OneToNDivs - Component", () => {
       beforeAll(() => {
         mockDivs[1].div_name_err = 'test div name error';
         mockDivs[1].hdcp_from_err = 'test hdcp from error';
-        mockDivs[1].hdcp_err = 'test hdcp error';
+        mockDivs[1].hdcp_per_err = 'test hdcp error';
       })
       afterAll(() => {
         mockDivs[1].div_name_err = '';
         mockDivs[1].hdcp_from_err = '';
-        mockDivs[1].hdcp_err = '';
+        mockDivs[1].hdcp_per_err = '';
       })
       it('render the 2nd division', async () => {
         // ARRANGE
@@ -193,18 +193,18 @@ describe("OneToNDivs - Component", () => {
         render(<OneToNDivs {...mockOneToNDivsProps} />)      
         const tabs = screen.getAllByRole('tab');  
         await user.click(tabs[1]);
-        const hdcps = screen.getAllByRole('spinbutton', { name: /hdcp %/i }) as HTMLInputElement[];        
-        expect(hdcps[1]).toHaveClass("is-invalid");
-        expect(hdcps[1]).toHaveValue(100)
+        const hdcpPers = screen.getAllByRole('spinbutton', { name: /hdcp %/i }) as HTMLInputElement[];        
+        expect(hdcpPers[1]).toHaveClass("is-invalid");
+        expect(hdcpPers[1]).toHaveValue(100)
       })
       it('render 2nd hdcp % errors', async () => { 
         const user = userEvent.setup()
         render(<OneToNDivs {...mockOneToNDivsProps} />)      
         const tabs = screen.getAllByRole('tab');  
         await user.click(tabs[1]);
-        const nameErrors = screen.queryAllByTestId("dangerHdcp");
-        expect(nameErrors).toHaveLength(2);
-        expect(nameErrors[1]).toHaveTextContent("test hdcp error");
+        const hdcpPerErrors = screen.queryAllByTestId("dangerHdcp");
+        expect(hdcpPerErrors).toHaveLength(2);
+        expect(hdcpPerErrors[1]).toHaveTextContent("test hdcp error");
       })
       it('render hdcp from inputs', async () => {        
         const user = userEvent.setup()
@@ -216,14 +216,14 @@ describe("OneToNDivs - Component", () => {
         expect(hdcpFroms[1]).toHaveValue(230)
         expect(hdcpFroms[1]).toBeEnabled()
       })
-      it('render 2nd hdcp % errors', async () => { 
+      it('render 2nd hdcp from errors', async () => { 
         const user = userEvent.setup()
         render(<OneToNDivs {...mockOneToNDivsProps} />)      
         const tabs = screen.getAllByRole('tab');  
         await user.click(tabs[1]);
-        const nameErrors = screen.queryAllByTestId("dangerHdcpFrom");
-        expect(nameErrors).toHaveLength(2);
-        expect(nameErrors[1]).toHaveTextContent("test hdcp from error");
+        const hdcpFromErrors = screen.queryAllByTestId("dangerHdcpFrom");
+        expect(hdcpFromErrors).toHaveLength(2);
+        expect(hdcpFromErrors[1]).toHaveTextContent("test hdcp from error");
       })
       it('render int hdcp checkbox', async () => {        
         const user = userEvent.setup()

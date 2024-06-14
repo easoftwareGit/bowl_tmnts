@@ -1,12 +1,12 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
-import { sanitize } from "@/lib/sanitize";
 import { ErrorCode, isValidBtDbId } from "@/lib/validation";
-import { validateDiv, divToCheck, validDivData } from "../validate";
+import { sanitizeDiv, validateDiv } from "../validate";
+import { divType, HdcpForTypes } from "@/lib/types/types";
+import { initDiv } from "@/db/initVals";
+import { findDivById } from "@/lib/db/divs";
 
 // routes /api/divs/:id
-
-// div_f30aea2c534f4cfe87f4315531cef8ef
 
 export async function GET(
   request: Request,
@@ -15,18 +15,28 @@ export async function GET(
 
   try {
     const id = params.id;
-    if (!isValidBtDbId(id)) {
+    if (!isValidBtDbId(id, 'div')) {
       return NextResponse.json(
-        { error: "invalid request" },
-        { status: 400 }
+        { error: "not found" },
+        { status: 404 }
       );        
     }
-    const div = await prisma.div.findUnique({
+    const gotDiv = await prisma.div.findUnique({
       where: {
         id: id
       }
     })
-    // return NextResponse.json(div);
+    if (!gotDiv) {
+      return NextResponse.json(
+        { error: "not found" },
+        { status: 404 }
+      );            
+    }
+    // add in hdcp_per_str
+    const div = {
+      ...gotDiv,
+      hdcp_per_str: (gotDiv.hdcp_per * 100).toFixed(2)
+    }
     return NextResponse.json({div}, {status: 200});    
   } catch (err: any) {
     return NextResponse.json(
@@ -36,32 +46,28 @@ export async function GET(
   } 
 }
 
-// div_f30aea2c534f4cfe87f4315531cef8ef
-// {
-//   "event_id": "evt_cb97b73cb538418ab993fc867f860510",
-//   "div_name": "Scratch",
-//   "hdcp_per": 0,        
-//   "sort_order": 1
-// }
-
 export async function PUT(
   request: Request,
   { params }: { params: { id: string } }
 ) {
   try {
     const id = params.id
-    if (!isValidBtDbId(id)) {
+    if (!isValidBtDbId(id, 'div')) {
       return NextResponse.json(
-        { error: "invalid request" },
-        { status: 400 }
+        { error: "not found" },
+        { status: 404 }
       );        
     }
 
-    const { event_id, div_name, hdcp_per, sort_order } = await request.json()
-    const toCheck: divToCheck = {
-      event_id,
+    const { tmnt_id, div_name, hdcp_per, hdcp_from, int_hdcp, hdcp_for, sort_order } = await request.json()
+    const toCheck: divType = {
+      ...initDiv,
+      tmnt_id,      
       div_name,
-      hdcp_per,      
+      hdcp_per, 
+      hdcp_from,
+      hdcp_for,
+      int_hdcp,
       sort_order
     }
 
@@ -84,30 +90,41 @@ export async function PUT(
         { status: 422 }
       );
     }
-        
-    const san_div_name = sanitize(div_name);    
-    const updated = await prisma.div.update({
+
+    const toPut = sanitizeDiv(toCheck)
+    // NO hdcp_per_str in data object
+    const putDiv = await prisma.div.update({
       where: {
         id: id
-      },
-      // remove data if not sent
-      data: {        
-        event_id: event_id,
-        div_name: san_div_name,
-        hdcp_per: hdcp_per,
-        sort_order: sort_order
+      },    
+      data: {
+        tmnt_id: toPut.tmnt_id,
+        div_name: toPut.div_name,
+        hdcp_per: toPut.hdcp_per,
+        hdcp_from: toPut.hdcp_from,
+        int_hdcp: toPut.int_hdcp,
+        hdcp_for: toPut.hdcp_for,        
+        sort_order: toPut.sort_order
       }
     })
-    return NextResponse.json({updated}, {status: 200});    
+    // add in hdcp_per_str
+    const div = {
+      ...putDiv,
+      hdcp_per_str: (putDiv.hdcp_per * 100).toFixed(2)
+    }
+    return NextResponse.json({div}, {status: 200});    
   } catch (err: any) {
-
-    console.log('err: ', err)
-
     let errStatus: number    
     switch (err.code) {
-      case 'P2003':
+      case 'P2002': // unique constraint
+        errStatus = 422
+        break;
+      case 'P2003': // foreign key constraint
         errStatus = 422        
-        break;    
+        break; 
+      case 'P2025': // record not found
+        errStatus = 404
+        break;
       default:
         errStatus = 500        
         break;
@@ -119,63 +136,141 @@ export async function PUT(
   }
 }
 
-// div_f30aea2c534f4cfe87f4315531cef8ef
-// {
-//   "event_id": "evt_cb97b73cb538418ab993fc867f860510",
-//   "div_name": "Scratch",
-//   "hdcp_per": 0,        
-//   "sort_order": 1
-// }
-
 export async function PATCH(
   request: Request,
   { params }: { params: { id: string } }
 ) {
   try {
     const id = params.id
-    if (!isValidBtDbId(id)) {
+    if (!isValidBtDbId(id, 'div')) {
       return NextResponse.json(
-        { error: "invalid request" },
-        { status: 400 }
+        { error: "not found" },
+        { status: 404 }
       );        
     }
 
-    const { event_id, div_name, hdcp_per, sort_order } = await request.json()
-    const toCheck: divToCheck = {
-      event_id,
-      div_name,
-      hdcp_per,      
-      sort_order
-    }
-    if (validDivData(toCheck) !== ErrorCode.None) {
+    const json = await request.json()
+    // populate toCheck with json
+    const jsonProps = Object.getOwnPropertyNames(json);
+    if (jsonProps.includes('tmnt_id')) {
       return NextResponse.json(
-        { error: 'invalid data' },
+        { error: "foreign key constraint" },
+        { status: 422 }
+      )
+    }
+
+    const currentDiv = await findDivById(id);
+    if (!currentDiv) {
+      return NextResponse.json(
+        { error: "not found" },
+        { status: 404 }
+      );            
+    }
+    
+    const toCheck: divType = {
+      ...initDiv, 
+      tmnt_id: currentDiv.tmnt_id,
+      div_name: currentDiv.div_name,
+      hdcp_per: currentDiv.hdcp_per,
+      hdcp_from: currentDiv.hdcp_from,
+      int_hdcp: currentDiv.int_hdcp,
+      hdcp_for: currentDiv.hdcp_for as HdcpForTypes,      
+      sort_order: currentDiv.sort_order
+    }
+
+    if (jsonProps.includes('div_name')) {
+      toCheck.div_name = json.div_name
+    }
+    if (jsonProps.includes('hdcp_per')) {
+      toCheck.hdcp_per = json.hdcp_per
+    }
+    if (jsonProps.includes('hdcp_from')) {
+      toCheck.hdcp_from = json.hdcp_from
+    }
+    if (jsonProps.includes('int_hdcp') && typeof json.int_hdcp === 'boolean') {
+      toCheck.int_hdcp = json.int_hdcp
+    }
+    if (jsonProps.includes('hdcp_for')) {
+      toCheck.hdcp_for = json.hdcp_for
+    }
+    if (jsonProps.includes('sort_order')) {
+      toCheck.sort_order = json.sort_order
+    }
+
+    const errCode = validateDiv(toCheck);
+    if (errCode !== ErrorCode.None) {
+      let errMsg: string;
+      switch (errCode) {
+        case ErrorCode.MissingData:
+          errMsg = 'missing data'
+          break;
+        case ErrorCode.InvalidData:
+          errMsg = 'invalid data'
+          break;        
+        default:
+          errMsg = 'unknown error' 
+          break;
+      }
+      return NextResponse.json(
+        { error: errMsg },
         { status: 422 }
       );
     }
 
-    const san_div_name = sanitize(div_name);
-    const p_hdcp_per = (typeof hdcp_per === 'number') ? hdcp_per : undefined;
-    const p_sort_order = (typeof sort_order === 'number') ? sort_order : undefined;
-    const updated = await prisma.div.update({
+    let gotIntHdcp = undefined
+    const toBePatched = sanitizeDiv(toCheck)
+    const toPatch = {
+      ...initDiv,
+      tmnt_id: '',
+    }
+    if (jsonProps.includes('div_name')) {
+      toPatch.div_name = toBePatched.div_name
+    }
+    if (jsonProps.includes('hdcp_per')) {
+      // DO NOT add hdcp_per_str
+      toPatch.hdcp_per = toBePatched.hdcp_per
+    }
+    if (jsonProps.includes('hdcp_from')) {
+      toPatch.hdcp_from = toBePatched.hdcp_from
+    }
+    if (jsonProps.includes('int_hdcp')) {
+      toPatch.int_hdcp = toBePatched.int_hdcp
+      gotIntHdcp = toPatch.int_hdcp
+    }
+    if (jsonProps.includes('hdcp_for')) {
+      toPatch.hdcp_for = toBePatched.hdcp_for
+    }
+    if (jsonProps.includes('sort_order')) {
+      toPatch.sort_order = toBePatched.sort_order
+    }
+
+    const patchDiv = await prisma.div.update({
       where: {
         id: id
-      },    
+      },
+      // remove data if not sent
       data: {
-        event_id: event_id || undefined,
-        div_name: san_div_name || undefined,
-        hdcp_per: p_hdcp_per,
-        sort_order: p_sort_order
+        tmnt_id: toPatch.tmnt_id || undefined,
+        div_name: toPatch.div_name || undefined,
+        hdcp_per: toPatch.hdcp_per || undefined,
+        hdcp_from: toPatch.hdcp_from || undefined,
+        int_hdcp: toPatch.int_hdcp || gotIntHdcp,
+        hdcp_for: toPatch.hdcp_for || undefined,
+        sort_order: toPatch.sort_order || undefined
       }
     })
-    return NextResponse.json({updated}, {status: 200});    
+    const div = {
+      ...patchDiv,
+      hdcp_per_str: (patchDiv.hdcp_per * 100).toFixed(2)
+    }
+    return NextResponse.json({div}, {status: 200});    
   } catch (err: any) {
     let errStatus: number    
     switch (err.code) {
-      case 'P2003':
-        errStatus = 422        
-        break;    
-      case 'P2025': // no matching div_id
+      case 'P2002': // unique constraint
+        errStatus = 422
+        break;
+      case 'P2003': // foreign key constraint
         errStatus = 422        
         break;    
       default:
@@ -189,34 +284,37 @@ export async function PATCH(
   }
 }
 
-// div_26230803eb454a6588476b64eab1963a
-
 export async function DELETE(
   request: Request,
   { params }: { params: { id: string } }
 ) {
   try {
     const id = params.id
-    if (!isValidBtDbId(id)) {
+    if (!isValidBtDbId(id, 'div')) {
       return NextResponse.json(
-        { error: 'invalid data' },
-        { status: 422 }
-      );
+        { error: "not found" },
+        { status: 404 }
+      );        
     }
 
-    const deleted = await prisma.div.delete({
+    const deletedDiv = await prisma.div.delete({
       where: {
         id: id
       }
     })
+    // add in hdcp_per_str
+    const deleted = {
+      ...deletedDiv,
+      hdcp_per_str: (deletedDiv.hdcp_per * 100).toFixed(2)
+    }
     return NextResponse.json({deleted}, {status: 200});    
   } catch (err: any) {
     let errStatus: number    
     switch (err.code) {
-      case 'P2003':
-        errStatus = 422        
+      case 'P2003': // parent has child rows
+        errStatus = 409        
         break;    
-      case 'P2025':
+      case 'P2025': // record not found
         errStatus = 404
         break;           
       default:

@@ -1,10 +1,8 @@
 import { NextResponse, NextRequest } from "next/server";
 import { prisma } from "@/lib/prisma";
-import { sanitize } from "@/lib/sanitize";
-import { ErrorCode } from "@/lib/validation";
+import { ErrorCode, validPostId } from "@/lib/validation";
 import { tmntType } from "@/lib/types/types";
-import { validateTmnt } from "./valildate";
-import { startOfDay } from "date-fns";
+import { sanitizeTmnt, validateTmnt } from "./valildate";
 import { initTmnt } from "@/db/initVals";
 
 // routes /api/tmnts
@@ -18,7 +16,7 @@ export async function GET(request: NextRequest) {
       take: take ? parseInt(take, 10) : undefined,
     })
     // return NextResponse.json(tmnts);
-    return NextResponse.json({ data: tmnts }, { status: 200 });    
+    return NextResponse.json({ tmnts }, { status: 200 });    
   } catch (err: any) {
     return NextResponse.json(
       { error: "error getting tmnts" },
@@ -38,7 +36,7 @@ export async function GET(request: NextRequest) {
 export async function POST(request: Request) {  
 
   try {
-    const { tmnt_name, start_date, end_date, user_id, bowl_id } = await request.json()    
+    const { id, tmnt_name, start_date, end_date, user_id, bowl_id } = await request.json()    
     const toCheck: tmntType = {
       ...initTmnt, 
       tmnt_name,
@@ -66,23 +64,58 @@ export async function POST(request: Request) {
         { status: 422 }
       );
     }
-
-    const san_tmnt_name = sanitize(tmnt_name);
-    const startDate = startOfDay(new Date(start_date)) 
-    const endDate = startOfDay(new Date(end_date))
-    const tmnt = await prisma.tmnt.create({
-      data: {
-        tmnt_name: san_tmnt_name,
-        start_date: startDate,
-        end_date: endDate,
-        user_id: user_id,
-        bowl_id: bowl_id,
+    let postId = '';
+    if (id) {
+      postId = validPostId(id, 'tmt');
+      if (!postId) {
+        return NextResponse.json(
+          { error: 'invalid data' },
+          { status: 422 }
+        );
       }
+    }
+
+    const toPost = sanitizeTmnt(toCheck);
+    type tmntDataType = {
+      tmnt_name: string
+      start_date: string
+      end_date: string
+      user_id: string
+      bowl_id: string
+      id?: string
+    }
+    let tmntData: tmntDataType = {
+      tmnt_name: toPost.tmnt_name,
+      start_date: toPost.start_date,
+      end_date: toPost.end_date,
+      user_id: toPost.user_id,
+      bowl_id: toPost.bowl_id
+    }
+    if (postId) {
+      tmntData.id = postId
+    }
+
+    const tmnt = await prisma.tmnt.create({
+      data: tmntData
     })
-    return new NextResponse(JSON.stringify(tmnt), { status: 201 })    
-  } catch (err: any) {
+
+    // const san_tmnt_name = sanitize(tmnt_name);
+    // const startDate = startOfDay(new Date(start_date)) 
+    // const endDate = startOfDay(new Date(end_date))
+    // const tmnt = await prisma.tmnt.create({
+    //   data: {
+    //     tmnt_name: san_tmnt_name,
+    //     start_date: startDate,
+    //     end_date: endDate,
+    //     user_id: user_id,
+    //     bowl_id: bowl_id,
+    //   }
+    // })
+
+    return NextResponse.json({ tmnt }, { status: 201 });
+  } catch (error: any) {
     let errStatus: number
-    switch (err.code) {
+    switch (error.code) {
       case 'P2003':
         errStatus = 422
         break;    

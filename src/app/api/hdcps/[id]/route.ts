@@ -14,10 +14,10 @@ export async function GET(
 
   try {
     const id = params.id;
-    if (!isValidBtDbId(id)) {
+    if (!isValidBtDbId(id, 'hdc')) {
       return NextResponse.json(
-        { error: "invalid request" },
-        { status: 400 }
+        { error: "not found" },
+        { status: 404 }
       );        
     }
     const hdcp = await prisma.hdcp.findUnique({
@@ -49,11 +49,11 @@ export async function PUT(
 ) {
   try {
     const id = params.id
-    if (!isValidBtDbId(id)) {
+    if (!isValidBtDbId(id, 'hdc')) {
       return NextResponse.json(
-        { error: 'invalid data' },
-        { status: 422 }
-      );
+        { error: "not found" },
+        { status: 404 }
+      );        
     }
 
     const { div_id, hdcp_from, int_hdcp, game } = await request.json()
@@ -127,11 +127,11 @@ export async function PATCH(
 ) {
   try {
     const id = params.id    
-    if (!isValidBtDbId(id)) {
+    if (!isValidBtDbId(id, 'hdc')) {
       return NextResponse.json(
-        { error: 'invalid data' },
-        { status: 422 }
-      );
+        { error: "not found" },
+        { status: 404 }
+      );        
     }
 
     const { div_id, hdcp_from, int_hdcp, game } = await request.json()
@@ -188,11 +188,11 @@ export async function DELETE(
 ) {
   try {
     const id = params.id
-    if (!isValidBtDbId(id)) {
+    if (!isValidBtDbId(id, 'hdc')) {
       return NextResponse.json(
-        { error: 'invalid data' },
-        { status: 422 }
-      );
+        { error: "not found" },
+        { status: 404 }
+      );        
     }
 
     const deleted = await prisma.hdcp.delete({

@@ -7,7 +7,7 @@ describe('tests for uuid', () => {
     const type = 'bwl';
     const bowUuid = btDbUuid(type);
     expect(bowUuid).toHaveLength(36);
-    expect(isValidBtDbId(bowUuid)).toBe(true);    
+    expect(isValidBtDbId(bowUuid, type)).toBe(true);    
   })
   it('shoudl return a blank uuid for invalid type', () => { 
     const bad = 'bad';

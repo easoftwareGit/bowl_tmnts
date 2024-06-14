@@ -11,7 +11,14 @@ async function userUpsert() {
       where: {
         id: "usr_5bcefb5d314fff1ff5da6521a2fa7bde",
       },
-      update: {},
+      update: {
+        email: "adam@email.com",
+        password_hash: testPassword,
+        first_name: "Adam",
+        last_name: "Smith",
+        phone: "+18005551212",
+        role: 'ADMIN',
+      },
       create: {
         id: "usr_5bcefb5d314fff1ff5da6521a2fa7bde",
         email: "adam@email.com",
@@ -26,7 +33,13 @@ async function userUpsert() {
       where: {
         id: "usr_516a113083983234fc316e31fb695b85",
       },
-      update: {},
+      update: {
+        email: "chad@email.com",
+        password_hash: testPassword,
+        first_name: "Chad",
+        last_name: "White",
+        phone: "+18005557890",        
+      },
       create: {
         id: "usr_516a113083983234fc316e31fb695b85",
         email: "chad@email.com",
@@ -40,7 +53,13 @@ async function userUpsert() {
       where: {
         id: "usr_5735c309d480323662da31e13c35b91e",
       },
-      update: {},
+      update: {
+        email: "doug@email.com",
+        password_hash: testPassword,
+        first_name: "Doug",
+        last_name: "Jones",
+        phone: "+18005552211",
+      },
       create: {
         id: "usr_5735c309d480323662da31e13c35b91e",
         email: "doug@email.com",
@@ -54,7 +73,14 @@ async function userUpsert() {
       where: {
         id: "usr_a24894ed10c5dd835d5cbbfea7ac6dca",
       },
-      update: {},
+      update: {
+        email: "eric@email.com",
+        password_hash: testPassword,
+        first_name: "Eric",
+        last_name: "Johnson",
+        phone: "+18005551234",
+        role: 'DIRECTOR',
+      },
       create: {
         id: "usr_a24894ed10c5dd835d5cbbfea7ac6dca",
         email: "eric@email.com",
@@ -69,7 +95,13 @@ async function userUpsert() {
       where: {
         id: "usr_07de11929565179487c7a04759ff9866",
       },
-      update: {},
+      update: {
+        email: "fred@email.com",
+        password_hash: testPassword,
+        first_name: "Fred",
+        last_name: "Green",
+        phone: "+18005554321",
+      },
       create: {
         id: "usr_07de11929565179487c7a04759ff9866",
         email: "fred@email.com",
@@ -93,7 +125,12 @@ async function bowlUpsert() {
       where: {
         id: "bwl_561540bd64974da9abdd97765fdb3659",
       },
-      update: {},
+      update: {
+        bowl_name: "Earl Anthony's Dublin Bowl",
+        city: "Dublin",
+        state: "CA",
+        url: "https://www.earlanthonysdublinbowl.com/",
+      },
       create: {
         id: "bwl_561540bd64974da9abdd97765fdb3659",
         bowl_name: "Earl Anthony's Dublin Bowl",
@@ -106,7 +143,12 @@ async function bowlUpsert() {
       where: {
         id: "bwl_8b4a5c35ad1247049532ff53a12def0a",
       },
-      update: {},
+      update: {
+        bowl_name: "Yosemite Lanes",
+        city: "Modesto",
+        state: "CA",
+        url: "http://yosemitelanes.com/",
+      },
       create: {
         id: "bwl_8b4a5c35ad1247049532ff53a12def0a",
         bowl_name: "Yosemite Lanes",
@@ -119,7 +161,12 @@ async function bowlUpsert() {
       where: {
         id: "bwl_ff4cd62b03f24017beea81c1d6e047e7",
       },
-      update: {},
+      update: {
+        bowl_name: "Coconut Bowl",
+        city: "Sparks",
+        state: "NV",
+        url: "https://wildisland.com/bowl/",
+      },
       create: {
         id: "bwl_ff4cd62b03f24017beea81c1d6e047e7",
         bowl_name: "Coconut Bowl",
@@ -128,7 +175,25 @@ async function bowlUpsert() {
         url: "https://wildisland.com/bowl/",
       },
     });
-    console.log("Upserted bowls:", 3);
+    bowl = await prisma.bowl.upsert({
+      where: {
+        id: "bwl_91c6f24db58349e8856fe1d919e54b9e",
+      },
+      update: {
+        bowl_name: "Diablo Lanes",
+        city: "Concord",
+        state: "CA",
+        url: "http://diablolanes.com/",
+      },
+      create: {
+        id: "bwl_91c6f24db58349e8856fe1d919e54b9e",
+        bowl_name: "Diablo Lanes",
+        city: "Concord",
+        state: "CA",
+        url: "http://diablolanes.com/",
+      },
+    });
+    console.log("Upserted bowls:", 4);
     return 3;
   } catch (error) {
     console.log(error);
@@ -142,140 +207,200 @@ async function tmntUpsert() {
       where: {
         id: "tmt_fd99387c33d9c78aba290286576ddce5",
       },
-      update: {},
+      update: {
+        user_id: "usr_5bcefb5d314fff1ff5da6521a2fa7bde",
+        tmnt_name: "Gold Pin",
+        bowl_id: "bwl_561540bd64974da9abdd97765fdb3659",
+        start_date: '2022-10-23',
+        end_date: '2022-10-23',
+      },
       create: {
         id: "tmt_fd99387c33d9c78aba290286576ddce5",
         user_id: "usr_5bcefb5d314fff1ff5da6521a2fa7bde",
         tmnt_name: "Gold Pin",
         bowl_id: "bwl_561540bd64974da9abdd97765fdb3659",
-        start_date: new Date("10/23/2022"),
-        end_date: new Date("10/23/2022"),
+        start_date: '2022-10-23',
+        end_date: '2022-10-23',
       },
     });
     tmnt = await prisma.tmnt.upsert({
       where: {
         id: "tmt_56d916ece6b50e6293300248c6792316",
       },
-      update: {},
+      update: {
+        user_id: "usr_516a113083983234fc316e31fb695b85",
+        tmnt_name: "Yosemite 6 Gamer",
+        bowl_id: "bwl_8b4a5c35ad1247049532ff53a12def0a",
+        start_date: '2022-01-02',
+        end_date: '2022-01-02',
+      },
       create: {
         id: "tmt_56d916ece6b50e6293300248c6792316",
         user_id: "usr_516a113083983234fc316e31fb695b85",
         tmnt_name: "Yosemite 6 Gamer",
         bowl_id: "bwl_8b4a5c35ad1247049532ff53a12def0a",
-        start_date: new Date("01/02/2023"),
-        end_date: new Date("01/02/2023"),
+        start_date: '2022-01-02',
+        end_date: '2022-01-02',
       },
     });
     tmnt = await prisma.tmnt.upsert({
       where: {
         id: "tmt_d9b1af944d4941f65b2d2d4ac160cdea",
       },
-      update: {},
+      update: {
+        user_id: "usr_a24894ed10c5dd835d5cbbfea7ac6dca",
+        tmnt_name: "Coconut 5 Gamer",
+        bowl_id: "bwl_ff4cd62b03f24017beea81c1d6e047e7",
+        start_date: '2022-08-21',
+        end_date: '2022-08-21',
+      },
       create: {
         id: "tmt_d9b1af944d4941f65b2d2d4ac160cdea",
         user_id: "usr_a24894ed10c5dd835d5cbbfea7ac6dca",
         tmnt_name: "Coconut 5 Gamer",
         bowl_id: "bwl_ff4cd62b03f24017beea81c1d6e047e7",
-        start_date: new Date("08/21/2022"),
-        end_date: new Date("08/21/2022"),
+        start_date: '2022-08-21',
+        end_date: '2022-08-21',
       },
     });
     tmnt = await prisma.tmnt.upsert({
       where: {
         id: "tmt_467e51d71659d2e412cbc64a0d19ecb4",
       },
-      update: {},
+      update: {
+        user_id: "usr_5bcefb5d314fff1ff5da6521a2fa7bde",
+        tmnt_name: "Gold Pin",
+        bowl_id: "bwl_561540bd64974da9abdd97765fdb3659",
+        start_date: '2023-09-16',
+        end_date: '2023-09-16',
+      },
       create: {
         id: "tmt_467e51d71659d2e412cbc64a0d19ecb4",
         user_id: "usr_5bcefb5d314fff1ff5da6521a2fa7bde",
         tmnt_name: "Gold Pin",
         bowl_id: "bwl_561540bd64974da9abdd97765fdb3659",
-        start_date: new Date("09/16/2023"),
-        end_date: new Date("09/16/2023"),
+        start_date: '2023-09-16',
+        end_date: '2023-09-16',
       },
     });
     tmnt = await prisma.tmnt.upsert({
       where: {
         id: "tmt_02e9022687d13c2c922d43682e6b6a80",
       },
-      update: {},
+      update: {
+        user_id: "usr_a24894ed10c5dd835d5cbbfea7ac6dca",
+        tmnt_name: "Coconut Singles & Doubles",
+        bowl_id: "bwl_ff4cd62b03f24017beea81c1d6e047e7",
+        start_date: '2023-01-01',
+        end_date: '2023-01-01',
+      },
       create: {
         id: "tmt_02e9022687d13c2c922d43682e6b6a80",
         user_id: "usr_a24894ed10c5dd835d5cbbfea7ac6dca",
         tmnt_name: "Coconut Singles & Doubles",
         bowl_id: "bwl_ff4cd62b03f24017beea81c1d6e047e7",
-        start_date: new Date("01/01/2023"),
-        end_date: new Date("01/01/2023"),
+        start_date: '2023-01-01',
+        end_date: '2023-01-01',
       },
     });
     tmnt = await prisma.tmnt.upsert({
       where: {
         id: "tmt_a78f073789cc0f8a9a0de8c6e273eab1",
       },
-      update: {},
+      update: {
+        user_id: "usr_5bcefb5d314fff1ff5da6521a2fa7bde",
+        tmnt_name: "Gold Pin",
+        bowl_id: "bwl_561540bd64974da9abdd97765fdb3659",
+        start_date: '2023-01-02',
+        end_date: '2023-01-02',
+      },
       create: {
         id: "tmt_a78f073789cc0f8a9a0de8c6e273eab1",
         user_id: "usr_5bcefb5d314fff1ff5da6521a2fa7bde",
         tmnt_name: "Gold Pin",
         bowl_id: "bwl_561540bd64974da9abdd97765fdb3659",
-        start_date: new Date("01/02/2023"),
-        end_date: new Date("01/02/2023"),
+        start_date: '2023-01-02',
+        end_date: '2023-01-02',
       },
     });
     tmnt = await prisma.tmnt.upsert({
       where: {
         id: "tmt_9a34a65584f94f548f5ce3b3becbca19",
       },
-      update: {},
+      update: {
+        user_id: "usr_5bcefb5d314fff1ff5da6521a2fa7bde",
+        tmnt_name: "Masters",
+        bowl_id: "bwl_8b4a5c35ad1247049532ff53a12def0a",
+        start_date: '2024-01-05',
+        end_date: '2024-01-05',
+      },
       create: {
         id: "tmt_9a34a65584f94f548f5ce3b3becbca19",
         user_id: "usr_5bcefb5d314fff1ff5da6521a2fa7bde",
         tmnt_name: "Masters",
         bowl_id: "bwl_8b4a5c35ad1247049532ff53a12def0a",
-        start_date: new Date("01/05/2024"),
-        end_date: new Date("01/05/2024"),
+        start_date: '2024-01-05',
+        end_date: '2024-01-05',
       },
     });
     tmnt = await prisma.tmnt.upsert({
       where: {
         id: "tmt_fe8ac53dad0f400abe6354210a8f4cd1",
       },
-      update: {},
+      update: {
+        user_id: "usr_5bcefb5d314fff1ff5da6521a2fa7bde",
+        tmnt_name: "New Year's Eve 6 Gamer",
+        bowl_id: "bwl_561540bd64974da9abdd97765fdb3659",
+        start_date: '2023-12-31',
+        end_date: '2023-12-31',
+      },
       create: {
         id: "tmt_fe8ac53dad0f400abe6354210a8f4cd1",
         user_id: "usr_5bcefb5d314fff1ff5da6521a2fa7bde",
         tmnt_name: "New Year's Eve 6 Gamer",
         bowl_id: "bwl_561540bd64974da9abdd97765fdb3659",
-        start_date: new Date("12/31/2023"),
-        end_date: new Date("12/31/2023"),
+        start_date: '2023-12-31',
+        end_date: '2023-12-31',
       },
     });
     tmnt = await prisma.tmnt.upsert({
       where: {
         id: "tmt_718fe20f53dd4e539692c6c64f991bbe",
       },
-      update: {},
+      update: {
+        user_id: "usr_5bcefb5d314fff1ff5da6521a2fa7bde",
+        tmnt_name: "2-Day event",
+        bowl_id: "bwl_561540bd64974da9abdd97765fdb3659",
+        start_date: '2024-12-20',
+        end_date: '2024-12-21',
+      },
       create: {
         id: "tmt_718fe20f53dd4e539692c6c64f991bbe",
         user_id: "usr_5bcefb5d314fff1ff5da6521a2fa7bde",
         tmnt_name: "2-Day event",
         bowl_id: "bwl_561540bd64974da9abdd97765fdb3659",
-        start_date: new Date("12/20/2024"),
-        end_date: new Date("12/21/2024"),
+        start_date: '2024-12-20',
+        end_date: '2024-12-21',
       },
     });
     tmnt = await prisma.tmnt.upsert({
       where: {
         id: "tmt_e134ac14c5234d708d26037ae812ac33",
       },
-      update: {},
+      update: {
+        user_id: "usr_5bcefb5d314fff1ff5da6521a2fa7bde",
+        tmnt_name: "Gold Pin",
+        bowl_id: "bwl_561540bd64974da9abdd97765fdb3659",
+        start_date: '2024-08-19',
+        end_date: '2024-08-19',
+      },
       create: {
         id: "tmt_e134ac14c5234d708d26037ae812ac33",
         user_id: "usr_5bcefb5d314fff1ff5da6521a2fa7bde",
         tmnt_name: "Gold Pin",
         bowl_id: "bwl_561540bd64974da9abdd97765fdb3659",
-        start_date: new Date("08/19/2024"),
-        end_date: new Date("08/19/2024"),
+        start_date: '2024-08-19',
+        end_date: '2024-08-19',
       },
     });
     console.log("Upserted tmnts:", 10);
@@ -292,7 +417,20 @@ async function eventUpsert() {
       where: {
         id: "evt_cb97b73cb538418ab993fc867f860510",
       },
-      update: {},
+      update: {
+        id: "evt_cb97b73cb538418ab993fc867f860510",
+        tmnt_id: "tmt_fd99387c33d9c78aba290286576ddce5",
+        event_name: "Singles",
+        team_size: 1,
+        games: 6,
+        entry_fee: 80,
+        lineage: 18,
+        prize_fund: 55,
+        other: 2,
+        expenses: 5,
+        added_money: 0,
+        sort_order: 1,
+      },
       create: {
         id: "evt_cb97b73cb538418ab993fc867f860510",
         tmnt_id: "tmt_fd99387c33d9c78aba290286576ddce5",
@@ -312,7 +450,20 @@ async function eventUpsert() {
       where: {
         id: "evt_dadfd0e9c11a4aacb87084f1609a0afd",
       },
-      update: {},
+      update: {
+        id: "evt_dadfd0e9c11a4aacb87084f1609a0afd",
+        tmnt_id: "tmt_56d916ece6b50e6293300248c6792316",
+        event_name: "Singles",
+        team_size: 1,
+        games: 6,
+        entry_fee: 60,
+        lineage: 15,
+        prize_fund: 45,
+        other: 0,
+        expenses: 0,
+        added_money: 0,
+        sort_order: 1,
+      },
       create: {
         id: "evt_dadfd0e9c11a4aacb87084f1609a0afd",
         tmnt_id: "tmt_56d916ece6b50e6293300248c6792316",
@@ -332,7 +483,20 @@ async function eventUpsert() {
       where: {
         id: "evt_06055deb80674bd592a357a4716d8ef2",
       },
-      update: {},
+      update: {
+        id: "evt_06055deb80674bd592a357a4716d8ef2",
+        tmnt_id: "tmt_d9b1af944d4941f65b2d2d4ac160cdea",
+        event_name: "Singles",
+        team_size: 1,
+        games: 5,
+        entry_fee: 70,
+        lineage: 15,
+        prize_fund: 50,
+        other: 0,
+        expenses: 5,
+        added_money: 0,
+        sort_order: 1,
+      },
       create: {
         id: "evt_06055deb80674bd592a357a4716d8ef2",
         tmnt_id: "tmt_d9b1af944d4941f65b2d2d4ac160cdea",
@@ -352,7 +516,20 @@ async function eventUpsert() {
       where: {
         id: "evt_9a58f0a486cb4e6c92ca3348702b1a62",
       },
-      update: {},
+      update: {
+        id: "evt_9a58f0a486cb4e6c92ca3348702b1a62",
+        tmnt_id: "tmt_fe8ac53dad0f400abe6354210a8f4cd1",
+        event_name: "Singles",
+        team_size: 1,
+        games: 6,
+        entry_fee: 80,
+        lineage: 18,
+        prize_fund: 55,
+        other: 0,
+        expenses: 5,
+        added_money: 0,
+        sort_order: 1,
+      },
       create: {
         id: "evt_9a58f0a486cb4e6c92ca3348702b1a62",
         tmnt_id: "tmt_fe8ac53dad0f400abe6354210a8f4cd1",
@@ -361,15 +538,48 @@ async function eventUpsert() {
         games: 6,
         entry_fee: 80,
         lineage: 18,
-        prize_fund: 57,
+        prize_fund: 55,
         other: 0,
         expenses: 5,
         added_money: 0,
         sort_order: 1,
       },
     });
-    console.log("Upserted events:", 4);
-    return 4;
+    event = await prisma.event.upsert({
+      where: {
+        id: "evt_cb55703a8a084acb86306e2944320e8d",
+      },
+      update: {
+        id: "evt_cb55703a8a084acb86306e2944320e8d",
+        tmnt_id: "tmt_fe8ac53dad0f400abe6354210a8f4cd1",
+        event_name: "Seniors",
+        team_size: 1,
+        games: 6,
+        entry_fee: 80,
+        lineage: 18,
+        prize_fund: 55,
+        other: 0,
+        expenses: 5,
+        added_money: 0,
+        sort_order: 2,
+      },
+      create: {
+        id: "evt_cb55703a8a084acb86306e2944320e8d",
+        tmnt_id: "tmt_fe8ac53dad0f400abe6354210a8f4cd1",
+        event_name: "Seniors",
+        team_size: 1,
+        games: 6,
+        entry_fee: 80,
+        lineage: 18,
+        prize_fund: 55,
+        other: 0,
+        expenses: 5,
+        added_money: 0,
+        sort_order: 2,
+      },
+    });
+    console.log("Upserted events:", 5);
+    return 5;
   } catch (error) {
     console.log(error);
     return -1;
@@ -382,51 +592,99 @@ async function divUpsert() {
       where: {
         id: "div_f30aea2c534f4cfe87f4315531cef8ef",
       },
-      update: {},
+      update: {
+        id: "div_f30aea2c534f4cfe87f4315531cef8ef",
+        tmnt_id: "tmt_fd99387c33d9c78aba290286576ddce5",
+        div_name: "Scratch",
+        hdcp_per: 0,
+        hdcp_from: 230,
+        int_hdcp: true, 
+        hdcp_for: 'Game',
+        sort_order: 1,
+      },
       create: {
         id: "div_f30aea2c534f4cfe87f4315531cef8ef",
-        event_id: "evt_cb97b73cb538418ab993fc867f860510",
+        tmnt_id: "tmt_fd99387c33d9c78aba290286576ddce5",
         div_name: "Scratch",
         hdcp_per: 0,
+        hdcp_from: 230,
+        int_hdcp: true, 
+        hdcp_for: 'Game',
         sort_order: 1,
       },
     });
     div = await prisma.div.upsert({
       where: {
-        id: "div_26230803eb454a6588476b64eab1963a",
+        id: "div_1f42042f9ef24029a0a2d48cc276a087",
       },
-      update: {},
+      update: {
+        id: "div_1f42042f9ef24029a0a2d48cc276a087",
+        tmnt_id: "tmt_56d916ece6b50e6293300248c6792316",
+        div_name: "Scratch",
+        hdcp_per: 0,
+        hdcp_from: 230,
+        int_hdcp: true, 
+        hdcp_for: 'Game',
+        sort_order: 1,        
+      },
       create: {
-        id: "div_26230803eb454a6588476b64eab1963a",
-        event_id: "evt_cb97b73cb538418ab993fc867f860510",
+        id: "div_1f42042f9ef24029a0a2d48cc276a087",
+        tmnt_id: "tmt_56d916ece6b50e6293300248c6792316",
+        div_name: "Scratch",
+        hdcp_per: 0,
+        hdcp_from: 230,
+        int_hdcp: true, 
+        hdcp_for: 'Game',
+        sort_order: 1,
+      },
+    });
+    div = await prisma.div.upsert({
+      where: {
+        id: "div_29b9225d8dd44a4eae276f8bde855729",
+      },
+      update: {
+        id: "div_29b9225d8dd44a4eae276f8bde855729",
+        tmnt_id: "tmt_56d916ece6b50e6293300248c6792316",
         div_name: "50+ Scratch",
         hdcp_per: 0,
+        hdcp_from: 230,
+        int_hdcp: true, 
+        hdcp_for: 'Game',
+        sort_order: 2,        
+      },
+      create: {
+        id: "div_29b9225d8dd44a4eae276f8bde855729",
+        tmnt_id: "tmt_56d916ece6b50e6293300248c6792316",
+        div_name: "50+ Scratch",
+        hdcp_per: 0,
+        hdcp_from: 230,
+        int_hdcp: true, 
+        hdcp_for: 'Game',
         sort_order: 2,
       },
     });
     div = await prisma.div.upsert({
       where: {
-        id: "div_1f42042f9ef24029a0a2d48cc276a087",
+        id: "div_578834e04e5e4885bbae79229d8b96e8",
       },
-      update: {},
-      create: {
-        id: "div_1f42042f9ef24029a0a2d48cc276a087",
-        event_id: "evt_dadfd0e9c11a4aacb87084f1609a0afd",
+      update: {
+        id: "div_578834e04e5e4885bbae79229d8b96e8",
+        tmnt_id: "tmt_fe8ac53dad0f400abe6354210a8f4cd1",
         div_name: "Scratch",
         hdcp_per: 0,
+        hdcp_from: 230,
+        int_hdcp: true, 
+        hdcp_for: 'Game',
         sort_order: 1,
       },
-    });
-    div = await prisma.div.upsert({
-      where: {
-        id: "div_578834e04e5e4885bbae79229d8b96e8",
-      },
-      update: {},
       create: {
         id: "div_578834e04e5e4885bbae79229d8b96e8",
-        event_id: "evt_9a58f0a486cb4e6c92ca3348702b1a62",
+        tmnt_id: "tmt_fe8ac53dad0f400abe6354210a8f4cd1",
         div_name: "Scratch",
         hdcp_per: 0,
+        hdcp_from: 230,
+        int_hdcp: true, 
+        hdcp_for: 'Game',
         sort_order: 1,
       },
     });
@@ -434,12 +692,24 @@ async function divUpsert() {
       where: {
         id: "div_24b1cd5dee0542038a1244fc2978e862",
       },
-      update: {},
-      create: {
+      update: {
         id: "div_24b1cd5dee0542038a1244fc2978e862",
-        event_id: "evt_9a58f0a486cb4e6c92ca3348702b1a62",
+        tmnt_id: "tmt_fe8ac53dad0f400abe6354210a8f4cd1",
         div_name: "Hdcp",
-        hdcp_per: 90,
+        hdcp_per: 0.90,
+        hdcp_from: 230,
+        int_hdcp: true, 
+        hdcp_for: 'Game',
+        sort_order: 2,
+      },
+      create: {
+        id: "div_24b1cd5dee0542038a1244fc2978e862",
+        tmnt_id: "tmt_fe8ac53dad0f400abe6354210a8f4cd1",
+        div_name: "Hdcp",
+        hdcp_per: 0.90,
+        hdcp_from: 230,
+        int_hdcp: true, 
+        hdcp_for: 'Game',
         sort_order: 2,
       },
     });
@@ -447,53 +717,54 @@ async function divUpsert() {
       where: {
         id: "div_fe72ab97edf8407186c8e6df7f7fb741",
       },
-      update: {},
+      update: {
+        id: "div_fe72ab97edf8407186c8e6df7f7fb741",
+        tmnt_id: "tmt_fe8ac53dad0f400abe6354210a8f4cd1",
+        div_name: "Hdcp 50+",
+        hdcp_per: 0.90,
+        hdcp_from: 230,
+        int_hdcp: true, 
+        hdcp_for: 'Game',
+        sort_order: 3,
+      },
       create: {
         id: "div_fe72ab97edf8407186c8e6df7f7fb741",
-        event_id: "evt_9a58f0a486cb4e6c92ca3348702b1a62",
+        tmnt_id: "tmt_fe8ac53dad0f400abe6354210a8f4cd1",
         div_name: "Hdcp 50+",
-        hdcp_per: 90,
+        hdcp_per: 0.90,
+        hdcp_from: 230,
+        int_hdcp: true, 
+        hdcp_for: 'Game',
         sort_order: 3,
       },
     });
-    console.log("Upserted divs:", 6);
-    return 6;
-  } catch (error) {
-    console.log(error);
-    return -1;
-  }
-}
-
-async function hdcpUpsert() {
-  try {
-    let hdcp = await prisma.hdcp.upsert({
+    div = await prisma.div.upsert({
       where: {
-        id: "hdc_67c7a51bbd2d441da9bb20a3001795a9",
+        id: "div_66d39a83d7a84a8c85d28d8d1b2c7a90",
       },
-      update: {},
+      update: {
+        id: "div_66d39a83d7a84a8c85d28d8d1b2c7a90",
+        tmnt_id: "tmt_fe8ac53dad0f400abe6354210a8f4cd1",
+        div_name: "Women's",
+        hdcp_per: 0.90,
+        hdcp_from: 230,
+        int_hdcp: true, 
+        hdcp_for: 'Game',
+        sort_order: 4,
+      },
       create: {
-        id: "hdc_67c7a51bbd2d441da9bb20a3001795a9",
-        div_id: "div_24b1cd5dee0542038a1244fc2978e862",
-        hdcp_from: 220,
-        int_hdcp: true,
-        game: true,
+        id: "div_66d39a83d7a84a8c85d28d8d1b2c7a90",
+        tmnt_id: "tmt_fe8ac53dad0f400abe6354210a8f4cd1",
+        div_name: "Women's",
+        hdcp_per: 0.90,
+        hdcp_from: 230,
+        int_hdcp: true, 
+        hdcp_for: 'Game',
+        sort_order: 4,
       },
     });
-    hdcp = await prisma.hdcp.upsert({
-      where: {
-        id: "hdc_d97abb6a776f4ab289d9e913ea7ada46",
-      },
-      update: {},
-      create: {
-        id: "hdc_d97abb6a776f4ab289d9e913ea7ada46",
-        div_id: "div_fe72ab97edf8407186c8e6df7f7fb741",
-        hdcp_from: 220,
-        int_hdcp: true,
-        game: true,
-      },
-    });
-    console.log("Upserted hdcps:", 2);
-    return 2;
+    console.log("Upserted divs:", 7);
+    return 7;
   } catch (error) {
     console.log(error);
     return -1;
@@ -506,7 +777,17 @@ async function squadUpsert() {
       where: {
         id: "sqd_7116ce5f80164830830a7157eb093396",
       },
-      update: {},
+      update: {
+        id: "sqd_7116ce5f80164830830a7157eb093396",
+        event_id: "evt_cb97b73cb538418ab993fc867f860510",
+        squad_name: "Squad 1",
+        squad_date: new Date("10/23/2022"),
+        squad_time: null,
+        games: 6,
+        lane_count: 12,
+        starting_lane: 29,
+        sort_order: 1,
+      },
       create: {
         id: "sqd_7116ce5f80164830830a7157eb093396",
         event_id: "evt_cb97b73cb538418ab993fc867f860510",
@@ -523,7 +804,17 @@ async function squadUpsert() {
       where: {
         id: "sqd_1a6c885ee19a49489960389193e8f819",
       },
-      update: {},
+      update: {
+        id: "sqd_1a6c885ee19a49489960389193e8f819",
+        event_id: "evt_dadfd0e9c11a4aacb87084f1609a0afd",
+        squad_name: "Squad 1",
+        squad_date: new Date("01/02/2023"),
+        squad_time: null,
+        games: 6,
+        lane_count: 24,
+        starting_lane: 9,
+        sort_order: 1,
+      },
       create: {
         id: "sqd_1a6c885ee19a49489960389193e8f819",
         event_id: "evt_dadfd0e9c11a4aacb87084f1609a0afd",
@@ -554,7 +845,7 @@ async function lanesUpsert() {
         update: {},
         create: {
           id: "lan_7b5b9d9e6b6e4c5b9f6b7d9e7f9b6c5d",
-          lane: 29,
+          lane_number: 29,
           squad_id: "sqd_7116ce5f80164830830a7157eb093396",
         },
       });
@@ -565,7 +856,7 @@ async function lanesUpsert() {
         update: {},
         create: {
           id: "lan_7b5b9d9e6b6e4c5b9f6b7d9e7f9b6c5d",
-          lane: 30,
+          lane_number: 30,
           squad_id: "sqd_7116ce5f80164830830a7157eb093396",
         },
       });
@@ -576,7 +867,7 @@ async function lanesUpsert() {
         update: {},
         create: {
           id: "lan_8b78890d8b8e4c5b9f6b7d9e7f9b6c5d",
-          lane: 31,
+          lane_number: 31,
           squad_id: "sqd_7116ce5f80164830830a7157eb093396",
         },
       });
@@ -587,7 +878,7 @@ async function lanesUpsert() {
         update: {},
         create: {
           id: "lan_8b78890d8b8e4c5b9f6b7d9e7f9b6123",
-          lane: 32,
+          lane_number: 32,
           squad_id: "sqd_7116ce5f80164830830a7157eb093396",
         },
       });
@@ -598,7 +889,7 @@ async function lanesUpsert() {
         update: {},
         create: {
           id: "lan_8b78890d8b8e4c5b9f6b7d9e7f9b6234",
-          lane: 33,
+          lane_number: 33,
           squad_id: "sqd_7116ce5f80164830830a7157eb093396",
         },
       });
@@ -609,7 +900,7 @@ async function lanesUpsert() {
         update: {},
         create: {
           id: "lan_8b78890d8b8e4c5b9f6b7d9e7f9b6345",
-          lane: 34,
+          lane_number: 34,
           squad_id: "sqd_7116ce5f80164830830a7157eb093396",
         },
       });
@@ -620,7 +911,7 @@ async function lanesUpsert() {
         update: {},
         create: {
           id: "lan_8b78890d8b8e4c5b9f6b7d9e7f9b6456",
-          lane: 35,
+          lane_number: 35,
           squad_id: "sqd_7116ce5f80164830830a7157eb093396",
         },
       });
@@ -631,7 +922,7 @@ async function lanesUpsert() {
         update: {},
         create: {
           id: "lan_8b78890d8b8e4c5b9f6b7d9e7f9b6567",
-          lane: 36,
+          lane_number: 36,
           squad_id: "sqd_7116ce5f80164830830a7157eb093396",
         },
       });
@@ -642,7 +933,7 @@ async function lanesUpsert() {
         update: {},
         create: {
           id: "lan_8b78890d8b8e4c5b9f6b7d9e7f9b6678",
-          lane: 37,          
+          lane_number: 37,          
           squad_id: "sqd_7116ce5f80164830830a7157eb093396",
         },
       });
@@ -653,7 +944,7 @@ async function lanesUpsert() {
         update: {},
         create: {
           id: "lan_8b78890d8b8e4c5b9f6b7d9e7f9b6789",
-          lane: 38,
+          lane_number: 38,
           squad_id: "sqd_7116ce5f80164830830a7157eb093396",
         },
       });
@@ -664,7 +955,7 @@ async function lanesUpsert() {
         update: {},
         create: {
           id: "lan_8b78890d8b8e4c5b9f6b7d9e7f9b6890",
-          lane: 39,
+          lane_number: 39,
           squad_id: "sqd_7116ce5f80164830830a7157eb093396",
         },
       });
@@ -675,7 +966,7 @@ async function lanesUpsert() {
         update: {},
         create: {
           id: "lan_8b78890d8b8e4c5b9f6b7d9e7f9b6abc",
-          lane: 40,
+          lane_number: 40,
           squad_id: "sqd_7116ce5f80164830830a7157eb093396",
         },
       });
@@ -695,7 +986,7 @@ async function lanesUpsert() {
         update: {},
         create: {
           id: "lan_4e24c5cc04f6463d89f24e6e19a126a2",
-          lane: 9,
+          lane_number: 9,
           squad_id: "sqd_1a6c885ee19a49489960389193e8f819",
         }
       })
@@ -706,7 +997,7 @@ async function lanesUpsert() {
         update: {},
         create: {
           id: "lan_4e24c5cc04f6463d89f24e6e19a11234",
-          lane: 10,
+          lane_number: 10,
           squad_id: "sqd_1a6c885ee19a49489960389193e8f819",
         }
       })
@@ -717,7 +1008,7 @@ async function lanesUpsert() {
         update: {},
         create: {
           id: "lan_4e24c5cc04f6463d89f24e6e19a11235",
-          lane: 11,
+          lane_number: 11,
           squad_id: "sqd_1a6c885ee19a49489960389193e8f819",
         }
       })
@@ -728,7 +1019,7 @@ async function lanesUpsert() {
         update: {},
         create: {
           id: "lan_4e24c5cc04f6463d89f24e6e19a11236",
-          lane: 12,
+          lane_number: 12,
           squad_id: "sqd_1a6c885ee19a49489960389193e8f819",
         }
       })
@@ -739,7 +1030,7 @@ async function lanesUpsert() {
         update: {},
         create: {
           id: "lan_4e24c5cc04f6463d89f24e6e19a11237",
-          lane: 13,
+          lane_number: 13,
           squad_id: "sqd_1a6c885ee19a49489960389193e8f819",
         }
       })
@@ -750,7 +1041,7 @@ async function lanesUpsert() {
         update: {},
         create: {
           id: "lan_4e24c5cc04f6463d89f24e6e19a11238",
-          lane: 14,
+          lane_number: 14,
           squad_id: "sqd_1a6c885ee19a49489960389193e8f819",
         }
       })
@@ -761,7 +1052,7 @@ async function lanesUpsert() {
         update: {},
         create: {
           id: "lan_4e24c5cc04f6463d89f24e6e19a11239",
-          lane: 15,
+          lane_number: 15,
           squad_id: "sqd_1a6c885ee19a49489960389193e8f819",
         }
       })
@@ -772,7 +1063,7 @@ async function lanesUpsert() {
         update: {},
         create: {
           id: "lan_4e24c5cc04f6463d89f24e6e19a11240",
-          lane: 16,
+          lane_number: 16,
           squad_id: "sqd_1a6c885ee19a49489960389193e8f819",
         }
       })
@@ -783,7 +1074,7 @@ async function lanesUpsert() {
         update: {},
         create: {
           id: "lan_4e24c5cc04f6463d89f24e6e19a11241",
-          lane: 17,
+          lane_number: 17,
           squad_id: "sqd_1a6c885ee19a49489960389193e8f819",
         }
       })
@@ -794,7 +1085,7 @@ async function lanesUpsert() {
         update: {},
         create: {
           id: "lan_4e24c5cc04f6463d89f24e6e19a11242",
-          lane: 18,
+          lane_number: 18,
           squad_id: "sqd_1a6c885ee19a49489960389193e8f819",
         }
       })
@@ -805,7 +1096,7 @@ async function lanesUpsert() {
         update: {},
         create: {
           id: "lan_4e24c5cc04f6463d89f24e6e19a11243",
-          lane: 19,
+          lane_number: 19,
           squad_id: "sqd_1a6c885ee19a49489960389193e8f819",
         }
       })
@@ -816,7 +1107,7 @@ async function lanesUpsert() {
         update: {},
         create: {
           id: "lan_4e24c5cc04f6463d89f24e6e19a11244",
-          lane: 20,
+          lane_number: 20,
           squad_id: "sqd_1a6c885ee19a49489960389193e8f819",
         }
       })
@@ -827,7 +1118,7 @@ async function lanesUpsert() {
         update: {},
         create: {
           id: "lan_4e24c5cc04f6463d89f24e6e19a11245",
-          lane: 21,
+          lane_number: 21,
           squad_id: "sqd_1a6c885ee19a49489960389193e8f819",
         }
       })
@@ -838,7 +1129,7 @@ async function lanesUpsert() {
         update: {},
         create: {
           id: "lan_4e24c5cc04f6463d89f24e6e19a11246",
-          lane: 22,
+          lane_number: 22,
           squad_id: "sqd_1a6c885ee19a49489960389193e8f819",
         }
       })
@@ -849,7 +1140,7 @@ async function lanesUpsert() {
         update: {},
         create: {
           id: "lan_4e24c5cc04f6463d89f24e6e19a11247",
-          lane: 23,
+          lane_number: 23,
           squad_id: "sqd_1a6c885ee19a49489960389193e8f819",
         }
       })
@@ -860,7 +1151,7 @@ async function lanesUpsert() {
         update: {},
         create: {
           id: "lan_4e24c5cc04f6463d89f24e6e19a11248",
-          lane: 24,
+          lane_number: 24,
           squad_id: "sqd_1a6c885ee19a49489960389193e8f819",
         }
       })
@@ -871,7 +1162,7 @@ async function lanesUpsert() {
         update: {},
         create: {
           id: "lan_4e24c5cc04f6463d89f24e6e19a11249",
-          lane: 25,
+          lane_number: 25,
           squad_id: "sqd_1a6c885ee19a49489960389193e8f819",
         }
       })
@@ -882,7 +1173,7 @@ async function lanesUpsert() {
         update: {},
         create: {
           id: "lan_4e24c5cc04f6463d89f24e6e19a11250",
-          lane: 26,
+          lane_number: 26,
           squad_id: "sqd_1a6c885ee19a49489960389193e8f819",
         }
       })
@@ -893,7 +1184,7 @@ async function lanesUpsert() {
         update: {},
         create: {
           id: "lan_4e24c5cc04f6463d89f24e6e19a11251",
-          lane: 27,
+          lane_number: 27,
           squad_id: "sqd_1a6c885ee19a49489960389193e8f819",
         }
       })
@@ -904,7 +1195,7 @@ async function lanesUpsert() {
         update: {},
         create: {
           id: "lan_4e24c5cc04f6463d89f24e6e19a11252",
-          lane: 28,
+          lane_number: 28,
           squad_id: "sqd_1a6c885ee19a49489960389193e8f819",
         }
       })
@@ -915,7 +1206,7 @@ async function lanesUpsert() {
         update: {},
         create: {
           id: "lan_4e24c5cc04f6463d89f24e6e19a11253",
-          lane: 29,
+          lane_number: 29,
           squad_id: "sqd_1a6c885ee19a49489960389193e8f819",
         }
       })
@@ -926,7 +1217,7 @@ async function lanesUpsert() {
         update: {},
         create: {
           id: "lan_4e24c5cc04f6463d89f24e6e19a11254",
-          lane: 30,
+          lane_number: 30,
           squad_id: "sqd_1a6c885ee19a49489960389193e8f819",
         }
       })
@@ -937,7 +1228,7 @@ async function lanesUpsert() {
         update: {},
         create: {
           id: "lan_4e24c5cc04f6463d89f24e6e19a11255",
-          lane: 31,
+          lane_number: 31,
           squad_id: "sqd_1a6c885ee19a49489960389193e8f819",
         }
       })
@@ -948,7 +1239,7 @@ async function lanesUpsert() {
         update: {},
         create: {
           id: "lan_4e24c5cc04f6463d89f24e6e19a11256",
-          lane: 32,
+          lane_number: 32,
           squad_id: "sqd_1a6c885ee19a49489960389193e8f819",
         }
       })
@@ -1012,34 +1303,6 @@ async function potsUpsert() {
         div_id: "div_f30aea2c534f4cfe87f4315531cef8ef",
         sort_order: 2,
         fee: 10,
-        pot_type: "Last_Game",
-      },
-    });
-    pot = await prisma.pot.upsert({
-      where: {
-        id: "pot_ef6e06e06abb4d96a47017553f9a5e9e",
-      },
-      update: {},
-      create: {
-        id: "pot_ef6e06e06abb4d96a47017553f9a5e9e",
-        squad_id: "sqd_7116ce5f80164830830a7157eb093396",
-        div_id: "div_26230803eb454a6588476b64eab1963a",
-        sort_order: 3,
-        fee: 20,
-        pot_type: "Game",
-      },
-    });
-    pot = await prisma.pot.upsert({
-      where: {
-        id: "pot_dd99ba49394f4837aef26ec7e5781137",
-      },
-      update: {},
-      create: {
-        id: "pot_dd99ba49394f4837aef26ec7e5781137",
-        squad_id: "sqd_7116ce5f80164830830a7157eb093396",
-        div_id: "div_26230803eb454a6588476b64eab1963a",
-        sort_order: 4,
-        fee: 10,
         pot_type: "Series",
       },
     });
@@ -1072,8 +1335,8 @@ async function potsUpsert() {
       },
     });
 
-    console.log("Upserted pots:", 6);
-    return 6;
+    console.log("Upserted pots:", 5);
+    return 5;
   } catch (error) {
     console.log(error);
     return -1;
@@ -1254,8 +1517,8 @@ async function main() {
   count = await divUpsert();
   if (count < 0) return;
 
-  count = await hdcpUpsert();
-  if (count < 0) return;
+  // count = await hdcpUpsert();
+  // if (count < 0) return;
 
   count = await squadUpsert();
   if (count < 0) return;

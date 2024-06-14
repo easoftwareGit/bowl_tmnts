@@ -7,8 +7,6 @@ import { initUser } from "@/db/initVals";
 const url = baseApi + "/users";
 const userId = "usr_5bcefb5d314fff1ff5da6521a2fa7bde";
 const userIdUrl = url + "/" + userId;
-// const userToDelId = "usr_07de11929565179487c7a04759ff9866";
-const invalidUrl = url + "/invalid";
 let passed = true;
 let allResults = '';
 
@@ -16,10 +14,13 @@ export const DbUsers = () => {
   const [userCrud, setUserCrud] = React.useState("create");
   const [results, setResults] = React.useState("");  
 
-  // let testResults: string = '';
-
   useEffect(() => {
     setResults(results);
+    // force textare to scroll to bottom
+    var textarea = document.getElementById('userResults');
+    if (textarea) {
+      textarea.scrollTop = textarea.scrollHeight;
+    }
   }, [results]);
 
   const userToPost: userType = {
@@ -41,6 +42,15 @@ export const DbUsers = () => {
     last_name: "Smith",
     phone: "+18005551212",
     role: 'ADMIN',
+  }
+
+  const userUpdatedTo: userType = {
+    ...initUser,
+    email: "testing@email.com",
+    password: "Test456!",
+    first_name: "Jane",
+    last_name: "Jones",
+    phone: "+18001234567",    
   }
 
   const userToDel: userType = {
@@ -97,7 +107,7 @@ export const DbUsers = () => {
       });
       if (response.status === 200) {
         if (showResults) {
-          testResults += addToResults(`Reset User: ${response.data.user.email}`);
+          testResults += addToResults(`Reset User: ${userToUpdate.email}`);
           setResults(testResults)
         }
         return response.data;
@@ -119,19 +129,37 @@ export const DbUsers = () => {
     }
   }
 
-  const reAddDeletedUser = async (showResults: boolean) => {
+  const reAddDeletedUser = async () => {
     let testResults = results;    
     try {
-      const delUserUrl = url +'/' + userToDel.id
-      let response = await axios({
-        method: "get",
-        withCredentials: true,
-        url: delUserUrl,
-      });
-      if (response.status === 200 && (response.data.user || response.data.users?.length > 0)) {       
-        return {
-          data: userToDel,
-          status: 201
+      let response
+      try {
+        const delUserUrl = url +'/' + userToDel.id
+        response = await axios({
+          method: "get",
+          withCredentials: true,
+          url: delUserUrl,
+        });
+        // if user already exisits, do not delete it
+        if (response.status === 200) {       
+          return {
+            data: userToDel,
+            status: 201
+          }
+        } else {
+          return {
+            error: 'Error re-adding',
+            status: response.status
+          }
+        }             
+      } catch (error: any) {
+        // should get a 404 error if user does not exist, ok to continue
+        // non 404 return is bad
+        if (error.response.status !== 404) {
+          return {
+            error: error.message,
+            status: error.response.status
+          }
         }
       }
       const reAddUser = {
@@ -167,8 +195,54 @@ export const DbUsers = () => {
   }
 
   const userCreate = async () => {
-    let testResults: string = results;
+    let testResults: string = results + 'Create User tests: \n';
     let createdUserId: string = '';
+    passed = true;
+        
+    const userInvalidCreate = async (propertyName: string, value: any) => { 
+      try {        
+        const invalidUserJSON = JSON.stringify({
+          ...userToUpdate,
+          [propertyName]: value,
+        })
+        const invalidResponse = await axios({
+          method: "post",
+          data: invalidUserJSON,
+          withCredentials: true,
+          url: url,
+        });
+        if (invalidResponse.status !== 422) {
+          testResults += addToResults(`Create User Error: did not return 422 for invalid ${propertyName}`, false)
+          // setResults(testResults)
+          return {
+            error: `Error creating user with invalid ${propertyName}`,
+            status: invalidResponse.status,
+          };
+        } else {
+          testResults += addToResults(`Create User, non 422 response for user: ${userToUpdate.email} - invalid data`)
+          return {
+            error: 'Error Creating User, non 422 response for invalid data',
+            status: invalidResponse.status,
+          };
+        }
+      } catch (error: any) { 
+        if (error.response.status === 422) {
+          testResults += addToResults(`DID NOT Create User: ${userToUpdate.email} - invalid ${propertyName}`)          
+          return {
+            error: '',
+            status: error.response.status,
+          }
+        } else {
+          testResults += addToResults(`Create Error: did not return 422 for invalid ${propertyName}`, false)
+          // setResults(testResults)        
+          return {
+            error: `Error Creating user with invalid ${propertyName}`,
+            status: error.response.status,
+          };          
+        }
+      }
+    } 
+
     try {      
       const userJSON = JSON.stringify(userToPost);
       const response = await axios({
@@ -181,32 +255,39 @@ export const DbUsers = () => {
         testResults += addToResults(`Created User: ${response.data.user.email}`)
         const postedUser: userType = response.data.user;
         if (postedUser.first_name !== userToPost.first_name) {
-          testResults += addToResults('Created user first_name !== mockPostUser.first_name', false)
+          testResults += addToResults('Created user first_name !== userToPost.first_name', false)
         } else if (postedUser.last_name !== userToPost.last_name) {
-          testResults += addToResults('Created user last_name !== mockPostUser.last_name', false)
+          testResults += addToResults('Created user last_name !== userToPost.last_name', false)
         } else if (postedUser.email !== userToPost.email) {
-          testResults += addToResults('Created user email !== mockPostUser.email', false)
+          testResults += addToResults('Created user email !== userToPost.email', false)
         } else if (postedUser.phone !== userToPost.phone) {
-          testResults += addToResults('Created user phone !== mockPostUser.phone', false)
+          testResults += addToResults('Created user phone !== userToPost.phone', false)
         } else if (postedUser.role !== userToPost.role) {
-          testResults += addToResults('Created user role !== mockPostUser.role', false)
+          testResults += addToResults('Created user role !== userToPost.role', false)
         } else {
-          testResults += addToResults(`Created User === mockPostUser`)
+          testResults += addToResults(`Created User === userToPost`)
         }
         createdUserId = response.data.user.id;
-        setResults(testResults)        
-        return response.data;
       } else {
         testResults += addToResults(`Error creating user: ${userToPost.email}, response statue: ${response.status}`, false);        
-        setResults(testResults)
+        // setResults(testResults)
         return {
           error: 'Did not create user',
           status: response.status,
         };  
       }
+
+      await userInvalidCreate('first_name', '');
+      await userInvalidCreate('last_name', '<script>alert(1)</script>');
+      await userInvalidCreate('email', 'invalid email');
+      await userInvalidCreate('phone', '123');
+      await userInvalidCreate('password', 'test');      
+      
+      // setResults(testResults)        
+      return response.data;
     } catch (error: any) {
       testResults += addToResults(`Create Error: ${error.message}`, false)      
-      setResults(testResults)
+      // setResults(testResults)
       return {
         error: error.message,
         status: 404,
@@ -215,11 +296,19 @@ export const DbUsers = () => {
       if (createdUserId) {
         await userDelete(createdUserId, false)
       }
+      if (passed) {
+        testResults += addToResults(`Create User tests: PASSED`, true);
+      } else {
+        testResults += addToResults(`Create User tests: FAILED`, false);
+      }
+      setResults(testResults) 
     }
   };
 
   const userReadAll = async (showResults: boolean) => {    
-    let testResults = results;
+    let testResults = results + 'Read All Users tests: \n';
+    passed = true;
+
     try {
       const response = await axios({
         method: "get",
@@ -229,31 +318,32 @@ export const DbUsers = () => {
       if (response.status === 200) {
         if (showResults) {
           testResults += addToResults(`Success: Read ${response.data.users.length} Users`, true);
-          setResults(testResults)        
+          // setResults(testResults)        
         }
         const allUsers: userType[] = response.data.users as unknown as userType[]
         const justPostedUser = allUsers.filter(user => user.email === userToPost.email);
 
         // 5 users in /prisma/seeds.ts
+        const seedUsers = 5
         if (justPostedUser.length === 1) { 
           // created a test user BEFORE testing read all
-          if (allUsers.length === 6) { 
-            testResults += addToResults(`Read all 6 users`, true);
+          if (allUsers.length === seedUsers + 1) { 
+            testResults += addToResults(`Read all ${seedUsers + 1} users`);
           } else {
-            testResults += addToResults(`Error: Read ${allUsers.length} users, expected 6`, false);
+            testResults += addToResults(`Error: Read ${allUsers.length} users, expected ${seedUsers + 1}`, false);
           }
         } else {
           // test user not created yet
-          if (allUsers.length === 5) {
-            testResults += addToResults(`Read all 5 users`, true);
+          if (allUsers.length === seedUsers) {
+            testResults += addToResults(`Read all ${seedUsers} users`, true);
           } else {
-            testResults += addToResults(`Error: Read ${allUsers.length} users, expected 5`, false);
+            testResults += addToResults(`Error: Read ${allUsers.length} users, expected ${seedUsers}`, false);
           }          
         }
         return response.data.users;
       } else {
         testResults += addToResults(`Error reading all users, response statue: ${response.status}`, false);        
-        setResults(testResults)
+        // setResults(testResults)
         return {
           error: 'Did not read all users',
           status: response.status,
@@ -261,16 +351,61 @@ export const DbUsers = () => {
       }
     } catch (error: any) {
       testResults += addToResults(`Read All Error: ${error.message}`, false);
-      setResults(testResults)      
+      // setResults(testResults)      
       return {
         error: error.message,
         status: 404,
       };
-    }
+    } finally {
+      if (passed) {
+        testResults += addToResults(`Read All Users tests: PASSED`, true);
+      } else {
+        testResults += addToResults(`Read All Users tests: FAILED`, false);
+      }
+      setResults(testResults) 
+    }    
   };
 
   const userRead1 = async () => {
-    let testResults = results;
+    let testResults = results + 'Read 1 User tests: \n';
+    passed = true;
+
+    const userReadInvalidId = async (id: string) => {
+      try {
+        const invalidUrl = url + "/" + id;
+        const invalidResponse = await axios({
+          method: "get",
+          withCredentials: true,
+          url: invalidUrl,
+        });  
+        if (invalidResponse.status !== 404) {
+          testResults += addToResults(`Read 1 User Error: did not return 404 for invalid id ${id}`, false)
+          // setResults(testResults)        
+          return {
+            error: `Error getting with invalid id: ${id}`,
+            status: invalidResponse.status,
+          };          
+        } else {
+          testResults += addToResults(`Read 1 User, non 404 response for invalid id: ${id}`)
+          return {
+            error: `Error Reading 1 User, non 404 response for invalid id: ${id}`,
+            status: invalidResponse.status,
+          };          
+        }
+      } catch (error: any) {
+        if (error.response.status === 404) {
+          testResults += addToResults(`DID NOT Read 1 User: invalid id: ${id}`)          
+        } else {
+          testResults += addToResults(`Read 1 User Error: did not return 404 for invalid id: ${id}`, false)
+          // setResults(testResults)        
+          return {
+            error: `Error Reading 1 User, non 404 response for invalid id: ${id}`,
+            status: error.response.status,
+          };          
+        }        
+      }      
+    }
+
     const testUser: userType = {
       ...userToUpdate,
     }
@@ -281,125 +416,214 @@ export const DbUsers = () => {
         url: userIdUrl,
       });
       if (response.status === 200) {        
-        testResults += addToResults(`Success: Read ${response.data.user.email}`, true);        
+        testResults += addToResults(`Success: Read 1 User ${response.data.user.email}`, true);        
         const readUser: userType = response.data.user;
         if (readUser.first_name !== testUser.first_name) {
-          testResults += addToResults('Read user first_name !== testUser.first_name', false)
+          testResults += addToResults('Read 1 User first_name !== testUser.first_name', false)
         } else if (readUser.last_name !== testUser.last_name) {
-          testResults += addToResults('Read user last_name !== testUser.last_name', false)
+          testResults += addToResults('Read 1 User last_name !== testUser.last_name', false)
         } else if (readUser.email !== testUser.email) {
-          testResults += addToResults('Read user email !== testUser.email', false)
+          testResults += addToResults('Read 1 User email !== testUser.email', false)
         } else if (readUser.phone !== testUser.phone) {
-          testResults += addToResults('Read user phone !== testUser.phone', false)
+          testResults += addToResults('Read 1 User phone !== testUser.phone', false)
         } else if (readUser.role !== testUser.role) {
-          testResults += addToResults('Read user role !== testUser.role', false)
+          testResults += addToResults('Read 1 User role !== testUser.role', false)
         } else {
-          testResults += addToResults(`Read User === testUser`)
-        }
-        setResults(testResults)
-        return response.data;        
+          testResults += addToResults(`Read 1 User === testUser`)
+        }        
       } else {
-        testResults += addToResults(`Error reading user, response statue: ${response.status}`, false);        
-        setResults(testResults)
+        testResults += addToResults(`Error reading 1 user, response statue: ${response.status}`, false);        
+        // setResults(testResults)
         return {
-          error: 'Did not read user',
+          error: 'Did not read 1 user',
           status: response.status,
         };
       }
+
+      // test invalid url
+      await userReadInvalidId('abc_123');
+      // test non existing user
+      await userReadInvalidId('usr_12345678901234567890123456789012')
+
+      // setResults(testResults)                
+      return response.data;
     } catch (error: any) {
       testResults += addToResults(`Read 1 Error: ${error.message}`, false);
-      setResults(testResults)
+      // setResults(testResults)
       return {
         error: error.message,
         status: 404,
       };
-    }
-  };
-
-  const userUpdateValid = async () => {
-    try {
-      const userJSON = JSON.stringify({
-        email: "testing@email.com",
-        password: "Test456!",
-        first_name: "Jane",
-        last_name: "Jones",
-        phone: "+18001234567",
-      });
-      const response = await axios({
-        method: "put",
-        data: userJSON,
-        withCredentials: true,
-        url: userIdUrl,
-      });
-      return response;
-    } catch (error: any) {
-      return error;
-    }
-  };
-
-  const userUpdateInvalidUrl = async () => {
-    try {
-      const userJSON = JSON.stringify({
-        email: "testing@email.com",
-        password: "Test456!",
-        first_name: "Jane",
-        last_name: "Jones",
-        phone: "+18001234567",
-      });
-      const response = await axios({
-        method: "put",
-        data: userJSON,
-        withCredentials: true,
-        url: invalidUrl,
-      });
-      if (response.status === 200) {
-        return response;
+    } finally {
+      if (passed) {
+        testResults += addToResults(`Read 1 User tests: PASSED`, true);
+      } else {
+        testResults += addToResults(`Read 1 User tests: FAILED`, false);
       }
-    } catch (error: any) {
-      return error;
+      setResults(testResults) 
     }
   };
 
   const userUpdate = async () => {
-    let testResults = results;
+    let testResults = results + 'Update User tests: \n';
+    passed = true;
+
+    const userUpdateValid = async () => {
+      try {
+        const userJSON = JSON.stringify(userUpdatedTo);
+        const response = await axios({
+          method: "put",
+          data: userJSON,
+          withCredentials: true,
+          url: userIdUrl,
+        });
+        return response;
+      } catch (error: any) {
+        return error;
+      }
+    };
+
+    const userInvalidUpdate = async (propertyName: string, value: any) => { 
+      try {        
+        const invalidUserJSON = JSON.stringify({
+          ...userToUpdate,
+          [propertyName]: value,
+        })
+        const invalidResponse = await axios({
+          method: "put",
+          data: invalidUserJSON,
+          withCredentials: true,
+          url: userIdUrl,
+        });
+        if (invalidResponse.status !== 422) {
+          testResults += addToResults(`Update User Error: did not return 422 for invalid ${propertyName}`, false)
+          // setResults(testResults)
+          return {
+            error: `Error updating user with invalid ${propertyName}`,
+            status: invalidResponse.status,
+          };
+        } else {
+          testResults += addToResults(`Update User, non 422 response for user: ${userToUpdate.email} - invalid data`)
+          return {
+            error: 'Error Updating User, non 422 response for invalid data',
+            status: invalidResponse.status,
+          };
+        }
+      } catch (error: any) { 
+        if (error.response.status === 422) {
+          testResults += addToResults(`DID NOT Update user: ${userToUpdate.email} - invalid ${propertyName}`)
+          return {
+            error: '',
+            status: error.response.status,
+          }
+        } else {
+          testResults += addToResults(`Update Error: did not return 422 for invalid ${propertyName}`, false)
+          // setResults(testResults)        
+          return {
+            error: `Error Updating user with invalid ${propertyName}`,
+            status: error.response.status,
+          };          
+        }
+      }
+    } 
+  
+    const userUpdateInvalidId = async (id: string) => {      
+      try {
+        const invalidUrl = url + "/" + id;
+        const tmntJSON = JSON.stringify(userUpdatedTo);
+        const notUpdatedResponse = await axios({
+          method: "put",
+          data: tmntJSON,
+          withCredentials: true,
+          url: invalidUrl,
+        });        
+
+        if (notUpdatedResponse.status === 200) {
+          testResults += addToResults(`Error: updated invalid id: ${id}`);
+          // setResults(testResults);
+          return notUpdatedResponse;
+        } else {
+          testResults += addToResults(`DID NOT update User, invalid id: ${id}`);
+        }
+        return notUpdatedResponse;        
+      } catch (error: any) {
+        if (error.response.status === 404) {
+          testResults += addToResults(`DID NOT update User, invalid id: ${id}`);          
+        } else {
+          testResults += addToResults(`Update User Error: did not return 404 for invalid id: ${id}`, false)
+          // setResults(testResults)        
+          return {
+            error: `Error Updating User, non 404 response for invalid id: ${id}`,
+            status: error.response.status,
+          };          
+        }                
+      }
+    };
+  
     try {
       // 1) valid full user object
       const updated = await userUpdateValid();
       if (updated.status !== 200) {
         testResults += addToResults(`Error: ${updated.message}`, false);
-        setResults(testResults);
+        // setResults(testResults);
         return updated;
       }
-      testResults += addToResults(`Updated User: ${updated.data.user.email}`);
-      // 2) invalid user id
-      const notUpdated = await userUpdateInvalidUrl();
-      if (notUpdated.status === 200) {
-        setResults(`Error: updated invalid url`);
-        return notUpdated;
-      }
-      testResults += addToResults(`Update: Returned error if invalid url`);
-      setResults(testResults);      
+      const updatedUser: userType = updated.data.user;
+      if (updatedUser.first_name !== userUpdatedTo.first_name) {
+        testResults += addToResults('Updated user first_name !== userUpdatedTo.first_name', false)
+      } else if (updatedUser.last_name !== userUpdatedTo.last_name) {
+        testResults += addToResults('Updated user last_name !== userUpdatedTo.last_name', false)
+      } else if (updatedUser.phone !== userUpdatedTo.phone) {
+        testResults += addToResults('Updated user phone !== userUpdatedTo.phone ', false)
+      } else if (updatedUser.email !== userUpdatedTo.email) {
+        testResults += addToResults('Updated user email !== userUpdatedTo.email', false)
+        // don't compare password_hash
+        // } else if (updatedUser.password_hash !== userUpdatedTo.password_hash) {
+        //   testResults += addToResults('Updated user password_hash !== userUpdatedTo.password_hash', false)      
+      } else {
+        testResults += addToResults(`Updated User: ${updatedUser.email}`);
+      } 
+      
+      // 2) invalid user data
+      await userInvalidUpdate('first_name', '1234567890123456789012345678901');
+      await userInvalidUpdate('last_name', '*****');
+      await userInvalidUpdate('phone', 'abc');
+      await userInvalidUpdate('email', 'no valid email');
+      await userInvalidUpdate('password', 'invalid');
+
+      // 3) invalid user id
+      await userUpdateInvalidId('abc_123');
+      // 4 non existing user id
+      await userUpdateInvalidId('usr_12345678901234567890123456789012');
+
+      // setResults(testResults);      
       return updated;
     } catch (error: any) {
       testResults += addToResults(`Update Error: ${error.message}`, false);
-      setResults(testResults)
+      // setResults(testResults)
       return {
         error: error.message,
         status: 404,
       };  
     } finally {
-      const reset = await resetUserToUpdate(false);
+      await resetUserToUpdate(false);
+      if (passed) {
+        testResults += addToResults(`Update User tests: PASSED`);
+      } else {
+        testResults += addToResults(`Update User tests: FAILED`, false);
+      }
+      setResults(testResults)
     }
   };
 
   const userPatch = async () => {
+    let testResults = results + 'Patch User tests: \n';
+    passed = true;
 
-    let testResults = results;
-    const doPatchUser = async (propetyName: string, value: any, matchValue: any) => {
+    const doPatchUser = async (propertyName: string, value: any, matchValue: any) => {
       try {
         const userJSON = JSON.stringify({
-          ...userToUpdate,
-          [propetyName]: value,
+          [propertyName]: value,
         })
         const response = await axios({
           method: "patch",
@@ -408,38 +632,38 @@ export const DbUsers = () => {
           url: userIdUrl,
         })
         if (response.status === 200) {
-          testResults += addToResults(`Patched User: ${userToUpdate.email} - just ${propetyName}`)
-          if (response.data.user[propetyName] === matchValue) {
-            testResults += addToResults(`Patched User ${propetyName}`)
+          testResults += addToResults(`Patched User: ${userToUpdate.email} - just ${propertyName}`)
+          if (response.data.user[propertyName] === matchValue) {
+            testResults += addToResults(`Patched User ${propertyName}`)
           } else {
-            testResults += addToResults(`DID NOT Patch user ${propetyName}`, false)
-            setResults(testResults)
+            testResults += addToResults(`DID NOT Patch User ${propertyName}`, false)
+            // setResults(testResults)
           }
           return {
             data: response.data.user,
             status: response.status
           };
         } else {
-          testResults += addToResults(`Patch Error: ${propetyName}`, false)
-          setResults(testResults)
+          testResults += addToResults(`Patch Error: ${propertyName}`, false)
+          // setResults(testResults)
           return {
-            error: `Error Patching ${propetyName}`,
+            error: `Error Patching ${propertyName}`,
             status: response.status,
           };
         }
       } catch (error: any) {
         testResults += addToResults(`doPatchUser Error: ${error.message}`, false);
-        setResults(testResults)
+        // setResults(testResults)
         return {
           error: error.message,
           status: 404,
         };
       } finally {
-        const reset = await resetUserToUpdate(false);
+        await resetUserToUpdate(false);
       }
     }
 
-    const doNotPatchUser = async (propetyName: string, value: any) => {       
+    const doNotPatchUser = async (propertyName: string, value: any) => {       
       try {
         const userJSON = JSON.stringify({
           ...userToUpdate,
@@ -452,32 +676,69 @@ export const DbUsers = () => {
           url: userIdUrl,
         })      
         if (response.status !== 422) {
-          testResults += addToResults(`Patch Error: did not return 422 for invalid ${propetyName}`, false)
-          setResults(testResults)        
+          testResults += addToResults(`Patch Error: did not return 422 for invalid ${propertyName}`, false)
+          // setResults(testResults)        
           return {
-            error: 'Error Patching email',
+            error: 'Error Patching User',
             status: response.status,
           };          
         } else {
-          testResults += addToResults(`Patch User, non 422 response for user: ${userToUpdate.email} - invalid ${propetyName}`)
+          testResults += addToResults(`Patch User, non 422 response for user: ${userToUpdate.email} - invalid ${propertyName}`)
           return {
-            error: 'Error Patching email',
+            error: 'Error Patching User',
             status: response.status,
           };          
         }
       } catch (error: any) {
         if (error.response.status === 422) {
-          testResults += addToResults(`DID NOT Patch User: ${userToUpdate.email} - invalid ${propetyName}`)          
-        } else {
-          testResults += addToResults(`Patch Error: did not return 422 for invalid ${propetyName}`, false)
-          setResults(testResults)        
+          testResults += addToResults(`DID NOT Patch User: ${userToUpdate.email} - invalid ${propertyName}`)          
           return {
-            error: `Error Patching ${propetyName}`,
+            error: '',
+            status: error.response.status,
+          }
+        } else {
+          testResults += addToResults(`Patch Error: did not return 422 for invalid ${propertyName}`, false)
+          // setResults(testResults)        
+          return {
+            error: `Error Patching ${propertyName}`,
             status: error.response.status,
           };          
         }
       }    
     }
+
+    const userPatchInvalidId = async (id: string) => {      
+      try {
+        const invalidUrl = url + "/" + id;
+        const tmntJSON = JSON.stringify(userUpdatedTo);
+        const notUpdatedResponse = await axios({
+          method: "patch",
+          data: tmntJSON,
+          withCredentials: true,
+          url: invalidUrl,
+        });        
+
+        if (notUpdatedResponse.status === 200) {
+          testResults += addToResults(`Error: patched invalid id: ${id}`);
+          setResults(testResults);
+          return notUpdatedResponse;
+        } else {
+          testResults += addToResults(`DID NOT patch User, invalid id: ${id}`);
+        }
+        return notUpdatedResponse;        
+      } catch (error: any) {
+        if (error.response.status === 404) {
+          testResults += addToResults(`DID NOT patch User, invalid id: ${id}`);          
+        } else {
+          testResults += addToResults(`Patch User Error: did not return 404 for invalid id: ${id}`, false)
+          setResults(testResults)        
+          return {
+            error: `Error Patching User, non 404 response for invalid id: ${id}`,
+            status: error.response.status,
+          };          
+        }                
+      }
+    };
 
     try {      
       await doPatchUser('email', 'updated@email.com', 'updated@email.com')
@@ -489,77 +750,18 @@ export const DbUsers = () => {
       await doPatchUser('first_name', ' Jane *', 'Jane')
       await doNotPatchUser('first_name', '<script>alert(1)</script>')
       
-      let userJSON = JSON.stringify({
-        ...userToUpdate,
-        password: "4321Test!",
-      })
-      let response = await axios({
-        method: "patch",
-        data: userJSON,
-        withCredentials: true,
-        url: userIdUrl,
-      })      
-      const oldPasswordhash = '$2b$10$pnUACjuOfrOqWMUJQLVTUeiqL3/wE4PdHLYaBmBdMxuO9zTVE8CwW'
-      if (response.status === 200) {
-        testResults += addToResults(`Patched User: ${response.data.user.email} - just password`)
-        if (response.data.user.password_hash !== oldPasswordhash) {
-          testResults += addToResults(`Patched User password`)
-        } else {
-          testResults += addToResults('Patched User password not patched', false)
-          setResults(testResults)
-          return response.data;
-        }
-      } else {
-        testResults += addToResults('Patch Error: password', false)
-        setResults(testResults)        
-        return {
-          error: 'Error Patching password',
-          status: response.status,
-        };          
-      }
+      await doPatchUser('last_name', 'Doe', 'Doe')
+      await doNotPatchUser('last_name', '****')
       
+      // dont patch password
+      // await doPatchUser('password', '1234Test!', userUpdatedTo.password_hash)
       await doNotPatchUser('password', '123')
 
-      // invalid URL test
-      try {
-        let invalidTestUserJSON = JSON.stringify({
-          ...userToUpdate,        
-        })
-        let invalidResponse = await axios({
-          method: "patch",
-          data: userJSON,
-          withCredentials: true,
-          url: invalidUrl,
-        })      
-        if (invalidResponse.status !== 404) {
-          testResults += addToResults(`Patch Error: did not return 404 for invalid url`, false)
-          setResults(testResults)        
-          return {
-            error: 'Error Patching with invalid url',
-            status: response.status,
-          };          
-        } else {
-          testResults += addToResults(`Patch User, non 404 response for user: ${userToUpdate.email} - invalid url`)
-          return {
-            error: 'Error Patching, non 404 response for invalid url',
-            status: response.status,
-          };          
-        }
-      } catch (error: any) {
-        if (error.response.status === 404) {
-          testResults += addToResults(`DID NOT Patch User: ${userToUpdate.email} - invalid url`)          
-        } else {
-          testResults += addToResults(`Patch Error: did not return 404 for invalid url`, false)
-          setResults(testResults)        
-          return {
-            error: `Error Patching, non 404 response for invalid url`,
-            status: error.response.status,
-          };          
-        }        
-      }
+      await userPatchInvalidId('abc_123')
+      await userPatchInvalidId('usr_12345678901234567890123456789012')
       
-      setResults(testResults)
-      return response.data;    
+      // setResults(testResults)
+      return userToUpdate;    
     } catch (error: any) {
       testResults += addToResults(`Patch Error: ${error.message}`, false);
       setResults(testResults)
@@ -568,12 +770,47 @@ export const DbUsers = () => {
         status: 404,
       };  
     } finally {
-      const reset = await resetUserToUpdate(false);      
+      await resetUserToUpdate(false);      
+      if (passed) {
+        testResults += addToResults(`Update User tests: PASSED`);
+      } else {
+        testResults += addToResults(`Update User tests: FAILED`, false);
+      }
+      setResults(testResults)          
     }
   };
 
   const userDelete = async (userId: string, testing: boolean = true) => {
-    let testResults = results;
+    let testResults = results + 'Delete User tests: \n';
+    passed = true;
+
+    const invalidDelete = async (invalidId: string) => {      
+      try {
+        const invalidDelUrl = url + '/' + invalidId
+        const cantDelResponse = await axios({
+          method: "delete",
+          withCredentials: true,
+          url: invalidDelUrl,
+        })
+        if (cantDelResponse.status === 404) {
+          testResults += addToResults(`Did not not delete user with invalid id: "${invalidId}"`)
+        } else {
+          testResults += addToResults(`Error: Could not delete user with invalid id: "${invalidId}"`, false)
+        }
+      } catch (error: any) {
+        if (error.response.status === 404) {
+          testResults += addToResults(`Did not not delete user - invalid id: "${invalidId}"`)
+        } else {
+          testResults += addToResults(`Delete User Error: ${error.message}`, false);
+          // setResults(testResults)
+          return {
+            error: error.message,
+            status: error.response.status,
+          };
+        }          
+      }
+    }
+
     const userDelUrl = url +'/' + userId
     try {
       const response = await axios({
@@ -586,12 +823,11 @@ export const DbUsers = () => {
         // DO NOT update on success
         // only show update on screen if in delete test
         if (userId === userToDel.id) {
-          testResults += addToResults(`Success: Deleted User: ${response.data.deleted.email}`);
-          setResults(testResults)
+          testResults += addToResults(`Success: Deleted User: ${response.data.deleted.email}`);                     
         }        
       } else {
         testResults += addToResults('False: could not delete user', false)
-        setResults(testResults)
+        // setResults(testResults)
         return {
           error: 'Could not delete user',
           status: 404,
@@ -617,39 +853,38 @@ export const DbUsers = () => {
             testResults += addToResults(`Did not not delete user: ${userToUpdate.email} with children`)
           } else {
             testResults += addToResults(`Delete User Error: ${error.message}`, false);
-            setResults(testResults)
+            // setResults(testResults)
             return {
               error: error.message,
               status: error.response.status,
             };
           }
         }
-      }
+        await invalidDelete('abc_123');        
+        await invalidDelete('usr_12345678901234567890123456789012');
 
-      setResults(testResults)
-      return response.data;
+        // setResults(testResults)
+      }
+      return { data:response.data, status: 200 }
     } catch (error: any) {
       testResults += addToResults(`Error : ${error.message}`, false);
-      setResults(testResults)
+      // setResults(testResults)
       return {
         error: error.message,
         status: 404,
       };
     } finally {
-      const reAdded: any = await reAddDeletedUser(false)
+      await reAddDeletedUser()
+      if (passed) {
+        testResults += addToResults(`Delete User tests: PASSED`);
+      } else {
+        testResults += addToResults(`Delete User tests: FAILED`, false);
+      }
+      setResults(testResults)
     }
   };
 
-  const handleUserCrudChange = (e: React.ChangeEvent<HTMLInputElement>) => {    
-    setUserCrud(e.target.value);
-  };
-
-  const handleClear = (e: React.FormEvent) => {
-    e.preventDefault();    
-    setResults('');
-  };
-
-  const reasetAll = async () => { 
+  const resetAll = async () => { 
     let testResults: string = ''
     try {
       const reset = await resetUserToUpdate(false);      
@@ -666,7 +901,7 @@ export const DbUsers = () => {
         return;
       }
 
-      const reAdded: any = await reAddDeletedUser(false)
+      const reAdded: any = await reAddDeletedUser()
       if (reAdded.error) {
         testResults += addToResults(`Error Resetting: ${reAdded.error}`, false)
         setResults(testResults)
@@ -689,31 +924,40 @@ export const DbUsers = () => {
     }
   }
 
-  const handleReset = async (e: React.FormEvent) => {
-    e.preventDefault();   
-    await reasetAll();
+  const handleUserCrudChange = (e: React.ChangeEvent<HTMLInputElement>) => {    
+    setUserCrud(e.target.value);
   };
 
-  const handleUserTest = (e: React.FormEvent) => {
+  const handleClear = (e: React.FormEvent) => {
+    e.preventDefault();    
+    setResults('');
+  };
+
+  const handleReset = async (e: React.FormEvent) => {
+    e.preventDefault();   
+    await resetAll();
+  };
+
+  const handleUserTest = async (e: React.FormEvent) => {
     e.preventDefault();
     switch (userCrud) {
       case "create":
-        userCreate();
+        await userCreate();        
         break;
       case "read":
-        userReadAll(true);
+        await userReadAll(true);
         break;
       case "read1":
-        userRead1();
+        await userRead1();
         break;
       case "update":
-        userUpdate();
+        await userUpdate();
         break;
       case "patch":
-        userPatch();
+        await userPatch();
         break;
       case "delete":
-        userDelete(userToDel.id);
+        await userDelete(userToDel.id);
         break;
       default:
         break;
@@ -747,7 +991,7 @@ export const DbUsers = () => {
       
     } finally {
       allResults = results;
-      await reasetAll()
+      await resetAll()
       allResults += addToResults(`Test All Complete`, passed);
       setResults(allResults)
     }
@@ -780,14 +1024,18 @@ export const DbUsers = () => {
         <div className="col-sm-2">
           <button
             className="btn btn-warning"
-            id="userTest"
+            id="userClear"
             onClick={handleClear}
           >
             Clear
           </button>
         </div>
         <div className="col-sm-2">
-          <button className="btn btn-info" id="userTest" onClick={handleReset}>
+          <button
+            className="btn btn-info"
+            id="userReset"
+            onClick={handleReset}
+          >
             Reset
           </button>
         </div>
@@ -879,12 +1127,10 @@ export const DbUsers = () => {
         </div>
       </div>
       <div className="row g-3 mb-3">
-        <div className="col-sm-1">Results:</div>
-        <div className="col-sm-1"></div>
-        {/* <div className="col-sm-11">{results}</div> */}
-        <div className="col-sm-10">
+        <div className="col-sm-12">
           <textarea
-            name="multiLineResults"               
+            id="userResults"
+            name="userResults"               
             rows={10}            
             value={results}            
             readOnly={true}

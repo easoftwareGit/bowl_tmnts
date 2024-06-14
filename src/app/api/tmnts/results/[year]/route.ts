@@ -25,7 +25,7 @@ export async function GET(
   const jan1st = new Date(`${paramYear}-01-01`)
   const skip = request.nextUrl.searchParams.get('skip')
   const take = request.nextUrl.searchParams.get('take')
-  const tmntData = await prisma.tmnt.findMany({
+  const tmnts = await prisma.tmnt.findMany({
     where: {
       start_date: {
         lte: maxDate,
@@ -55,5 +55,5 @@ export async function GET(
   })
   // return NextResponse.json(tmnts);
 
-  return NextResponse.json({ data: tmntData }, { status: 200 });
+  return NextResponse.json({ tmnts }, { status: 200 });
 }

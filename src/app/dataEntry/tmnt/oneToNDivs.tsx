@@ -25,7 +25,7 @@ const defaultTabKey = 'div1'
 
 const getDivErrMsg = (div: divType): string => {
   if (div.div_name_err) return div.div_name_err;
-  if (div.hdcp_err) return div.hdcp_err;
+  if (div.hdcp_per_err) return div.hdcp_per_err;
   if (div.hdcp_from_err) return div.hdcp_from_err;
   return '';
 }
@@ -85,11 +85,11 @@ export const validateDivs = (
       } else {
         nameErr = '';
       }
-      const hdcp = Number(div.hdcp);
-      if (hdcp < minHdcpPer) {
+      const hdcpPer = Number(div.hdcp_per);
+      if (hdcpPer < minHdcpPer) {
         hdcpErr = 'Hdcp % must be more than ' + (minHdcpPer - 1)
         setError(div.div_name, hdcpErr);
-      } else if (hdcp > maxHdcpPer) {
+      } else if (hdcpPer > maxHdcpPer) {
         hdcpErr = 'Hdcp % must be less than ' + (maxHdcpPer + 1)
         setError(div.div_name, hdcpErr);
       } else {
@@ -108,7 +108,7 @@ export const validateDivs = (
       return {
         ...div,
         div_name_err: nameErr,
-        hdcp_err: hdcpErr,
+        hdcp_per_err: hdcpErr,
         hdcp_from_err: hdcpFromErr,
         errClassName: divErrClassName
       }
@@ -248,17 +248,17 @@ const OneToNDivs: React.FC<ChildProps> = ({
               ...div,
               hdcp_for: hdcpFor,
             };
-          } else if (name === 'hdcp') {
-            const hdcpNum = Number(value);
+          } else if (name === 'hdcp_per') {
+            const hdcpPerNum = Number(value);
             updatedDiv = {
               ...div,
-              hdcp: hdcpNum,
-              hdcp_err: ''
+              hdcp_per: hdcpPerNum,
+              hdcp_per_err: ''
             }
             // do check AFETR setting updatedDiv above
             // need to clear hdcp_from_err because if hdcp is 0,
             // hdcp_from spineditis disabled, so user can't clear error
-            if (hdcpNum === 0 && (div.hdcp_from < minHdcpFrom || div.hdcp_from > maxHdcpFrom)) {
+            if (hdcpPerNum === 0 && (div.hdcp_from < minHdcpFrom || div.hdcp_from > maxHdcpFrom)) {
               updatedDiv = {
                 ...updatedDiv,
                 hdcp_from: defaultHdcpFrom,
@@ -315,11 +315,11 @@ const OneToNDivs: React.FC<ChildProps> = ({
                 tab_title: 'Division ' + div.id,
                 name_err: ''  
               }
-            } else if (name === 'hdcp') {
+            } else if (name === 'hdcp_per') {
               return {
                 ...div,
-                hdcp: 0,
-                hdcp_err: '',
+                hdcp_per: 0,
+                hdcp_per_err: '',
               }
             } else if (name === 'hdcp_from') {
               return {
@@ -461,7 +461,7 @@ const OneToNDivs: React.FC<ChildProps> = ({
               </div>
               <div className="col-sm-3">
                 <label
-                  htmlFor={`inputHdcp${div.id}`}
+                  htmlFor={`inputHdcpPer${div.id}`}
                   className="form-label"
                   title="Enter Hdcp % 0 for scratch"
                 >
@@ -472,10 +472,10 @@ const OneToNDivs: React.FC<ChildProps> = ({
                   min={minHdcpPer}
                   max={maxHdcpPer}
                   step={10}
-                  className={`form-control ${div.hdcp_err && "is-invalid"}`}
-                  id={`inputHdcp${div.id}`}                  
-                  name="hdcp"
-                  value={div.hdcp}
+                  className={`form-control ${div.hdcp_per_err && "is-invalid"}`}
+                  id={`inputHdcpPer${div.id}`}                  
+                  name="hdcp_per"
+                  value={div.hdcp_per}
                   onChange={handleInputChange(div.id)}
                   onBlur={handleBlur(div.id)}
                 />
@@ -483,7 +483,7 @@ const OneToNDivs: React.FC<ChildProps> = ({
                   className="text-danger"
                   data-testid="dangerHdcp"
                 >
-                  {div.hdcp_err}
+                  {div.hdcp_per_err}
                 </div>
               </div>
               <div className="col-sm-3">
@@ -501,7 +501,7 @@ const OneToNDivs: React.FC<ChildProps> = ({
                   value={div.hdcp_from}                        
                   onChange={handleInputChange(div.id)}
                   onBlur={handleBlur(div.id)}
-                  disabled={div.hdcp === 0}
+                  disabled={div.hdcp_per === 0}
                 />
                 <div
                   className="text-danger"
@@ -522,7 +522,7 @@ const OneToNDivs: React.FC<ChildProps> = ({
                   name='item.int_hdcp'
                   checked={div.int_hdcp}
                   onChange={handleInputChange(div.id)}
-                  disabled={div.hdcp === 0}
+                  disabled={div.hdcp_per === 0}
                 />
                 <label htmlFor={`chkBoxIntHdcp${div.id}`} className="form-label">
                   &nbsp;Integer Hdcp
@@ -540,7 +540,7 @@ const OneToNDivs: React.FC<ChildProps> = ({
                   value="Game"
                   checked={div.hdcp_for === 'Game'}
                   onChange={handleInputChange(div.id)}
-                  disabled={div.hdcp === 0}
+                  disabled={div.hdcp_per === 0}
                 />
                 <label htmlFor={`radioHdcpForGame${div.id}`} className="form-check-label">
                   &nbsp;Game &nbsp; 
@@ -553,7 +553,7 @@ const OneToNDivs: React.FC<ChildProps> = ({
                   value="Series"
                   checked={div.hdcp_for !== 'Game'}
                   onChange={handleInputChange(div.id)}
-                  disabled={div.hdcp === 0}
+                  disabled={div.hdcp_per === 0}
                 />
                 <label htmlFor={`radioHdcpForSeries${div.id}`} className="form-check-label">
                   &nbsp;Series

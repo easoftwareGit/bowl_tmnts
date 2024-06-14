@@ -3,7 +3,7 @@ import { prisma } from "@/lib/prisma";
 import { userType } from "@/lib/types/types";
 import { initUser } from "@/db/initVals";
 import { sanitizeUser, validateUser, validUserEmail, validUserFirstName, validUserLastName, validUserPassword, validUserPhone } from "../validate";
-import { ErrorCode } from "@/lib/validation";
+import { ErrorCode, isValidBtDbId } from "@/lib/validation";
 import { hash } from "bcrypt";
 
 // usr_5bcefb5d314fff1ff5da6521a2fa7bde
@@ -14,11 +14,23 @@ export async function GET(
 ) {   
   try {
     const id = params.id;
+    if (!isValidBtDbId(id, 'usr')) {
+      return NextResponse.json(
+        { error: "invalid request" },
+        { status: 404 }
+      );        
+    }
     const user = await prisma.user.findUnique({
       where: {
         id: id
       }
     })  
+    if (!user) {
+      return NextResponse.json(
+        { error: "not found" },
+        { status: 404 }
+      );            
+    }
     return NextResponse.json({user}, {status: 200});    
   } catch (error) {
     return NextResponse.json(
@@ -33,10 +45,14 @@ export async function PUT(
   { params }: { params: { id: string } }
 ) {
   try {
-    const id = params.id
-    // const json = await req.json()
+    const id = params.id    
+    if (!isValidBtDbId(id, 'usr')) {
+      return NextResponse.json(
+        { error: "invalid request" },
+        { status: 404 }
+      );        
+    }
     const { first_name, last_name, email, phone, password } = await req.json();
-
     const toCheck: userType = {
       ...initUser,
       first_name,
@@ -46,7 +62,7 @@ export async function PUT(
       password,
     }
 
-    const errCode = validateUser(toCheck, false);
+    const errCode = validateUser(toCheck);
     if (errCode !== ErrorCode.None) {
       let errMsg: string;
       switch (errCode) {
@@ -107,8 +123,14 @@ export async function PATCH(request: Request,
 ) {
   try {
     const id = params.id
-    const json = await request.json()
+    if (!isValidBtDbId(id, 'usr')) {
+      return NextResponse.json(
+        { error: "invalid request" },
+        { status: 404 }
+      );        
+    }
 
+    const json = await request.json()
     // populate toCheck with json
     const jsonProps = Object.getOwnPropertyNames(json);
     const toCheck: userType = {
@@ -214,11 +236,18 @@ export async function DELETE(request: Request,
 ) {
   try {
     const id = params.id
+    if (!isValidBtDbId(id, 'usr')) {
+      return NextResponse.json(
+        { error: "invalid request" },
+        { status: 404 }
+      );        
+    }
+
     const deleted = await prisma.user.delete({
       where: {
         id: id
       }
-    })
+    })    
     return NextResponse.json({deleted}, {status: 200});    
   } catch (error: any) {
     let errStatus: number  

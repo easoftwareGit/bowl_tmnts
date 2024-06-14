@@ -26,6 +26,8 @@ export const Form4: React.FC<FormProps> = ({ tmntProps }) => {
     setDivs,
     squads,
     setSquads,
+    lanes,
+    setLanes,
     pots,
     setPots,
     brkts,

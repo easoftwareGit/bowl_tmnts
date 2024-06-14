@@ -1,5 +1,5 @@
 import axios from "axios";
-import { baseBowlsApi } from "../apiPaths";
+import { baseBowlsApi } from "../../db/apiPaths";
 import { testBaseBowlsApi } from "../../../test/testApi";
 
 /**

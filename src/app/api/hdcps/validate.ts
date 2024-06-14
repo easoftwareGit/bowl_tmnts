@@ -30,7 +30,7 @@ export function gotHdcpData(hdcp: hdcpToCheck): ErrorCode {
 
 export function validHdcpData(hdcp: hdcpToCheck): ErrorCode {
   try {
-    if (hdcp.div_id && !isValidBtDbId(hdcp.div_id)) {
+    if (!isValidBtDbId(hdcp.div_id, 'div')) {
       return ErrorCode.InvalidData;
     }
     if (typeof hdcp.hdcp_from === 'number' && (hdcp.hdcp_from < minHdcpFrom || hdcp.hdcp_from > maxHdcpFrom)) {

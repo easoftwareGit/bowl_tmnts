@@ -1,23 +1,28 @@
 import { NextResponse, NextRequest } from "next/server";
 import { prisma } from "@/lib/prisma";
-import { sanitize } from "@/lib/sanitize";
-import { validateDiv, divToCheck } from "./validate";
-import { ErrorCode } from "@/lib/validation";
+import { validateDiv, sanitizeDiv } from "./validate";
+import { ErrorCode, validPostId } from "@/lib/validation";
+import { divType, HdcpForTypes } from "@/lib/types/types";
+import { initDiv } from "@/db/initVals";
 
 // routes /api/divs
 
 export async function GET(request: NextRequest) {
   try {
-    const divs = await prisma.div.findMany({
+    const gotDivs = await prisma.div.findMany({
       orderBy: [
         {
-          event_id: 'asc',
+          tmnt_id: 'asc',
         }, 
         {
           sort_order: 'asc',
         }, 
       ]
     })
+    const divs = gotDivs.map(gotDiv => ({
+      ...gotDiv,
+      hdcp_per_str: (gotDiv.hdcp_per * 100).toFixed(2),
+    }))
     return NextResponse.json({divs}, {status: 200});
   } catch (err: any) {
     return NextResponse.json(
@@ -36,11 +41,15 @@ export async function GET(request: NextRequest) {
 
 export async function POST(request: Request) {
   try {
-    const { event_id, div_name, hdcp_per, sort_order } = await request.json()    
-    const toCheck: divToCheck = {
-      event_id,
+    const { id, tmnt_id, div_name, hdcp_per, hdcp_from, int_hdcp, hdcp_for, sort_order } = await request.json()    
+    const toCheck: divType = {
+      ...initDiv,
+      tmnt_id,
       div_name,
-      hdcp_per,      
+      hdcp_per,
+      hdcp_from,
+      int_hdcp,
+      hdcp_for,
       sort_order
     }
 
@@ -64,20 +73,52 @@ export async function POST(request: Request) {
       );
     }
 
-    const san_div_name = sanitize(div_name);
-    const div = await prisma.div.create({
-      data: {        
-        event_id,
-        div_name: san_div_name,
-        hdcp_per,        
-        sort_order
+    let postId = '';
+    if (id) {
+      postId = validPostId(id, 'div');
+      if (!postId) {
+        return NextResponse.json(
+          { error: "invalid post id" },
+          { status: 422 }
+        );
       }
+    }
+
+    const toPost = sanitizeDiv(toCheck);
+    type divDataType = {
+      tmnt_id: string
+      div_name: string
+      hdcp_per: number
+      hdcp_from: number
+      int_hdcp: boolean
+      hdcp_for: HdcpForTypes
+      sort_order: number
+      id?: string
+    }
+    let divData: divDataType = {
+      tmnt_id: toPost.tmnt_id,
+      div_name: toPost.div_name,
+      hdcp_per: toPost.hdcp_per,
+      hdcp_from: toPost.hdcp_from,
+      int_hdcp: toPost.int_hdcp,
+      hdcp_for: toPost.hdcp_for,
+      sort_order: toPost.sort_order
+    }
+    if (postId) {
+      divData.id = postId
+    }
+    const div = await prisma.div.create({
+      data: divData
     })
-    return new NextResponse(JSON.stringify(div), { status: 201 })    
+    
+    return NextResponse.json({div}, { status: 201 })    
   } catch (err: any) {
     let errStatus: number
     switch (err.code) {
-      case 'P2003':
+      case 'P2002': // Unique constraint
+        errStatus = 422
+        break;
+      case 'P2003': // Foreign key constraint
         errStatus = 422
         break;    
       default:

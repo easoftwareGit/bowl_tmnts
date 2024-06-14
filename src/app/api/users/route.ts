@@ -1,61 +1,62 @@
 import { NextResponse, NextRequest } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { hash } from "bcrypt";
-import { sanitize } from "@/lib/sanitize";
-import { phone as phoneChecking } from "phone";
-import {
-  maxFirstNameLength,
-  maxLastNameLength,
-  maxEmailLength,  
-  isEmail,
-  isPassword8to20,
-  isValidBtDbId,
-} from "@/lib/validation";
+import { ErrorCode, validPostId } from "@/lib/validation";
 import { findUserByEmail } from "@/lib/db/users";
-import { validPostUserId } from "./validate";
+import { sanitizeUser, validateUser } from "./validate";
+import { userType } from "@/lib/types/types";
+import { initUser } from "@/db/initVals";
 
 // routes /api/users
 
 export async function GET(request: NextRequest) {
-  const users = await prisma.user.findMany({})
+  const users = await prisma.user.findMany({})  
   return NextResponse.json({users}, {status: 200});
 }
 
 export async function POST(request: Request) {
   
   // use route api/register  
+  // this route for testing only
   try {
     const { id, first_name, last_name, email, phone, password } = await request.json();
-    if (!first_name || !last_name || !email || !password) {
-      return NextResponse.json(
-        { error: "missing data" },
-        { status: 422 }
-      );
+    
+    const toCheck: userType = {
+      ...initUser,
+      first_name,
+      last_name,
+      email,
+      phone,
+      password,
     }
-    const san_first_name = sanitize(first_name)
-    const san_last_name = sanitize(last_name)
-    const phoneCheck = phoneChecking(phone);
+    const errCode = validateUser(toCheck);
+    if (errCode !== ErrorCode.None) {
+      let errMsg: string;
+      switch (errCode) {
+        case ErrorCode.MissingData:
+          errMsg = 'missing data'
+          break;
+        case ErrorCode.InvalidData:
+          errMsg = 'invalid data'
+          break;
+        default:
+          errMsg = 'unknown error'
+          break;        
+      }
+      return NextResponse.json(
+        { error: errMsg },
+        { status: 422 }
+      )
+    }
     let postId = '';
     if (id) { 
-      postId = validPostUserId(id);
+      postId = validPostId(id, 'usr');
       if (!postId) {
         return NextResponse.json(
           { error: "invalid id data" },
           { status: 422 }
         );
       }
-    }    
-    // no need to check for phone.length, because
-    // phoneCheck.isValid will be false if length too long
-    if (san_first_name.length > maxFirstNameLength || 
-        san_last_name.length > maxLastNameLength ||
-        !isEmail(email) || email.length > maxEmailLength ||      
-        !phoneCheck.isValid ||
-        !isPassword8to20(password)) {
-      return NextResponse.json(
-        { error: "invalid data" },
-        { status: 422 }
-      );        
     }    
 
     const oldUser = await findUserByEmail(email);
@@ -66,6 +67,8 @@ export async function POST(request: Request) {
       );
     }
 
+    const toPost = sanitizeUser(toCheck);
+    
     const saltRoundsStr: any = process.env.SALT_ROUNDS;
     const saltRounds = parseInt(saltRoundsStr);
     const hashed = await hash(password, saltRounds);
@@ -79,33 +82,20 @@ export async function POST(request: Request) {
       id?: string;
     }
     let userData: userDataType = {
-      first_name: san_first_name,
-      last_name: san_last_name,
+      first_name: toPost.first_name,
+      last_name: toPost.last_name,
       email,
-      phone: phoneCheck.phoneNumber,
+      phone: toPost.phone,
       password_hash: hashed,
     }
     if (postId) {
-      userData = {
-        ...userData,
-        id: postId
-      }
+      userData.id = postId
     }
 
     const user = await prisma.user.create({
       data: userData,
-      // data: {        
-      //   first_name: san_first_name,
-      //   last_name: san_last_name,
-      //   email,
-      //   phone: phoneCheck.phoneNumber,
-      //   password_hash: hashed,
-      // },
     });
-    return NextResponse.json(
-      { user: user },
-      { status: 201 }
-    );    
+    return NextResponse.json({ user }, { status: 201 });        
   } catch (err: any) {
     return NextResponse.json(
       { error: "Error creating user" },

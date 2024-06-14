@@ -8,7 +8,8 @@ export const mockUser: userType = {
   first_name: "John",
   last_name: "Doe",
   phone: "800-555-1234",
-  role: "USER"
+  role: "DIRECTOR",
+  password_hash: "$2b$12$C16ySjxkx1krojAMpoVZ3.v/pHt4ZtvDEBOXVGe4AUdPM0K/M4teq",
 }
 
 export const mockTmnt: tmntType = {

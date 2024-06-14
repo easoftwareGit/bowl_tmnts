@@ -44,9 +44,10 @@ model Bowl {
 model Tmnt {
   id         String   @id @default(dbgenerated("concat('tmt_', replace(cast(gen_random_uuid() as text), '-', ''))")) @db.Text
   tmnt_name  String
-  start_date DateTime @db.Date
-  end_date   DateTime @db.Date
+  start_date String 
+  end_date   String 
   events     Event[]
+  divs       Div[]
   players    Player[]
   user_id    String   @db.Text
   users      User     @relation("UserTmnts", fields: [user_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
@@ -68,39 +69,33 @@ model Event {
   other       Decimal  @db.Decimal(9, 2)
   expenses    Decimal  @db.Decimal(9, 2)
   added_money Decimal  @db.Decimal(9, 2)
-  sort_order  Int
-  divs        Div[]
+  sort_order  Int  
   tmnts       Tmnt     @relation(fields: [tmnt_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
   squads      Squad[]
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
+
+  @@unique([tmnt_id, event_name])
 }
 
 model Div {
   id          String       @id @default(dbgenerated("concat('div_', replace(cast(gen_random_uuid() as text), '-', ''))")) @db.Text
-  event_id    String       @db.Text
+  tmnt_id     String       @db.Text
   div_name    String
   hdcp_per    Float
+  hdcp_from   Int          
+  int_hdcp    Boolean      @default(true)
+  hdcp_for    String       @default("Game")
   sort_order  Int
-  events      Event        @relation(fields: [event_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  tmnts       Tmnt         @relation(fields: [tmnt_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
   entries     Entry[]
   pots        Pot[]
   brackets    Bracket[]
   eliminators Eliminator[]
-  hdcp        Hdcp?
   createdAt   DateTime     @default(now())
   updatedAt   DateTime     @updatedAt
-}
 
-model Hdcp {
-  id        String   @id @default(dbgenerated("concat('hdc_', replace(cast(gen_random_uuid() as text), '-', ''))")) @db.Text
-  div_id    String   @unique @db.Text
-  hdcp_from Int
-  int_hdcp  Boolean
-  game      Boolean
-  div       Div      @relation(fields: [div_id], references: [id])
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  @@unique([tmnt_id, div_name])
 }
 
 model Squad {
@@ -121,15 +116,19 @@ model Squad {
   events        Event        @relation(fields: [event_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
   createdAt     DateTime     @default(now())
   updatedAt     DateTime     @updatedAt
+
+  @@unique([event_id, squad_name])
 }
 
 model Lanes {
-  id        String   @id @default(dbgenerated("concat('lns_', replace(cast(gen_random_uuid() as text), '-', ''))")) @db.Text
-  lane      Int
-  squad_id  String   @db.Text
-  squad     Squad    @relation(fields: [squad_id], references: [id])
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  id          String   @id @default(dbgenerated("concat('lns_', replace(cast(gen_random_uuid() as text), '-', ''))")) @db.Text
+  lane_number Int
+  squad_id    String   @db.Text
+  squad       Squad    @relation(fields: [squad_id], references: [id])
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@unique([squad_id, lane_number])
 }
 
 model Pot {

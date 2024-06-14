@@ -16,10 +16,10 @@ export async function GET(
 
   try {
     const id = params.id;
-    if (!isValidBtDbId(id)) {
+    if (!isValidBtDbId(id, 'sqd')) {
       return NextResponse.json(
         { error: "invalid request" },
-        { status: 400 }
+        { status: 404 }
       );        
     }
     const squad = await prisma.squad.findUnique({
@@ -53,11 +53,11 @@ export async function PUT(
 ) {
   try {
     const id = params.id
-    if (!isValidBtDbId(id)) {
+    if (!isValidBtDbId(id, 'sqd')) {
       return NextResponse.json(
-        { error: 'invalid data' },
-        { status: 422 }
-      );
+        { error: "invalid request" },
+        { status: 404 }
+      );        
     }
 
     const { event_id, squad_name, squad_date, squad_time, games, sort_order } = await request.json()    
@@ -146,11 +146,11 @@ export async function PATCH(
 ) {
   try {
     const id = params.id    
-    if (!isValidBtDbId(id)) {
+    if (!isValidBtDbId(id, 'sqd')) {
       return NextResponse.json(
-        { error: 'invalid data' },
-        { status: 422 }
-      );
+        { error: "invalid request" },
+        { status: 404 }
+      );        
     }
 
     const { event_id, squad_name, squad_date, squad_time, games, sort_order } = await request.json()    
@@ -212,11 +212,11 @@ export async function DELETE(
 ) {
   try {
     const id = params.id
-    if (!isValidBtDbId(id)) {
+    if (!isValidBtDbId(id, 'sqd')) {
       return NextResponse.json(
-        { error: 'invalid data' },
-        { status: 422 }
-      );
+        { error: "invalid request" },
+        { status: 404 }
+      );        
     }
 
     const deleted = await prisma.squad.delete({

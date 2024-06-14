@@ -2,7 +2,7 @@ import { createAsyncThunk, createSlice } from "@reduxjs/toolkit";
 import { Bowl } from "@prisma/client";
 import { loadStatusType } from "@/redux/statusTypes";
 import { RootState } from "@/redux/store";
-import { getBowls } from "@/db/bowls/bowls";
+import { getBowls } from "@/lib/db/bowls";
 
 export interface bowlSliceState {
   bowls: Bowl[];
@@ -36,7 +36,7 @@ export const bowlsSlice = createSlice({
     });
     builder.addCase(fetchBowls.fulfilled, (state: bowlSliceState, action) => {
       state.status = "succeeded";
-      state.bowls = action.payload.data;
+      state.bowls = action.payload.bowls;
       state.error = "";
     });
     builder.addCase(fetchBowls.rejected, (state: bowlSliceState, action) => {

@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { isValidBtDbId } from "@/lib/validation";
 
+
 // routes /api/events/tmnt/:id
 
 // tmt_fd99387c33d9c78aba290286576ddce5
@@ -12,23 +13,25 @@ export async function GET(
 ) {   
   try {
     const id = params.id;
-    if (!isValidBtDbId(id)) {
+    // check if id is a valid tmnt id
+    if (!isValidBtDbId(id, 'tmt')) {
       return NextResponse.json(
-        { error: "invalid request" },
-        { status: 400 }
+        { error: "not found" },
+        { status: 404 }
       );        
     }
-    const events = await prisma.event.findMany({
+    const gotEvents = await prisma.event.findMany({
       where: {
         tmnt_id: id
       }
     })    
-    if (!events || events.length === 0) {
-      return NextResponse.json(
-        { error: "no events for tmnt found" },
-        { status: 404 }
-      );          
-    }
+    // no matching rows is ok
+
+    // add in lpox
+    const events = gotEvents.map(gotEvent => ({
+      ...gotEvent,
+      lpox: gotEvent.entry_fee
+    }))
     return NextResponse.json({events}, {status: 200});    
   } catch (err: any) {
     return NextResponse.json(

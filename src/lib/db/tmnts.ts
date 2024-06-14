@@ -1,5 +1,7 @@
 import axios from 'axios'
+import { prisma } from "@/lib/prisma";
 import { baseApi } from '../tools';
+import { isValidBtDbId } from '../validation';
 
 export const getTmntResults = async () => {
   // const url = 'http://localhost:3000/api/tmnts/results'
@@ -30,5 +32,23 @@ export const getTmntUpcoming = async () => {
     }
   } catch (error) {
     return [];
+  }
+}
+
+export const findTmntById = async (tmntId: string) => {
+  // const url = 'http://localhost:3000/api/tmnts/tmntid'
+
+  if (!isValidBtDbId(tmntId, 'tmt')) {
+    return null;
+  }
+  const url = baseApi + '/tmnts/' + tmntId  
+  try {
+    // find tmnt in databaseby id
+    const tmnt = await prisma.tmnt.findUnique({
+      where: { id: tmntId },
+    })
+    return (tmnt) ? tmnt : null;
+  } catch (error) {
+    return null;
   }
 }

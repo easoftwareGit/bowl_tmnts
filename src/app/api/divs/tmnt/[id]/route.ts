@@ -12,23 +12,25 @@ export async function GET(
 ) {   
   try {
     const id = params.id;
-    if (!isValidBtDbId(id)) {
+    // check if id is a valid tmnt id
+    if (!isValidBtDbId(id, 'tmt')) {
       return NextResponse.json(
-        { error: "invalid request" },
-        { status: 400 }
+        { error: "not found" },
+        { status: 404 }
       );        
     }
-    const divs = await prisma.div.findMany({
+    const gotDivs = await prisma.div.findMany({
       where: {
-        event_id: id
+        tmnt_id: id
       }
     })    
-    if (!divs || divs.length === 0) {
-      return NextResponse.json(
-        { error: "no divs for event found" },
-        { status: 404 }
-      );          
-    }
+    // no matching rows is ok
+
+    // add in hdcp_per_str
+    const divs = gotDivs.map(gotDiv => ({
+      ...gotDiv,
+      hdcp_per_str: (gotDiv.hdcp_per * 100).toFixed(2)
+    }))
     return NextResponse.json({divs}, {status: 200});    
   } catch (err: any) {
     return NextResponse.json(

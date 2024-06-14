@@ -3,7 +3,6 @@ import axios from "axios";
 import { useSearchParams } from "next/navigation";
 import { signIn, signOut } from "next-auth/react";
 import { baseApi } from "@/lib/tools";
-import { findUserByEmail } from "@/lib/db/users";
 import { userType } from "@/lib/types/types";
 import { initUser } from "@/db/initVals";
 import { useSession } from "next-auth/react"; 
@@ -14,7 +13,6 @@ const usersUrl = baseApi + "/users";
 
 let passed = true;
 let allResults = '';
-
 
 export const DbAuth = () => {
   
@@ -130,10 +128,11 @@ export const DbAuth = () => {
     }
   }
 
-
   const authRegister = async () => {
-    let testResults: string = results;
+    let testResults: string = results;    
     let createdUserId: string = '';
+    passed = true;
+
     try {      
       const userJSON = JSON.stringify(userToLogin);
       const response = await axios({
@@ -161,7 +160,7 @@ export const DbAuth = () => {
         createdUserId = response.data.user.id;                       
       } else {
         testResults += addToResults(`Error logging in user: ${userToLogin.email}`, false)
-        setResults(testResults)
+        // setResults(testResults)
         return {
           error: 'Did not login user',
           status: response.status,
@@ -182,7 +181,7 @@ export const DbAuth = () => {
           testResults += addToResults('Did not add user with duplicate email')          
         } else {
           testResults += addToResults(`Error registering user with duplicate email: ${error.message}`, false)
-          setResults(testResults)
+          // setResults(testResults)
           return {
             error: error.message,
             status: error.response.status,
@@ -190,11 +189,11 @@ export const DbAuth = () => {
         }
       }
       
-      setResults(testResults)
+      // setResults(testResults)
       return response.data;
     } catch (error: any) {
       testResults += addToResults(`Register Error: ${error.message}`);
-      setResults(testResults)
+      // setResults(testResults)
       return {
         error: error.message,
         status: 500,
@@ -203,12 +202,20 @@ export const DbAuth = () => {
       if (createdUserId) {
         const deletedUser = await userDelete(createdUserId);        
       }
+      if (passed) {
+        testResults += addToResults(`Registered tests: PASSED`, true);
+      } else {
+        testResults += addToResults(`Registered tests: FAILED`, false);
+      }
+      setResults(testResults) 
     }
   }
 
   const authLogin = async () => {
     let testResults = results;
     let loggedIn = false;
+    passed = true;
+
     try {
       const response = await signIn("credentials", {
         redirect: false,
@@ -222,33 +229,52 @@ export const DbAuth = () => {
         loggedIn = true;
       } else {
         testResults += addToResults(`Error logging in user: ${userToLogin.email}`, false)
-        setResults(testResults)
+        // setResults(testResults)
         return {
           error: 'Did not login user',
           status: response.status,
         };  
       }
 
-      setResults(testResults)
+      // setResults(testResults)
       return response;
     } catch (error: any) {
-      setResults(`Error: ${error.message}`);
+      // setResults(`Error: ${error.message}`);
       return {
         error: error.message,
         status: 500,
       };
-    } 
+    } finally {
+      if (passed) {
+        testResults += addToResults(`Log In tests: PASSED`, true);
+      } else {
+        testResults += addToResults(`Log In tests: FAILED`, false);
+      }
+      setResults(testResults) 
+    }
   }
 
   const authLogout = () => {
     let testResults = results;
-    if (status === "authenticated") {
-      signOut();
-      testResults += addToResults('Logged Out')
-    } else {
-      testResults += addToResults('Not Logged Out, was not loggin in', false)
+    passed = true;
+
+    try {
+      if (status === "authenticated") {
+        signOut();
+        testResults += addToResults('Logged Out')
+      } else {
+        testResults += addToResults('Not Logged Out, was not loggin in', false)
+      }      
+    } catch (error: any) {
+      testResults += addToResults(`Error logging out: ${error.message}`, false)
+    } finally {
+      if (passed) {
+        testResults += addToResults(`Log Out tests: PASSED`, true);
+      } else {
+        testResults += addToResults(`Log Out tests: FAILED`, false);
+      }
+      setResults(testResults) 
     }
-    setResults(testResults)
   }
 
   const handleAuthTest = (e: React.FormEvent) => { 
@@ -379,10 +405,7 @@ export const DbAuth = () => {
 
       </div>
       <div className="row g-3 mb-3">
-        <div className="col-sm-1">Results:</div>
-        <div className="col-sm-1"></div>
-        {/* <div className="col-sm-11">{results}</div> */}
-        <div className="col-sm-10">
+        <div className="col-sm-12">
           <textarea
             name="multiLineResults"               
             rows={10}            

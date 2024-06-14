@@ -1,11 +1,11 @@
 "use client"
 import React, { useState } from "react";
-import { initTmnt } from "../../db/initVals";
+import { initDivs, initTmnt } from "../../db/initVals";
 import { todayStr } from "@/lib/dateTools";
 import { mockEvents } from "../../../test/mocks/tmnts/singlesAndDoubles/mockEvents";
-import { tmntType, brktType, divType, elimType, potType, squadType, tmntPropsType } from "../../lib/types/types";
+import { tmntType, brktType, divType, elimType, potType, squadType, tmntPropsType, laneType, eventType } from "../../lib/types/types";
 import { SampleForm } from "./form";
-import { Form4 } from "./form4";
+import { Form5 } from "./form5";
 
 const blankTmnt = {
   ...initTmnt,  
@@ -19,38 +19,42 @@ interface FormProps {
 export const SamplePage: React.FC<FormProps> = ({ tmnt = blankTmnt }) => { 
 
   const [tmntData, setTmntData] = useState(tmnt);
-  const [events, setEvents] = useState(mockEvents);
-  const [divs, setDivs] = useState<divType[]>([]);
+  const [events, setEvents] = useState<eventType[]>([]);
+  const [divs, setDivs] = useState<divType[]>(initDivs);
   const [squads, setSquads] = useState<squadType[]>([]);
+  const [lanes, setLanes] = useState<laneType[]>([])
   const [pots, setPots] = useState<potType[]>([])
   const [brkts, setBrkts] = useState<brktType[]>([])
-  const [elims, setElims] = useState<elimType[]>([])
+  const [elims, setElims] = useState<elimType[]>([])  
 
-  // const tmntFormProps: tmntPropsType = {
-  //   tmnt: tmntData,
-  //   setTmnt: setTmntData,
-  //   events,
-  //   setEvents,
-  //   divs,
-  //   setDivs,
-  //   squads,
-  //   setSquads,
-  //   pots,
-  //   setPots,
-  //   brkts,
-  //   setBrkts,
-  //   elims,
-  //   setElims,
-  // }
+  const tmntFormProps: tmntPropsType = {
+    tmnt: tmntData,
+    setTmnt: setTmntData,
+    events,
+    setEvents,
+    divs,
+    setDivs,
+    squads,
+    setSquads,
+    lanes,
+    setLanes,
+    pots,
+    setPots,
+    brkts,
+    setBrkts,
+    elims,
+    setElims,
+  }
 
   return (
     <div className="d-flex flex-column justify-content-center align-items-center">
       <div className="shadow p-3 m-3 rounded-3 container">
         <h2 className="mb-3">Test</h2>
-        <SampleForm />
+        {/* <SampleForm /> */}
         {/* <Form2 /> */}
         {/* <Form3 events={events} setEvents={setEvents} pets={pets} setPets={setPets} /> */}
         {/* <Form4 tmntProps={tmntFormProps} /> */}
+        <Form5 tmntProps={tmntFormProps} />
       </div>
     </div>
   )

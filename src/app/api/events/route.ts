@@ -1,18 +1,16 @@
 import { NextResponse, NextRequest } from "next/server";
 import { prisma } from "@/lib/prisma";
-import { sanitize } from "@/lib/sanitize";
-import { validateEvent, eventToCheck } from "@/app/api/events/validate";
-import { ErrorCode } from "@/lib/validation";
+import { validateEvent, sanitizeEvent } from "@/app/api/events/validate";
+import { ErrorCode, validPostId } from "@/lib/validation";
+import { eventType } from "@/lib/types/types";
+import { initEvent } from "@/db/initVals";
 
 // routes /api/events
 
 export async function GET(request: NextRequest) {
   try {
-    const events = await prisma.event.findMany({
+    const gotEvents = await prisma.event.findMany({
       orderBy: [
-        {
-          id: 'asc',
-        }, 
         {
           tmnt_id: 'asc',
         }, 
@@ -20,9 +18,14 @@ export async function GET(request: NextRequest) {
           sort_order: 'asc',
         }, 
       ]
-    })
+    })    
+    // add in lpox
+    const events = gotEvents.map(gotEvent => ({
+      ...gotEvent,
+      lpox: gotEvent.entry_fee
+    }))    
     return NextResponse.json({events}, {status: 200});
-  } catch (err: any) {
+  } catch (error: any) {
     return NextResponse.json(
       { error: "error getting events" },
       { status: 500 }
@@ -30,23 +33,24 @@ export async function GET(request: NextRequest) {
   }
 }
 
-// {
-//   "tmnt_id": "tmt_467e51d71659d2e412cbc64a0d19ecb4",
-//   "event_name": "Singles",
-//   "team_size": 1,
-//   "games": 6,
-//   "sort_order": 1
-// }
-
 export async function POST(request: Request) {
   try {
-    const { tmnt_id, event_name, team_size, games, sort_order } = await request.json()    
-    const toCheck: eventToCheck = {
-      tmnt_id,
+    const { id, tmnt_id, event_name, team_size, games, added_money,
+      entry_fee, lineage, prize_fund, other, expenses, lpox, sort_order } = await request.json()    
+    const toCheck: eventType = {
+      ...initEvent,
+      tmnt_id,      
       event_name,
       team_size,
       games,
-      sort_order
+      added_money,
+      entry_fee,
+      lineage,
+      prize_fund,
+      other,
+      expenses,    
+      lpox,
+      sort_order,
     }
 
     const errCode = validateEvent(toCheck);
@@ -68,24 +72,71 @@ export async function POST(request: Request) {
         { status: 422 }
       );
     }
-
-    const san_event_name = sanitize(event_name);
-    const event = await prisma.event.create({
-      data: {
-        tmnt_id,
-        event_name: san_event_name,
-        team_size,
-        games,
-        sort_order
+    
+    let postId = '';
+    if (id) { 
+      postId = validPostId(id, 'evt');
+      if (!postId) {
+        return NextResponse.json(
+          { error: "invalid data" },
+          { status: 422 }
+        );
       }
+    }    
+    
+    const toPost = sanitizeEvent(toCheck);
+    // NO lpox in eventDataType
+    type eventDataType = {
+      tmnt_id: string,
+      event_name: string,
+      team_size: number,
+      games: number,
+      entry_fee: string,
+      lineage: string,
+      prize_fund: string,
+      other: string,
+      expenses: string,
+      added_money: string,      
+      sort_order: number,
+      id?: string
+    }
+    let eventData: eventDataType = {
+      tmnt_id: toPost.tmnt_id,
+      event_name: toPost.event_name,
+      team_size: toPost.team_size,
+      games: toPost.games,
+      entry_fee: toPost.entry_fee,
+      lineage: toPost.lineage,
+      prize_fund: toPost.prize_fund,
+      other: toPost.other,
+      expenses: toPost.expenses,
+      added_money: toPost.added_money,      
+      sort_order: toPost.sort_order,          
+    }
+    if (postId) {
+      eventData.id = postId
+    }
+    const postedEvent = await prisma.event.create({
+      data: eventData
     })
-    return new NextResponse(JSON.stringify(event), { status: 201 })    
+    // add in lpox
+    const event = {
+      ...postedEvent,
+      lpox: postedEvent.entry_fee
+    }    
+    return NextResponse.json({event}, {status: 201});
   } catch (err: any) {
     let errStatus: number
     switch (err.code) {
-      case 'P2003':
+      case 'P2002': // Unique constraint
+        errStatus = 422 
+        break;
+      case 'P2003': // Foreign key constraint
         errStatus = 422
         break;    
+      case 'P2025': // Record not found
+        errStatus = 404
+        break;
       default:
         errStatus = 500
         break;

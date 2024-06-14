@@ -20,11 +20,7 @@ export async function findUserByEmail(email: string) {
         email: email,
       },
     });    
-    if (!user) {
-      return null;
-    } else {
-      return user
-    }    
+    return (user) ? user : null;
   } catch (error) {
     throw Error('error finding user')
   }

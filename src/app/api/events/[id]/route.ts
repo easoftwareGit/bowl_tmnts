@@ -1,8 +1,10 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
-import { sanitize } from "@/lib/sanitize";
 import { ErrorCode, isValidBtDbId } from "@/lib/validation";
-import { validateEvent, eventToCheck, validEventData } from "@/app/api/events/validate";
+import { sanitizeEvent, validateEvent } from "@/app/api/events/validate";
+import { eventType } from "@/lib/types/types";
+import { initEvent } from "@/db/initVals";
+import { findEventById } from "@/lib/db/events";
 
 // routes /api/events/:id
 
@@ -12,21 +14,30 @@ export async function GET(
   request: Request,
   { params }: { params: { id: string } }
 ) {   
-
   try {
     const id = params.id;
-    if (!isValidBtDbId(id)) {
+    if (!isValidBtDbId(id, 'evt')) {
       return NextResponse.json(
-        { error: "invalid request" },
-        { status: 400 }
+        { error: "not found" },
+        { status: 404 }
       );        
     }
-    const event = await prisma.event.findUnique({
+    const gotEvent = await prisma.event.findUnique({
       where: {
         id: id
       }
     })
-    // return NextResponse.json(event);
+    if (!gotEvent) {
+      return NextResponse.json(
+        { error: "not found" },
+        { status: 404 }
+      );            
+    }
+    // add in lpox
+    const event = {
+      ...gotEvent,
+      lpox: gotEvent.entry_fee
+    }
     return NextResponse.json({event}, {status: 200});    
   } catch (err: any) {
     return NextResponse.json(
@@ -36,34 +47,34 @@ export async function GET(
   } 
 }
 
-// evt_dadfd0e9c11a4aacb87084f1609a0afd
-// {
-//   "tmnt_id": "tmt_56d916ece6b50e6293300248c6792316",
-//   "event_name": "Singles",
-//   "team_size": 1,
-//   "games": 6,
-//   "sort_order": 1
-// }
-
 export async function PUT(
   request: Request,
   { params }: { params: { id: string } }
 ) {
   try {
     const id = params.id
-    if (!isValidBtDbId(id)) {
+    if (!isValidBtDbId(id, 'evt')) {
       return NextResponse.json(
-        { error: 'invalid data' },
-        { status: 422 }
-      );
+        { error: "not found" },
+        { status: 404 }
+      );        
     }
 
-    const { tmnt_id, event_name, team_size, games, sort_order } = await request.json()
-    const toCheck: eventToCheck = {
+    const { tmnt_id, event_name, team_size, games, added_money, entry_fee,
+      lineage, prize_fund, other, expenses, lpox, sort_order } = await request.json()
+    const toCheck: eventType = {
+      ...initEvent,
       tmnt_id,
       event_name,
       team_size,
       games,
+      added_money,
+      entry_fee,
+      lineage,
+      prize_fund,
+      other,
+      expenses,      
+      lpox,
       sort_order
     }
 
@@ -85,28 +96,46 @@ export async function PUT(
         { error: errMsg },
         { status: 422 }
       );
-    }
-    
-    const san_event_name = sanitize(event_name);
-    const updated = await prisma.event.update({
+    }      
+
+    const toPut = sanitizeEvent(toCheck);
+    // NO lpox in data object
+    const putEvent = await prisma.event.update({
       where: {
         id: id
-      },      
+      },          
       data: {
-        tmnt_id,
-        event_name: san_event_name,
-        team_size,
-        games,
-        sort_order,
+        tmnt_id: toPut.tmnt_id,
+        event_name: toPut.event_name,
+        team_size: toPut.team_size,
+        games: toPut.games,
+        added_money: toPut.added_money,
+        entry_fee: toPut.entry_fee,
+        lineage: toPut.lineage,
+        prize_fund: toPut.prize_fund,
+        other: toPut.other,
+        expenses: toPut.expenses,
+        sort_order: toPut.sort_order
       }
-    })
-    return NextResponse.json({updated}, {status: 200});    
+    })    
+    // add in lpox
+    const event = {
+      ...putEvent,
+      lpox: putEvent.entry_fee
+    }
+    return NextResponse.json({event}, {status: 200});    
   } catch (err: any) {
     let errStatus: number    
     switch (err.code) {
-      case 'P2003':
+      case 'P2002': // unique constraint
+        errStatus = 422
+        break;
+      case 'P2003': // foreign key constraint
         errStatus = 422        
-        break;    
+        break;
+      case 'P2025': // record not found
+        errStatus = 404
+        break;
       default:
         errStatus = 500        
         break;
@@ -118,65 +147,181 @@ export async function PUT(
   }
 }
 
-// change any 1..N of the values in the object, pass onnly changed value(s)
-// evt_dadfd0e9c11a4aacb87084f1609a0afd
-// {
-//   "tmnt_id": "tmt_56d916ece6b50e6293300248c6792316",
-//   "event_name": "Singles",
-//   "team_size": 1,
-//   "games": 6,
-//   "sort_order": 1
-// }
-
 export async function PATCH(
   request: Request,
   { params }: { params: { id: string } }
 ) {
   try {
     const id = params.id    
-    if (!isValidBtDbId(id)) {
+    if (!isValidBtDbId(id, 'evt')) {
       return NextResponse.json(
-        { error: 'invalid data' },
+        { error: "not found" },
+        { status: 404 }
+      );        
+    }
+    const json = await request.json()
+    // populate toCheck with json
+    const jsonProps = Object.getOwnPropertyNames(json);
+    if (jsonProps.includes('tmnt_id')) {
+      return NextResponse.json(
+        { error: "foreign key constraint" },
+        { status: 422 }
+      )
+    }
+
+    const currentEvent = await findEventById(id)
+    if (!currentEvent) {
+      return NextResponse.json(
+        { error: "not found" },
+        { status: 404 }
+      );            
+    }
+
+    const toCheck: eventType = {
+      ...initEvent,      
+      tmnt_id: currentEvent.tmnt_id,
+      event_name: currentEvent.event_name,
+      team_size: currentEvent.team_size,
+      games: currentEvent.games,
+      added_money: currentEvent.added_money + '',
+      entry_fee: currentEvent.entry_fee + '',
+      lineage: currentEvent.lineage + '',
+      prize_fund: currentEvent.prize_fund + '',
+      other: currentEvent.other + '',
+      expenses: currentEvent.expenses + '',
+      lpox: currentEvent.entry_fee + '',
+      sort_order: currentEvent.sort_order
+    }
+    
+    if (jsonProps.includes('event_name')) { 
+      toCheck.event_name = json.event_name
+    }
+    if (jsonProps.includes('team_size')) {
+      toCheck.team_size = json.team_size
+    } 
+    if (jsonProps.includes('games')) {
+      toCheck.games = json.games
+    } 
+    if (jsonProps.includes('added_money')) {
+      toCheck.added_money = json.added_money
+    }
+    if (jsonProps.includes('entry_fee')) {
+      toCheck.entry_fee = json.entry_fee
+      toCheck.lpox = json.entry_fee
+    }
+    if (jsonProps.includes('lineage')) {
+      toCheck.lineage = json.lineage
+    }
+    if (jsonProps.includes('prize_fund')) {
+      toCheck.prize_fund = json.prize_fund
+    }
+    if (jsonProps.includes('other')) {
+      toCheck.other = json.other
+    }
+    if (jsonProps.includes('expenses')) {
+      toCheck.expenses = json.expenses
+    }
+    if (jsonProps.includes('sort_order')) {
+      toCheck.sort_order = json.sort_order
+    } 
+
+    const errCode = validateEvent(toCheck);   
+    if (errCode !== ErrorCode.None) {
+      let errMsg: string;
+      switch (errCode) {
+        case ErrorCode.InvalidData:
+          errMsg = 'invalid data'
+          break;        
+        default:
+          errMsg = 'unknown error' 
+          break;
+      }
+      return NextResponse.json(
+        { error: errMsg },
         { status: 422 }
       );
     }
 
-    const { tmnt_id, event_name, team_size, games, sort_order } = await request.json()
-    const toCheck: eventToCheck = {
-      tmnt_id,
-      event_name,
-      team_size,
-      games,
-      sort_order
+    const toBePatched = sanitizeEvent(toCheck); 
+    const toPatch = {
+      ...initEvent,
+      tmnt_id: '',
     }
-    if (validEventData(toCheck) !== ErrorCode.None) {
-      return NextResponse.json(
-        { error: 'invalid data' },
-        { status: 422 }
-      );
+    if (jsonProps.includes('event_name')) {
+      toPatch.event_name = toBePatched.event_name
+    }
+    if (jsonProps.includes('team_size')) {
+      toPatch.team_size = toBePatched.team_size
+    } else {
+      toPatch.team_size = undefined as any
+    }
+    if (jsonProps.includes('games')) {
+      toPatch.games = toBePatched.games
+    } else {
+      toPatch.games = undefined as any
+    }
+    if (jsonProps.includes('added_money')) {
+      toPatch.added_money = toBePatched.added_money
+    }
+    if (jsonProps.includes('entry_fee')) {
+      // DO NOT add lpox
+      toPatch.entry_fee = toBePatched.entry_fee
+    }
+    if (jsonProps.includes('lineage')) {
+      toPatch.lineage = toBePatched.lineage
+    }
+    if (jsonProps.includes('prize_fund')) {
+      toPatch.prize_fund = toBePatched.prize_fund
+    }
+    if (jsonProps.includes('other')) {
+      toPatch.other = toBePatched.other
+    }
+    if (jsonProps.includes('expenses')) {
+      toPatch.expenses = toBePatched.expenses
+    }
+    if (jsonProps.includes('sort_order')) {
+      toPatch.sort_order = toBePatched.sort_order
+    } else {
+      toPatch.sort_order = undefined as any
     }
 
-    const san_event_name = sanitize(event_name);
-    const p_team_size = (typeof team_size === 'number') ? team_size : undefined;
-    const p_games = (typeof games === 'number') ? games : undefined;
-    const p_sort_order = (typeof sort_order === 'number') ? sort_order : undefined;
-    const updated = await prisma.event.update({
+    const patchEvent = await prisma.event.update({
       where: {
         id: id
-      },    
+      },
+      // remove data if not sent
       data: {
-        tmnt_id: tmnt_id || undefined,
-        event_name: san_event_name || undefined,
-        team_size: p_team_size,
-        games: p_games,
-        sort_order: p_sort_order
+        tmnt_id: toPatch.tmnt_id || undefined,
+        event_name: toPatch.event_name || undefined,
+        team_size: toPatch.team_size || undefined,
+        games: toPatch.games || undefined,
+        added_money: toPatch.added_money || undefined,
+        entry_fee: toPatch.entry_fee || undefined,
+        lineage: toPatch.lineage || undefined,
+        prize_fund: toPatch.prize_fund || undefined,
+        other: toPatch.other || undefined,
+        expenses: toPatch.expenses || undefined,
+        sort_order: toPatch.sort_order || undefined,
       }
     })
-    return NextResponse.json({updated}, {status: 200});    
+    let event
+    // add in lpox if needed
+    if (jsonProps.includes('entry_fee')) {
+      event = {
+        ...patchEvent,
+        lpox: patchEvent.entry_fee
+      }
+    } else {
+      event = patchEvent
+    }
+    return NextResponse.json({event}, {status: 200});
   } catch (err: any) {
     let errStatus: number    
     switch (err.code) {
-      case 'P2003':
+      case 'P2002': // unique constraint
+        errStatus = 422
+        break;
+      case 'P2003': // foreign key constraint
         errStatus = 422        
         break;    
       default:
@@ -198,26 +343,30 @@ export async function DELETE(
 ) {
   try {
     const id = params.id
-    if (!isValidBtDbId(id)) {
+    if (!isValidBtDbId(id, 'evt')) {
       return NextResponse.json(
-        { error: 'invalid data' },
-        { status: 422 }
-      );
+        { error: "not found" },
+        { status: 404 }
+      );        
     }
-
-    const deleted = await prisma.event.delete({
+    const deletedEvent = await prisma.event.delete({
       where: {
         id: id
       }
     })
+    // add in lpox
+    const deleted = {
+      ...deletedEvent,
+      lpox: deletedEvent.entry_fee
+    }
     return NextResponse.json({deleted}, {status: 200});    
   } catch (err: any) {
     let errStatus: number    
     switch (err.code) {
-      case 'P2003':
-        errStatus = 422        
+      case 'P2003': // parent has child rows
+        errStatus = 409        
         break;   
-      case 'P2025':
+      case 'P2025': // record not found
         errStatus = 404
         break;   
       default:

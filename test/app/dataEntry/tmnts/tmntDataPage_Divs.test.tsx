@@ -8,7 +8,7 @@ import { mockEvent } from "../../../mocks/tmnts/twoDivs/mockEvent";
 import { mockDivs, mockPots, mockBrkts, mockElims } from "../../../mocks/tmnts/twoDivs/mockDivs";
 import { mockSquad } from "../../../mocks/tmnts/twoDivs/mockSquad";
 import { fullTmntDataType } from "@/lib/types/types";
-import { defaultHdcp, defaultHdcpFrom, initBrkts, initDivs, initElims, initEvents, initPots, initSquads } from "@/db/initVals";
+import { defaultHdcpPer, defaultHdcpFrom, initBrkts, initDivs, initElims, initEvents, initPots, initSquads } from "@/db/initVals";
 
 describe('TmntDataPage - Divs Component', () => { 
 
@@ -295,7 +295,7 @@ describe('TmntDataPage - Divs Component', () => {
       await user.click(acdns[0]);      
       const divTab = await screen.findByRole('tab', { name: /division 1/i })
       const hdcp = screen.getByRole('spinbutton', { name: /hdcp %/i }) as HTMLInputElement;      
-      expect(hdcp).toHaveValue(defaultHdcp)      
+      expect(hdcp).toHaveValue(defaultHdcpPer)      
       await user.clear(hdcp);
       await user.click(saveBtn);
       await user.type(hdcp, '234')
@@ -314,7 +314,7 @@ describe('TmntDataPage - Divs Component', () => {
       await user.click(acdns[0]);      
       const divTab = await screen.findByRole('tab', { name: /division 1/i })
       const hdcp = screen.getByRole('spinbutton', { name: /hdcp %/i }) as HTMLInputElement;      
-      expect(hdcp).toHaveValue(defaultHdcp)
+      expect(hdcp).toHaveValue(defaultHdcpPer)
       // clear hdcp %, resets to 0 if blank. 0 is valid
       await user.clear(hdcp);
       await user.click(saveBtn);      
@@ -333,7 +333,7 @@ describe('TmntDataPage - Divs Component', () => {
       await user.click(acdns[0]);      
       const divTab = await screen.findByRole('tab', { name: /division 1/i })
       const hdcp = screen.getByRole('spinbutton', { name: /hdcp %/i }) as HTMLInputElement;      
-      expect(hdcp).toHaveValue(defaultHdcp)
+      expect(hdcp).toHaveValue(defaultHdcpPer)
       await user.clear(hdcp);
       await user.type(hdcp, '-1');
       await user.click(saveBtn);      
@@ -373,7 +373,7 @@ describe('TmntDataPage - Divs Component', () => {
       await user.click(acdns[0]);      
       const divTab = await screen.findByRole('tab', { name: /division 1/i })
       const hdcp = screen.getByRole('spinbutton', { name: /hdcp %/i }) as HTMLInputElement;      
-      expect(hdcp).toHaveValue(defaultHdcp)      
+      expect(hdcp).toHaveValue(defaultHdcpPer)      
       await user.clear(hdcp);
       await user.click(saveBtn);
       await user.type(hdcp, '234')

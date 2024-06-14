@@ -1,8 +1,17 @@
+import { nextPostSecret } from "./tools";
+import { idTypes } from "./types/types";
+
 export const maxFirstNameLength = 15;
 export const maxLastNameLength = 20;
 export const maxEmailLength = 30;
 export const maxPhoneLength = 20;
 export const maxPasswordLength = 20;
+
+export const maxBowlNameLemgth = 30;
+export const maxCityLength = 25;
+export const maxStateLength = 5
+export const maxUrlLength = 40;
+
 export const maxTmntNameLength = 30;
 export const maxEventLength = 20;
 
@@ -16,7 +25,7 @@ export const minLaneCount = 2;
 export const maxLaneCount = 200;
 export const maxEvents = 10;
 export const minHdcpPer = 0;
-export const maxHdcpPer = 125;
+export const maxHdcpPer = 1.25;
 export const minHdcpFrom = 0;
 export const maxHdcpFrom = 300;
 export const zeroAmount = 0;
@@ -24,10 +33,13 @@ export const minFee = 1;
 export const maxMoney = 999999;
 
 export const minSortOrder = 1;
-export const maxSortOrder = 1000;
+export const maxSortOrder = 1000000;
 
 export const minYear = 1900;
 export const maxYear = 2200;
+
+export const minLane = 1;
+export const maxLane = 999;
 
 export enum ErrorCode {
   None = 0,
@@ -43,6 +55,9 @@ export enum ErrorCode {
  * @return {*}  {boolean} - true: str has a valid email format;
  */
 export function isEmail(str: string): boolean {
+  if ((str.match(/@/g) || []).length !== 1) {
+    return false
+  }
   const regex = /^\w+([\.-]?\w+)*@\w+([\.-]?\w+)*(\.\w{2,3})+$/;
   return regex.test(str);
 }
@@ -83,21 +98,46 @@ export const isValidBtDbType = (str: string): boolean => {
   return validIdTypes.includes(str);
 }
 
+
 /**
  * checks if string is a valid BtDb id
- *  3 lowercase letters
- *  1 underscore
- *  32 hexidecimals in lowercase
- *
- * @param {string} str
- * @return {*}  {boolean} - true: str is a valid BtDb id ;
+ *  id starts with a valid id type
+ *  id is in correct format 
+ *    3 lowercase letters - valid id type
+ *    1 underscore
+ *    32 hexidecimals in lowercase
+ * 
+ * @param id - the id string to check
+ * @param idType - the desired id type (usr, bwl, ...)
+ * @returns {*} {boolean} - true: str is a valid BtDb id 
  */
-export function isValidBtDbId(str: string): boolean {
-  const idType = str.substring(0, 3);
+export function isValidBtDbId(id: string, idType: idTypes): boolean {
+  if (!id || !idType) return false;         
+  if (!(id.startsWith(idType))) return false;
   if (!isValidBtDbType(idType)) return false;  
   const regex = /^[a-z]{3}_[a-f0-9]{32}$/;
-  return regex.test(str);
+  return regex.test(id);
 }
+
+/**
+ * checks if post id is valid, and returns the valid id if it is
+ * 
+ * @param {string} id
+ * @return {string} - the valid user id if: str starts with postSecret and ends with a valid user BtDb id;
+ *                  - otherwise returns an empty string
+ */
+export function validPostId(id: string, idType: idTypes): string {   
+  if (id?.startsWith(nextPostSecret as string)) {
+    const postId = id.replace(nextPostSecret as string, '');
+    if (isValidBtDbId(postId, idType)) {
+      return postId
+    }
+    return ''
+  } else {
+    return ''
+  }
+}
+
 
 /**
  * checks if a year is valid = four digits and between 1900 and 2100 inclusive
@@ -146,4 +186,17 @@ export const isOdd = (num: number): boolean => {
  */
 export const isEven = (num: number): boolean => {
   return !isOdd(num);
+}
+
+/**
+ * checks if object has a valid sort_order
+ * 
+ * @param obj - object to test, should have a sort_order property
+ * @returns {boolean} - true if object has a valid sort_order 
+ */
+export const validSortOrder = (sortOrder: number): boolean => {
+  return (!sortOrder
+    || !Number.isInteger(sortOrder)
+    || sortOrder < minSortOrder
+    || sortOrder > maxSortOrder) ? false : true;  
 }
