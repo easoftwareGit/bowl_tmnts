@@ -163,8 +163,8 @@ export const validTime = (time: string): boolean => {
   if (!time || !(time.length === 5 || time.length === 8)) return false;
   const regex =
     time.length === 5
-      ? /^(1[0-9]|0?[1-9]|2[0-3]):[0-5][0-9]$/
-      : /^(0[1-9]|1[0-2]):[0-5][0-9]\s(?:AM|PM)$/;
+      ? /^([01]\d|2[0-3]):[0-5]\d/
+      : /(0[1-9]|1[0-2]):[0-5]\d (AM|PM)/;
   return regex.test(time);
 };
 

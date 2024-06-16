@@ -70,7 +70,8 @@ export const validSquadDate = (squadDateStr: string): boolean => {
   return isValid(squadDate)
 }
 export const validSquadTime = (squadTimeStr: string): boolean => { 
-  if (!squadTimeStr) return false
+  if (typeof squadTimeStr !== 'string') return false  
+  if (!squadTimeStr) return true
   return validTime(squadTimeStr)
 }
 

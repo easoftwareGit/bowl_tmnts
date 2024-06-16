@@ -240,32 +240,57 @@ describe('tests for validation functions', () => {
   describe('validTime function', () => {
     it('should return true for valid 12-hour time in HH:MM AM/PM format', () => {
       expect(validTime('11:30 AM')).toBe(true);
+      expect(validTime('02:00 PM')).toBe(true);
+      expect(validTime('12:00 PM')).toBe(true);
+      expect(validTime('12:00 AM')).toBe(true);      
     });
-  
     it('should return true for valid 24-hour time in HH:MM format', () => {
       expect(validTime('13:45')).toBe(true);
+      expect(validTime('08:15')).toBe(true);
+      expect(validTime('00:00')).toBe(true);
+      expect(validTime('23:59')).toBe(true);
     });
-  
-    it('should return false for invalid time format (25:30)', () => {
-      expect(validTime('25:30')).toBe(false);
+    it('should return false for invalid time format (24:00)', () => {
+      expect(validTime('24:00')).toBe(false);
     });
-
+    it('should return false for invalid time format (13:30 AM/PM)', () => {
+      expect(validTime('13:30 AM')).toBe(false);
+      expect(validTime('13:30 PM')).toBe(false);
+    });
+    it('should return false for invalid time format (10:30 am/pm)', () => {
+      expect(validTime('10:30 am')).toBe(false);
+      expect(validTime('10:30 pm')).toBe(false);
+    });
+    it('should return false for invalid time format (08:60 AM)', () => {
+      expect(validTime('08:60 AM')).toBe(false);
+    });
     it('should return false for invalid time format (15:60)', () => {
       expect(validTime('15:60')).toBe(false);
     });
-
     it('should return false for invalid time format (1234)', () => {
       expect(validTime('1234')).toBe(false);
     });
-  
     it('should return false for invalid time format (abc)', () => {
       expect(validTime('abc')).toBe(false);
     });
-  
+    it('should return false for time with incorrect length', () => {
+      expect(validTime("10:30:00")).toBe(false);
+    });  
+    it('should return false for time with special characters', () => {            
+      expect(validTime("12:30@")).toBe(false);
+    });
+    it('should return false for valid time with additional text', () => {            
+      expect(validTime("10:30 PM extra text")).toBe(false);
+    });
     it('should return false for empty input', () => {
       expect(validTime('')).toBe(false);
-    });
-  
+    });  
+    it('should return false for null input', () => {
+      expect(validTime(null as any)).toBe(false);
+    });  
+    it('should return false for undefinded input', () => {
+      expect(validTime(undefined as any)).toBe(false);
+    });  
   });  
 
   describe('isOdd and IsEven functions', () => { 
