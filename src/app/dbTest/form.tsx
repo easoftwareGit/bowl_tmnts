@@ -7,6 +7,8 @@ import { DbTmnts } from "./dbTmnt";
 import { DbEvents } from "./dbEvents";
 import { DbDivs } from "./dbDivs";
 import { DbSquads } from "./dbSquads";
+import { DbLanes } from "./dbLanes";
+import { DbPots } from "./dbPots";
 
 import "./form.css";
 
@@ -64,10 +66,26 @@ export const DbTestForm: React.FC = () => {
         </AccordionItem>
       </Accordion>
       <Accordion>
-        <AccordionItem eventKey="divs">
+        <AccordionItem eventKey="squads">
           <Accordion.Header>Squads</Accordion.Header>
           <Accordion.Body >
             <DbSquads />
+          </Accordion.Body>
+        </AccordionItem>
+      </Accordion>
+      <Accordion>
+        <AccordionItem eventKey="lanes">
+          <Accordion.Header>Lanes</Accordion.Header>
+          <Accordion.Body >
+            <DbLanes />
+          </Accordion.Body>
+        </AccordionItem>
+      </Accordion>
+      <Accordion>
+        <AccordionItem eventKey="pots">
+          <Accordion.Header>Pots</Accordion.Header>
+          <Accordion.Body >
+            <DbPots />
           </Accordion.Body>
         </AccordionItem>
       </Accordion>

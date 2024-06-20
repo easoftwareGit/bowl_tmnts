@@ -72,12 +72,8 @@ export const DbBowls = () => {
   const removeCreatedBowl = async (showResults: boolean) => {
     let testResults = results;
     try {
-      const allBowls: bowlType[] = (await bowlReadAll(
-        false
-      )) as unknown as bowlType[];
-      const justPostedBowl = allBowls.filter(
-        (bowl) => bowl.url === bowlToPost.url
-      );
+      const allBowls: bowlType[] = (await bowlReadAll(false)) as unknown as bowlType[];
+      const justPostedBowl = allBowls.filter((bowl) => bowl.url === bowlToPost.url);
       if (justPostedBowl.length === 1) {
         bowlDelete(justPostedBowl[0].id, false);
         if (showResults) {
@@ -88,10 +84,7 @@ export const DbBowls = () => {
       }
       return allBowls;
     } catch (error: any) {
-      testResults += addToResults(
-        `Remove Created Error: ${error.message}`,
-        false
-      );
+      testResults += addToResults(`Remove Created Error: ${error.message}`, false);
       setResults(testResults);
       return {
         error: error.message,
@@ -115,10 +108,7 @@ export const DbBowls = () => {
         }
         return response.data;
       } else {
-        testResults += addToResults(
-          `Error resetting: status: ${response.status}`,
-          false
-        );
+        testResults += addToResults(`Error resetting: status: ${response.status}`, false);
         return {
           error: "Error re-setting",
           status: response.status,
@@ -244,8 +234,7 @@ export const DbBowls = () => {
           testResults += addToResults(
             `Create Bowl Error: did not return 422 for invalid ${propertyName}`,
             false
-          );
-          setResults(testResults);
+          );          
           return {
             error: `Error creating bowl with invalid ${propertyName}`,
             status: invalidResponse.status,
@@ -272,8 +261,7 @@ export const DbBowls = () => {
           testResults += addToResults(
             `Create Error: did not return 422 for invalid ${propertyName}`,
             false
-          );
-          setResults(testResults);
+          );          
           return {
             error: `Error Creating bowl with invalid ${propertyName}`,
             status: error.response.status,
@@ -294,9 +282,7 @@ export const DbBowls = () => {
       });
       if (response.status === 201) {
         createdBowlId = response.data.bowl.id;
-        testResults += addToResults(
-          `Created bowl: ${response.data.bowl.bowl_name}`
-        );
+        testResults += addToResults(`Created bowl: ${response.data.bowl.bowl_name}`);
         const postedBowl: bowlType = response.data.bowl;
         if (postedBowl.bowl_name !== bowlToPost.bowl_name) {
           testResults += addToResults(
@@ -304,20 +290,11 @@ export const DbBowls = () => {
             false
           );
         } else if (postedBowl.city !== bowlToPost.city) {
-          testResults += addToResults(
-            "Created bowl city !== bowlToPost.city",
-            false
-          );
+          testResults += addToResults("Created bowl city !== bowlToPost.city", false);
         } else if (postedBowl.state !== bowlToPost.state) {
-          testResults += addToResults(
-            "Created bowl state !== bowlToPost.state",
-            false
-          );
+          testResults += addToResults("Created bowl state !== bowlToPost.state", false);
         } else if (postedBowl.url !== bowlToPost.url) {
-          testResults += addToResults(
-            "Created bowl url !== bowlToPost.url",
-            false
-          );
+          testResults += addToResults("Created bowl url !== bowlToPost.url", false);
         } else {
           testResults += addToResults(`Created bowl === bowlToPost`);
         }
@@ -374,34 +351,17 @@ export const DbBowls = () => {
             true
           );
         }
-        const allBowls: bowlType[] = response.data
-          .bowls as unknown as bowlType[];
-        const justPostedBowl = allBowls.filter(
-          (bowl) => bowl.url === bowlToPost.url
-        );
+        const allBowls: bowlType[] = response.data.bowls as unknown as bowlType[];
 
         // 4 bowls in /prisma/seeds.ts
         const seedBowls = 4;
-        if (justPostedBowl.length === 1) {
-          // created a test bowl BEFORE testing read all
-          if (allBowls.length === seedBowls + 1) {
-            testResults += addToResults(`Read all ${seedBowls + 1} bowls`);
-          } else {
-            testResults += addToResults(
-              `Error: Read ${allBowls.length} bowls, expected ${seedBowls + 1}`,
-              false
-            );
-          }
+        if (allBowls.length === seedBowls) {
+          testResults += addToResults(`Read all ${seedBowls} bowls`, true);
         } else {
-          // test bowl not created yet
-          if (allBowls.length === seedBowls) {
-            testResults += addToResults(`Read all ${seedBowls} bowls`, true);
-          } else {
-            testResults += addToResults(
-              `Error: Read ${allBowls.length} bowls, expected ${seedBowls}`,
-              false
-            );
-          }
+          testResults += addToResults(
+            `Error: Read ${allBowls.length} bowls, expected ${seedBowls}`,
+            false
+          );
         }
         return response.data.bowls;
       } else {
@@ -501,20 +461,11 @@ export const DbBowls = () => {
             false
           );
         } else if (readBowl.city !== testBowl.city) {
-          testResults += addToResults(
-            "Read 1 Bowl city !== testBowl.city",
-            false
-          );
+          testResults += addToResults("Read 1 Bowl city !== testBowl.city", false);
         } else if (readBowl.state !== testBowl.state) {
-          testResults += addToResults(
-            "Read 1 Bowl state !== testBowl.state",
-            false
-          );
+          testResults += addToResults("Read 1 Bowl state !== testBowl.state", false);
         } else if (readBowl.url !== testBowl.url) {
-          testResults += addToResults(
-            "Read 1 Bowl url !== testBowl.url",
-            false
-          );
+          testResults += addToResults("Read 1 Bowl url !== testBowl.url", false);
         } else {
           testResults += addToResults(`Read 1 Bowl === testBowl`);
         }
@@ -573,10 +524,10 @@ export const DbBowls = () => {
     const bowlUpdateInvalidId = async (id: string) => {
       try {
         const invalidUrl = url + "/" + id;
-        const tmntJSON = JSON.stringify(bowlUpdatedTo);
+        const invalidJSON = JSON.stringify(bowlUpdatedTo);
         const notUpdatedResponse = await axios({
           method: "put",
-          data: tmntJSON,
+          data: invalidJSON,
           withCredentials: true,
           url: invalidUrl,
         });
@@ -618,20 +569,11 @@ export const DbBowls = () => {
           false
         );
       } else if (updatedBowl.city !== bowlUpdatedTo.city) {
-        testResults += addToResults(
-          "Updated bowl city !== bowlUpdatedTo.city",
-          false
-        );
+        testResults += addToResults("Updated bowl city !== bowlUpdatedTo.city", false);
       } else if (updatedBowl.state !== bowlUpdatedTo.state) {
-        testResults += addToResults(
-          "Updated bowl state !== bowlUpdatedTo.state",
-          false
-        );
+        testResults += addToResults("Updated bowl state !== bowlUpdatedTo.state", false);
       } else if (updatedBowl.url !== bowlUpdatedTo.url) {
-        testResults += addToResults(
-          "Updated bowl url !== bowlUpdatedTo.url",
-          false
-        );
+        testResults += addToResults("Updated bowl url !== bowlUpdatedTo.url", false);
       } else {
         testResults += addToResults(`Updated Bowl: ${updatedBowl.bowl_name}`);
       }
@@ -642,8 +584,7 @@ export const DbBowls = () => {
 
       return updated;
     } catch (error: any) {
-      testResults += addToResults(`Update Error: ${error.message}`, false);
-      setResults(testResults);
+      testResults += addToResults(`Update Error: ${error.message}`, false);      
       return {
         error: error.message,
         status: 404,
@@ -663,11 +604,7 @@ export const DbBowls = () => {
     let testResults = results + "Patch Bowl tests: \n";
     passed = true;
 
-    const doPatchBowl = async (
-      propertyName: string,
-      value: any,
-      matchValue: any
-    ) => {
+    const doPatch = async (propertyName: string, value: any, matchValue: any) => {
       try {
         const bowlJSON = JSON.stringify({
           [propertyName]: value,
@@ -684,27 +621,21 @@ export const DbBowls = () => {
               `Patched Bowl: ${bowlToUpdate.bowl_name} - just ${propertyName}`
             );
           } else {
-            testResults += addToResults(
-              `DID NOT Patch Bowl ${propertyName}`,
-              false
-            );
+            testResults += addToResults(`DID NOT Patch Bowl ${propertyName}`, false);
           }
           return {
             data: response.data.bowl,
             status: response.status,
           };
         } else {
-          testResults += addToResults(`Patch Error: ${propertyName}`, false);
+          testResults += addToResults(`doPatch Error: ${propertyName}`, false);
           return {
             error: `Error Patching ${propertyName}`,
             status: response.status,
           };
         }
       } catch (error: any) {
-        testResults += addToResults(
-          `doPatchBowl Error: ${error.message}`,
-          false
-        );
+        testResults += addToResults(`doPatch Error: ${error.message}`, false);
         return {
           error: error.message,
           status: 404,
@@ -714,12 +645,11 @@ export const DbBowls = () => {
       }
     };
 
-    const doNotPatchBowl = async (propertyName: string, value: any) => {
+    const dontPatch = async (propertyName: string, value: any) => {
       try {
         const bowlJSON = JSON.stringify({
           ...bowlToUpdate,
-          bowl_name:
-            "123456789012345678901234567890123456789012345678901234567890",
+          [propertyName]: value,
         });
         const response = await axios({
           method: "patch",
@@ -767,13 +697,13 @@ export const DbBowls = () => {
       }
     };
 
-    const bowlPatchInvalidId = async (id: string) => {
+    const dontPatchInvalidId = async (id: string) => {
       try {
         const invalidUrl = url + "/" + id;
-        const tmntJSON = JSON.stringify(bowlUpdatedTo);
+        const invalidJSON = JSON.stringify(bowlUpdatedTo);
         const notUpdatedResponse = await axios({
           method: "patch",
-          data: tmntJSON,
+          data: invalidJSON,
           withCredentials: true,
           url: invalidUrl,
         });
@@ -802,27 +732,21 @@ export const DbBowls = () => {
     };
 
     try {
-      await doPatchBowl("bowl_name", "Test Bowl", "Test Bowl");
-      await doNotPatchBowl("bowl_name", "<script>alert(1)</script>");
+      await doPatch("bowl_name", "Test Bowl", "Test Bowl");
+      await doPatch("bowl_name", "<script>alert(1)</script>", 'alert1');
+      await dontPatch("bowl_name", "<script></script>");
 
-      await doPatchBowl("city", "  Somewhere *", "Somewhere");
-      await doNotPatchBowl(
-        "city",
-        "12345678901234567890123456789012345678901234567890"
-      );
+      await doPatch("city", "  Somewhere *", "Somewhere");
+      await dontPatch("city", "12345678901234567890123456789012345678901234567890");
 
-      await doPatchBowl("state", "NY", "NY");
-      await doNotPatchBowl("state", "");
+      await doPatch("state", "NY", "NY");
+      await dontPatch("state", "");
 
-      await doPatchBowl(
-        "url",
-        "https://www.testbowl.com/",
-        "https://www.testbowl.com/"
-      );
-      await doNotPatchBowl("url", "just some text");
+      await doPatch("url", "https://www.testbowl.com/", "https://www.testbowl.com/");
+      await dontPatch("url", "just some text");
 
-      await bowlPatchInvalidId("abc_123");
-      await bowlPatchInvalidId("bwl_12345678901234567890123456789012");
+      await dontPatchInvalidId("abc_123");
+      await dontPatchInvalidId("bwl_12345678901234567890123456789012");
 
       return bowlToUpdate;
     } catch (error: any) {
@@ -844,8 +768,10 @@ export const DbBowls = () => {
 
   const bowlDelete = async (bowlIdToDel: string, testing: boolean = true) => {
     let testResults = results + "Delete Bowl tests: \n";
-    passed = true;
-
+    if (!testing) {
+      passed = true;
+    }
+    
     const invalidDelete = async (invalidId: string) => {
       try {
         const invalidDelUrl = url + "/" + invalidId;
@@ -870,10 +796,7 @@ export const DbBowls = () => {
             `Did not not delete bowl - invalid id: "${invalidId}"`
           );
         } else {
-          testResults += addToResults(
-            `Delete Bowl Error: ${error.message}`,
-            false
-          );
+          testResults += addToResults(`Delete Bowl Error: ${error.message}`, false);
           return {
             error: error.message,
             status: error.response.status,
@@ -899,7 +822,7 @@ export const DbBowls = () => {
           );
         }
       } else {
-        testResults += addToResults("False: could not delete bowl", false);
+        testResults += addToResults("Error: could not delete bowl", false);
         return {
           error: "Could not delete bowl",
           status: 404,
@@ -931,10 +854,7 @@ export const DbBowls = () => {
               `Did not not delete bowl: ${bowlToUpdate.bowl_name} with children`
             );
           } else {
-            testResults += addToResults(
-              `Delete Bowl Error: ${error.message}`,
-              false
-            );
+            testResults += addToResults(`Delete Bowl Error: ${error.message}`, false);
             return {
               error: error.message,
               status: error.response.status,
@@ -975,10 +895,7 @@ export const DbBowls = () => {
 
       const allBowls: any = await removeCreatedBowl(true);
       if (allBowls.error) {
-        testResults += addToResults(
-          `Error Resetting: ${allBowls.error}`,
-          false
-        );
+        testResults += addToResults(`Error Resetting: ${allBowls.error}`, false);
         return;
       }
 
@@ -1004,7 +921,7 @@ export const DbBowls = () => {
     }
   };
 
-  const handleBowlCrudChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleCrudChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setBowlCrud(e.target.value);
   };
 
@@ -1083,11 +1000,7 @@ export const DbBowls = () => {
           <h4>Bowls</h4>
         </div>
         <div className="col-sm-2">
-          <button
-            className="btn btn-success"
-            id="bowlTest"
-            onClick={handleBowlTest}
-          >
+          <button className="btn btn-success" id="bowlTest" onClick={handleBowlTest}>
             Test
           </button>
         </div>
@@ -1101,11 +1014,7 @@ export const DbBowls = () => {
           </button>
         </div> */}
         <div className="col-sm-2">
-          <button
-            className="btn btn-warning"
-            id="bowlClear"
-            onClick={handleClear}
-          >
+          <button className="btn btn-warning" id="bowlClear" onClick={handleClear}>
             Clear
           </button>
         </div>
@@ -1127,7 +1036,7 @@ export const DbBowls = () => {
             name="bowl"
             value="create"
             checked={bowlCrud === "create"}
-            onChange={handleBowlCrudChange}
+            onChange={handleCrudChange}
           />
         </div>
         <div className="col-sm-2">
@@ -1141,7 +1050,7 @@ export const DbBowls = () => {
             name="bowl"
             value="read"
             checked={bowlCrud === "read"}
-            onChange={handleBowlCrudChange}
+            onChange={handleCrudChange}
           />
         </div>
         <div className="col-sm-2">
@@ -1155,7 +1064,7 @@ export const DbBowls = () => {
             name="bowl"
             value="read1"
             checked={bowlCrud === "read1"}
-            onChange={handleBowlCrudChange}
+            onChange={handleCrudChange}
           />
         </div>
         <div className="col-sm-2">
@@ -1169,7 +1078,7 @@ export const DbBowls = () => {
             name="bowl"
             value="update"
             checked={bowlCrud === "update"}
-            onChange={handleBowlCrudChange}
+            onChange={handleCrudChange}
           />
         </div>
         <div className="col-sm-2">
@@ -1183,7 +1092,7 @@ export const DbBowls = () => {
             name="bowl"
             value="patch"
             checked={bowlCrud === "patch"}
-            onChange={handleBowlCrudChange}
+            onChange={handleCrudChange}
           />
         </div>
         <div className="col-sm-2">
@@ -1197,7 +1106,7 @@ export const DbBowls = () => {
             name="bowl"
             value="delete"
             checked={bowlCrud === "delete"}
-            onChange={handleBowlCrudChange}
+            onChange={handleCrudChange}
           />
         </div>
       </div>

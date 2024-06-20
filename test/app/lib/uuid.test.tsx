@@ -9,7 +9,7 @@ describe('tests for uuid', () => {
     expect(bowUuid).toHaveLength(36);
     expect(isValidBtDbId(bowUuid, type)).toBe(true);    
   })
-  it('shoudl return a blank uuid for invalid type', () => { 
+  it('should return a blank uuid for invalid type', () => { 
     const bad = 'bad';
     const bowUuid = btDbUuid(bad);
     expect(bowUuid).toHaveLength(0);

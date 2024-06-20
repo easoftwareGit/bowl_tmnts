@@ -12,7 +12,6 @@ import {
   exportedForTesting
 } from "@/app/api/squads/validate";
 import { initSquad } from "@/db/initVals";
-import { squadType } from "@/lib/types/types";
 import { ErrorCode, maxEventLength, maxSortOrder, validPostId } from "@/lib/validation";
 import { nextPostSecret } from "@/lib/tools";
 import { todayStr } from "@/lib/dateTools";
@@ -38,7 +37,7 @@ describe('tests for squad validation', () => {
     it('should return ErrorCode.None when all data is valid', () => {
       expect(gotSquadData(validSquad)).toBe(ErrorCode.None)
     })
-    it('shoudl return ErrorCode.None when all data is valid, but no start time', () => { 
+    it('should return ErrorCode.None when all data is valid, but no start time', () => { 
       const testSquad = {
         ...validSquad,
         squad_time: ''
@@ -405,14 +404,14 @@ describe('tests for squad validation', () => {
   })
 
   describe('sanitizeSquad function', () => {
-    it('should return a sanitized squad when event is already sanitized', () => {
+    it('should return a sanitized squad when squad is already sanitized', () => {
       const testSquad = {
         ...validSquad,
       }
       const sanitizedSquad = sanitizeSquad(testSquad)
       expect(sanitizedSquad).toEqual(testSquad)
     })
-    it('should return a sanitized squad when event is not already sanitized', () => {
+    it('should return a sanitized squad when squad is NOT already sanitized', () => {
       const testSquad = {
         ...validSquad,
         event_id: 'abc_123',
@@ -594,17 +593,17 @@ describe('tests for squad validation', () => {
   })
 
   describe('validPostId function', () => { 
-    const testEventId = "sqd_7116ce5f80164830830a7157eb093396"
-    it('should return testEventId when id starts with post Secret and follows with a valid event id', () => { 
-      const validId = nextPostSecret + testEventId;
-      expect(validPostId(validId, 'sqd')).toBe(testEventId)
+    const testId = "sqd_7116ce5f80164830830a7157eb093396"
+    it('should return testId when id starts with post Secret and follows with a valid squad id', () => { 
+      const validId = nextPostSecret + testId;
+      expect(validPostId(validId, 'sqd')).toBe(testId)
     })
     it('should return "" when id starts with postSecret but does idType does not match idtype in postId', () => {
-      const invalidId = nextPostSecret + testEventId;
+      const invalidId = nextPostSecret + testId;
       expect(validPostId(invalidId, 'usr')).toBe('');
     });
     it('should return "" when id starts with postSecret but does idType is invalid', () => {
-      const invalidId = nextPostSecret + testEventId;
+      const invalidId = nextPostSecret + testId;
       expect(validPostId(invalidId, '123' as any)).toBe('');
     });
     it('should return "" when id starts with postSecret but does not follow with valid BtDb idType', () => {
@@ -616,7 +615,7 @@ describe('tests for squad validation', () => {
       expect(validPostId(invalidId, 'sqd')).toBe('');
     });
     it('should return "" when id does not start with postSecret', () => {
-      const invalidId = testEventId;
+      const invalidId = testId;
       expect(validPostId(invalidId, 'sqd')).toBe('');
     });
   })

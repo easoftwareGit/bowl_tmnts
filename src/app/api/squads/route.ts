@@ -19,7 +19,7 @@ export async function GET(request: NextRequest) {
         }, 
       ]
     })
-    return NextResponse.json({squads}, {status: 200});
+    return NextResponse.json({ squads }, { status: 200 });    
   } catch (err: any) {
     return NextResponse.json(
       { error: "error getting squads" },

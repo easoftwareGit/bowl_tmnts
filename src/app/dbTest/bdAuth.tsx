@@ -5,20 +5,19 @@ import { signIn, signOut } from "next-auth/react";
 import { baseApi } from "@/lib/tools";
 import { userType } from "@/lib/types/types";
 import { initUser } from "@/db/initVals";
-import { useSession } from "next-auth/react"; 
+import { useSession } from "next-auth/react";
 
-const authUrl = baseApi + "/auth/register"
-const loginUrl = baseApi + "/auth/login"
+const authUrl = baseApi + "/auth/register";
+const loginUrl = baseApi + "/auth/login";
 const usersUrl = baseApi + "/users";
 
 let passed = true;
-let allResults = '';
+let allResults = "";
 
 export const DbAuth = () => {
-  
   const searchParams = useSearchParams();
-  const callbackUrl = searchParams.get('callbackUrl') || '/user';
-  const { status, data } = useSession();  
+  const callbackUrl = searchParams.get("callbackUrl") || "/user";
+  const { status, data } = useSession();
 
   const [authCrud, setAuthCrud] = React.useState("register");
   const [results, setResults] = React.useState("");
@@ -34,33 +33,33 @@ export const DbAuth = () => {
     first_name: "Test",
     last_name: "Last",
     phone: "+18005551212",
-  }
+  };
 
   const currentUser = {
-    ...initUser,      
-    id: 'usr_5bcefb5d314fff1ff5da6521a2fa7bde',
+    ...initUser,
+    id: "usr_5bcefb5d314fff1ff5da6521a2fa7bde",
     email: "adam@email.com",
     password: "Test123!",
     first_name: "Adam",
     last_name: "Smith",
     phone: "+18005551212",
-    role: 'ADMIN',  
-  }
+    role: "ADMIN",
+  };
 
-  const addToResults = (newText: string, pass: boolean = true): string => { 
+  const addToResults = (newText: string, pass: boolean = true): string => {
     if (pass) {
-      newText = '🟢' + newText;
+      newText = "🟢" + newText;
     } else {
-      newText = '🔴' + newText; 
+      newText = "🔴" + newText;
       passed = false;
     }
-    allResults += newText + '\n'
-    return newText + '\n'    
-  }
+    allResults += newText + "\n";
+    return newText + "\n";
+  };
 
   const userDelete = async (userId: string) => {
     let testResults = results;
-    const userDelUrl = usersUrl +'/' + userId
+    const userDelUrl = usersUrl + "/" + userId;
     try {
       const response = await axios({
         method: "delete",
@@ -68,22 +67,23 @@ export const DbAuth = () => {
         url: userDelUrl,
       });
       if (response.status !== 200) {
-        testResults += addToResults('False: could not delete registered user', false)
-        setResults(testResults)
+        testResults += addToResults("Error: could not delete registered user", false);
+        setResults(testResults);
         return {
-          error: 'Could not delete registered user',
+          error: "Could not delete registered user",
           status: 404,
         };
-      }      
+      }
       return response.data;
     } catch (error: any) {
       testResults += addToResults(`Error: ${error.message}`, false);
-      setResults(testResults)
+      setResults(testResults);
       return {
         error: error.message,
         status: 404,
       };
-    } 
+    } finally {
+    }
   };
 
   const readAllUsers = async () => {
@@ -93,11 +93,11 @@ export const DbAuth = () => {
         withCredentials: true,
         url: usersUrl,
       });
-      if (response.status === 200) { 
+      if (response.status === 200) {
         return response.data.users;
       } else {
         return {
-          error: 'Error reading users',
+          error: "Error reading users",
           status: 404,
         };
       }
@@ -105,35 +105,35 @@ export const DbAuth = () => {
       return {
         error: error.message,
         status: 404,
-      };      
+      };
     }
-  }
+  };
 
   const removeRegisteredUser = async () => {
     let testResults = results;
     try {
-      const allUsers: userType[] = await readAllUsers() as unknown as userType[]
-      const justPostedUser = allUsers.filter(user => user.email === userToLogin.email);
+      const allUsers: userType[] = (await readAllUsers()) as unknown as userType[];
+      const justPostedUser = allUsers.filter((user) => user.email === userToLogin.email);
       if (justPostedUser.length === 1) {
-        userDelete(justPostedUser[0].id)
-      }      
-      return allUsers
+        userDelete(justPostedUser[0].id);
+      }
+      return allUsers;
     } catch (error: any) {
       testResults += addToResults(`Remove Registered Error: ${error.message}`, false);
-      setResults(testResults)
+      setResults(testResults);
       return {
         error: error.message,
         status: 404,
-      };      
+      };
     }
-  }
+  };
 
   const authRegister = async () => {
-    let testResults: string = results;    
-    let createdUserId: string = '';
+    let testResults: string = results;
+    let createdUserId: string = "";
     passed = true;
 
-    try {      
+    try {
       const userJSON = JSON.stringify(userToLogin);
       const response = await axios({
         method: "post",
@@ -142,34 +142,41 @@ export const DbAuth = () => {
         url: authUrl,
       });
       if (response.status === 201) {
-        testResults += addToResults(`Success: Registered User: ${response.data.user.email}`);        
+        testResults += addToResults(
+          `Success: Registered User: ${response.data.user.email}`
+        );
         const logedInUser: userType = response.data.user;
         if (logedInUser.first_name !== userToLogin.first_name) {
-          testResults += addToResults('Created user first_name !== mockPostUser.first_name', false)
+          testResults += addToResults(
+            "Created user first_name !== mockPostUser.first_name",
+            false
+          );
         } else if (logedInUser.last_name !== userToLogin.last_name) {
-          testResults += addToResults('Created user last_name !== mockPostUser.last_name', false)
+          testResults += addToResults(
+            "Created user last_name !== mockPostUser.last_name",
+            false
+          );
         } else if (logedInUser.email !== userToLogin.email) {
-          testResults += addToResults('Created user email !== mockPostUser.email', false)
+          testResults += addToResults("Created user email !== mockPostUser.email", false);
         } else if (logedInUser.phone !== userToLogin.phone) {
-          testResults += addToResults('Created user phone !== mockPostUser.phone', false)
+          testResults += addToResults("Created user phone !== mockPostUser.phone", false);
         } else if (logedInUser.role !== userToLogin.role) {
-          testResults += addToResults('Created user role !== mockPostUser.role', false)
+          testResults += addToResults("Created user role !== mockPostUser.role", false);
         } else {
-          testResults += addToResults(`Created User === mockPostUser`)
-        }        
-        createdUserId = response.data.user.id;                       
+          testResults += addToResults(`Created User === mockPostUser`);
+        }
+        createdUserId = response.data.user.id;
       } else {
-        testResults += addToResults(`Error logging in user: ${userToLogin.email}`, false)
-        // setResults(testResults)
+        testResults += addToResults(`Error logging in user: ${userToLogin.email}`, false);
         return {
-          error: 'Did not login user',
+          error: "Did not login user",
           status: response.status,
-        };  
+        };
       }
 
       // test registering user with a duplicate email
       try {
-        const invalidUserJson = JSON.stringify(currentUser);        
+        const invalidUserJson = JSON.stringify(currentUser);
         const iuResponse = await axios({
           method: "post",
           data: invalidUserJson,
@@ -178,38 +185,38 @@ export const DbAuth = () => {
         });
       } catch (error: any) {
         if (error.response.status === 409) {
-          testResults += addToResults('Did not add user with duplicate email')          
+          testResults += addToResults("Did not add user with duplicate email");
         } else {
-          testResults += addToResults(`Error registering user with duplicate email: ${error.message}`, false)
-          // setResults(testResults)
+          testResults += addToResults(
+            `Error registering user with duplicate email: ${error.message}`,
+            false
+          );
           return {
             error: error.message,
             status: error.response.status,
           };
         }
       }
-      
-      // setResults(testResults)
+
       return response.data;
     } catch (error: any) {
       testResults += addToResults(`Register Error: ${error.message}`);
-      // setResults(testResults)
       return {
         error: error.message,
         status: 500,
-      };      
+      };
     } finally {
       if (createdUserId) {
-        const deletedUser = await userDelete(createdUserId);        
+        const deletedUser = await userDelete(createdUserId);
       }
       if (passed) {
         testResults += addToResults(`Registered tests: PASSED`, true);
       } else {
         testResults += addToResults(`Registered tests: FAILED`, false);
       }
-      setResults(testResults) 
+      setResults(testResults);
     }
-  }
+  };
 
   const authLogin = async () => {
     let testResults = results;
@@ -224,22 +231,18 @@ export const DbAuth = () => {
         callbackUrl,
       });
       if (!response?.error) {
-        // testResults += addToResults(`Success: Logged In: ${currentUser.email}`);                
         testResults += addToResults(`Success: Logged In: ${data?.user?.name}`);
         loggedIn = true;
       } else {
-        testResults += addToResults(`Error logging in user: ${userToLogin.email}`, false)
-        // setResults(testResults)
+        testResults += addToResults(`Error logging in user: ${userToLogin.email}`, false);
         return {
-          error: 'Did not login user',
+          error: "Did not login user",
           status: response.status,
-        };  
+        };
       }
 
-      // setResults(testResults)
       return response;
     } catch (error: any) {
-      // setResults(`Error: ${error.message}`);
       return {
         error: error.message,
         status: 500,
@@ -250,9 +253,9 @@ export const DbAuth = () => {
       } else {
         testResults += addToResults(`Log In tests: FAILED`, false);
       }
-      setResults(testResults) 
+      setResults(testResults);
     }
-  }
+  };
 
   const authLogout = () => {
     let testResults = results;
@@ -261,23 +264,23 @@ export const DbAuth = () => {
     try {
       if (status === "authenticated") {
         signOut();
-        testResults += addToResults('Logged Out')
+        testResults += addToResults("Logged Out");
       } else {
-        testResults += addToResults('Not Logged Out, was not loggin in', false)
-      }      
+        testResults += addToResults("Not Logged Out, was not loggin in", false);
+      }
     } catch (error: any) {
-      testResults += addToResults(`Error logging out: ${error.message}`, false)
+      testResults += addToResults(`Error logging out: ${error.message}`, false);
     } finally {
       if (passed) {
         testResults += addToResults(`Log Out tests: PASSED`, true);
       } else {
         testResults += addToResults(`Log Out tests: FAILED`, false);
       }
-      setResults(testResults) 
+      setResults(testResults);
     }
-  }
+  };
 
-  const handleAuthTest = (e: React.FormEvent) => { 
+  const handleAuthTest = (e: React.FormEvent) => {
     e.preventDefault();
     switch (authCrud) {
       case "register":
@@ -292,9 +295,9 @@ export const DbAuth = () => {
       default:
         break;
     }
-  }
+  };
 
-  const handleAuthCrudChange = (e: React.ChangeEvent<HTMLInputElement>) => {    
+  const handleCrudChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setAuthCrud(e.target.value);
   };
 
@@ -312,49 +315,37 @@ export const DbAuth = () => {
       if (status === "authenticated") {
         signOut();
       }
-      
-      testResults += addToResults('Reset Auth')
-      setResults(testResults)
+
+      testResults += addToResults("Reset Auth");
+      setResults(testResults);
     } catch (error: any) {
       testResults += addToResults(`Reset Error: ${error.message}`);
-      setResults(testResults)
+      setResults(testResults);
       return {
         error: error.message,
         status: 500,
-      };      
+      };
     }
   };
 
   return (
-    <>      
+    <>
       <div className="row g-3 mb-3">
         <div className="col-sm-6">
           <h4>Auth</h4>
-        </div>    
+        </div>
         <div className="col-sm-2">
-          <button
-            className="btn btn-success"
-            id="userTest"
-            onClick={handleAuthTest}
-          >
+          <button className="btn btn-success" id="userTest" onClick={handleAuthTest}>
             Test
           </button>
         </div>
         <div className="col-sm-2">
-          <button
-            className="btn btn-warning"
-            id="userTest"
-            onClick={handleClear}
-          >
+          <button className="btn btn-warning" id="userTest" onClick={handleClear}>
             Clear
           </button>
         </div>
         <div className="col-sm-2">
-          <button
-            className="btn btn-info"
-            id="userTest"  
-            onClick={handleReset}
-          >
+          <button className="btn btn-info" id="userTest" onClick={handleReset}>
             Reset
           </button>
         </div>
@@ -371,9 +362,9 @@ export const DbAuth = () => {
             name="auth"
             value="register"
             checked={authCrud === "register"}
-            onChange={handleAuthCrudChange}
+            onChange={handleCrudChange}
           />
-        </div>      
+        </div>
         <div className="col-sm-2">
           <label htmlFor="authLogin" className="form-check-label">
             &nbsp;Log In &nbsp;
@@ -385,7 +376,7 @@ export const DbAuth = () => {
             name="auth"
             value="login"
             checked={authCrud === "login"}
-            onChange={handleAuthCrudChange}
+            onChange={handleCrudChange}
           />
         </div>
         <div className="col-sm-2">
@@ -399,22 +390,20 @@ export const DbAuth = () => {
             name="auth"
             value="logout"
             checked={authCrud === "logout"}
-            onChange={handleAuthCrudChange}            
+            onChange={handleCrudChange}
           />
         </div>
-
       </div>
       <div className="row g-3 mb-3">
         <div className="col-sm-12">
           <textarea
-            name="multiLineResults"               
-            rows={10}            
-            value={results}            
+            name="multiLineResults"
+            rows={10}
+            value={results}
             readOnly={true}
-          >            
-          </textarea>
+          ></textarea>
         </div>
-      </div>      
+      </div>
     </>
   );
-}
+};

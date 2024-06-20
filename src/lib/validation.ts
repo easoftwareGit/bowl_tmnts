@@ -39,7 +39,6 @@ export const minYear = 1900;
 export const maxYear = 2200;
 
 export const minLane = 1;
-export const maxLane = 999;
 
 export enum ErrorCode {
   None = 0,

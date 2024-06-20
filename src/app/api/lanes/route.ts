@@ -9,7 +9,7 @@ import { initLane } from "@/db/initVals";
 
 export async function GET(request: NextRequest) {
   try {
-    const lanes = await prisma.lanes.findMany({
+    const lanes = await prisma.lane.findMany({
       orderBy: [
         {
           squad_id: 'asc',
@@ -19,7 +19,7 @@ export async function GET(request: NextRequest) {
         }
       ]      
     })
-    return NextResponse.json({data: lanes}, {status: 200});    
+    return NextResponse.json({ lanes }, { status: 200 });        
   } catch (error: any) {
     return NextResponse.json(
       { error: "error getting events" },
@@ -60,7 +60,7 @@ export const POST = async (request: NextRequest) => {
 
     let postId = '';
     if (id) {
-      postId = validPostId(id, 'evt');
+      postId = validPostId(id, 'lan');
       if (!postId) {
         return NextResponse.json(
           { error: "invalid data" },
@@ -82,10 +82,10 @@ export const POST = async (request: NextRequest) => {
     if (postId) {
       laneData.id = postId
     }
-    const lane = await prisma.lanes.create({
+    const lane = await prisma.lane.create({
       data: laneData      
     })
-    return NextResponse.json({lane}, {status: 201});
+    return NextResponse.json({ lane }, { status: 201 });    
   } catch (err: any) {
     let errStatus: number
     switch (err.code) {
@@ -107,5 +107,4 @@ export const POST = async (request: NextRequest) => {
       { status: errStatus }
     );        
   }
-
 }

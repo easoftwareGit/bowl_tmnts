@@ -1,6 +1,8 @@
 import axios from "axios";
+import { prisma } from "@/lib/prisma";
 import { baseBowlsApi } from "../../db/apiPaths";
 import { testBaseBowlsApi } from "../../../test/testApi";
+import { isValidBtDbId } from "../validation";
 
 /**
  * get array of bowls
@@ -22,3 +24,27 @@ export const getBowls = async () => {
   const response = await axios.get(url);
   return response.data; // response.data is already JSON'ed
 };
+
+/**
+ * finds one bowl by searching for a matching bowl id
+ *
+ * @param {id} - bowl id
+ * @return {Object|null} Object = bowl's data; mull = bowl not found
+ */
+export async function findBowlById(id: string) {
+  try {
+    // validate the id as an bowl id
+    if (!isValidBtDbId(id, 'bwl')) {
+      return null;
+    }
+    // find bowl in database by matching id
+    const bowl = await prisma.bowl.findUnique({
+      where: {
+        id: id,
+      },
+    });    
+    return (bowl) ? bowl : null;
+  } catch (error) {
+    throw Error('error finding bowl')
+  }
+}

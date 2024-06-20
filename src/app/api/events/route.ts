@@ -124,7 +124,7 @@ export async function POST(request: Request) {
       ...postedEvent,
       lpox: postedEvent.entry_fee
     }    
-    return NextResponse.json({event}, {status: 201});
+    return NextResponse.json({ event }, { status: 201 });    
   } catch (err: any) {
     let errStatus: number
     switch (err.code) {

@@ -90,7 +90,7 @@ describe('tmnt table data validation', () => {
     it('should return true for tmnt name with some specail characters, but also has valid text', () => {
       expect(validTmntName('  ***  Valid Tournament Name  ++ ')).toBe(true)
     })
-    it('shoudl return false for tmnt_name that contails HTML tags', () => { 
+    it('should return false for tmnt_name that contails HTML tags', () => { 
       // sanitized to alert'hello'
       expect(validTmntName("<script>alert('hello')</script>")).toBe(true)  
     })
@@ -114,6 +114,7 @@ describe('tmnt table data validation', () => {
     })
     it('should return false for invalid end_date', () => {
       expect(validTmntDates('2020-01-31', '2020-01-32')).toBe(false)
+      expect(validTmntDates('2020-02-28', '2020-13-01')).toBe(false)
     })
     it('should return false for valid start date and empty end date', () => { 
       expect(validTmntDates('2020-01-31', '')).toBe(false)

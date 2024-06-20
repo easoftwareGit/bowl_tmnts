@@ -1,7 +1,7 @@
 import {
   isValidBtDbId,
   minLane,
-  maxLane,
+  maxLaneCount,
   ErrorCode,    
 } from "@/lib/validation";
 import { idTypes, laneType } from "@/lib/types/types";
@@ -31,7 +31,7 @@ const gotLaneData = (lane: laneType): ErrorCode => {
 export const validLaneNumber = (laneNumber: number): boolean => {
   if (!laneNumber) return false
   return Number.isInteger(laneNumber) &&
-    (laneNumber >= minLane && laneNumber <= maxLane);
+    (laneNumber >= minLane && laneNumber <= maxLaneCount);
 }
 
 /**

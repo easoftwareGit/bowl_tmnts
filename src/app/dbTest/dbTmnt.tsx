@@ -175,14 +175,14 @@ export const DbTmnts = () => {
           };
         }
       }
-      const reAddTmnt = {
+      const reAdd = {
         ...tmntToDel,
       };
-      reAddTmnt.id = nextPostSecret + reAddTmnt.id;
-      const tmntJSON = JSON.stringify(reAddTmnt);
+      reAdd.id = nextPostSecret + reAdd.id;
+      const reAddJSON = JSON.stringify(reAdd);
       response = await axios({
         method: "post",
-        data: tmntJSON,
+        data: reAddJSON,
         withCredentials: true,
         url: url,
       });
@@ -237,15 +237,15 @@ export const DbTmnts = () => {
       }
     };
 
-    const tmntInvalidCreate = async (propertyName: string, value: any) => {
+    const invalidCreate = async (propertyName: string, value: any) => {
       try {
-        const invalidTmntJSON = JSON.stringify({
+        const invalidJSON = JSON.stringify({
           ...tmntToUpdate,
           [propertyName]: value,
         });
         const invalidResponse = await axios({
           method: "post",
-          data: invalidTmntJSON,
+          data: invalidJSON,
           withCredentials: true,
           url: url,
         });
@@ -292,10 +292,10 @@ export const DbTmnts = () => {
     try {
       await deleteCreated();
 
-      const tmntJSON = JSON.stringify(tmntToPost);
+      const creareJSON = JSON.stringify(tmntToPost);
       const response = await axios({
         method: "post",
-        data: tmntJSON,
+        data: creareJSON,
         withCredentials: true,
         url: url,
       });
@@ -344,11 +344,11 @@ export const DbTmnts = () => {
         };
       }
 
-      await tmntInvalidCreate("tmnt_name", "");
-      await tmntInvalidCreate("start_date", "2022-02-30");
-      await tmntInvalidCreate("end_date", "2022-11-31");
-      await tmntInvalidCreate("bowl_id", "1234");
-      await tmntInvalidCreate("user_id", "abc_def");
+      await invalidCreate("tmnt_name", "");
+      await invalidCreate("start_date", "2022-02-30");
+      await invalidCreate("end_date", "2022-11-31");
+      await invalidCreate("bowl_id", "1234");
+      await invalidCreate("user_id", "abc_def");
 
       return response.data;
     } catch (error: any) {
@@ -569,12 +569,12 @@ export const DbTmnts = () => {
     let testResults = results + "Update Tmnt tests: \n";
     passed = true;
 
-    const tmntUpdateValid = async () => {
+    const updateValid = async () => {
       try {
-        const tmntJSON = JSON.stringify(tmntUpdatedTo);
+        const updateJSON = JSON.stringify(tmntUpdatedTo);
         const response = await axios({
           method: "put",
-          data: tmntJSON,
+          data: updateJSON,
           withCredentials: true,
           url: tmntIdUrl,
         });
@@ -584,7 +584,7 @@ export const DbTmnts = () => {
       }
     };
 
-    const tmntInvalidCreate = async (propertyName: string, value: any) => {
+    const invalidCreate = async (propertyName: string, value: any) => {
       try {
         const invalidTmntJSON = JSON.stringify({
           ...tmntToUpdate,
@@ -636,13 +636,13 @@ export const DbTmnts = () => {
       }
     };
 
-    const tmntUpdateInvalidId = async (id: string) => {
+    const updateInvalidId = async (id: string) => {
       try {
         const invalidUrl = url + "/" + id;
-        const tmntJSON = JSON.stringify(tmntUpdatedTo);
+        const invalidJSON = JSON.stringify(tmntUpdatedTo);
         const notUpdatedResponse = await axios({
           method: "put",
-          data: tmntJSON,
+          data: invalidJSON,
           withCredentials: true,
           url: invalidUrl,
         });
@@ -672,7 +672,7 @@ export const DbTmnts = () => {
 
     try {
       // 1) valid full tmnt object
-      const updated = await tmntUpdateValid();
+      const updated = await updateValid();
       if (updated.status !== 200) {
         testResults += addToResults(`Error: ${updated.message}`, false);
         return updated;
@@ -707,22 +707,22 @@ export const DbTmnts = () => {
         testResults += addToResults(`Updated Tmnt: ${updatedTmnt.tmnt_name}`);
       }
       // 2) invalid tmnt object
-      await tmntInvalidCreate("tmnt_name", "*****");
-      await tmntInvalidCreate("start_date", "2022-02-32");
-      await tmntInvalidCreate("end_date", "2023-12-32");
-      await tmntInvalidCreate(
+      await invalidCreate("tmnt_name", "*****");
+      await invalidCreate("start_date", "2022-02-32");
+      await invalidCreate("end_date", "2023-12-32");
+      await invalidCreate(
         "bowl_id",
         "usr_12345678901234567890123456789012"
       );
-      await tmntInvalidCreate(
+      await invalidCreate(
         "user_id",
         "bwl_12345678901234567890123456789012"
       );
 
       // 3) invalid tmnt id
-      await tmntUpdateInvalidId("abc_123");
+      await updateInvalidId("abc_123");
       // 4) non existing tmnt id
-      await tmntUpdateInvalidId("tmt_12345678901234567890123456789012");
+      await updateInvalidId("tmt_12345678901234567890123456789012");
 
       return updated;
     } catch (error: any) {
@@ -746,27 +746,27 @@ export const DbTmnts = () => {
     let testResults = results + "Patch Tmnt tests: \n";
     passed = true;
 
-    const doPatchTmnt = async (
+    const doPatch = async (
       propertyName: string,
       value: any,
       matchValue: any
     ) => {
       try {
-        let tmntJSON: any;
+        let patchJSON: any;
         // if start date or end date, must have both values or not either one
         if (propertyName === "start_date" || propertyName === "end_date") {
-          tmntJSON = JSON.stringify({
+          patchJSON = JSON.stringify({
             start_date: value,
             end_date: value,
           });
         } else {
-          tmntJSON = JSON.stringify({
+          patchJSON = JSON.stringify({
             [propertyName]: value,
           });
         }
         const response = await axios({
           method: "patch",
-          data: tmntJSON,
+          data: patchJSON,
           withCredentials: true,
           url: tmntIdUrl,
         });
@@ -792,7 +792,7 @@ export const DbTmnts = () => {
             status: response.status,
           };
         } else {
-          testResults += addToResults(`Patch Error: ${propertyName}`, false);
+          testResults += addToResults(`doPatch Error: ${propertyName}`, false);
           return {
             error: `Error Patching ${propertyName}`,
             status: response.status,
@@ -800,7 +800,7 @@ export const DbTmnts = () => {
         }
       } catch (error: any) {
         testResults += addToResults(
-          `doPatchTmnt Error: ${error.message}`,
+          `doPatch Error: ${error.message}`,
           false
         );
         return {
@@ -812,16 +812,15 @@ export const DbTmnts = () => {
       }
     };
 
-    const doNotPatchTmnt = async (propertyName: string, value: any) => {
+    const dontPatch = async (propertyName: string, value: any) => {
       try {
-        const tmntJSON = JSON.stringify({
+        const dontPatchJSON = JSON.stringify({
           ...tmntToUpdate,
-          tmnt_name:
-            "123456789012345678901234567890123456789012345678901234567890",
+          [propertyName]: value,
         });
         const response = await axios({
           method: "patch",
-          data: tmntJSON,
+          data: dontPatchJSON,
           withCredentials: true,
           url: tmntIdUrl,
         });
@@ -865,13 +864,13 @@ export const DbTmnts = () => {
       }
     };
 
-    const tmntPatchInvalidId = async (id: string) => {
+    const dontPatchInvalidId = async (id: string) => {
       try {
         const invalidUrl = url + "/" + id;
-        const tmntJSON = JSON.stringify(tmntUpdatedTo);
+        const invalidJSON = JSON.stringify(tmntUpdatedTo);
         const notUpdatedResponse = await axios({
           method: "patch",
-          data: tmntJSON,
+          data: invalidJSON,
           withCredentials: true,
           url: invalidUrl,
         });
@@ -900,38 +899,38 @@ export const DbTmnts = () => {
     };
 
     try {
-      await doPatchTmnt("tmnt_name", "Test Tmnt", "Test Tmnt");
-      await doNotPatchTmnt("tmnt_name", "<script>alert(1)</script>");
+      await doPatch("tmnt_name", "Test Tmnt", "Test Tmnt");
+      await doPatch("tmnt_name", "<script>alert(1)</script>", "alert1");
+      await dontPatch("tmnt_name", "<script></script>");
 
-      await doPatchTmnt("start_date", "2024-01-13", "2024-01-13");
-      await doNotPatchTmnt("start_date", "2024-02-31");
+      await doPatch("start_date", "2024-01-13", "2024-01-13");
+      await dontPatch("start_date", "2024-02-31");
 
-      await doPatchTmnt("end_date", "2024-01-14", "2024-01-14");
-      await doNotPatchTmnt("end_date", "2024-02-31");
+      await doPatch("end_date", "2024-01-14", "2024-01-14");
+      await dontPatch("end_date", "2024-03-33");
 
-      await doPatchTmnt("start_date", "", "");
+      await doPatch("start_date", "", "");
 
-      await doPatchTmnt(
+      await doPatch(
         "bowl_id",
         "bwl_8b4a5c35ad1247049532ff53a12def0a",
         "bwl_8b4a5c35ad1247049532ff53a12def0a"
       );
-      await doNotPatchTmnt("bowl_id", "usr_8b4a5c35ad1247049532ff53a12def0a");
+      await dontPatch("bowl_id", "usr_8b4a5c35ad1247049532ff53a12def0a");
 
-      await doPatchTmnt(
+      await doPatch(
         "user_id",
         "usr_a24894ed10c5dd835d5cbbfea7ac6dca",
         "usr_a24894ed10c5dd835d5cbbfea7ac6dca"
       );
-      await doNotPatchTmnt("user_id", "bwl_8b4a5c35ad1247049532ff53a12def0a");
+      await dontPatch("user_id", "bwl_8b4a5c35ad1247049532ff53a12def0a");
 
-      await tmntPatchInvalidId("abc_123");
-      await tmntPatchInvalidId("tmt_12345678901234567890123456789012");
+      await dontPatchInvalidId("abc_123");
+      await dontPatchInvalidId("tmt_12345678901234567890123456789012");
 
       return tmntToUpdate;
     } catch (error: any) {
-      testResults += addToResults(`Patch Error: ${error.message}`, false);
-      setResults(testResults);
+      testResults += addToResults(`Patch Error: ${error.message}`, false);      
       return {
         error: error.message,
         status: 404,
@@ -950,7 +949,9 @@ export const DbTmnts = () => {
   const tmntDelete = async (tmntId: string, testing: boolean = true) => {
     let testResults = results + "Delete Tmnt tests: \n";
     const tmntDelUrl = url + "/" + tmntId;
-    passed = true;
+    if (!testing) {
+      passed = true;
+    }    
 
     const invalidDelete = async (invalidId: string) => {
       try {
@@ -1004,7 +1005,7 @@ export const DbTmnts = () => {
           );
         }
       } else {
-        testResults += addToResults("False: could not delete tmnt", false);
+        testResults += addToResults("Error: could not delete tmnt", false);
         return {
           error: "Could not delete tmnt",
           status: 404,
@@ -1110,7 +1111,7 @@ export const DbTmnts = () => {
     }
   };
 
-  const handleTmntCrudChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleCrudChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setTmntCrud(e.target.value);
   };
 
@@ -1233,7 +1234,7 @@ export const DbTmnts = () => {
             name="tmnt"
             value="create"
             checked={tmntCrud === "create"}
-            onChange={handleTmntCrudChange}
+            onChange={handleCrudChange}
           />
         </div>
         <div className="col-sm-2">
@@ -1247,7 +1248,7 @@ export const DbTmnts = () => {
             name="tmnt"
             value="read"
             checked={tmntCrud === "read"}
-            onChange={handleTmntCrudChange}
+            onChange={handleCrudChange}
           />
         </div>
         <div className="col-sm-2">
@@ -1261,7 +1262,7 @@ export const DbTmnts = () => {
             name="tmnt"
             value="read1"
             checked={tmntCrud === "read1"}
-            onChange={handleTmntCrudChange}
+            onChange={handleCrudChange}
           />
         </div>
         <div className="col-sm-2">
@@ -1275,7 +1276,7 @@ export const DbTmnts = () => {
             name="tmnt"
             value="update"
             checked={tmntCrud === "update"}
-            onChange={handleTmntCrudChange}
+            onChange={handleCrudChange}
           />
         </div>
         <div className="col-sm-2">
@@ -1289,7 +1290,7 @@ export const DbTmnts = () => {
             name="tmnt"
             value="patch"
             checked={tmntCrud === "patch"}
-            onChange={handleTmntCrudChange}
+            onChange={handleCrudChange}
           />
         </div>
         <div className="col-sm-2">
@@ -1303,7 +1304,7 @@ export const DbTmnts = () => {
             name="tmnt"
             value="delete"
             checked={tmntCrud === "delete"}
-            onChange={handleTmntCrudChange}
+            onChange={handleCrudChange}
           />
         </div>
       </div>

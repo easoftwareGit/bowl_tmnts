@@ -95,19 +95,19 @@ export const DbEvents = () => {
 
   const eventToDel: eventType = {
     ...initEvent,
-    id: "evt_cb55703a8a084acb86306e2944320e8d",
-    tmnt_id: "tmt_fe8ac53dad0f400abe6354210a8f4cd1",
-    event_name: "Doubles",
-    team_size: 2,
+    id: "evt_bd63777a6aee43be8372e4d008c1d6d0",
+    tmnt_id: "tmt_467e51d71659d2e412cbc64a0d19ecb4",
+    event_name: "Singles",
+    team_size: 1,
     games: 6,
-    entry_fee: '160',
-    lineage: '36',
-    prize_fund: '110',
-    other: '4',
-    expenses: '10',
+    entry_fee: '80',
+    lineage: '18',
+    prize_fund: '55',
+    other: '2',
+    expenses: '5',
     added_money: '0',
-    lpox: '160',
-    sort_order: 2,
+    lpox: '80',
+    sort_order: 1,
   }
 
   const addToResults = (newText: string, pass: boolean = true): string => { 
@@ -310,7 +310,7 @@ export const DbEvents = () => {
       }
     } 
 
-    const eventCreateDublicate = async () => {
+    const eventCreateDuplicate = async () => {
       try {
         const duplicate = {
           ...eventDuplicate,
@@ -415,7 +415,7 @@ export const DbEvents = () => {
       await eventInvalidCreate('entry_fee', '123'); // entry_fee !== lpox
       await eventInvalidCreate('lineage', '123');    // entry_fee !== lpox
 
-      await eventCreateDublicate();
+      await eventCreateDuplicate();
               
       return response.data;
     } catch (error: any) {
@@ -451,25 +451,14 @@ export const DbEvents = () => {
           testResults += addToResults(`Success: Read ${response.data.events.length} Events`, true);                  
         }
         const allEvents: eventType[] = response.data.events as unknown as eventType[]
-        const justPostedEvent = allEvents.filter(event => event.event_name === eventToPost.event_name);
 
-        // 5 events in /prisma/seeds.ts
-        const seedEvents = 6
-        if (justPostedEvent.length === 1) { 
-          // created a test event BEFORE testing read all
-          if (allEvents.length === seedEvents + 1) { 
-            testResults += addToResults(`Read all ${seedEvents + 1} events`);
-          } else {
-            testResults += addToResults(`Error: Read ${allEvents.length} events, expected ${seedEvents + 1}`, false);
-          }
+        // 78 events in /prisma/seeds.ts
+        const seedEvents = 8
+        if (allEvents.length === seedEvents) {
+          testResults += addToResults(`Read all ${seedEvents} events`, true);
         } else {
-          // test event not created yet
-          if (allEvents.length === seedEvents) {
-            testResults += addToResults(`Read all ${seedEvents} events`, true);
-          } else {
-            testResults += addToResults(`Error: Read ${allEvents.length} events, expected ${seedEvents}`, false);
-          }          
-        }
+          testResults += addToResults(`Error: Read ${allEvents.length} events, expected ${seedEvents}`, false);
+        }          
         
         return response.data.events;
       } else {
@@ -501,7 +490,7 @@ export const DbEvents = () => {
     let testResults = results + 'Read 1 Event tests: \n';
     passed = true;
 
-    const eventReadInvalidId = async (id: string) => {
+    const readInvalidId = async (id: string) => {
       try {
         const invalidUrl = url + "/" + id;
         const invalidResponse = await axios({
@@ -585,9 +574,9 @@ export const DbEvents = () => {
       }
 
       // test invalid url
-      await eventReadInvalidId('abc_123')
+      await readInvalidId('abc_123')
       // test non existing event
-      await eventReadInvalidId('evt_12345678901234567890123456789012')
+      await readInvalidId('evt_12345678901234567890123456789012')
                             
       return response.data;
     } catch (error: any) {
@@ -732,12 +721,12 @@ export const DbEvents = () => {
     let testResults = results + 'Update Event tests: \n';
     passed = true;
    
-    const eventUpdateValid = async () => {
+    const updateValid = async () => {
       try {
-        const eventJSON = JSON.stringify(eventUpdatedTo);
+        const validJSON = JSON.stringify(eventUpdatedTo);
         const response = await axios({
           method: "put",
-          data: eventJSON,
+          data: validJSON,
           withCredentials: true,
           url: eventIdUrl,
         });
@@ -779,15 +768,15 @@ export const DbEvents = () => {
       }
     };
 
-    const eventInvalidUpdate = async (propertyName: string, value: any) => { 
+    const invalidUpdate = async (propertyName: string, value: any) => { 
       try {        
-        const invalidEventJSON = JSON.stringify({
+        const invalidJSON = JSON.stringify({
           ...eventToUpdate,
           [propertyName]: value,
         })
         const invalidResponse = await axios({
           method: "put",
-          data: invalidEventJSON,
+          data: invalidJSON,
           withCredentials: true,
           url: eventIdUrl,
         });
@@ -821,13 +810,13 @@ export const DbEvents = () => {
       }
     } 
 
-    const eventUpdateInvalidId = async (id: string) => {      
+    const dontUpdateInvalidId = async (id: string) => {      
       try {
         const invalidUrl = url + "/" + id;
-        const tmntJSON = JSON.stringify(eventUpdatedTo);
+        const invalidJSON = JSON.stringify(eventUpdatedTo);
         const notUpdatedResponse = await axios({
           method: "put",
-          data: tmntJSON,
+          data: invalidJSON,
           withCredentials: true,
           url: invalidUrl,
         });        
@@ -852,14 +841,14 @@ export const DbEvents = () => {
       }
     };
 
-    const eventDontUpdateDuplicate = async () => {
+    const dontUpdateDuplicate = async () => {
       // get url with id of event to duplicate                                     
       const duplicatIdUrl = url + '/' + "evt_dadfd0e9c11a4aacb87084f1609a0afd";
       try {
-        const eventJSON = JSON.stringify(eventDuplicate);
+        const dupJSON = JSON.stringify(eventDuplicate);
         const response = await axios({
           method: "put",
-          data: eventJSON,
+          data: dupJSON,
           withCredentials: true,
           url: duplicatIdUrl,
         });
@@ -886,31 +875,31 @@ export const DbEvents = () => {
 
     try {
       // 1) valid full event object
-      const updated = await eventUpdateValid();
+      const updated = await updateValid();
 
       // 2) invalid Event object
-      await eventInvalidUpdate('tmnt_id', 'bwl_123');
-      await eventInvalidUpdate('event_name', '');
-      await eventInvalidUpdate('team_size', 1234567890);
-      await eventInvalidUpdate('games', 0);      
-      await eventInvalidUpdate('added_money', 'abc');
-      await eventInvalidUpdate('entry_fee', '-1');
-      await eventInvalidUpdate('lineage', 'abc');
-      await eventInvalidUpdate('prize_fund', '1234567890');
-      await eventInvalidUpdate('other', '-1');
-      await eventInvalidUpdate('expenses', '1234567890');      
-      await eventInvalidUpdate('sort_order', 'abc');
-      await eventInvalidUpdate('lpox', '123');      // entry_fee !== lpox
-      await eventInvalidUpdate('entry_fee', '123'); // entry_fee !== lpox
-      await eventInvalidUpdate('lineage', '123');    // entry_fee !== lpox
+      await invalidUpdate('tmnt_id', 'bwl_123');
+      await invalidUpdate('event_name', '');
+      await invalidUpdate('team_size', 1234567890);
+      await invalidUpdate('games', 0);      
+      await invalidUpdate('added_money', 'abc');
+      await invalidUpdate('entry_fee', '-1');
+      await invalidUpdate('lineage', 'abc');
+      await invalidUpdate('prize_fund', '1234567890');
+      await invalidUpdate('other', '-1');
+      await invalidUpdate('expenses', '1234567890');      
+      await invalidUpdate('sort_order', 'abc');
+      await invalidUpdate('lpox', '123');      // entry_fee !== lpox
+      await invalidUpdate('entry_fee', '123'); // entry_fee !== lpox
+      await invalidUpdate('lineage', '123');    // entry_fee !== lpox
 
       // 3) invalid Event id
-      await eventUpdateInvalidId('abc_123');
+      await dontUpdateInvalidId('abc_123');
       // 4 non existing Event id
-      await eventUpdateInvalidId('evt_12345678901234567890123456789012');
+      await dontUpdateInvalidId('evt_12345678901234567890123456789012');
 
       // 5) duplicate Event
-      await eventDontUpdateDuplicate();
+      await dontUpdateDuplicate();
 
       return updated;
     } catch (error: any) {
@@ -933,8 +922,9 @@ export const DbEvents = () => {
 
   const eventPatch = async () => {
     let testResults = results + 'Patch Event tests: \n';
+    passed = true;
 
-    const doPatchEvent = async (propertyName: string, value: any, matchValue: any) => {
+    const doPatch = async (propertyName: string, value: any, matchValue: any) => {
 
       const eventEntryFee = Number(eventToUpdate.entry_fee);
       const eventLineage = Number(eventToUpdate.lineage)
@@ -942,7 +932,7 @@ export const DbEvents = () => {
       const eventOther = Number(eventToUpdate.other)
       const eventExpenses = Number(eventToUpdate.expenses)
       try {
-        let eventJSON 
+        let patchJSON 
         // if lineage, prize_fund, other, expenses are changed
         // need to recalculate entry_fee; entry_fee = lineage + prize_fund + other - expenses
         if (propertyName === "lineage" || propertyName === "prize_fund"
@@ -966,18 +956,18 @@ export const DbEvents = () => {
               break;
           }
           const patchedEntryFee = eventEntryFee + entryFeeChange
-          eventJSON = JSON.stringify({
+          patchJSON = JSON.stringify({
             entry_fee: patchedEntryFee + '',
             [propertyName]: value,
           })
         } else {
-          eventJSON = JSON.stringify({          
+          patchJSON = JSON.stringify({          
             [propertyName]: value,
           })
         }
         const response = await axios({
           method: "patch",
-          data: eventJSON,
+          data: patchJSON,
           withCredentials: true,
           url: eventIdUrl,
         })
@@ -992,14 +982,14 @@ export const DbEvents = () => {
             status: response.status
           };
         } else {
-          testResults += addToResults(`Patch Error: ${propertyName}`, false)          
+          testResults += addToResults(`doPatch Error: ${propertyName}`, false)          
           return {
             error: `Error Patching ${propertyName}`,
             status: response.status,
           };
         }
       } catch (error: any) {
-        testResults += addToResults(`doPatchEvent Error: ${error.message}`, false);        
+        testResults += addToResults(`doPatch Error: ${error.message}`, false);        
         return {
           error: error.message,
           status: 404,
@@ -1009,15 +999,15 @@ export const DbEvents = () => {
       }
     }
 
-    const doNotPatchEvent = async (propertyName: string, value: any) => {       
+    const dontPatch = async (propertyName: string, value: any) => {       
       try {
-        const eventJSON = JSON.stringify({
+        const dontPatchJSON = JSON.stringify({
           ...eventToUpdate,
           [propertyName]: value,
         })
         const response = await axios({
           method: "patch",
-          data: eventJSON,
+          data: dontPatchJSON,
           withCredentials: true,
           url: eventIdUrl,
         })      
@@ -1051,13 +1041,13 @@ export const DbEvents = () => {
       }    
     }
 
-    const doNotPatchInvalidId = async (id: string) => {      
+    const dontPatchInvalidId = async (id: string) => {      
       try {
         const invalidUrl = url + "/" + id;
-        const tmntJSON = JSON.stringify(eventUpdatedTo);
+        const invalidJSON = JSON.stringify(eventUpdatedTo);
         const notUpdatedResponse = await axios({
           method: "patch",
-          data: tmntJSON,
+          data: invalidJSON,
           withCredentials: true,
           url: invalidUrl,
         });        
@@ -1082,20 +1072,20 @@ export const DbEvents = () => {
       }
     };    
 
-    const doNotPatchDuplicate = async (propertyName: string, value: any) => {
+    const dontPatchDuplicate = async (propertyName: string, value: any) => {
       try {
-        const eventDuplicateId = 'evt_cb55703a8a084acb86306e2944320e8d'
-        const eventDuplicateIdUrl = url + "/" + eventDuplicateId
+        const duplicateId = 'evt_cb55703a8a084acb86306e2944320e8d'
+        const duplicateIdUrl = url + "/" + duplicateId
   
-        const eventJSON = JSON.stringify({
+        const dupJSON = JSON.stringify({
           ...eventToUpdate,
           [propertyName]: value,
         })
         const response = await axios({
           method: "patch",
-          data: eventJSON,
+          data: dupJSON,
           withCredentials: true,
-          url: eventDuplicateIdUrl,
+          url: duplicateIdUrl,
         })      
         if (response.status !== 422) {
           testResults += addToResults(`Patch Error: did not return 422 for duplicate event_name+tmnt_id`, false)                  
@@ -1130,37 +1120,38 @@ export const DbEvents = () => {
     try {      
       // cant patch the tmnt_id
 
-      await doPatchEvent('event_name', 'Testing Event * ', 'Testing Event')
-      await doNotPatchEvent('event_name', '<script>alert(1)</script>')
+      await doPatch('event_name', 'Testing Event * ', 'Testing Event')
+      await doPatch('event_name', '<script>alert(1)</script>', 'alert1')
+      await dontPatch('event_name', '<script></script>')
 
-      await doPatchEvent('team_size', 5, 5)
-      await doNotPatchEvent('team_size', 123)
+      await doPatch('team_size', 5, 5)
+      await dontPatch('team_size', 123)
 
-      await doPatchEvent('games', 2, 2)
-      await doNotPatchEvent('games', 123)
+      await doPatch('games', 2, 2)
+      await dontPatch('games', 123)
 
-      await doPatchEvent('added_money', '1000', '1000')
-      await doNotPatchEvent('added_money', 'abc123')
+      await doPatch('added_money', '1000', '1000')
+      await dontPatch('added_money', 'abc123')
 
-      await doNotPatchEvent('entry_fee', '110') // lpox error
-      await doNotPatchEvent('entry_fee', '-3')  // invalid value
+      await dontPatch('entry_fee', '110') // lpox error
+      await dontPatch('entry_fee', '-3')  // invalid value
 
-      await doPatchEvent('lineage', '12', '12')      
-      await doNotPatchEvent('lineage', 'abc123')
+      await doPatch('lineage', '12', '12')      
+      await dontPatch('lineage', 'abc123')
 
-      await doPatchEvent('prize_fund', '100', '100')
-      await doNotPatchEvent('prize_fund', 'abc123')
+      await doPatch('prize_fund', '100', '100')
+      await dontPatch('prize_fund', 'abc123')
 
-      await doPatchEvent('other', '5', '5')
-      await doNotPatchEvent('other', 'abc123')
+      await doPatch('other', '5', '5')
+      await dontPatch('other', 'abc123')
 
-      await doPatchEvent('expenses', '5', '5')
-      await doNotPatchEvent('expenses', 'abc123')
+      await doPatch('expenses', '5', '5')
+      await dontPatch('expenses', 'abc123')
 
-      await doNotPatchDuplicate('event_name', 'Singles')      
+      await dontPatchDuplicate('event_name', 'Singles')      
 
-      await doNotPatchInvalidId('abc_123')
-      await doNotPatchInvalidId('bwl_12345678901234567890123456789012')
+      await dontPatchInvalidId('abc_123')
+      await dontPatchInvalidId('bwl_12345678901234567890123456789012')
 
       return eventToUpdate;    
     } catch (error: any) {
@@ -1182,6 +1173,9 @@ export const DbEvents = () => {
 
   const eventDelete = async (eventIdToDel: string, testing: boolean = true) => {
     let testResults = results + 'Delete Event tests: \n';
+    if (!testing) {
+      passed = true;
+    }    
 
     const invalidDelete = async (invalidId: string) => {      
       try {
@@ -1233,7 +1227,7 @@ export const DbEvents = () => {
           testResults += addToResults(`Success: Deleted Event: ${response.data.deleted.event_name}`);          
         }        
       } else {
-        testResults += addToResults('False: could not delete event', false)        
+        testResults += addToResults('Error: could not delete event', false)        
         return {
           error: 'Could not delete event',
           status: 404,
@@ -1326,7 +1320,7 @@ export const DbEvents = () => {
     }
   }
 
-  const handleEventCrudChange = (e: React.ChangeEvent<HTMLInputElement>) => {    
+  const handleCrudChange = (e: React.ChangeEvent<HTMLInputElement>) => {    
     setEventCrud(e.target.value);
   };
 
@@ -1457,7 +1451,7 @@ export const DbEvents = () => {
             name="event"
             value="create"
             checked={eventCrud === "create"}
-            onChange={handleEventCrudChange}
+            onChange={handleCrudChange}
           />
         </div>
         <div className="col-sm-2">
@@ -1471,7 +1465,7 @@ export const DbEvents = () => {
             name="event"
             value="read"
             checked={eventCrud === "read"}
-            onChange={handleEventCrudChange}
+            onChange={handleCrudChange}
           />
         </div>
         <div className="col-sm-2">
@@ -1485,7 +1479,7 @@ export const DbEvents = () => {
             name="event"
             value="read1"
             checked={eventCrud === "read1"}
-            onChange={handleEventCrudChange}
+            onChange={handleCrudChange}
           />
         </div>
         <div className="col-sm-2">
@@ -1499,7 +1493,7 @@ export const DbEvents = () => {
             name="event"
             value="update"
             checked={eventCrud === "update"}
-            onChange={handleEventCrudChange}
+            onChange={handleCrudChange}
           />
         </div>
         <div className="col-sm-2">
@@ -1513,7 +1507,7 @@ export const DbEvents = () => {
             name="event"
             value="patch"
             checked={eventCrud === "patch"}
-            onChange={handleEventCrudChange}
+            onChange={handleCrudChange}
           />
         </div>
         <div className="col-sm-2">
@@ -1527,7 +1521,7 @@ export const DbEvents = () => {
             name="event"
             value="delete"
             checked={eventCrud === "delete"}
-            onChange={handleEventCrudChange}
+            onChange={handleCrudChange}
           />
         </div>
       </div>
@@ -1545,7 +1539,7 @@ export const DbEvents = () => {
             name="event"
             value="readTmnt"
             checked={eventCrud === "readTmnt"}
-            onChange={handleEventCrudChange}
+            onChange={handleCrudChange}
           />
         </div>
       </div>

@@ -78,10 +78,10 @@ export const DbSquads = () => {
 
   const squadToDel: squadType = {
     ...initSquad,
-    id: "sqd_20c24199328447f8bbe95c05e1b84644",
-    event_id: "evt_c0b2bb31d647414a9bea003bd835f3a0",
+    id: "sqd_3397da1adc014cf58c44e07c19914f72",
+    event_id: "evt_9a58f0a486cb4e6c92ca3348702b1a62",
     squad_name: "Squad 1",
-    squad_date: "2023-09-16",
+    squad_date: '2023-09-16',
     squad_time: "01:00 PM",
     games: 6,
     lane_count: 24,
@@ -316,7 +316,7 @@ export const DbSquads = () => {
       }
     };
 
-    const squadCreateDublicate = async () => {
+    const squadCreateDuplicate = async () => {
       try {
         const duplicate = {
           ...squadDuplicate,
@@ -449,7 +449,7 @@ export const DbSquads = () => {
       await squadInvalidCreate("squad_time", "13:00 PM");
       await squadInvalidCreate("sort_order", "abc");
 
-      await squadCreateDublicate();
+      await squadCreateDuplicate();
 
       return response.data;
     } catch (error: any) {
@@ -483,40 +483,21 @@ export const DbSquads = () => {
       if (response.status === 200) {
         if (showResults) {
           testResults += addToResults(
-            `Success: Read ${response.data.squads.length} Events`,
+            `Success: Read ${response.data.squads.length} Squads`,
             true
           );
         }
         const allSquads: squadType[] = response.data
           .squads as unknown as squadType[];
-        const justPostedSquad = allSquads.filter(
-          (squad) => squad.squad_name === squadToPost.squad_name
-        );
-
-        // 6 squads in /prisma/seeds.ts
-        const seedEvents = 6;
-        if (justPostedSquad.length === 1) {
-          // created a test squad BEFORE testing read all
-          if (allSquads.length === seedEvents + 1) {
-            testResults += addToResults(`Read all ${seedEvents + 1} squads`);
-          } else {
-            testResults += addToResults(
-              `Error: Read ${allSquads.length} squads, expected ${
-                seedEvents + 1
-              }`,
-              false
-            );
-          }
+        // 7 squads in /prisma/seeds.ts
+        const seedCount = 7;
+        if (allSquads.length === seedCount) {
+          testResults += addToResults(`Read all ${seedCount} squads`, true);
         } else {
-          // test squad not created yet
-          if (allSquads.length === seedEvents) {
-            testResults += addToResults(`Read all ${seedEvents} squads`, true);
-          } else {
-            testResults += addToResults(
-              `Error: Read ${allSquads.length} squads, expected ${seedEvents}`,
-              false
-            );
-          }
+          testResults += addToResults(
+            `Error: Read ${allSquads.length} squads, expected ${seedCount}`,
+            false
+          );
         }
 
         return response.data.squads;
@@ -601,7 +582,15 @@ export const DbSquads = () => {
     };
 
     const testSquad: squadType = {
-      ...squadToUpdate,
+      ...initSquad,
+      event_id: "evt_cb97b73cb538418ab993fc867f860510",
+      squad_name: "Squad 1",
+      squad_date: '2022-10-23',
+      squad_time: null,
+      games: 6,
+      lane_count: 12,
+      starting_lane: 29,
+      sort_order: 1,
     };
     try {
       const response = await axios({
@@ -676,8 +665,7 @@ export const DbSquads = () => {
 
       return response.data;
     } catch (error: any) {
-      testResults += addToResults(`Read 1 Error: ${error.message}`, false);
-      setResults(testResults);
+      testResults += addToResults(`Read 1 Error: ${error.message}`, false);      
       return {
         error: error.message,
         status: 404,
@@ -696,19 +684,19 @@ export const DbSquads = () => {
     let testResults = results + "Read Squads for an Event tests: \n";
     passed = true;
 
-    const validReadForSquad = async (squadId: string) => {
+    const validReadForEvent = async (eventId: string) => {
       try {
         const response = await axios({
           method: "get",
           withCredentials: true,
-          url: url + "/event/" + squadId,
+          url: url + "/event/" + eventId,
         });
         if (response.status === 200) {
           testResults += addToResults(
-            `Success: Read Squads for Event, squad.id: ${squadId}`
+            `Success: Read Squads for Event, eventId: ${eventId}`
           );
           const readSquads: squadType[] = response.data.squads;
-          if (squadId === multiSquadsEventId) {
+          if (eventId === multiSquadsEventId) {
             if (readSquads.length !== 2) {
               testResults += addToResults(
                 "Error: Read Squads for Event length !== 2",
@@ -736,7 +724,7 @@ export const DbSquads = () => {
                 };
               }
             });
-          } else if (squadId === noSquadsEventId) {
+          } else if (eventId === noSquadsEventId) {
             if (readSquads.length !== 0) {
               testResults += addToResults(
                 "Error: Read Squads for Event length !== 0",
@@ -774,47 +762,47 @@ export const DbSquads = () => {
       }
     };
 
-    const invalidReadForSquad = async (squadId: string) => {
+    const invalidReadForEvent = async (eventId: string) => {
       try {
         const invalidResponse = await axios({
           method: "get",
           withCredentials: true,
-          url: url + "/tmnt/" + squadId,
+          url: url + "/event/" + eventId,
         });
         if (invalidResponse.status !== 404) {
           testResults += addToResults(
-            `Read Squads for Event Error: did not return 404 for invalid id ${squadId}`,
+            `Read Squads for Event Error: did not return 404 for invalid id ${eventId}`,
             false
           );
           return {
-            error: `Error getting with invalid id: ${squadId}`,
+            error: `Error getting with invalid id: ${eventId}`,
             status: invalidResponse.status,
           };
         } else {
           testResults += addToResults(
-            `Read Squads for Event, non 404 response for invalid id: ${squadId}`
+            `Read Squads for Event, non 404 response for invalid id: ${eventId}`
           );
           return {
-            error: `Error Reading Squads for Event, non 404 response for invalid id: ${squadId}`,
+            error: `Error Reading Squads for Event, non 404 response for invalid id: ${eventId}`,
             status: invalidResponse.status,
           };
         }
       } catch (error: any) {
         if (error.response.status === 404) {
           testResults += addToResults(
-            `DID NOT Read Squads for Event: invalid id: ${squadId}`
+            `DID NOT Read Squads for Event: invalid id: ${eventId}`
           );
           return {
-            error: `invalid id: ${squadId}`,
+            error: `invalid id: ${eventId}`,
             status: 404,
           };
         } else {
           testResults += addToResults(
-            `Read Squads for Event Error: did not return 404 for invalid id: ${squadId}`,
+            `Read Squads for Event Error: did not return 404 for invalid id: ${eventId}`,
             false
           );
           return {
-            error: `Error Reading Squads for Event, non 404 response for invalid id: ${squadId}`,
+            error: `Error Reading Squads for Event, non 404 response for invalid id: ${eventId}`,
             status: error.response.status,
           };
         }
@@ -822,11 +810,11 @@ export const DbSquads = () => {
     };
 
     try {
-      await validReadForSquad(multiSquadsEventId);
-      await validReadForSquad(noSquadsEventId);
+      await validReadForEvent(multiSquadsEventId);
+      await validReadForEvent(noSquadsEventId);
 
-      await invalidReadForSquad("evt_123");
-      await invalidReadForSquad("usr_cb97b73cb538418ab993fc867f860510");
+      await invalidReadForEvent("evt_123");
+      await invalidReadForEvent("usr_cb97b73cb538418ab993fc867f860510");
       return {
         squads: [],
         status: 200,
@@ -838,10 +826,10 @@ export const DbSquads = () => {
       };
     } finally {
       if (passed) {
-        testResults += addToResults(`Read Squads for a Event tests: PASSED`);
+        testResults += addToResults(`Read Squads for an Event tests: PASSED`);
       } else {
         testResults += addToResults(
-          `Read Squads for a Event tests: FAILED`,
+          `Read Squads for an Event tests: FAILED`,
           false
         );
       }
@@ -977,10 +965,10 @@ export const DbSquads = () => {
     const squadUpdateInvalidId = async (id: string) => {
       try {
         const invalidUrl = url + "/" + id;
-        const tmntJSON = JSON.stringify(squadUpdatedTo);
+        const squadJSON = JSON.stringify(squadUpdatedTo);
         const notUpdatedResponse = await axios({
           method: "put",
-          data: tmntJSON,
+          data: squadJSON,
           withCredentials: true,
           url: invalidUrl,
         });
@@ -1098,6 +1086,7 @@ export const DbSquads = () => {
 
   const squadPatch = async () => {
     let testResults = results + "Patch Squad tests: \n";
+    passed = true;
 
     const doPatch = async (
       propertyName: string,
@@ -1105,12 +1094,12 @@ export const DbSquads = () => {
       matchValue: any
     ) => {
       try {
-        const squadJSON = JSON.stringify({
+        const patchJSON = JSON.stringify({
           [propertyName]: value,
         });
         const response = await axios({
           method: "patch",
-          data: squadJSON,
+          data: patchJSON,
           withCredentials: true,
           url: squadIdUrl,
         });
@@ -1130,7 +1119,7 @@ export const DbSquads = () => {
             status: response.status,
           };
         } else {
-          testResults += addToResults(`Patch Error: ${propertyName}`, false);
+          testResults += addToResults(`doPatch Error: ${propertyName}`, false);
           return {
             error: `Error Patching ${propertyName}`,
             status: response.status,
@@ -1138,7 +1127,7 @@ export const DbSquads = () => {
         }
       } catch (error: any) {
         testResults += addToResults(
-          `doPatchEvent Error: ${error.message}`,
+          `doPatch Error: ${error.message}`,
           false
         );
         return {
@@ -1150,15 +1139,14 @@ export const DbSquads = () => {
       }
     };
 
-    const doNotPatch = async (propertyName: string, value: any) => {
+    const dontPatch = async (propertyName: string, value: any) => {
       try {
-        const squadJSON = JSON.stringify({
-          ...squadToUpdate,
+        const dontPatchJSON = JSON.stringify({          
           [propertyName]: value,
         });
         const response = await axios({
           method: "patch",
-          data: squadJSON,
+          data: dontPatchJSON,
           withCredentials: true,
           url: squadIdUrl,
         });
@@ -1202,13 +1190,13 @@ export const DbSquads = () => {
       }
     };
 
-    const doNotPatchInvalidId = async (id: string) => {
+    const dontPatchInvalidId = async (id: string) => {
       try {
         const invalidUrl = url + "/" + id;
-        const tmntJSON = JSON.stringify(squadUpdatedTo);
+        const invalidJSON = JSON.stringify(squadUpdatedTo);
         const notUpdatedResponse = await axios({
           method: "patch",
-          data: tmntJSON,
+          data: invalidJSON,
           withCredentials: true,
           url: invalidUrl,
         });
@@ -1236,22 +1224,22 @@ export const DbSquads = () => {
       }
     };
 
-    const doNotPatchDuplicate = async (propertyName: string, value: any) => {
+    const dontPatchDuplicate = async (propertyName: string, value: any) => {
       try {
-        const squadDuplicateId = "sqd_796c768572574019a6fa79b3b1c8fa57";
-        const squadDuplicateIdUrl = url + "/" + squadDuplicateId;
+        const duplicateId = "sqd_796c768572574019a6fa79b3b1c8fa57";
+        const duplicateIdUrl = url + "/" + duplicateId;
         
         // use event id that has two squads
-        const squadJSON = JSON.stringify({
+        const dupJSON = JSON.stringify({
           ...squadToUpdate,
           event_id: 'evt_06055deb80674bd592a357a4716d8ef2', 
           [propertyName]: value,
         });
         const response = await axios({
           method: "patch",
-          data: squadJSON,
+          data: dupJSON,
           withCredentials: true,
-          url: squadDuplicateIdUrl,
+          url: duplicateIdUrl,
         });
         if (response.status !== 422) {
           testResults += addToResults(
@@ -1293,16 +1281,16 @@ export const DbSquads = () => {
       }
     };
 
-    const doNotPatchNonExistentId = async (propertyName: string, value: any) => {
+    const dontPatchNonExistentId = async (propertyName: string, value: any) => {
       const nonExitingId = "sqd_12345678901234567890123456789012";
       try {
         const invalidPatchUrl = url + "/" + nonExitingId;
-        const squadJSON = JSON.stringify({
+        const invalidJSON = JSON.stringify({
           [propertyName]: value,
         });
         const response = await axios({
           method: "patch",
-          data: squadJSON,
+          data: invalidJSON,
           withCredentials: true,
           url: invalidPatchUrl,
         });
@@ -1336,37 +1324,37 @@ export const DbSquads = () => {
     };
 
     try {
-      await doPatch("event_id", 'evt_9a58f0a486cb4e6c92ca3348702b1a62', 'evt_9a58f0a486cb4e6c92ca3348702b1a62');
-      await doNotPatch("event_id", "evt_12345678901234567890123456789012");
+      await doPatch("event_id", 'evt_adfcff4846474a25ad2936aca121bd37', 'evt_adfcff4846474a25ad2936aca121bd37');
+      await dontPatch("event_id", "evt_12345678901234567890123456789012");
 
       await doPatch("squad_name", "Testing Squad * ", "Testing Squad");
       await doPatch("squad_name", "<script>alert(1)</script>", "alert1");
-      await doNotPatch("squad_name", "<script></script>");
+      await dontPatch("squad_name", "<script></script>");
 
       await doPatch("games", 2, 2);
-      await doNotPatch("games", 123);
+      await dontPatch("games", 123);
 
       await doPatch("starting_lane", 29, 29);
-      await doNotPatch("starting_lane", 202);
+      await dontPatch("starting_lane", 202);
 
       await doPatch("lane_count", 14, 14);
-      await doNotPatch("lane_count", "abc");
+      await dontPatch("lane_count", "abc");
 
       await doPatch("squad_date", "2022-04-04", "2022-04-04");
-      await doNotPatch("squad_date", "2022-22-22");
+      await dontPatch("squad_date", "2022-22-22");
 
       await doPatch("squad_time", "05:00 PM", "05:00 PM");
-      await doNotPatch("squad_time", "15:00 PM");
+      await dontPatch("squad_time", "15:00 PM");
 
       await doPatch("sort_order", 5, 5);
-      await doNotPatch("sort_order", 1.5);
+      await dontPatch("sort_order", 1.5);
 
-      await doNotPatchDuplicate("squad_name", "A Squad");
+      await dontPatchDuplicate("squad_name", "A Squad");
 
-      await doNotPatchInvalidId("abc_123");
-      await doNotPatchInvalidId("bwl_12345678901234567890123456789012");
+      await dontPatchInvalidId("abc_123");
+      await dontPatchInvalidId("bwl_12345678901234567890123456789012");
 
-      await doNotPatchNonExistentId("squad_name", "C Squad");
+      await dontPatchNonExistentId("squad_name", "C Squad");
 
       return squadToUpdate;
     } catch (error: any) {
@@ -1388,7 +1376,10 @@ export const DbSquads = () => {
 
   const squadDelete = async (idToDel: string, testing: boolean = true) => {
     let testResults = results + "Delete Squad tests: \n";
-
+    if (!testing) {
+      passed = true;
+    }
+        
     const invalidDelete = async (invalidId: string) => {
       try {
         const invalidDelUrl = url + "/" + invalidId;
@@ -1442,7 +1433,7 @@ export const DbSquads = () => {
           );
         }
       } else {
-        testResults += addToResults("False: could not delete squad", false);
+        testResults += addToResults("Error: could not delete squad", false);
         return {
           error: "Could not delete squad",
           status: 404,
@@ -1509,6 +1500,7 @@ export const DbSquads = () => {
 
   const resetAll = async () => {
     let testResults: string = "";
+    passed = true;
     try {
       const reset = await resetSquadToUpdate(false);
       if (reset.error) {
@@ -1547,7 +1539,7 @@ export const DbSquads = () => {
     }
   };
 
-  const handleEventCrudChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleCrudChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setSquadCrud(e.target.value);
   };
 
@@ -1561,7 +1553,7 @@ export const DbSquads = () => {
     await resetAll();
   };
 
-  const handleEventTest = async (e: React.FormEvent) => {
+  const handleSquadTest = async (e: React.FormEvent) => {
     e.preventDefault();
     switch (squadCrud) {
       case "create":
@@ -1590,7 +1582,7 @@ export const DbSquads = () => {
     }
   };
 
-  const handleEventTestAll = async (e: React.FormEvent) => {
+  const handleSquadTestAll = async (e: React.FormEvent) => {
     e.preventDefault();
     allResults = "Testing all...";
     passed = true;
@@ -1626,13 +1618,13 @@ export const DbSquads = () => {
     <>
       <div className="row g-3 mb-3">
         <div className="col-sm-6">
-          <h4>Events</h4>
+          <h4>Squads</h4>
         </div>
         <div className="col-sm-2">
           <button
             className="btn btn-success"
             id="squadTest"
-            onClick={handleEventTest}
+            onClick={handleSquadTest}
           >
             Test
           </button>
@@ -1641,7 +1633,7 @@ export const DbSquads = () => {
           <button
             className="btn btn-primary"
             id="squadTestAll"
-            onClick={handleEventTestAll}
+            onClick={handleSquadTestAll}            
           >
             Test All
           </button>
@@ -1677,7 +1669,7 @@ export const DbSquads = () => {
             name="squad"
             value="create"
             checked={squadCrud === "create"}
-            onChange={handleEventCrudChange}
+            onChange={handleCrudChange}
           />
         </div>
         <div className="col-sm-2">
@@ -1691,7 +1683,7 @@ export const DbSquads = () => {
             name="squad"
             value="read"
             checked={squadCrud === "read"}
-            onChange={handleEventCrudChange}
+            onChange={handleCrudChange}
           />
         </div>
         <div className="col-sm-2">
@@ -1705,7 +1697,7 @@ export const DbSquads = () => {
             name="squad"
             value="read1"
             checked={squadCrud === "read1"}
-            onChange={handleEventCrudChange}
+            onChange={handleCrudChange}
           />
         </div>
         <div className="col-sm-2">
@@ -1719,7 +1711,7 @@ export const DbSquads = () => {
             name="squad"
             value="update"
             checked={squadCrud === "update"}
-            onChange={handleEventCrudChange}
+            onChange={handleCrudChange}
           />
         </div>
         <div className="col-sm-2">
@@ -1733,7 +1725,7 @@ export const DbSquads = () => {
             name="squad"
             value="patch"
             checked={squadCrud === "patch"}
-            onChange={handleEventCrudChange}
+            onChange={handleCrudChange}
           />
         </div>
         <div className="col-sm-2">
@@ -1747,7 +1739,7 @@ export const DbSquads = () => {
             name="squad"
             value="delete"
             checked={squadCrud === "delete"}
-            onChange={handleEventCrudChange}
+            onChange={handleCrudChange}
           />
         </div>
       </div>
@@ -1764,7 +1756,7 @@ export const DbSquads = () => {
             name="squad"
             value="readEvent"
             checked={squadCrud === "readEvent"}
-            onChange={handleEventCrudChange}
+            onChange={handleCrudChange}
           />
         </div>
       </div>
