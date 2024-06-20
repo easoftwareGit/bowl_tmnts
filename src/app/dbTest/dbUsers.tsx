@@ -107,25 +107,24 @@ export const DbUsers = () => {
       });
       if (response.status === 200) {
         if (showResults) {
-          testResults += addToResults(`Reset User: ${userToUpdate.email}`);
-          setResults(testResults)
+          testResults += addToResults(`Reset User: ${userToUpdate.email}`);          
         }
         return response.data;
       } else {
-        testResults += addToResults(`Error resetting: status: ${response.status}`, false);
-        setResults(testResults)
+        testResults += addToResults(`Error resetting: status: ${response.status}`, false);        
         return {
           error: 'Error re-setting',
           status: response.status,
         };  
       }
     } catch (error: any) {
-      testResults += addToResults(`Reset Error: ${error.message}`, false);
-      setResults(testResults)
+      testResults += addToResults(`Reset Error: ${error.message}`, false);      
       return {
         error: error.message,
         status: 404,
       };
+    } finally {
+      setResults(testResults)
     }
   }
 
@@ -199,6 +198,30 @@ export const DbUsers = () => {
     let createdUserId: string = '';
     passed = true;
         
+    const deleteCreated = async () => {
+      try {
+        const response = await axios({
+          method: "get",
+          withCredentials: true,
+          url: url,
+        });
+        if (response.status === 200) {
+          const all: userType[] = response.data.users as unknown as userType[]
+          const justCreated = all.filter(user => user.email === userToPost.email);
+          if (justCreated.length === 1) {
+            await userDelete(justCreated[0].id, false)
+          }
+        }
+      } catch (error: any) {
+        testResults += addToResults('Error deleteing created user', false)
+        return {
+          error: error.message,
+          status: 404,
+        };
+      }
+    }
+
+
     const userInvalidCreate = async (propertyName: string, value: any) => { 
       try {        
         const invalidUserJSON = JSON.stringify({
@@ -244,6 +267,8 @@ export const DbUsers = () => {
     } 
 
     try {      
+      await deleteCreated();
+
       const userJSON = JSON.stringify(userToPost);
       const response = await axios({
         method: "post",
@@ -252,6 +277,7 @@ export const DbUsers = () => {
         url: url,
       });
       if (response.status === 201) {
+        createdUserId = response.data.user.id;
         testResults += addToResults(`Created User: ${response.data.user.email}`)
         const postedUser: userType = response.data.user;
         if (postedUser.first_name !== userToPost.first_name) {
@@ -266,8 +292,7 @@ export const DbUsers = () => {
           testResults += addToResults('Created user role !== userToPost.role', false)
         } else {
           testResults += addToResults(`Created User === userToPost`)
-        }
-        createdUserId = response.data.user.id;
+        }        
       } else {
         testResults += addToResults(`Error creating user: ${userToPost.email}, response statue: ${response.status}`, false);        
         // setResults(testResults)
@@ -889,38 +914,35 @@ export const DbUsers = () => {
     try {
       const reset = await resetUserToUpdate(false);      
       if (reset.error) {
-        testResults += addToResults(`Error Resetting: ${reset.error}`, false)
-        setResults(testResults)
+        testResults += addToResults(`Error Resetting: ${reset.error}`, false)        
         return;
       }
 
       const allUsers: any = await removeCreatedUser(true)
       if (allUsers.error) {
-        testResults += addToResults(`Error Resetting: ${allUsers.error}`, false)
-        setResults(testResults)
+        testResults += addToResults(`Error Resetting: ${allUsers.error}`, false)        
         return;
       }
 
       const reAdded: any = await reAddDeletedUser()
       if (reAdded.error) {
-        testResults += addToResults(`Error Resetting: ${reAdded.error}`, false)
-        setResults(testResults)
+        testResults += addToResults(`Error Resetting: ${reAdded.error}`, false)        
         return;
       }
       
-      testResults += addToResults(`Reset Users`);;
-      setResults(testResults);      
+      testResults += addToResults(`Reset Users`);;      
       return {
         users: allUsers,
         status: 200,
       }
     } catch (error: any) {
-      testResults += addToResults(`Reset Error: ${error.message}`, false);
-      setResults(testResults)
+      testResults += addToResults(`Reset Error: ${error.message}`, false);     
       return {
         error: error.message,
         status: 404,
       };  
+    } finally {
+      setResults(testResults)
     }
   }
 

@@ -69,8 +69,8 @@ export const validSquadDate = (squadDateStr: string): boolean => {
   const squadDate = startOfDay(new Date(squadDateStr))
   return isValid(squadDate)
 }
-export const validSquadTime = (squadTimeStr: string): boolean => { 
-  if (typeof squadTimeStr !== 'string') return false  
+export const validSquadTime = (squadTimeStr: string | null): boolean => { 
+  if (typeof squadTimeStr === 'undefined') return false  
   if (!squadTimeStr) return true
   return validTime(squadTimeStr)
 }

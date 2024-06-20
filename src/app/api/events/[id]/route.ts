@@ -8,8 +8,6 @@ import { findEventById } from "@/lib/db/events";
 
 // routes /api/events/:id
 
-// evt_cb97b73cb538418ab993fc867f860510
-
 export async function GET(
   request: Request,
   { params }: { params: { id: string } }
@@ -324,6 +322,9 @@ export async function PATCH(
       case 'P2003': // foreign key constraint
         errStatus = 422        
         break;    
+      case 'P2025': // record not found
+        errStatus = 404
+        break;      
       default:
         errStatus = 500        
         break;
@@ -334,8 +335,6 @@ export async function PATCH(
     );        
   }
 }
-
-// evt_06055deb80674bd592a357a4716d8ef2
 
 export async function DELETE(
   request: Request,

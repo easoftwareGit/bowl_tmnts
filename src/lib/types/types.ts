@@ -112,7 +112,7 @@ export type squadType = {
   starting_lane_err: string,
   squad_date: string,
   squad_date_err: string,
-  squad_time: string,
+  squad_time: string | null,
   squad_time_err: string,
   sort_order: number,
   errClassName: string,  

@@ -4,8 +4,6 @@ import { isValidBtDbId } from "@/lib/validation";
 
 // routes /api/divs/event/:id
 
-// evt_dadfd0e9c11a4aacb87084f1609a0afd
-
 export async function GET(
   request: Request,
   { params }: { params: { id: string } }

@@ -1,9 +1,9 @@
 import { NextResponse, NextRequest } from "next/server";
 import { prisma } from "@/lib/prisma";
-import { sanitize } from "@/lib/sanitize";
-import { validateSquad, squadToCheck } from "./validate";
-import { ErrorCode } from "@/lib/validation";
-import { startOfDay } from "date-fns";
+import { sanitizeSquad, validateSquad } from "./validate";
+import { ErrorCode, validPostId } from "@/lib/validation";
+import { squadType } from "@/lib/types/types";
+import { initSquad } from "@/db/initVals";
 
 // routes /api/squads
 
@@ -11,9 +11,6 @@ export async function GET(request: NextRequest) {
   try {
     const squads = await prisma.squad.findMany({
       orderBy: [
-        {
-          id: 'asc',
-        }, 
         {
           event_id: 'asc',
         }, 
@@ -31,24 +28,18 @@ export async function GET(request: NextRequest) {
   }
 }
 
-// {
-//   "event_id": "evt_cb97b73cb538418ab993fc867f860510",
-//   "squad_name": "Squad 1",
-//   "squad_date": "2022-10-23",
-//   "squad_time": "02:00 PM",
-//   "games": 6,
-//   "sort_order": 2
-// }
-
 export async function POST(request: Request) {
   try {
-    const { event_id, squad_name, squad_date, squad_time, games, sort_order } = await request.json()    
-    const toCheck: squadToCheck = {
+    const { id, event_id, squad_name, games, starting_lane, lane_count, squad_date, squad_time, sort_order } = await request.json()    
+    const toCheck: squadType = {
+      ...initSquad,
       event_id,
       squad_name,
-      squad_date,
-      squad_time,
       games,
+      starting_lane,
+      lane_count,
+      squad_date,
+      squad_time,      
       sort_order
     }
 
@@ -72,23 +63,54 @@ export async function POST(request: Request) {
       );
     }
 
-    const san_squad_name = sanitize(squad_name);    
-    const squadDate = startOfDay(new Date(squad_date))
-    const squad = await prisma.squad.create({
-      data: {
-        event_id,        
-        squad_name: san_squad_name,
-        squad_date: squadDate,
-        squad_time,
-        games,
-        sort_order
+    let postId = '';
+    if (id) { 
+      postId = validPostId(id, 'sqd');
+      if (!postId) {
+        return NextResponse.json(
+          { error: "invalid data" },
+          { status: 422 }
+        );
       }
+    }    
+
+    const toPost = sanitizeSquad(toCheck);
+    type squadDataType = {
+      event_id: string,            
+      squad_name: string,      
+      games: number,        
+      lane_count: number,      
+      starting_lane: number,      
+      squad_date: string,      
+      squad_time: string | null,       
+      sort_order: number,
+      id?: string
+    }
+    let squadData: squadDataType = {
+      event_id: toPost.event_id,            
+      squad_name: toPost.squad_name,      
+      games: toPost.games,        
+      lane_count: toPost.lane_count,      
+      starting_lane: toPost.starting_lane,      
+      squad_date: toPost.squad_date,      
+      squad_time: toPost.squad_time,      
+      sort_order: toPost.sort_order
+    }
+    if (postId) {
+      squadData.id = postId
+    }
+
+    const squad = await prisma.squad.create({
+      data: squadData
     })
-    return new NextResponse(JSON.stringify(squad), { status: 201 })    
+    return NextResponse.json({ squad }, { status: 201 })        
   } catch (err: any) {
     let errStatus: number
     switch (err.code) {
-      case 'P2003':
+      case 'P2002': // Unique constraint
+        errStatus = 422 
+        break;
+      case 'P2003': // Foreign key constraint
         errStatus = 422
         break;    
       default:

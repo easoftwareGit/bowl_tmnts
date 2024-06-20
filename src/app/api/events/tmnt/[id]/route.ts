@@ -2,10 +2,7 @@ import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { isValidBtDbId } from "@/lib/validation";
 
-
 // routes /api/events/tmnt/:id
-
-// tmt_fd99387c33d9c78aba290286576ddce5
 
 export async function GET(
   request: Request,

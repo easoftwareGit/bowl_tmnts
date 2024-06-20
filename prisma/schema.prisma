@@ -102,7 +102,7 @@ model Squad {
   id            String       @id @default(dbgenerated("concat('sqd_', replace(cast(gen_random_uuid() as text), '-', ''))")) @db.Text
   event_id      String       @db.Text
   squad_name    String
-  squad_date    DateTime     @db.Date
+  squad_date    String     
   squad_time    String?      @db.Text
   games         Int
   lane_count    Int

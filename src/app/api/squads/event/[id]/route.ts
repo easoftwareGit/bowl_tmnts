@@ -4,8 +4,6 @@ import { isValidBtDbId } from "@/lib/validation";
 
 // routes /api/squads/event/:id
 
-// evt_cb97b73cb538418ab993fc867f860510
-
 export async function GET(
   request: Request,
   { params }: { params: { id: string } }
@@ -23,12 +21,7 @@ export async function GET(
         event_id: id
       }
     })    
-    if (!squads || squads.length === 0) {
-      return NextResponse.json(
-        { error: "no squads for event found" },
-        { status: 404 }
-      );          
-    }
+    // no matching rows is ok
     return NextResponse.json({squads}, {status: 200});    
   } catch (err: any) {
     return NextResponse.json(

@@ -268,11 +268,11 @@ describe('tests for squad validation', () => {
       expect(validSquadTime('10:00 PM')).toBe(true)
       expect(validSquadTime('13:00')).toBe(true)
       expect(validSquadTime('23:59')).toBe(true)      
-      expect(validSquadTime('00:00')).toBe(true)
-      expect(validSquadTime('')).toBe(true)
+      expect(validSquadTime('00:00')).toBe(true)      
     })
-    it('should return true for empty string', () => { 
+    it('should return true for empty string or null', () => { 
       expect(validSquadTime('')).toBe(true)
+      expect(validSquadTime(null)).toBe(true)
     })
     it('should return false when time is not valid', () => {
       expect(validSquadTime('13:00 AM')).toBe(false)
@@ -281,14 +281,14 @@ describe('tests for squad validation', () => {
       expect(validSquadTime('1:00')).toBe(false)
       expect(validSquadTime('1:00 PM')).toBe(false)
     })
-    it('should return false when time is null', () => {
-      expect(validSquadTime(null as any)).toBe(false)
-    })
     it('should return false when time is undefined', () => {
       expect(validSquadTime(undefined as any)).toBe(false)
     })
     it('should return false when time is not a valid string', () => {
       expect(validSquadTime('abc')).toBe(false)
+    })
+    it('should return false when time is a number', () => {
+      expect(validSquadTime(10 as any)).toBe(false)
     })
   })
 

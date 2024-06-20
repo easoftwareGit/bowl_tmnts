@@ -5,9 +5,10 @@ import { DbAuth } from "./bdAuth";
 import { DbBowls } from "./dbBowls";
 import { DbTmnts } from "./dbTmnt";
 import { DbEvents } from "./dbEvents";
+import { DbDivs } from "./dbDivs";
+import { DbSquads } from "./dbSquads";
 
 import "./form.css";
-import { DbDivs } from "./dbDiv";
 
 // need to also test all functions in path src/db/*.*
 
@@ -59,6 +60,14 @@ export const DbTestForm: React.FC = () => {
           <Accordion.Header>Divs</Accordion.Header>
           <Accordion.Body >
             <DbDivs />
+          </Accordion.Body>
+        </AccordionItem>
+      </Accordion>
+      <Accordion>
+        <AccordionItem eventKey="divs">
+          <Accordion.Header>Squads</Accordion.Header>
+          <Accordion.Body >
+            <DbSquads />
           </Accordion.Body>
         </AccordionItem>
       </Accordion>

@@ -525,7 +525,7 @@ async function eventUpsert() {
         entry_fee: 80,
         lineage: 18,
         prize_fund: 55,
-        other: 0,
+        other: 2,
         expenses: 5,
         added_money: 0,
         sort_order: 1,
@@ -539,7 +539,7 @@ async function eventUpsert() {
         entry_fee: 80,
         lineage: 18,
         prize_fund: 55,
-        other: 0,
+        other: 2,
         expenses: 5,
         added_money: 0,
         sort_order: 1,
@@ -552,34 +552,68 @@ async function eventUpsert() {
       update: {
         id: "evt_cb55703a8a084acb86306e2944320e8d",
         tmnt_id: "tmt_fe8ac53dad0f400abe6354210a8f4cd1",
-        event_name: "Seniors",
-        team_size: 1,
+        event_name: "Doubles",
+        team_size: 2,
         games: 6,
-        entry_fee: 80,
-        lineage: 18,
-        prize_fund: 55,
-        other: 0,
-        expenses: 5,
+        entry_fee: 160,
+        lineage: 26,
+        prize_fund: 110,
+        other: 4,
+        expenses: 10,
         added_money: 0,
         sort_order: 2,
       },
       create: {
         id: "evt_cb55703a8a084acb86306e2944320e8d",
         tmnt_id: "tmt_fe8ac53dad0f400abe6354210a8f4cd1",
-        event_name: "Seniors",
+        event_name: "Doubles",
+        team_size: 2,
+        games: 6,
+        entry_fee: 160,
+        lineage: 36,
+        prize_fund: 110,
+        other: 4,
+        expenses: 10,
+        added_money: 0,
+        sort_order: 2,
+      },
+    });
+    event = await prisma.event.upsert({
+      where: {
+        id: "evt_c0b2bb31d647414a9bea003bd835f3a0",
+      },
+      update: {
+        id: "evt_c0b2bb31d647414a9bea003bd835f3a0",
+        tmnt_id: "tmt_9a34a65584f94f548f5ce3b3becbca19",
+        event_name: "Singles",
         team_size: 1,
         games: 6,
         entry_fee: 80,
         lineage: 18,
         prize_fund: 55,
-        other: 0,
+        other: 2,
         expenses: 5,
         added_money: 0,
-        sort_order: 2,
+        sort_order: 1,
+      },
+      create: {
+        id: "evt_c0b2bb31d647414a9bea003bd835f3a0",
+        tmnt_id: "tmt_9a34a65584f94f548f5ce3b3becbca19",
+        event_name: "Singles",
+        team_size: 1,
+        games: 6,
+        entry_fee: 80,
+        lineage: 18,
+        prize_fund: 55,
+        other: 2,
+        expenses: 5,
+        added_money: 0,
+        sort_order: 1,
       },
     });
-    console.log("Upserted events:", 5);
-    return 5;
+
+    console.log("Upserted events:", 6);
+    return 6;
   } catch (error) {
     console.log(error);
     return -1;
@@ -781,7 +815,7 @@ async function squadUpsert() {
         id: "sqd_7116ce5f80164830830a7157eb093396",
         event_id: "evt_cb97b73cb538418ab993fc867f860510",
         squad_name: "Squad 1",
-        squad_date: new Date("10/23/2022"),
+        squad_date: '2022-10-23',
         squad_time: null,
         games: 6,
         lane_count: 12,
@@ -792,7 +826,7 @@ async function squadUpsert() {
         id: "sqd_7116ce5f80164830830a7157eb093396",
         event_id: "evt_cb97b73cb538418ab993fc867f860510",
         squad_name: "Squad 1",
-        squad_date: new Date("10/23/2022"),
+        squad_date: '2022-10-23',
         squad_time: null,
         games: 6,
         lane_count: 12,
@@ -808,7 +842,7 @@ async function squadUpsert() {
         id: "sqd_1a6c885ee19a49489960389193e8f819",
         event_id: "evt_dadfd0e9c11a4aacb87084f1609a0afd",
         squad_name: "Squad 1",
-        squad_date: new Date("01/02/2023"),
+        squad_date: '2022-01-02',
         squad_time: null,
         games: 6,
         lane_count: 24,
@@ -819,7 +853,7 @@ async function squadUpsert() {
         id: "sqd_1a6c885ee19a49489960389193e8f819",
         event_id: "evt_dadfd0e9c11a4aacb87084f1609a0afd",
         squad_name: "Squad 1",
-        squad_date: new Date("01/02/2023"),
+        squad_date: '2022-01-02',
         squad_time: null,
         games: 6,
         lane_count: 24,
@@ -827,8 +861,116 @@ async function squadUpsert() {
         sort_order: 1,
       },
     });
-    console.log("Upserted squads:", 2);
-    return 2;
+    squad = await prisma.squad.upsert({
+      where: {
+        id: "sqd_42be0f9d527e4081972ce8877190489d",
+      },
+      update: {
+        id: "sqd_42be0f9d527e4081972ce8877190489d",
+        event_id: "evt_06055deb80674bd592a357a4716d8ef2",
+        squad_name: "A Squad",
+        squad_date: '2022-08-21',
+        squad_time: '10:00 AM',
+        games: 6,
+        lane_count: 24,
+        starting_lane: 1,
+        sort_order: 1,
+      },
+      create: {
+        id: "sqd_42be0f9d527e4081972ce8877190489d",
+        event_id: "evt_06055deb80674bd592a357a4716d8ef2",
+        squad_name: "A Squad",
+        squad_date: '2022-08-21',
+        squad_time: '10:00 AM',
+        games: 6,
+        lane_count: 24,
+        starting_lane: 1,
+        sort_order: 1,
+      },
+    });
+    squad = await prisma.squad.upsert({
+      where: {
+        id: "sqd_796c768572574019a6fa79b3b1c8fa57",
+      },
+      update: {
+        id: "sqd_796c768572574019a6fa79b3b1c8fa57",
+        event_id: "evt_06055deb80674bd592a357a4716d8ef2",
+        squad_name: "B Squad",
+        squad_date: '2022-08-21',
+        squad_time: '02:00 PM',
+        games: 6,
+        lane_count: 24,
+        starting_lane: 1,
+        sort_order: 1,
+      },
+      create: {
+        id: "sqd_796c768572574019a6fa79b3b1c8fa57",
+        event_id: "evt_06055deb80674bd592a357a4716d8ef2",
+        squad_name: "B Squad",
+        squad_date: '2022-08-21',
+        squad_time: '02:00 PM',
+        games: 6,
+        lane_count: 24,
+        starting_lane: 1,
+        sort_order: 1,
+      },
+    });    
+    squad = await prisma.squad.upsert({
+      where: {
+        id: "sqd_20c24199328447f8bbe95c05e1b84644",
+      },
+      update: {
+        id: "sqd_20c24199328447f8bbe95c05e1b84644",
+        event_id: "evt_cb55703a8a084acb86306e2944320e8d",
+        squad_name: "Squad 1",
+        squad_date: '2023-03-01',
+        squad_time: '01:00 PM',
+        games: 6,
+        lane_count: 24,
+        starting_lane: 1,
+        sort_order: 1,
+      },
+      create: {
+        id: "sqd_20c24199328447f8bbe95c05e1b84644",
+        event_id: "evt_cb55703a8a084acb86306e2944320e8d",
+        squad_name: "Squad 1",
+        squad_date: '2023-03-01',
+        squad_time: '01:00 PM',
+        games: 6,
+        lane_count: 24,
+        starting_lane: 1,
+        sort_order: 1,
+      },
+    });   
+    squad = await prisma.squad.upsert({
+      where: {
+        id: "sqd_20c24199328447f8bbe95c05e1b84644",
+      },
+      update: {
+        id: "sqd_20c24199328447f8bbe95c05e1b84644",
+        event_id: "evt_c0b2bb31d647414a9bea003bd835f3a0",
+        squad_name: "Squad 1",
+        squad_date: '2023-09-16',
+        squad_time: '01:00 PM',
+        games: 6,
+        lane_count: 24,
+        starting_lane: 1,
+        sort_order: 1,
+      },
+      create: {
+        id: "sqd_20c24199328447f8bbe95c05e1b84644",
+        event_id: "evt_c0b2bb31d647414a9bea003bd835f3a0",
+        squad_name: "Squad 1",
+        squad_date: '2023-09-16',
+        squad_time: '01:00 PM',
+        games: 6,
+        lane_count: 24,
+        starting_lane: 1,
+        sort_order: 1,
+      },
+    });   
+    console.log("Upserted squads:", 6);
+    return 6;
   } catch (error) {
     console.log(error);
     return -1;

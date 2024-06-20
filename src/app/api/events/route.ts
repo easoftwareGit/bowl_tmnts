@@ -134,9 +134,6 @@ export async function POST(request: Request) {
       case 'P2003': // Foreign key constraint
         errStatus = 422
         break;    
-      case 'P2025': // Record not found
-        errStatus = 404
-        break;
       default:
         errStatus = 500
         break;

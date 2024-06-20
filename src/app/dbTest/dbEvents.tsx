@@ -97,16 +97,16 @@ export const DbEvents = () => {
     ...initEvent,
     id: "evt_cb55703a8a084acb86306e2944320e8d",
     tmnt_id: "tmt_fe8ac53dad0f400abe6354210a8f4cd1",
-    event_name: "Seniors",
-    team_size: 1,
+    event_name: "Doubles",
+    team_size: 2,
     games: 6,
-    entry_fee: '80',
-    lineage: '18',
-    prize_fund: '55',
-    other: '2',
-    expenses: '5',
+    entry_fee: '160',
+    lineage: '36',
+    prize_fund: '110',
+    other: '4',
+    expenses: '10',
     added_money: '0',
-    lpox: '80',
+    lpox: '160',
     sort_order: 2,
   }
 
@@ -154,26 +154,25 @@ export const DbEvents = () => {
       });
       if (response.status === 200) {
         if (showResults) {
-          testResults += addToResults(`Reset Event: ${eventToUpdate.event_name}`);
-          setResults(testResults)
+          testResults += addToResults(`Reset Event: ${eventToUpdate.event_name}`);          
         }
         return response.data;
       } else {
-        testResults += addToResults(`Error resetting: status: ${response.status}`, false);
-        setResults(testResults)
+        testResults += addToResults(`Error resetting: status: ${response.status}`, false);        
         return {
           error: 'Error re-setting',
           status: response.status,
         };  
       }
     } catch (error: any) {
-      testResults += addToResults(`Reset Error: ${error.message}`, false);
-      setResults(testResults)
+      testResults += addToResults(`Reset Error: ${error.message}`, false);      
       return {
         error: error.message,
         status: 404,
       };
-    } 
+    } finally {
+      setResults(testResults)
+    }
   }
 
   const reAddDeletedEvent = async () => {
@@ -246,6 +245,29 @@ export const DbEvents = () => {
     let createdEventId: string = '';
     passed = true;
         
+    const deleteCreated = async () => {
+      try {
+        const response = await axios({
+          method: "get",
+          withCredentials: true,
+          url: url,
+        });
+        if (response.status === 200) {
+          const all: eventType[] = response.data.events as unknown as eventType[]
+          const justCreated = all.filter(event => event.event_name === eventToPost.event_name);
+          if (justCreated.length === 1) {
+            await eventDelete(justCreated[0].id, false)
+          }
+        }
+      } catch (error: any) {
+        testResults += addToResults('Error deleteing created event', false)
+        return {
+          error: error.message,
+          status: 404,
+        };
+      }
+    }
+
     const eventInvalidCreate = async (propertyName: string, value: any) => { 
       try {        
         const invalidEventJSON = JSON.stringify({
@@ -259,8 +281,7 @@ export const DbEvents = () => {
           url: url,
         });
         if (invalidResponse.status !== 422) {
-          testResults += addToResults(`Create Event Error: did not return 422 for invalid ${propertyName}`, false)          
-          // setResults(testResults)
+          testResults += addToResults(`Create Event Error: did not return 422 for invalid ${propertyName}`, false)                    
           return {
             error: `Error creating event with invalid ${propertyName}`,
             status: invalidResponse.status,
@@ -280,8 +301,7 @@ export const DbEvents = () => {
             status: error.response.status,
           }
         } else {
-          testResults += addToResults(`Create Error: did not return 422 for invalid ${propertyName}`, false)
-          // setResults(testResults)        
+          testResults += addToResults(`Create Error: did not return 422 for invalid ${propertyName}`, false)                  
           return {
             error: `Error Creating event with invalid ${propertyName}`,
             status: error.response.status,
@@ -304,38 +324,38 @@ export const DbEvents = () => {
           url: url,
         });
         if (invalidResponse.status !== 422) {
-          testResults += addToResults(`Create Event Error: did not return 422 for duplicate tmnt_id/event_name`, false)
-          // setResults(testResults)
+          testResults += addToResults(`Create Event Error: did not return 422 for duplicate tmnt_id+event_name`, false)          
           return {
-            error: `Error creating event with duplicate tmnt_id/event_name`,
+            error: `Error creating event with duplicate tmnt_id+event_name`,
             status: invalidResponse.status,
           };
         } else {
-          testResults += addToResults(`Create Event, non 422 response for duplicate tmnt_id/event_name`)
+          testResults += addToResults(`Create Event, non 422 response for duplicate tmnt_id+event_name`)
           return {
-            error: 'Error Creating Event, non 422 response for duplicate tmnt_id/event_name',
+            error: 'Error Creating Event, non 422 response for duplicate tmnt_id+event_name',
             status: invalidResponse.status,
           };
         }
       } catch (error: any) {
         if (error.response.status === 422) {
-          testResults += addToResults(`DID NOT Create event: duplicate tmnt_id/event_name`)
+          testResults += addToResults(`DID NOT Create event: duplicate tmnt_id+event_name`)
           return {
             error: '',
             status: error.response.status,
           }
         } else {
-          testResults += addToResults(`Create Error: did not return 422 for duplicate tmnt_id/event_name`, false)
-          // setResults(testResults)        
+          testResults += addToResults(`Create Error: did not return 422 for duplicate tmnt_id+event_name`, false)                  
           return {
-            error: `Error Creating event with duplicate tmnt_id/event_name`,
+            error: `Error Creating event with duplicate tmnt_id+event_name`,
             status: error.response.status,
           };          
         }
       }
     }
 
-    try {      
+    try {           
+      await deleteCreated();
+
       const eventJSON = JSON.stringify(eventToPost);
       const response = await axios({
         method: "post",
@@ -344,10 +364,11 @@ export const DbEvents = () => {
         url: url,
       });
       if (response.status === 201) {
+        createdEventId = response.data.event.id;
         testResults += addToResults(`Created event: ${response.data.event.event_name}`)
         const postedEvent: eventType = response.data.event;
         if (postedEvent.tmnt_id !== eventToPost.tmnt_id) {
-          testResults += addToResults('Created event tmnt_id !== eventToPost.city', false)
+          testResults += addToResults('Created event tmnt_id !== eventToPost.tmnt_id', false)
         } else if (postedEvent.event_name !== eventToPost.event_name) {
           testResults += addToResults('Created event event_name !== eventToPost.event_name', false)        
         } else if (postedEvent.team_size !== eventToPost.team_size) {
@@ -370,11 +391,9 @@ export const DbEvents = () => {
           testResults += addToResults('Created event sort_order !== eventToPost.sort_order', false)        
         } else {
           testResults += addToResults(`Created event === eventToPost`)
-        }
-        createdEventId = response.data.event.id;
+        }        
       } else {
-        testResults += addToResults(`Error creating event: ${eventToPost.event_name}, response statue: ${response.status}`, false);        
-        // setResults(testResults)
+        testResults += addToResults(`Error creating event: ${eventToPost.event_name}, response statue: ${response.status}`, false);                
         return {
           error: 'Did not create event',
           status: response.status,
@@ -397,12 +416,10 @@ export const DbEvents = () => {
       await eventInvalidCreate('lineage', '123');    // entry_fee !== lpox
 
       await eventCreateDublicate();
-
-      // setResults(testResults)        
+              
       return response.data;
     } catch (error: any) {
-      testResults += addToResults(`Create Error: ${error.message}`, false)      
-      // setResults(testResults)
+      testResults += addToResults(`Create Error: ${error.message}`, false)            
       return {
         error: error.message,
         status: 404,
@@ -431,14 +448,13 @@ export const DbEvents = () => {
       });
       if (response.status === 200) {
         if (showResults) {
-          testResults += addToResults(`Success: Read ${response.data.events.length} Events`, true);
-          // setResults(testResults)        
+          testResults += addToResults(`Success: Read ${response.data.events.length} Events`, true);                  
         }
         const allEvents: eventType[] = response.data.events as unknown as eventType[]
         const justPostedEvent = allEvents.filter(event => event.event_name === eventToPost.event_name);
 
         // 5 events in /prisma/seeds.ts
-        const seedEvents = 5
+        const seedEvents = 6
         if (justPostedEvent.length === 1) { 
           // created a test event BEFORE testing read all
           if (allEvents.length === seedEvents + 1) { 
@@ -454,12 +470,10 @@ export const DbEvents = () => {
             testResults += addToResults(`Error: Read ${allEvents.length} events, expected ${seedEvents}`, false);
           }          
         }
-
-        // setResults(testResults)
+        
         return response.data.events;
       } else {
-        testResults += addToResults(`Error reading all events, response statue: ${response.status}`, false);        
-        // setResults(testResults)
+        testResults += addToResults(`Error reading all events, response statue: ${response.status}`, false);                
         return {
           error: 'Did not read all events',
           status: response.status,
@@ -496,8 +510,7 @@ export const DbEvents = () => {
           url: invalidUrl,
         });  
         if (invalidResponse.status !== 404) {
-          testResults += addToResults(`Read 1 Event Error: did not return 404 for invalid id ${id}`, false)
-          // setResults(testResults)        
+          testResults += addToResults(`Read 1 Event Error: did not return 404 for invalid id ${id}`, false)                  
           return {
             error: `Error getting with invalid id: ${id}`,
             status: invalidResponse.status,
@@ -517,8 +530,7 @@ export const DbEvents = () => {
             status: 404,
           };          
         } else {
-          testResults += addToResults(`Read 1 Event Error: did not return 404 for invalid id: ${id}`, false)
-          // setResults(testResults)        
+          testResults += addToResults(`Read 1 Event Error: did not return 404 for invalid id: ${id}`, false)                  
           return {
             error: `Error Reading 1 Event, non 404 response for invalid id: ${id}`,
             status: error.response.status,
@@ -565,8 +577,7 @@ export const DbEvents = () => {
           testResults += addToResults(`Read 1 Event === testEvent`)
         }        
       } else {
-        testResults += addToResults(`Error reading 1 event, response statue: ${response.status}`, false);        
-        // setResults(testResults)
+        testResults += addToResults(`Error reading 1 event, response statue: ${response.status}`, false);                
         return {
           error: 'Did not read 1 event',
           status: response.status,
@@ -577,8 +588,7 @@ export const DbEvents = () => {
       await eventReadInvalidId('abc_123')
       // test non existing event
       await eventReadInvalidId('evt_12345678901234567890123456789012')
-      
-      // setResults(testResults)                
+                            
       return response.data;
     } catch (error: any) {
       testResults += addToResults(`Read 1 Error: ${error.message}`, false);
@@ -613,8 +623,7 @@ export const DbEvents = () => {
           const readEvents: eventType[] = response.data.events;
           if (tmntId === multiEventsTmntId) {
             if (readEvents.length !== 2) {
-              testResults += addToResults('Error: Read Events for Tmnt length !== 2', false)
-              // setResults(testResults)
+              testResults += addToResults('Error: Read Events for Tmnt length !== 2', false)              
               return {
                 error: 'Error: Read Events for Tmnt, length !== 2',
                 status: 404,
@@ -623,8 +632,7 @@ export const DbEvents = () => {
             readEvents.forEach((event: eventType) => {
               if (!(event.id === 'evt_9a58f0a486cb4e6c92ca3348702b1a62'
                 || event.id === 'evt_cb55703a8a084acb86306e2944320e8d')) {
-                testResults += addToResults('Error: Read Events for Tmnt event.id invalid', false)
-                // setResults(testResults)
+                testResults += addToResults('Error: Read Events for Tmnt event.id invalid', false)                
                 return {
                   error: 'Error: Read Events for Tmnt, event.id invalid',
                   status: 404,
@@ -633,8 +641,7 @@ export const DbEvents = () => {
             })
           } else if (tmntId === noEventsTmntId) {
             if (readEvents.length !== 0) {
-              testResults += addToResults('Error: Read Events for Tmnt length !== 0', false)
-              // setResults(testResults)
+              testResults += addToResults('Error: Read Events for Tmnt length !== 0', false)              
               return {
                 error: 'Error: Read Events for Tmnt, length !== 0',
                 status: 404,
@@ -643,8 +650,7 @@ export const DbEvents = () => {
           }
           testResults += addToResults(`Success: Read Events for Tmnt, ${readEvents.length} rows returned`)
         } else {
-          testResults += addToResults(`Error reading events for tmnt, response statue: ${response.status}`, false);
-          // setResults(testResults)
+          testResults += addToResults(`Error reading events for tmnt, response statue: ${response.status}`, false);          
           return {
             error: 'Did not read events for tmnt',
             status: response.status,
@@ -652,8 +658,7 @@ export const DbEvents = () => {
         }
         return response.data.events;
       } catch (error: any) {
-        testResults += addToResults(`Read Events for Tmnt Error: ${error.message}`, false);
-        // setResults(testResults)
+        testResults += addToResults(`Read Events for Tmnt Error: ${error.message}`, false);        
         return {
           error: error.message,
           status: 404,
@@ -669,8 +674,7 @@ export const DbEvents = () => {
           url: url + "/tmnt/" + tmntId,
         });
         if (invalidResponse.status !== 404) {
-          testResults += addToResults(`Read Events for Tmnt Error: did not return 404 for invalid id ${tmntId}`, false)
-          // setResults(testResults)        
+          testResults += addToResults(`Read Events for Tmnt Error: did not return 404 for invalid id ${tmntId}`, false)                  
           return {
             error: `Error getting with invalid id: ${tmntId}`,
             status: invalidResponse.status,
@@ -690,8 +694,7 @@ export const DbEvents = () => {
             status: 404,
           };          
         } else {
-          testResults += addToResults(`Read Events for Tmnt Error: did not return 404 for invalid id: ${tmntId}`, false)
-          // setResults(testResults)        
+          testResults += addToResults(`Read Events for Tmnt Error: did not return 404 for invalid id: ${tmntId}`, false)                  
           return {
             error: `Error Reading Events for Tmnt, non 404 response for invalid id: ${tmntId}`,
             status: error.response.status,
@@ -705,7 +708,7 @@ export const DbEvents = () => {
       await validReadForTmnt(noEventsTmntId)
 
       await invalidReadForTmnt('tmt_123')
-      await invalidReadForTmnt('evt_cb97b73cb538418ab993fc867f860510')
+      await invalidReadForTmnt('usr_cb97b73cb538418ab993fc867f860510')
       return {
         events: [],
         status: 200,
@@ -740,8 +743,7 @@ export const DbEvents = () => {
         });
         if (response.status !== 200) {
           const errMsg = (response as any).message
-          testResults += addToResults(`Error: ${errMsg.message}`, false);
-          // setResults(testResults);
+          testResults += addToResults(`Error: ${errMsg.message}`, false);          
           return response;
         }
         const updatedEvent: eventType = response.data.event;
@@ -772,8 +774,7 @@ export const DbEvents = () => {
         }                
         return response;
       } catch (error: any) {
-        testResults += addToResults(`Error: ${error.message}`, false);
-        // setResults(testResults);
+        testResults += addToResults(`Error: ${error.message}`, false);        
         return error;
       }
     };
@@ -791,8 +792,7 @@ export const DbEvents = () => {
           url: eventIdUrl,
         });
         if (invalidResponse.status !== 422) {
-          testResults += addToResults(`Update Event Error: did not return 422 for invalid ${propertyName}`, false)
-          // setResults(testResults)
+          testResults += addToResults(`Update Event Error: did not return 422 for invalid ${propertyName}`, false)          
           return {
             error: `Error updating event with invalid ${propertyName}`,
             status: invalidResponse.status,
@@ -812,8 +812,7 @@ export const DbEvents = () => {
             status: error.response.status,
           }
         } else {
-          testResults += addToResults(`Update Error: did not return 422 for invalid ${propertyName}`, false)
-          // setResults(testResults)        
+          testResults += addToResults(`Update Error: did not return 422 for invalid ${propertyName}`, false)                  
           return {
             error: `Error Updating event with invalid ${propertyName}`,
             status: error.response.status,
@@ -834,8 +833,7 @@ export const DbEvents = () => {
         });        
 
         if (notUpdatedResponse.status === 200) {
-          testResults += addToResults(`Error: updated invalid id: ${id}`);
-          // setResults(testResults);
+          testResults += addToResults(`Error: updated invalid id: ${id}`);          
           return notUpdatedResponse;
         } else {
           testResults += addToResults(`DID NOT update Event, invalid id: ${id}`);
@@ -845,8 +843,7 @@ export const DbEvents = () => {
         if (error.response.status === 404) {
           testResults += addToResults(`DID NOT update Event, invalid id: ${id}`);          
         } else {
-          testResults += addToResults(`Update Event Error: did not return 404 for invalid id: ${id}`, false)
-          // setResults(testResults)        
+          testResults += addToResults(`Update Event Error: did not return 404 for invalid id: ${id}`, false)                  
           return {
             error: `Error Updating Event, non 404 response for invalid id: ${id}`,
             status: error.response.status,
@@ -867,21 +864,19 @@ export const DbEvents = () => {
           url: duplicatIdUrl,
         });
         if (response.status === 200) {
-          testResults += addToResults(`Error: updated duplicate tmnt_id/event_name`, false);
-          // setResults(testResults);
+          testResults += addToResults(`Error: updated duplicate tmnt_id+event_name`, false);          
           return response;
         } else {
-          testResults += addToResults(`DID NOT update Event, duplicate tmnt_id/event_name`, false);
+          testResults += addToResults(`DID NOT update Event, duplicate tmnt_id+event_name`, false);
         }
         return response;
       } catch (error: any) {
         if (error.response.status === 422) {
-          testResults += addToResults(`DID NOT update Event, duplicate tmnt_id/event_name`);          
+          testResults += addToResults(`DID NOT update Event, duplicate tmnt_id+event_name`);          
         } else {
-          testResults += addToResults(`Update Event Error: did not return 422 for duplicate tmnt_id/event_name`, false)
-          // setResults(testResults)        
+          testResults += addToResults(`Update Event Error: did not return 422 for duplicate tmnt_id+event_name`, false)                  
           return {
-            error: `Error Updating Event, non 422 response for duplicate tmnt_id/event_name`,
+            error: `Error Updating Event, non 422 response for duplicate tmnt_id+event_name`,
             status: error.response.status,
           };          
         }                
@@ -990,24 +985,21 @@ export const DbEvents = () => {
           if (response.data.event[propertyName] === matchValue) {
             testResults += addToResults(`Patched Event: ${eventToUpdate.event_name} - just ${propertyName}`)                        
           } else {
-            testResults += addToResults(`DID NOT Patch Event ${propertyName}`, false)
-            // setResults(testResults)
+            testResults += addToResults(`DID NOT Patch Event ${propertyName}`, false)            
           }
           return {
             data: response.data.event,
             status: response.status
           };
         } else {
-          testResults += addToResults(`Patch Error: ${propertyName}`, false)
-          // setResults(testResults)
+          testResults += addToResults(`Patch Error: ${propertyName}`, false)          
           return {
             error: `Error Patching ${propertyName}`,
             status: response.status,
           };
         }
       } catch (error: any) {
-        testResults += addToResults(`doPatchEvent Error: ${error.message}`, false);
-        // setResults(testResults)
+        testResults += addToResults(`doPatchEvent Error: ${error.message}`, false);        
         return {
           error: error.message,
           status: 404,
@@ -1030,8 +1022,7 @@ export const DbEvents = () => {
           url: eventIdUrl,
         })      
         if (response.status !== 422) {
-          testResults += addToResults(`Patch Error: did not return 422 for invalid ${propertyName}`, false)
-          // setResults(testResults)        
+          testResults += addToResults(`Patch Error: did not return 422 for invalid ${propertyName}`, false)                  
           return {
             error: 'Error Patching Event',
             status: response.status,
@@ -1051,8 +1042,7 @@ export const DbEvents = () => {
             status: error.response.status,
           }
         } else {
-          testResults += addToResults(`Patch Error: did not return 422 for invalid ${propertyName}`, false)
-          // setResults(testResults)        
+          testResults += addToResults(`Patch Error: did not return 422 for invalid ${propertyName}`, false)                  
           return {
             error: `Error Patching ${propertyName}`,
             status: error.response.status,
@@ -1061,7 +1051,7 @@ export const DbEvents = () => {
       }    
     }
 
-    const eventPatchInvalidId = async (id: string) => {      
+    const doNotPatchInvalidId = async (id: string) => {      
       try {
         const invalidUrl = url + "/" + id;
         const tmntJSON = JSON.stringify(eventUpdatedTo);
@@ -1073,8 +1063,7 @@ export const DbEvents = () => {
         });        
 
         if (notUpdatedResponse.status === 200) {
-          testResults += addToResults(`Error: patched invalid id: ${id}`);
-          // setResults(testResults);
+          testResults += addToResults(`Error: patched invalid id: ${id}`);          
           return notUpdatedResponse;
         } else {
           testResults += addToResults(`DID NOT patch Event, invalid id: ${id}`);
@@ -1084,8 +1073,7 @@ export const DbEvents = () => {
         if (error.response.status === 404) {
           testResults += addToResults(`DID NOT patch Event, invalid id: ${id}`);          
         } else {
-          testResults += addToResults(`Patch Event Error: did not return 404 for invalid id: ${id}`, false)
-          // setResults(testResults)        
+          testResults += addToResults(`Patch Event Error: did not return 404 for invalid id: ${id}`, false)                  
           return {
             error: `Error Patching Event, non 404 response for invalid id: ${id}`,
             status: error.response.status,
@@ -1110,14 +1098,13 @@ export const DbEvents = () => {
           url: eventDuplicateIdUrl,
         })      
         if (response.status !== 422) {
-          testResults += addToResults(`Patch Error: did not return 422 for duplicate event_name+tmnt_it`, false)
-          // setResults(testResults)        
+          testResults += addToResults(`Patch Error: did not return 422 for duplicate event_name+tmnt_id`, false)                  
           return {
             error: 'Error Patching Event',
             status: response.status,
           };          
         } else {
-          testResults += addToResults(`Patch Event, non 422 response for duplicate event_name+tmnt_it`)
+          testResults += addToResults(`Patch Event, non 422 response for duplicate event_name+tmnt_id`)
           return {
             error: 'Error Patching Event',
             status: response.status,
@@ -1125,16 +1112,15 @@ export const DbEvents = () => {
         }
       } catch (error: any) {
         if (error.response.status === 422) {
-          testResults += addToResults(`DID NOT Patch Event: ${eventToUpdate.event_name} - duplicate event_name+tmnt_it`)
+          testResults += addToResults(`DID NOT Patch Event: ${eventToUpdate.event_name} - duplicate event_name+tmnt_id`)
           return {
             error: '',
             status: error.response.status,
           }
         } else {
-          testResults += addToResults(`Patch Error: did not return 422 for duplicate event_name+tmnt_it`, false)
-          // setResults(testResults)        
+          testResults += addToResults(`Patch Error: did not return 422 for duplicate event_name+tmnt_id`, false)                  
           return {
-            error: `Error Patching duplicate event_name+tmnt_it`,
+            error: `Error Patching duplicate event_name+tmnt_id`,
             status: error.response.status,
           };          
         }
@@ -1173,13 +1159,12 @@ export const DbEvents = () => {
 
       await doNotPatchDuplicate('event_name', 'Singles')      
 
-      await eventPatchInvalidId('abc_123')
-      await eventPatchInvalidId('bwl_12345678901234567890123456789012')
+      await doNotPatchInvalidId('abc_123')
+      await doNotPatchInvalidId('bwl_12345678901234567890123456789012')
 
       return eventToUpdate;    
     } catch (error: any) {
-      testResults += addToResults(`Patch Error: ${error.message}`, false);
-      // setResults(testResults)
+      testResults += addToResults(`Patch Error: ${error.message}`, false);      
       return {
         error: error.message,
         status: 404,
@@ -1215,8 +1200,7 @@ export const DbEvents = () => {
         if (error.response.status === 404) {
           testResults += addToResults(`Did not not delete Event - invalid id: "${invalidId}"`)
         } else {
-          testResults += addToResults(`Delete Event Error: ${error.message}`, false);
-          // setResults(testResults)
+          testResults += addToResults(`Delete Event Error: ${error.message}`, false);          
           return {
             error: error.message,
             status: error.response.status,
@@ -1240,8 +1224,7 @@ export const DbEvents = () => {
           if (response.data.deleted.lpox === eventToDel.lpox) {
             testResults += addToResults(`Success: Deleted Event: ${eventToDel.event_name} - got lpox in response`);
           } else {
-            testResults += addToResults(`Error Deleted Event: ${eventToDel.event_name}: no lpox`);
-            // setResults(testResults)
+            testResults += addToResults(`Error Deleted Event: ${eventToDel.event_name}: no lpox`);            
             return {
               error: 'No lpox in response',
               status: 404,
@@ -1250,8 +1233,7 @@ export const DbEvents = () => {
           testResults += addToResults(`Success: Deleted Event: ${response.data.deleted.event_name}`);          
         }        
       } else {
-        testResults += addToResults('False: could not delete event', false)
-        // setResults(testResults)
+        testResults += addToResults('False: could not delete event', false)        
         return {
           error: 'Could not delete event',
           status: 404,
@@ -1259,7 +1241,7 @@ export const DbEvents = () => {
       }
 
       if (testing) {
-        // try to delete Event that is parent to tmnt
+        // try to delete Event that is parent
         try {
           const cantDelUrl = url + '/' + eventToUpdate.id
           const cantDelResponse = await axios({
@@ -1276,8 +1258,7 @@ export const DbEvents = () => {
           if (error.response.status === 409) {
             testResults += addToResults(`Did not not delete event: ${eventToUpdate.event_name} with children`)
           } else {
-            testResults += addToResults(`Delete Event Error: ${error.message}`, false);
-            // setResults(testResults)
+            testResults += addToResults(`Delete Event Error: ${error.message}`, false);            
             return {
               error: error.message,
               status: error.response.status,
@@ -1289,8 +1270,7 @@ export const DbEvents = () => {
       }
       return response.data;
     } catch (error: any) {
-      testResults += addToResults(`Error : ${error.message}`, false);
-      // setResults(testResults)
+      testResults += addToResults(`Error : ${error.message}`, false);      
       return {
         error: error.message,
         status: 404,
@@ -1313,22 +1293,19 @@ export const DbEvents = () => {
     try {
       const reset = await resetEventToUpdate(false);      
       if (reset.error) {
-        testResults += addToResults(`Error Resetting: ${reset.error}`, false)
-        setResults(testResults)
+        testResults += addToResults(`Error Resetting: ${reset.error}`, false)        
         return;
       }
 
       const allEvents: any = await removeCreatedEvent(true)
       if (allEvents.error) {
-        testResults += addToResults(`Error Resetting: ${allEvents.error}`, false)
-        setResults(testResults)
+        testResults += addToResults(`Error Resetting: ${allEvents.error}`, false)        
         return;
       }
 
       const reAdded: any = await reAddDeletedEvent()
       if (reAdded.error) {
-        testResults += addToResults(`Error Resetting: ${reAdded.error}`, false)
-        setResults(testResults)
+        testResults += addToResults(`Error Resetting: ${reAdded.error}`, false)        
         return;
       }
       
@@ -1339,12 +1316,13 @@ export const DbEvents = () => {
         status: 200,
       }
     } catch (error: any) {
-      testResults += addToResults(`Reset Error: ${error.message}`, false);
-      setResults(testResults)
+      testResults += addToResults(`Reset Error: ${error.message}`, false);     
       return {
         error: error.message,
         status: 404,
       };  
+    } finally {
+      setResults(testResults); 
     }
   }
 

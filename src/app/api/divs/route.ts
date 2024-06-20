@@ -32,13 +32,6 @@ export async function GET(request: NextRequest) {
   }
 }
 
-// {  
-//   "event_id": "evt_cb97b73cb538418ab993fc867f860510",
-//   "div_name": "Hdcp",
-//   "hdcp_per": 90,        
-//   "sort_order": 2
-// }
-
 export async function POST(request: Request) {
   try {
     const { id, tmnt_id, div_name, hdcp_per, hdcp_from, int_hdcp, hdcp_for, sort_order } = await request.json()    

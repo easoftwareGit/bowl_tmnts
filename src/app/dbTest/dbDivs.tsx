@@ -134,26 +134,25 @@ export const DbDivs = () => {
       });
       if (response.status === 200) {
         if (showResults) {
-          testResults += addToResults(`Reset Div: ${divToUpdate.div_name}`);
-          setResults(testResults)
+          testResults += addToResults(`Reset Div: ${divToUpdate.div_name}`);          
         }
         return response.data;
       } else {
-        testResults += addToResults(`Error resetting: status: ${response.status}`, false);
-        setResults(testResults)
+        testResults += addToResults(`Error resetting: status: ${response.status}`, false);        
         return {
           error: 'Error re-setting',
           status: response.status,
         };  
       }
     } catch (error: any) {
-      testResults += addToResults(`Reset Error: ${error.message}`, false);
-      setResults(testResults)
+      testResults += addToResults(`Reset Error: ${error.message}`, false);      
       return {
         error: error.message,
         status: 404,
       };
-    } 
+    } finally {
+      setResults(testResults)
+    }
   }
 
   const reAddDeletedDiv = async () => {
@@ -226,6 +225,30 @@ export const DbDivs = () => {
     let createdDivId: string = '';
     passed = true;
         
+    const deleteCreated = async () => {
+      try {
+        const response = await axios({
+          method: "get",
+          withCredentials: true,
+          url: url,
+        });
+        if (response.status === 200) {
+          const all: divType[] = response.data.divs as unknown as divType[]
+          const justCreated = all.filter(div => div.div_name === divToPost.div_name);
+          if (justCreated.length === 1) {
+            await divDelete(justCreated[0].id, false)
+          }
+        }
+      } catch (error: any) {
+        testResults += addToResults('Error deleteing created div', false)
+        return {
+          error: error.message,
+          status: 404,
+        };
+      }
+    }
+
+
     const divInvalidCreate = async (propertyName: string, value: any) => { 
       try {        
         const invalidDivJSON = JSON.stringify({
@@ -311,7 +334,9 @@ export const DbDivs = () => {
       }
     }
 
-    try {      
+    try {         
+      await deleteCreated();
+
       const divJSON = JSON.stringify(divToPost);
       const response = await axios({
         method: "post",
@@ -320,6 +345,7 @@ export const DbDivs = () => {
         url: url,
       });
       if (response.status === 201) {
+        createdDivId = response.data.div.id;
         testResults += addToResults(`Created div: ${response.data.div.div_name}`)
         const postedDiv: divType = response.data.div;
         if (postedDiv.tmnt_id !== divToPost.tmnt_id) {
@@ -338,8 +364,7 @@ export const DbDivs = () => {
           testResults += addToResults('Created div sort_order !== divToPost.sort_order', false)        
         } else {
           testResults += addToResults(`Created div === divToPost`)
-        }
-        createdDivId = response.data.div.id;
+        }        
       } else {
         testResults += addToResults(`Error creating div: ${divToPost.div_name}, response statue: ${response.status}`, false);                
         return {
@@ -1119,38 +1144,35 @@ export const DbDivs = () => {
     try {
       const reset = await resetDivToUpdate(false);      
       if (reset.error) {
-        testResults += addToResults(`Error Resetting: ${reset.error}`, false)
-        setResults(testResults)
+        testResults += addToResults(`Error Resetting: ${reset.error}`, false)        
         return;
       }
 
       const allDivs: any = await removeCreatedDiv(true)
       if (allDivs.error) {
-        testResults += addToResults(`Error Resetting: ${allDivs.error}`, false)
-        setResults(testResults)
+        testResults += addToResults(`Error Resetting: ${allDivs.error}`, false)        
         return;
       }
 
       const reAdded: any = await reAddDeletedDiv()
       if (reAdded.error) {
-        testResults += addToResults(`Error Resetting: ${reAdded.error}`, false)
-        setResults(testResults)
+        testResults += addToResults(`Error Resetting: ${reAdded.error}`, false)        
         return;
       }
       
-      testResults += addToResults(`Reset Divs`);;
-      setResults(testResults);      
+      testResults += addToResults(`Reset Divs`);;      
       return {
         divs: allDivs,
         status: 200,
       }
     } catch (error: any) {
-      testResults += addToResults(`Reset Error: ${error.message}`, false);
-      setResults(testResults)
+      testResults += addToResults(`Reset Error: ${error.message}`, false);     
       return {
         error: error.message,
         status: 404,
       };  
+    } finally {
+      setResults(testResults)
     }
   }
 

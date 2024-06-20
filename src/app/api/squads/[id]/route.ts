@@ -1,19 +1,17 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
-import { sanitize } from "@/lib/sanitize";
 import { ErrorCode, isValidBtDbId } from "@/lib/validation";
-import { validateSquad, squadToCheck, validSquadData } from "@/app/api/squads/validate";
-import { startOfDay } from "date-fns";
+import { sanitizeSquad, validateSquad } from "@/app/api/squads/validate";
+import { squadType } from "@/lib/types/types";
+import { initSquad } from "@/db/initVals";
+import { findSquadById } from "@/lib/db/squads";
 
 // routes /api/events/:id
-
-// sqd_7116ce5f80164830830a7157eb093396
 
 export async function GET(
   request: Request,
   { params }: { params: { id: string } }
 ) {   
-
   try {
     const id = params.id;
     if (!isValidBtDbId(id, 'sqd')) {
@@ -26,8 +24,13 @@ export async function GET(
       where: {
         id: id
       }
-    })
-    // return NextResponse.json(squad);
+    })    
+    if (!squad) {
+      return NextResponse.json(
+        { error: "not found" },
+        { status: 404 }
+      );            
+    }
     return NextResponse.json({squad}, {status: 200});    
   } catch (err: any) {
     return NextResponse.json(
@@ -36,16 +39,6 @@ export async function GET(
     );        
   } 
 }
-
-// sqd_7116ce5f80164830830a7157eb093396
-// {  
-//   "event_id": "evt_cb97b73cb538418ab993fc867f860510",
-//   "squad_name": "Squad 2",
-//   "squad_date": "2022-10-31",
-//   "squad_time": "10:00 AM",
-//   "games": 5,
-//   "sort_order": 2
-// }
 
 export async function PUT(
   request: Request,
@@ -60,14 +53,25 @@ export async function PUT(
       );        
     }
 
-    const { event_id, squad_name, squad_date, squad_time, games, sort_order } = await request.json()    
-    const toCheck: squadToCheck = {
+    const { event_id, squad_name, games, starting_lane, lane_count, squad_date, squad_time, sort_order } = await request.json()    
+    const toCheck: squadType = {
+      ...initSquad,
       event_id,
       squad_name,
-      squad_date,
-      squad_time,
       games,
+      starting_lane,
+      lane_count,
+      squad_date,
+      squad_time,      
       sort_order
+    }
+
+    const currentSquad = await findSquadById(id);
+    if (!currentSquad) {
+      return NextResponse.json(
+        { error: "not found" },
+        { status: 404 }
+      )
     }
 
     const errCode = validateSquad(toCheck);
@@ -90,34 +94,35 @@ export async function PUT(
       );
     }
     
-    const san_squad_name = sanitize(squad_name);
-    const squadDate = startOfDay(new Date(squad_date))
-    const updated = await prisma.squad.update({
+    const toPut = sanitizeSquad(toCheck);
+    const squad = await prisma.squad.update({
       where: {
         id: id
       },      
       data: {
-        event_id,
-        squad_name: san_squad_name,
-        squad_date: squadDate,
-        squad_time,
-        games,
-        sort_order
+        event_id: toPut.event_id,
+        squad_name: toPut.squad_name,
+        games: toPut.games,
+        starting_lane: toPut.starting_lane,
+        lane_count: toPut.lane_count,
+        squad_date: toPut.squad_date,
+        squad_time: toPut.squad_time,
+        sort_order: toPut.sort_order
       }
     })
-    return NextResponse.json({updated}, {status: 200});    
+    return NextResponse.json({squad}, {status: 200});    
   } catch (err: any) {
-
-    console.log('err: ', err)
-
     let errStatus: number   
     switch (err.code) {
-      case 'P2003':
+      case 'P2002': // unique constraint
+        errStatus = 422
+        break;
+      case 'P2003': // foreign key constraint
         errStatus = 422        
-        break;    
-      case 'P2025': 
-        errStatus = 422        
-        break;    
+        break;
+      case 'P2025': // record not found
+        errStatus = 404
+        break;
       default:
         errStatus = 500        
         break;
@@ -128,17 +133,6 @@ export async function PUT(
     );        
   }
 }
-
-// change any 1..N of the values in the object, pass onnly changed value(s)
-// sqd_7116ce5f80164830830a7157eb093396
-// {  
-//   "event_id": "evt_cb97b73cb538418ab993fc867f860510",
-//   "squad_name": "Squad 2",
-//   "squad_date": "2022-10-31",
-//   "squad_time": "10:00 AM",
-//   "games": 5,
-//   "sort_order": 2
-// }
 
 export async function PATCH(
   request: Request,
@@ -153,46 +147,133 @@ export async function PATCH(
       );        
     }
 
-    const { event_id, squad_name, squad_date, squad_time, games, sort_order } = await request.json()    
-    const toCheck: squadToCheck = {
-      event_id,
-      squad_name,
-      squad_date,
-      squad_time,
-      games,
-      sort_order
-    }
-    if (validSquadData(toCheck) !== ErrorCode.None) {
+    const json = await request.json()
+    // populate toCheck with json
+    const jsonProps = Object.getOwnPropertyNames(json);
+
+    const currentSquad = await findSquadById(id);
+    if (!currentSquad) {
       return NextResponse.json(
-        { error: 'invalid data' },
+        { error: "not found" },
+        { status: 404 }
+      )
+    }
+
+    const toCheck: squadType = {
+      ...initSquad,
+      event_id: currentSquad.event_id,
+      squad_name: currentSquad.squad_name,
+      games: currentSquad.games,
+      starting_lane: currentSquad.starting_lane,
+      lane_count: currentSquad.lane_count,
+      squad_date: currentSquad.squad_date,
+      squad_time: currentSquad.squad_time ,
+      sort_order: currentSquad.sort_order
+    }
+
+    if (jsonProps.includes('event_id')) {
+      toCheck.event_id = json.event_id
+    }
+    if (jsonProps.includes('squad_name')) {
+      toCheck.squad_name = json.squad_name
+    }
+    if (jsonProps.includes('games')) {
+      toCheck.games = json.games
+    }
+    if (jsonProps.includes('starting_lane')) {
+      toCheck.starting_lane = json.starting_lane
+    }
+    if (jsonProps.includes('lane_count')) {
+      toCheck.lane_count = json.lane_count
+    }
+    if (jsonProps.includes('squad_date')) {
+      toCheck.squad_date = json.squad_date
+    }
+    if (jsonProps.includes('squad_time')) {
+      toCheck.squad_time = json.squad_time
+    }
+    if (jsonProps.includes('sort_order')) {
+      toCheck.sort_order = json.sort_order
+    }
+    
+    const errCode = validateSquad(toCheck);
+    if (errCode !== ErrorCode.None) {      
+      let errMsg: string;
+      switch (errCode) {
+        case ErrorCode.MissingData:
+          errMsg = 'missing data'
+          break;
+        case ErrorCode.InvalidData:
+          errMsg = 'invalid data'
+          break;        
+        default:
+          errMsg = 'unknown error' 
+          break;
+      }
+      return NextResponse.json(
+        { error: errMsg },
         { status: 422 }
       );
     }
-
-    const san_squad_name = sanitize(squad_name);
-    const p_squadDate = (typeof squad_date === 'string') ? startOfDay(new Date(squad_date)) : undefined;
-    const p_games = (typeof games === 'number') ? games : undefined;
-    const p_sort_order = (typeof sort_order === 'number') ? sort_order : undefined;
-    const updated = await prisma.squad.update({
+    
+    const toBePatched = sanitizeSquad(toCheck);    
+    const toPatch = {
+      ...initSquad,
+      event_id: '', // initSquad.event_id is "1", so clear it here
+    }
+    if (jsonProps.includes('event_id')) {
+      toPatch.event_id = toBePatched.event_id
+    }
+    if (jsonProps.includes('squad_name')) {
+      toPatch.squad_name = toBePatched.squad_name
+    }
+    if (jsonProps.includes('games')) {
+      toPatch.games = toBePatched.games
+    }
+    if (jsonProps.includes('starting_lane')) {
+      toPatch.starting_lane = toBePatched.starting_lane
+    }
+    if (jsonProps.includes('lane_count')) {
+      toPatch.lane_count = toBePatched.lane_count
+    }
+    if (jsonProps.includes('squad_date')) {
+      toPatch.squad_date = toBePatched.squad_date
+    }
+    if (jsonProps.includes('squad_time')) {
+      toPatch.squad_time = toBePatched.squad_time
+    }
+    if (jsonProps.includes('sort_order')) {
+      toPatch.sort_order = toBePatched.sort_order
+    }
+    const squad = await prisma.squad.update({
       where: {
         id: id
-      },    
+      },
       data: {
-        event_id: event_id || undefined,
-        squad_name: san_squad_name || undefined,
-        squad_date: p_squadDate,
-        squad_time,
-        games: p_games,
-        sort_order: p_sort_order
+        event_id: toPatch.event_id || undefined,
+        squad_name: toPatch.squad_name || undefined,
+        games: toPatch.games || undefined,
+        starting_lane: toPatch.starting_lane || undefined,
+        lane_count: toPatch.lane_count || undefined,
+        squad_date: toPatch.squad_date || undefined,
+        squad_time: toPatch.squad_time || undefined,
+        sort_order: toPatch.sort_order || undefined
       }
-    })
-    return NextResponse.json({updated}, {status: 200});    
+    })    
+    
+    return NextResponse.json({squad}, {status: 200});    
   } catch (err: any) {
     let errStatus: number  
     switch (err.code) {
-      case 'P2003':
+      case 'P2002': // unique constraint
+        errStatus = 422
+        break;
+      case 'P2003': // foreign key constraint
         errStatus = 422        
         break;    
+      case 'P2025': // record not found
+        errStatus = 404
+        break;      
       default:
         errStatus = 500        
         break;
@@ -203,8 +284,6 @@ export async function PATCH(
     );        
   }
 }
-
-// sqd_7116ce5f80164830830a7157eb093396
 
 export async function DELETE(
   request: Request,
@@ -228,10 +307,10 @@ export async function DELETE(
   } catch (err: any) {
     let errStatus: number    
     switch (err.code) {
-      case 'P2003':
-        errStatus = 422        
+      case 'P2003': // parent has child rows
+        errStatus = 409        
         break;   
-      case 'P2025':
+      case 'P2025': // record not found
         errStatus = 404
         break;   
       default:

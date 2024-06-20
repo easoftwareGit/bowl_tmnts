@@ -8,16 +8,16 @@ const url = baseApi + "/bowls";
 const bowlId = "bwl_561540bd64974da9abdd97765fdb3659";
 const bowlIdUrl = url + "/" + bowlId;
 let passed = true;
-let allResults = '';
+let allResults = "";
 
 export const DbBowls = () => {
   const [bowlCrud, setBowlCrud] = React.useState("create");
-  const [results, setResults] = React.useState("");  
+  const [results, setResults] = React.useState("");
 
   useEffect(() => {
     setResults(results);
     // force textarea to scroll to bottom
-    var textarea = document.getElementById('bowlResults');
+    var textarea = document.getElementById("bowlResults");
     if (textarea) {
       textarea.scrollTop = textarea.scrollHeight;
     }
@@ -25,29 +25,29 @@ export const DbBowls = () => {
 
   const bowlToPost: bowlType = {
     ...initBowl,
-    id: '',
+    id: "",
     bowl_name: "Test Bowl",
     city: "Somewhere",
-    state: "ZZ",    
-    url: "https://google.com/",    
-  }
-  
+    state: "ZZ",
+    url: "https://google.com/",
+  };
+
   const bowlToUpdate: bowlType = {
     ...initBowl,
-    id: 'bwl_561540bd64974da9abdd97765fdb3659',
+    id: "bwl_561540bd64974da9abdd97765fdb3659",
     bowl_name: "Earl Anthony's Dublin Bowl",
     city: "Dublin",
     state: "CA",
     url: "https://www.earlanthonysdublinbowl.com/",
-  }
+  };
 
   const bowlUpdatedTo: bowlType = {
     ...initBowl,
     bowl_name: "Test Bowl",
     city: "Hereville",
     state: "AZ",
-    url: "https://www.testbowl.com/",        
-  }
+    url: "https://www.testbowl.com/",
+  };
 
   const bowlToDel: bowlType = {
     ...initBowl,
@@ -56,40 +56,49 @@ export const DbBowls = () => {
     city: "Concord",
     state: "CA",
     url: "http://diablolanes.com/",
-  }
+  };
 
-  const addToResults = (newText: string, pass: boolean = true): string => { 
+  const addToResults = (newText: string, pass: boolean = true): string => {
     if (pass) {
-      newText = '🟢' + newText;
+      newText = "🟢" + newText;
     } else {
-      newText = '🔴' + newText; 
+      newText = "🔴" + newText;
       passed = false;
     }
-    allResults += newText + '\n'
-    return newText + '\n'    
-  }
+    allResults += newText + "\n";
+    return newText + "\n";
+  };
 
   const removeCreatedBowl = async (showResults: boolean) => {
     let testResults = results;
     try {
-      const allBowls: bowlType[] = await bowlReadAll(false) as unknown as bowlType[]
-      const justPostedBowl = allBowls.filter(bowl => bowl.url === bowlToPost.url);
+      const allBowls: bowlType[] = (await bowlReadAll(
+        false
+      )) as unknown as bowlType[];
+      const justPostedBowl = allBowls.filter(
+        (bowl) => bowl.url === bowlToPost.url
+      );
       if (justPostedBowl.length === 1) {
-        bowlDelete(justPostedBowl[0].id, false)
+        bowlDelete(justPostedBowl[0].id, false);
         if (showResults) {
-          testResults += addToResults(`Reset Created Bowl: ${justPostedBowl[0].bowl_name}`);
-        }        
-      }      
-      return allBowls
+          testResults += addToResults(
+            `Reset Created Bowl: ${justPostedBowl[0].bowl_name}`
+          );
+        }
+      }
+      return allBowls;
     } catch (error: any) {
-      testResults += addToResults(`Remove Created Error: ${error.message}`, false);
-      setResults(testResults)
+      testResults += addToResults(
+        `Remove Created Error: ${error.message}`,
+        false
+      );
+      setResults(testResults);
       return {
         error: error.message,
         status: 404,
-      };      
+      };
     }
-  }
+  };
 
   const resetBowlToUpdate = async (showResults: boolean) => {
     let testResults = results;
@@ -103,63 +112,65 @@ export const DbBowls = () => {
       if (response.status === 200) {
         if (showResults) {
           testResults += addToResults(`Reset Bowl: ${bowlToUpdate.bowl_name}`);
-          setResults(testResults)
         }
         return response.data;
       } else {
-        testResults += addToResults(`Error resetting: status: ${response.status}`, false);
-        setResults(testResults)
+        testResults += addToResults(
+          `Error resetting: status: ${response.status}`,
+          false
+        );
         return {
-          error: 'Error re-setting',
+          error: "Error re-setting",
           status: response.status,
-        };  
+        };
       }
     } catch (error: any) {
       testResults += addToResults(`Reset Error: ${error.message}`, false);
-      setResults(testResults)
       return {
         error: error.message,
         status: 404,
       };
+    } finally {
+      setResults(testResults);
     }
-  }
+  };
 
   const reAddDeletedBowl = async () => {
-    let testResults = results;    
+    let testResults = results;
     try {
-      let response
+      let response;
       try {
-        const delBowlUrl = url +'/' + bowlToDel.id
+        const delBowlUrl = url + "/" + bowlToDel.id;
         response = await axios({
           method: "get",
           withCredentials: true,
           url: delBowlUrl,
         });
         // if bowl already exisits, do not delete it
-        if (response.status === 200) {       
+        if (response.status === 200) {
           return {
             data: bowlToDel,
-            status: 201
-          }
+            status: 201,
+          };
         } else {
           return {
-            error: 'Error re-adding',
-            status: response.status
-          }
-        }             
+            error: "Error re-adding",
+            status: response.status,
+          };
+        }
       } catch (error: any) {
         // should get a 404 error if bowl does not exist, ok to continue
         // non 404 return is bad
         if (error.response.status !== 404) {
           return {
             error: error.message,
-            status: error.response.status
-          }
+            status: error.response.status,
+          };
         }
       }
       const reAddBowl = {
         ...bowlToDel,
-      }
+      };
       reAddBowl.id = nextPostSecret + reAddBowl.id;
       const bowlJSON = JSON.stringify(reAddBowl);
       response = await axios({
@@ -171,35 +182,58 @@ export const DbBowls = () => {
       if (response.status === 201) {
         return {
           data: bowlToDel,
-          status: 201
-        }
+          status: 201,
+        };
       } else {
         return {
-          error: 'Error re-adding',
-          status: response.status
-        }
+          error: "Error re-adding",
+          status: response.status,
+        };
       }
     } catch (error: any) {
       testResults += addToResults(`ReAdd Error: ${error.message}`, false);
-      setResults(testResults)
+      setResults(testResults);
       return {
         error: error.message,
         status: 404,
       };
     }
-  }
+  };
 
   const bowlCreate = async () => {
-    let testResults: string = results + 'Create Bowl tests: \n';
-    let createdBowlId: string = '';
+    let testResults: string = results + "Create Bowl tests: \n";
+    let createdBowlId: string = "";
     passed = true;
-        
-    const bowlInvalidCreate = async (propertyName: string, value: any) => { 
-      try {        
+
+    const deleteCreated = async () => {
+      try {
+        const response = await axios({
+          method: "get",
+          withCredentials: true,
+          url: url,
+        });
+        if (response.status === 200) {
+          const all: bowlType[] = response.data.bowls as unknown as bowlType[];
+          const justCreated = all.filter((bowl) => bowl.url === bowlToPost.url);
+          if (justCreated.length === 1) {
+            await bowlDelete(justCreated[0].id, false);
+          }
+        }
+      } catch (error: any) {
+        testResults += addToResults("Error deleteing created bowl", false);
+        return {
+          error: error.message,
+          status: 404,
+        };
+      }
+    };
+
+    const bowlInvalidCreate = async (propertyName: string, value: any) => {
+      try {
         const invalidBowlJSON = JSON.stringify({
           ...bowlToUpdate,
           [propertyName]: value,
-        })
+        });
         const invalidResponse = await axios({
           method: "post",
           data: invalidBowlJSON,
@@ -207,38 +241,50 @@ export const DbBowls = () => {
           url: url,
         });
         if (invalidResponse.status !== 422) {
-          testResults += addToResults(`Create Bowl Error: did not return 422 for invalid ${propertyName}`, false)
-          setResults(testResults)
+          testResults += addToResults(
+            `Create Bowl Error: did not return 422 for invalid ${propertyName}`,
+            false
+          );
+          setResults(testResults);
           return {
             error: `Error creating bowl with invalid ${propertyName}`,
             status: invalidResponse.status,
           };
         } else {
-          testResults += addToResults(`Create Bowl, non 422 response for bowl: ${bowlToUpdate.bowl_name} - invalid data`)
+          testResults += addToResults(
+            `Create Bowl, non 422 response for bowl: ${bowlToUpdate.bowl_name} - invalid data`
+          );
           return {
-            error: 'Error Creating Bowl, non 422 response for invalid data',
+            error: "Error Creating Bowl, non 422 response for invalid data",
             status: invalidResponse.status,
           };
         }
-      } catch (error: any) { 
+      } catch (error: any) {
         if (error.response.status === 422) {
-          testResults += addToResults(`DID NOT Create bowl: ${bowlToUpdate.bowl_name} - invalid ${propertyName}`)          
+          testResults += addToResults(
+            `DID NOT Create bowl: ${bowlToUpdate.bowl_name} - invalid ${propertyName}`
+          );
           return {
-            error: '',
+            error: "",
             status: error.response.status,
-          }
+          };
         } else {
-          testResults += addToResults(`Create Error: did not return 422 for invalid ${propertyName}`, false)
-          setResults(testResults)        
+          testResults += addToResults(
+            `Create Error: did not return 422 for invalid ${propertyName}`,
+            false
+          );
+          setResults(testResults);
           return {
             error: `Error Creating bowl with invalid ${propertyName}`,
             status: error.response.status,
-          };          
+          };
         }
       }
-    } 
+    };
 
-    try {      
+    try {
+      await deleteCreated();
+
       const bowlJSON = JSON.stringify(bowlToPost);
       const response = await axios({
         method: "post",
@@ -247,57 +293,72 @@ export const DbBowls = () => {
         url: url,
       });
       if (response.status === 201) {
-        testResults += addToResults(`Created bowl: ${response.data.bowl.bowl_name}`)
+        createdBowlId = response.data.bowl.id;
+        testResults += addToResults(
+          `Created bowl: ${response.data.bowl.bowl_name}`
+        );
         const postedBowl: bowlType = response.data.bowl;
         if (postedBowl.bowl_name !== bowlToPost.bowl_name) {
-          testResults += addToResults('Created bowl bowl_name !== bowlToPost.bowl_name', false)
+          testResults += addToResults(
+            "Created bowl bowl_name !== bowlToPost.bowl_name",
+            false
+          );
         } else if (postedBowl.city !== bowlToPost.city) {
-          testResults += addToResults('Created bowl city !== bowlToPost.city', false)
+          testResults += addToResults(
+            "Created bowl city !== bowlToPost.city",
+            false
+          );
         } else if (postedBowl.state !== bowlToPost.state) {
-          testResults += addToResults('Created bowl state !== bowlToPost.state', false)
+          testResults += addToResults(
+            "Created bowl state !== bowlToPost.state",
+            false
+          );
         } else if (postedBowl.url !== bowlToPost.url) {
-          testResults += addToResults('Created bowl url !== bowlToPost.url', false)
+          testResults += addToResults(
+            "Created bowl url !== bowlToPost.url",
+            false
+          );
         } else {
-          testResults += addToResults(`Created bowl === bowlToPost`)
+          testResults += addToResults(`Created bowl === bowlToPost`);
         }
-        createdBowlId = response.data.bowl.id;
       } else {
-        testResults += addToResults(`Error creating bowl: ${bowlToPost.bowl_name}, response statue: ${response.status}`, false);        
-        // setResults(testResults)
+        testResults += addToResults(
+          `Error creating bowl: ${bowlToPost.bowl_name}, response statue: ${response.status}`,
+          false
+        );
         return {
-          error: 'Did not create bowl',
+          error: "Did not create bowl",
           status: response.status,
-        };  
+        };
       }
 
-      await bowlInvalidCreate('bowl_name', '');
-      await bowlInvalidCreate('city', '<script>alert(1)</script>');
-      await bowlInvalidCreate('state', 'invalid state');
-      await bowlInvalidCreate('url', 'example.com');      
-             
+      await bowlInvalidCreate("bowl_name", "");
+      await bowlInvalidCreate("city", "<script>alert(1)</script>");
+      await bowlInvalidCreate("state", "invalid state");
+      await bowlInvalidCreate("url", "example.com");
+
       return response.data;
     } catch (error: any) {
-      testResults += addToResults(`Create Error: ${error.message}`, false)      
-      // setResults(testResults)
+      testResults += addToResults(`Create Error: ${error.message}`, false);
       return {
         error: error.message,
         status: 404,
       };
     } finally {
       if (createdBowlId) {
-        await bowlDelete(createdBowlId, false)
+        await bowlDelete(createdBowlId, false);
       }
       if (passed) {
         testResults += addToResults(`Create Bowl tests: PASSED`, true);
       } else {
         testResults += addToResults(`Create Bowl tests: FAILED`, false);
       }
-      setResults(testResults) 
+      setResults(testResults);
     }
   };
 
-  const bowlReadAll = async (showResults: boolean) => {    
-    let testResults = results + 'Read All Bowls tests: \n';
+  const bowlReadAll = async (showResults: boolean) => {
+    let testResults = results + "Read All Bowls tests: \n";
     passed = true;
 
     try {
@@ -308,37 +369,50 @@ export const DbBowls = () => {
       });
       if (response.status === 200) {
         if (showResults) {
-          testResults += addToResults(`Success: Read ${response.data.bowls.length} Bowls`, true);
-          // setResults(testResults)        
+          testResults += addToResults(
+            `Success: Read ${response.data.bowls.length} Bowls`,
+            true
+          );
         }
-        const allBowls: bowlType[] = response.data.bowls as unknown as bowlType[]
-        const justPostedBowl = allBowls.filter(bowl => bowl.url === bowlToPost.url);
+        const allBowls: bowlType[] = response.data
+          .bowls as unknown as bowlType[];
+        const justPostedBowl = allBowls.filter(
+          (bowl) => bowl.url === bowlToPost.url
+        );
 
         // 4 bowls in /prisma/seeds.ts
-        const seedBowls = 4
-        if (justPostedBowl.length === 1) { 
+        const seedBowls = 4;
+        if (justPostedBowl.length === 1) {
           // created a test bowl BEFORE testing read all
-          if (allBowls.length === seedBowls + 1) { 
+          if (allBowls.length === seedBowls + 1) {
             testResults += addToResults(`Read all ${seedBowls + 1} bowls`);
           } else {
-            testResults += addToResults(`Error: Read ${allBowls.length} bowls, expected ${seedBowls + 1}`, false);
+            testResults += addToResults(
+              `Error: Read ${allBowls.length} bowls, expected ${seedBowls + 1}`,
+              false
+            );
           }
         } else {
           // test bowl not created yet
           if (allBowls.length === seedBowls) {
             testResults += addToResults(`Read all ${seedBowls} bowls`, true);
           } else {
-            testResults += addToResults(`Error: Read ${allBowls.length} bowls, expected ${seedBowls}`, false);
-          }          
+            testResults += addToResults(
+              `Error: Read ${allBowls.length} bowls, expected ${seedBowls}`,
+              false
+            );
+          }
         }
         return response.data.bowls;
       } else {
-        testResults += addToResults(`Error reading all bowls, response statue: ${response.status}`, false);        
-        // setResults(testResults)
+        testResults += addToResults(
+          `Error reading all bowls, response statue: ${response.status}`,
+          false
+        );
         return {
-          error: 'Did not read all bowls',
+          error: "Did not read all bowls",
           status: response.status,
-        };  
+        };
       }
     } catch (error: any) {
       testResults += addToResults(`Read All Error: ${error.message}`, false);
@@ -352,12 +426,12 @@ export const DbBowls = () => {
       } else {
         testResults += addToResults(`Read All Bowls tests: FAILED`, false);
       }
-      setResults(testResults) 
+      setResults(testResults);
     }
   };
 
   const bowlRead1 = async () => {
-    let testResults = results + 'Read 1 Bowl tests: \n';
+    let testResults = results + "Read 1 Bowl tests: \n";
     passed = true;
 
     const bowlReadInvalidId = async (id: string) => {
@@ -367,77 +441,99 @@ export const DbBowls = () => {
           method: "get",
           withCredentials: true,
           url: invalidUrl,
-        });  
+        });
         if (invalidResponse.status !== 404) {
-          testResults += addToResults(`Read 1 Bowl Error: did not return 404 for invalid id ${id}`, false)
-          // setResults(testResults)        
+          testResults += addToResults(
+            `Read 1 Bowl Error: did not return 404 for invalid id ${id}`,
+            false
+          );
           return {
             error: `Error getting with invalid id: ${id}`,
             status: invalidResponse.status,
-          };          
+          };
         } else {
-          testResults += addToResults(`Read 1 Bowl, non 404 response for invalid id: ${id}`)
+          testResults += addToResults(
+            `Read 1 Bowl, non 404 response for invalid id: ${id}`
+          );
           return {
             error: `Error Reading 1 Bowl, non 404 response for invalid id: ${id}`,
             status: invalidResponse.status,
-          };          
+          };
         }
       } catch (error: any) {
         if (error.response.status === 404) {
-          testResults += addToResults(`DID NOT Read 1 Bowl: invalid id: ${id}`)          
+          testResults += addToResults(`DID NOT Read 1 Bowl: invalid id: ${id}`);
           return {
             error: `invalid id: ${id}`,
             status: 404,
-          };            
+          };
         } else {
-          testResults += addToResults(`Read 1 Bowl Error: did not return 404 for invalid id: ${id}`, false)
-          // setResults(testResults)        
+          testResults += addToResults(
+            `Read 1 Bowl Error: did not return 404 for invalid id: ${id}`,
+            false
+          );
           return {
             error: `Error Reading 1 Bowl, non 404 response for invalid id: ${id}`,
             status: error.response.status,
-          };          
-        }        
-      }      
-    }
-    
+          };
+        }
+      }
+    };
+
     const testBowl: bowlType = {
       ...bowlToUpdate,
-    }
+    };
     try {
       const response = await axios({
         method: "get",
         withCredentials: true,
         url: bowlIdUrl,
       });
-      if (response.status === 200) {        
-        testResults += addToResults(`Success: Read 1 Bowl: ${response.data.bowl.bowl_name}`, true);        
+      if (response.status === 200) {
+        testResults += addToResults(
+          `Success: Read 1 Bowl: ${response.data.bowl.bowl_name}`,
+          true
+        );
         const readBowl: bowlType = response.data.bowl;
         if (readBowl.bowl_name !== testBowl.bowl_name) {
-          testResults += addToResults('Read 1 Bowl bowl_name !== testBowl.bowl_name', false)
+          testResults += addToResults(
+            "Read 1 Bowl bowl_name !== testBowl.bowl_name",
+            false
+          );
         } else if (readBowl.city !== testBowl.city) {
-          testResults += addToResults('Read 1 Bowl city !== testBowl.city', false)
+          testResults += addToResults(
+            "Read 1 Bowl city !== testBowl.city",
+            false
+          );
         } else if (readBowl.state !== testBowl.state) {
-          testResults += addToResults('Read 1 Bowl state !== testBowl.state', false)
+          testResults += addToResults(
+            "Read 1 Bowl state !== testBowl.state",
+            false
+          );
         } else if (readBowl.url !== testBowl.url) {
-          testResults += addToResults('Read 1 Bowl url !== testBowl.url', false)
+          testResults += addToResults(
+            "Read 1 Bowl url !== testBowl.url",
+            false
+          );
         } else {
-          testResults += addToResults(`Read 1 Bowl === testBowl`)
-        }        
+          testResults += addToResults(`Read 1 Bowl === testBowl`);
+        }
       } else {
-        testResults += addToResults(`Error reading 1 Bowl, response statue: ${response.status}`, false);        
-        // setResults(testResults)
+        testResults += addToResults(
+          `Error reading 1 Bowl, response statue: ${response.status}`,
+          false
+        );
         return {
-          error: 'Did not read 1 bowl',
+          error: "Did not read 1 bowl",
           status: response.status,
         };
       }
 
       // test invalid url
-      await bowlReadInvalidId('abc_123')
+      await bowlReadInvalidId("abc_123");
       // test non existing bowl
-      await bowlReadInvalidId('bwl_12345678901234567890123456789012')
-      
-      // setResults(testResults)                
+      await bowlReadInvalidId("bwl_12345678901234567890123456789012");
+
       return response.data;
     } catch (error: any) {
       testResults += addToResults(`Read 1 Error: ${error.message}`, false);
@@ -451,14 +547,14 @@ export const DbBowls = () => {
       } else {
         testResults += addToResults(`Read 1 Bowl tests: FAILED`, false);
       }
-      setResults(testResults)
+      setResults(testResults);
     }
   };
 
   const bowlUpdate = async () => {
-    let testResults = results + 'Update Bowl tests: \n';
+    let testResults = results + "Update Bowl tests: \n";
     passed = true;
-   
+
     const bowlUpdateValid = async () => {
       try {
         const bowlJSON = JSON.stringify(bowlUpdatedTo);
@@ -474,7 +570,7 @@ export const DbBowls = () => {
       }
     };
 
-    const bowlUpdateInvalidId = async (id: string) => {      
+    const bowlUpdateInvalidId = async (id: string) => {
       try {
         const invalidUrl = url + "/" + id;
         const tmntJSON = JSON.stringify(bowlUpdatedTo);
@@ -483,27 +579,28 @@ export const DbBowls = () => {
           data: tmntJSON,
           withCredentials: true,
           url: invalidUrl,
-        });        
+        });
 
         if (notUpdatedResponse.status === 200) {
           testResults += addToResults(`Error: updated invalid id: ${id}`);
-          // setResults(testResults);
           return notUpdatedResponse;
         } else {
           testResults += addToResults(`DID NOT update Bowl, invalid id: ${id}`);
         }
-        return notUpdatedResponse;        
+        return notUpdatedResponse;
       } catch (error: any) {
         if (error.response.status === 404) {
-          testResults += addToResults(`DID NOT update Bowl, invalid id: ${id}`);          
+          testResults += addToResults(`DID NOT update Bowl, invalid id: ${id}`);
         } else {
-          testResults += addToResults(`Update Bowl Error: did not return 404 for invalid id: ${id}`, false)
-          // setResults(testResults)        
+          testResults += addToResults(
+            `Update Bowl Error: did not return 404 for invalid id: ${id}`,
+            false
+          );
           return {
             error: `Error Updating Bowl, non 404 response for invalid id: ${id}`,
             status: error.response.status,
-          };          
-        }                
+          };
+        }
       }
     };
 
@@ -512,35 +609,45 @@ export const DbBowls = () => {
       const updated = await bowlUpdateValid();
       if (updated.status !== 200) {
         testResults += addToResults(`Error: ${updated.message}`, false);
-        // setResults(testResults);
         return updated;
       }
       const updatedBowl: bowlType = updated.data.bowl;
       if (updatedBowl.bowl_name !== bowlUpdatedTo.bowl_name) {
-        testResults += addToResults('Updated bowl bowl_name !== bowlUpdatedTo.bowl_name', false)
+        testResults += addToResults(
+          "Updated bowl bowl_name !== bowlUpdatedTo.bowl_name",
+          false
+        );
       } else if (updatedBowl.city !== bowlUpdatedTo.city) {
-        testResults += addToResults('Updated bowl city !== bowlUpdatedTo.city', false)
+        testResults += addToResults(
+          "Updated bowl city !== bowlUpdatedTo.city",
+          false
+        );
       } else if (updatedBowl.state !== bowlUpdatedTo.state) {
-        testResults += addToResults('Updated bowl state !== bowlUpdatedTo.state', false)
+        testResults += addToResults(
+          "Updated bowl state !== bowlUpdatedTo.state",
+          false
+        );
       } else if (updatedBowl.url !== bowlUpdatedTo.url) {
-        testResults += addToResults('Updated bowl url !== bowlUpdatedTo.url', false)
+        testResults += addToResults(
+          "Updated bowl url !== bowlUpdatedTo.url",
+          false
+        );
       } else {
         testResults += addToResults(`Updated Bowl: ${updatedBowl.bowl_name}`);
-      }      
+      }
       // 2) invalid bowl id
-      await bowlUpdateInvalidId('abc_123');
+      await bowlUpdateInvalidId("abc_123");
       // 3 non existing bowl id
-      await bowlUpdateInvalidId('bwl_12345678901234567890123456789012');
+      await bowlUpdateInvalidId("bwl_12345678901234567890123456789012");
 
-      // setResults(testResults);      
       return updated;
     } catch (error: any) {
       testResults += addToResults(`Update Error: ${error.message}`, false);
-      setResults(testResults)
+      setResults(testResults);
       return {
         error: error.message,
         status: 404,
-      };  
+      };
     } finally {
       const reset = await resetBowlToUpdate(false);
       if (passed) {
@@ -548,47 +655,56 @@ export const DbBowls = () => {
       } else {
         testResults += addToResults(`Update Bowl tests: FAILED`, false);
       }
-      setResults(testResults) 
+      setResults(testResults);
     }
   };
 
   const bowlPatch = async () => {
-    let testResults = results + 'Patch Bowl tests: \n';
+    let testResults = results + "Patch Bowl tests: \n";
     passed = true;
 
-    const doPatchBowl = async (propertyName: string, value: any, matchValue: any) => {
+    const doPatchBowl = async (
+      propertyName: string,
+      value: any,
+      matchValue: any
+    ) => {
       try {
-        const bowlJSON = JSON.stringify({          
+        const bowlJSON = JSON.stringify({
           [propertyName]: value,
-        })
+        });
         const response = await axios({
           method: "patch",
           data: bowlJSON,
           withCredentials: true,
           url: bowlIdUrl,
-        })
-        if (response.status === 200) {          
+        });
+        if (response.status === 200) {
           if (response.data.bowl[propertyName] === matchValue) {
-            testResults += addToResults(`Patched Bowl: ${bowlToUpdate.bowl_name} - just ${propertyName}`)                        
+            testResults += addToResults(
+              `Patched Bowl: ${bowlToUpdate.bowl_name} - just ${propertyName}`
+            );
           } else {
-            testResults += addToResults(`DID NOT Patch Bowl ${propertyName}`, false)
-            // setResults(testResults)
+            testResults += addToResults(
+              `DID NOT Patch Bowl ${propertyName}`,
+              false
+            );
           }
           return {
             data: response.data.bowl,
-            status: response.status
+            status: response.status,
           };
         } else {
-          testResults += addToResults(`Patch Error: ${propertyName}`, false)
-          // setResults(testResults)
+          testResults += addToResults(`Patch Error: ${propertyName}`, false);
           return {
             error: `Error Patching ${propertyName}`,
             status: response.status,
           };
         }
       } catch (error: any) {
-        testResults += addToResults(`doPatchBowl Error: ${error.message}`, false);
-        // setResults(testResults)
+        testResults += addToResults(
+          `doPatchBowl Error: ${error.message}`,
+          false
+        );
         return {
           error: error.message,
           status: 404,
@@ -596,53 +712,62 @@ export const DbBowls = () => {
       } finally {
         const reset = await resetBowlToUpdate(false);
       }
-    }
+    };
 
-    const doNotPatchBowl = async (propertyName: string, value: any) => {       
+    const doNotPatchBowl = async (propertyName: string, value: any) => {
       try {
         const bowlJSON = JSON.stringify({
           ...bowlToUpdate,
-          bowl_name: "123456789012345678901234567890123456789012345678901234567890",
-        })
+          bowl_name:
+            "123456789012345678901234567890123456789012345678901234567890",
+        });
         const response = await axios({
           method: "patch",
           data: bowlJSON,
           withCredentials: true,
           url: bowlIdUrl,
-        })      
+        });
         if (response.status !== 422) {
-          testResults += addToResults(`Patch Error: did not return 422 for invalid ${propertyName}`, false)
-          // setResults(testResults)        
+          testResults += addToResults(
+            `Patch Error: did not return 422 for invalid ${propertyName}`,
+            false
+          );
           return {
-            error: 'Error Patching Bowl',
+            error: "Error Patching Bowl",
             status: response.status,
-          };          
+          };
         } else {
-          testResults += addToResults(`Patch Bowl, non 422 response for bowl: ${bowlToUpdate.bowl_name} - invalid ${propertyName}`)
+          testResults += addToResults(
+            `Patch Bowl, non 422 response for bowl: ${bowlToUpdate.bowl_name} - invalid ${propertyName}`
+          );
           return {
-            error: 'Error Patching Bowl',
+            error: "Error Patching Bowl",
             status: response.status,
-          };          
+          };
         }
       } catch (error: any) {
         if (error.response.status === 422) {
-          testResults += addToResults(`DID NOT Patch Bowl: ${bowlToUpdate.bowl_name} - invalid ${propertyName}`)          
+          testResults += addToResults(
+            `DID NOT Patch Bowl: ${bowlToUpdate.bowl_name} - invalid ${propertyName}`
+          );
           return {
-            error: '',
+            error: "",
             status: error.response.status,
-          }
+          };
         } else {
-          testResults += addToResults(`Patch Error: did not return 422 for invalid ${propertyName}`, false)
-          // setResults(testResults)        
+          testResults += addToResults(
+            `Patch Error: did not return 422 for invalid ${propertyName}`,
+            false
+          );
           return {
             error: `Error Patching ${propertyName}`,
             status: error.response.status,
-          };          
+          };
         }
-      }    
-    }
+      }
+    };
 
-    const bowlPatchInvalidId = async (id: string) => {      
+    const bowlPatchInvalidId = async (id: string) => {
       try {
         const invalidUrl = url + "/" + id;
         const tmntJSON = JSON.stringify(bowlUpdatedTo);
@@ -651,98 +776,113 @@ export const DbBowls = () => {
           data: tmntJSON,
           withCredentials: true,
           url: invalidUrl,
-        });        
+        });
 
         if (notUpdatedResponse.status === 200) {
           testResults += addToResults(`Error: patched invalid id: ${id}`);
-          // setResults(testResults);
           return notUpdatedResponse;
         } else {
           testResults += addToResults(`DID NOT patch Bowl, invalid id: ${id}`);
         }
-        return notUpdatedResponse;        
+        return notUpdatedResponse;
       } catch (error: any) {
         if (error.response.status === 404) {
-          testResults += addToResults(`DID NOT patch Bowl, invalid id: ${id}`);          
+          testResults += addToResults(`DID NOT patch Bowl, invalid id: ${id}`);
         } else {
-          testResults += addToResults(`Patch Bowl Error: did not return 404 for invalid id: ${id}`, false)
-          // setResults(testResults)        
+          testResults += addToResults(
+            `Patch Bowl Error: did not return 404 for invalid id: ${id}`,
+            false
+          );
           return {
             error: `Error Patching Bowl, non 404 response for invalid id: ${id}`,
             status: error.response.status,
-          };          
-        }                
+          };
+        }
       }
     };
 
-    try {      
-      await doPatchBowl('bowl_name', 'Test Bowl', 'Test Bowl')
-      await doNotPatchBowl('bowl_name', '<script>alert(1)</script>')
+    try {
+      await doPatchBowl("bowl_name", "Test Bowl", "Test Bowl");
+      await doNotPatchBowl("bowl_name", "<script>alert(1)</script>");
 
-      await doPatchBowl('city', '  Somewhere *', 'Somewhere')
-      await doNotPatchBowl('city', '12345678901234567890123456789012345678901234567890')
+      await doPatchBowl("city", "  Somewhere *", "Somewhere");
+      await doNotPatchBowl(
+        "city",
+        "12345678901234567890123456789012345678901234567890"
+      );
 
-      await doPatchBowl('state', 'NY', 'NY')
-      await doNotPatchBowl('state', '')
-      
-      await doPatchBowl('url', 'https://www.testbowl.com/', 'https://www.testbowl.com/')
-      await doNotPatchBowl('url', 'just some text')
+      await doPatchBowl("state", "NY", "NY");
+      await doNotPatchBowl("state", "");
 
-      await bowlPatchInvalidId('abc_123')
-      await bowlPatchInvalidId('bwl_12345678901234567890123456789012')
+      await doPatchBowl(
+        "url",
+        "https://www.testbowl.com/",
+        "https://www.testbowl.com/"
+      );
+      await doNotPatchBowl("url", "just some text");
 
-      // setResults(testResults)
-      return bowlToUpdate;    
+      await bowlPatchInvalidId("abc_123");
+      await bowlPatchInvalidId("bwl_12345678901234567890123456789012");
+
+      return bowlToUpdate;
     } catch (error: any) {
       testResults += addToResults(`Patch Error: ${error.message}`, false);
-      // setResults(testResults)
       return {
         error: error.message,
         status: 404,
-      };  
+      };
     } finally {
-      await resetBowlToUpdate(false);      
+      await resetBowlToUpdate(false);
       if (passed) {
         testResults += addToResults(`Patch Bowl tests: PASSED`, true);
       } else {
         testResults += addToResults(`Patch Bowl tests: FAILED`, false);
       }
-      setResults(testResults)
+      setResults(testResults);
     }
   };
 
   const bowlDelete = async (bowlIdToDel: string, testing: boolean = true) => {
-    let testResults = results + 'Delete Bowl tests: \n';
+    let testResults = results + "Delete Bowl tests: \n";
     passed = true;
 
-    const invalidDelete = async (invalidId: string) => {      
+    const invalidDelete = async (invalidId: string) => {
       try {
-        const invalidDelUrl = url + '/' + invalidId
+        const invalidDelUrl = url + "/" + invalidId;
         const cantDelResponse = await axios({
           method: "delete",
           withCredentials: true,
           url: invalidDelUrl,
-        })
+        });
         if (cantDelResponse.status === 404) {
-          testResults += addToResults(`Did not not delete bowl with invalid id: "${invalidId}"`)
+          testResults += addToResults(
+            `Did not not delete bowl with invalid id: "${invalidId}"`
+          );
         } else {
-          testResults += addToResults(`Error: Could not delete bowl with invalid id: "${invalidId}"`, false)
+          testResults += addToResults(
+            `Error: Could not delete bowl with invalid id: "${invalidId}"`,
+            false
+          );
         }
       } catch (error: any) {
         if (error.response.status === 404) {
-          testResults += addToResults(`Did not not delete bowl - invalid id: "${invalidId}"`)
+          testResults += addToResults(
+            `Did not not delete bowl - invalid id: "${invalidId}"`
+          );
         } else {
-          testResults += addToResults(`Delete Bowl Error: ${error.message}`, false);
-          // setResults(testResults)
+          testResults += addToResults(
+            `Delete Bowl Error: ${error.message}`,
+            false
+          );
           return {
             error: error.message,
             status: error.response.status,
           };
-        }          
+        }
       }
-    }
+    };
 
-    const bowlDelUrl = url +'/' + bowlIdToDel
+    const bowlDelUrl = url + "/" + bowlIdToDel;
     try {
       const response = await axios({
         method: "delete",
@@ -754,13 +894,14 @@ export const DbBowls = () => {
         // DO NOT update on success
         // only show update on screen if in delete test
         if (bowlIdToDel === bowlToDel.id) {
-          testResults += addToResults(`Success: Deleted Bowl: ${response.data.deleted.bowl_name}`);          
-        }        
+          testResults += addToResults(
+            `Success: Deleted Bowl: ${response.data.deleted.bowl_name}`
+          );
+        }
       } else {
-        testResults += addToResults('False: could not delete bowl', false)
-        // setResults(testResults)
+        testResults += addToResults("False: could not delete bowl", false);
         return {
-          error: 'Could not delete bowl',
+          error: "Could not delete bowl",
           status: 404,
         };
       }
@@ -768,106 +909,112 @@ export const DbBowls = () => {
       if (testing) {
         // try to delete bowl that is parent to tmnt
         try {
-          const cantDelUrl = url + '/' + bowlToUpdate.id
+          const cantDelUrl = url + "/" + bowlToUpdate.id;
           const cantDelResponse = await axios({
             method: "delete",
             withCredentials: true,
             url: cantDelUrl,
-          })
+          });
           if (cantDelResponse.status === 409) {
-            testResults += addToResults(`Did not not delete bowl: ${bowlToUpdate.bowl_name} with children`)
+            testResults += addToResults(
+              `Did not not delete bowl: ${bowlToUpdate.bowl_name} with children`
+            );
           } else {
-            testResults += addToResults(`Error: Could not delete bowl: ${bowlToUpdate.bowl_name}`, false)            
+            testResults += addToResults(
+              `Error: Could not delete bowl: ${bowlToUpdate.bowl_name}`,
+              false
+            );
           }
         } catch (error: any) {
           if (error.response.status === 409) {
-            testResults += addToResults(`Did not not delete bowl: ${bowlToUpdate.bowl_name} with children`)
+            testResults += addToResults(
+              `Did not not delete bowl: ${bowlToUpdate.bowl_name} with children`
+            );
           } else {
-            testResults += addToResults(`Delete Bowl Error: ${error.message}`, false);
-            // setResults(testResults)
+            testResults += addToResults(
+              `Delete Bowl Error: ${error.message}`,
+              false
+            );
             return {
               error: error.message,
               status: error.response.status,
             };
           }
-        }        
-        await invalidDelete('abc_123');        
-        await invalidDelete('bwl_12345678901234567890123456789012');
-        
-        // setResults(testResults)
+        }
+        await invalidDelete("abc_123");
+        await invalidDelete("bwl_12345678901234567890123456789012");
       }
       return response.data;
     } catch (error: any) {
       testResults += addToResults(`Error : ${error.message}`, false);
-      // setResults(testResults)
       return {
         error: error.message,
         status: 404,
       };
     } finally {
-      await reAddDeletedBowl()
-      if (testing)  {
+      await reAddDeletedBowl();
+      if (testing) {
         if (passed) {
           testResults += addToResults(`Delete Bowl tests: PASSED`, true);
         } else {
           testResults += addToResults(`Delete Bowl tests: FAILED`, false);
         }
-        setResults(testResults)          
+        setResults(testResults);
       }
     }
   };
 
-  const resetAll = async () => { 
-    let testResults: string = ''
+  const resetAll = async () => {
+    let testResults: string = "";
     try {
-      const reset = await resetBowlToUpdate(false);      
+      const reset = await resetBowlToUpdate(false);
       if (reset.error) {
-        testResults += addToResults(`Error Resetting: ${reset.error}`, false)
-        setResults(testResults)
+        testResults += addToResults(`Error Resetting: ${reset.error}`, false);
         return;
       }
 
-      const allBowls: any = await removeCreatedBowl(true)
+      const allBowls: any = await removeCreatedBowl(true);
       if (allBowls.error) {
-        testResults += addToResults(`Error Resetting: ${allBowls.error}`, false)
-        setResults(testResults)
+        testResults += addToResults(
+          `Error Resetting: ${allBowls.error}`,
+          false
+        );
         return;
       }
 
-      const reAdded: any = await reAddDeletedBowl()
+      const reAdded: any = await reAddDeletedBowl();
       if (reAdded.error) {
-        testResults += addToResults(`Error Resetting: ${reAdded.error}`, false)
-        setResults(testResults)
+        testResults += addToResults(`Error Resetting: ${reAdded.error}`, false);
         return;
       }
-      
-      testResults += addToResults(`Reset Bowls`);;
-      setResults(testResults);      
+
+      testResults += addToResults(`Reset Bowls`);
       return {
         bowls: allBowls,
         status: 200,
-      }
+      };
     } catch (error: any) {
       testResults += addToResults(`Reset Error: ${error.message}`, false);
-      setResults(testResults)
       return {
         error: error.message,
         status: 404,
-      };  
+      };
+    } finally {
+      setResults(testResults);
     }
-  }
+  };
 
-  const handleBowlCrudChange = (e: React.ChangeEvent<HTMLInputElement>) => {    
+  const handleBowlCrudChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setBowlCrud(e.target.value);
   };
 
   const handleClear = (e: React.FormEvent) => {
-    e.preventDefault();    
-    setResults('');
+    e.preventDefault();
+    setResults("");
   };
 
   const handleReset = async (e: React.FormEvent) => {
-    e.preventDefault();   
+    e.preventDefault();
     await resetAll();
   };
 
@@ -899,10 +1046,10 @@ export const DbBowls = () => {
 
   const handleBowlTestAll = async (e: React.FormEvent) => {
     e.preventDefault();
-    allResults = 'Testing all...';    
+    allResults = "Testing all...";
     passed = true;
     try {
-      await bowlCreate();    
+      await bowlCreate();
       allResults = results;
       await bowlReadAll(true);
       allResults = results;
@@ -912,26 +1059,25 @@ export const DbBowls = () => {
       allResults = results;
       await bowlPatch();
       allResults = results;
-      await bowlDelete(bowlToDel.id);      
+      await bowlDelete(bowlToDel.id);
       allResults = results;
     } catch (error: any) {
       allResults += addToResults(`Test All Error: ${error.message}`, false);
-      setResults(allResults)
+      setResults(allResults);
       return {
         error: error.message,
         status: 404,
-      };  
-      
+      };
     } finally {
       allResults = results;
-      await resetAll()
+      await resetAll();
       allResults += addToResults(`Test All Complete`, passed);
-      setResults(allResults)
+      setResults(allResults);
     }
   };
 
   return (
-    <>      
+    <>
       <div className="row g-3 mb-3">
         <div className="col-sm-6">
           <h4>Bowls</h4>
@@ -964,11 +1110,7 @@ export const DbBowls = () => {
           </button>
         </div>
         <div className="col-sm-2">
-          <button
-            className="btn btn-info"
-            id="bowlReset"
-            onClick={handleReset}
-          >
+          <button className="btn btn-info" id="bowlReset" onClick={handleReset}>
             Reset
           </button>
         </div>
@@ -1059,16 +1201,15 @@ export const DbBowls = () => {
           />
         </div>
       </div>
-      <div className="row g-3 mb-3">        
+      <div className="row g-3 mb-3">
         <div className="col-sm-12">
           <textarea
             id="bowlResults"
-            name="bowlResults"               
-            rows={10}            
-            value={results}            
+            name="bowlResults"
+            rows={10}
+            value={results}
             readOnly={true}
-          >            
-          </textarea>
+          ></textarea>
         </div>
       </div>
     </>
