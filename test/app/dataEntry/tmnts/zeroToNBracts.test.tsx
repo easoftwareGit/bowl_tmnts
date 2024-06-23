@@ -1,7 +1,7 @@
 import React from "react";
 import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import ZeroToNBrackets from "../../../../src/app/dataEntry/tmnt/zeroToNBrackets";
+import ZeroToNBrackets from "../../../../src/app/dataEntry/tmnt/zeroToNBrkts";
 import { mockBrkts, mockDivs, mockSquads } from "../../../mocks/tmnts/twoDivs/mockDivs";
 import { localConfig } from "@/lib/currency/const";
 import { formatValueSymbSep2Dec } from "@/lib/currency/formatValue";

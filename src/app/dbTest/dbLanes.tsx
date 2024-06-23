@@ -372,7 +372,7 @@ export const DbLanes = () => {
         }
       } else {
         testResults += addToResults(
-          `Error creating lane: ${laneToPost.lane_number}, response statue: ${response.status}`,
+          `Error creating lane: ${laneToPost.lane_number}, response status: ${response.status}`,
           false
         );
         return {
@@ -438,7 +438,7 @@ export const DbLanes = () => {
         return response.data.lanes;
       } else {
         testResults += addToResults(
-          `Error reading all lanes, response statue: ${response.status}`,
+          `Error reading all lanes, response status: ${response.status}`,
           false
         );
         return {
@@ -548,7 +548,7 @@ export const DbLanes = () => {
         }
       } else {
         testResults += addToResults(
-          `Error reading 1 lane, response statue: ${response.status}`,
+          `Error reading 1 lane, response status: ${response.status}`,
           false
         );
         return {
@@ -651,7 +651,7 @@ export const DbLanes = () => {
           );
         } else {
           testResults += addToResults(
-            `Error reading lanes for Squad, response statue: ${response.status}`,
+            `Error reading lanes for Squad, response status: ${response.status}`,
             false
           );
           return {

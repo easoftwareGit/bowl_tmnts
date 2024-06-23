@@ -97,7 +97,6 @@ export const isValidBtDbType = (str: string): boolean => {
   return validIdTypes.includes(str);
 }
 
-
 /**
  * checks if string is a valid BtDb id
  *  id starts with a valid id type

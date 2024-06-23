@@ -1,12 +1,12 @@
-import { NextResponse, NextRequest } from "next/server";
+import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
-import { validatePot, sanitizePot } from "../validate";
 import { ErrorCode, isValidBtDbId } from "@/lib/validation";
-import { potType, PotCategories } from "@/lib/types/types";
-import { initPot } from "@/db/initVals";
-import { findPotById } from "@/lib/db/pots";
+import { sanitizeElim, validateElim } from "../validate";
+import { elimType } from "@/lib/types/types";
+import { initElim } from "@/db/initVals";
+import { findElimById } from "@/lib/db/elims";
 
-// routes /api/pots/:id
+// routes /api/elims/:id
 
 export async function GET(
   request: Request,
@@ -14,45 +14,52 @@ export async function GET(
 ) {
   try {
     const id = params.id;
-    if (!isValidBtDbId(id, "pot")) {
-      return NextResponse.json({ error: "invalid request" }, { status: 404 });
+    if (!isValidBtDbId(id, "elm")) {
+      return NextResponse.json({ error: "not found" }, { status: 404 });
     }
-    const pot = await prisma.pot.findUnique({
+    const elim = await prisma.elim.findUnique({
       where: {
         id: id,
       },
     });
-    if (!pot) {
+    if (!elim) {
       return NextResponse.json({ error: "not found" }, { status: 404 });
     }
-    return NextResponse.json({ pot }, { status: 200 });
+    return NextResponse.json({ elim }, { status: 200 });    
   } catch (err: any) {
-    return NextResponse.json({ error: "error getting pot" }, { status: 500 });
+    return NextResponse.json({ error: "error getting elim" }, { status: 500 });
   }
 }
 
 export async function PUT(
   request: Request,
   { params }: { params: { id: string } }
-) {
+) { 
   try {
     const id = params.id;
-    if (!isValidBtDbId(id, "pot")) {
-      return NextResponse.json({ error: "invalid request" }, { status: 404 });
+    if (!isValidBtDbId(id, "elm")) {
+      return NextResponse.json({ error: "not found" }, { status: 404 });
     }
 
-    const { div_id, squad_id, pot_type, fee, sort_order } =
-      await request.json();
-    const toCheck: potType = {
-      ...initPot,
+    const {
       div_id,
       squad_id,
-      pot_type,
       fee,
+      start,
+      games,
+      sort_order,
+    } = await request.json();
+    const toCheck: elimType = {
+      ...initElim,
+      div_id,
+      squad_id,
+      fee,
+      start,
+      games,
       sort_order,
     };
 
-    const errCode = validatePot(toCheck);
+    const errCode = validateElim(toCheck);
     if (errCode !== ErrorCode.None) {
       let errMsg: string;
       switch (errCode) {
@@ -69,21 +76,21 @@ export async function PUT(
       return NextResponse.json({ error: errMsg }, { status: 422 });
     }
 
-    const toPut = sanitizePot(toCheck);
-    // NO hdcp_per_str in data object
-    const pot = await prisma.pot.update({
+    const toPut = sanitizeElim(toCheck);    
+    const elim = await prisma.elim.update({
       where: {
         id: id,
       },
       data: {
         div_id: toPut.div_id,
         squad_id: toPut.squad_id,
-        pot_type: toPut.pot_type,
-        fee: toPut.fee,        
+        fee: toPut.fee,
+        start: toPut.start,
+        games: toPut.games,
         sort_order: toPut.sort_order,
       },
     });
-    return NextResponse.json({ pot }, { status: 200 });
+    return NextResponse.json({ elim }, { status: 200 });    
   } catch (err: any) {
     let errStatus: number;
     switch (err.code) {
@@ -101,12 +108,11 @@ export async function PUT(
         break;
     }
     return NextResponse.json(
-      { error: "error updating pot" },
+      { error: "error updating elim" },
       { status: errStatus }
-    );
+    );    
   }
 }
-
 
 export async function PATCH(
   request: Request,
@@ -114,25 +120,26 @@ export async function PATCH(
 ) { 
   try {
     const id = params.id;
-    if (!isValidBtDbId(id, "pot")) {
+    if (!isValidBtDbId(id, "elm")) {
       return NextResponse.json({ error: "not found" }, { status: 404 });
     }
-
     const json = await request.json();
     // populate toCheck with json
     const jsonProps = Object.getOwnPropertyNames(json);
 
-    const currentPot = await findPotById(id);
-    if (!currentPot) {
+    const currentElim = await findElimById(id);
+    if (!currentElim) {
       return NextResponse.json({ error: "not found" }, { status: 404 });
     }
-    const toCheck: potType = {
-      ...initPot,
-      div_id: currentPot.div_id,
-      squad_id: currentPot.squad_id,
-      pot_type: currentPot.pot_type as PotCategories,
-      fee: currentPot.fee + '',      
-      sort_order: currentPot.sort_order,
+
+    const toCheck: elimType = {
+      ...initElim,
+      div_id: currentElim.div_id,
+      squad_id: currentElim.squad_id,
+      fee: currentElim.fee + "",
+      start: currentElim.start,
+      games: currentElim.games,
+      sort_order: currentElim.sort_order,
     };
 
     if (jsonProps.includes("div_id")) {
@@ -141,23 +148,23 @@ export async function PATCH(
     if (jsonProps.includes("squad_id")) {
       toCheck.squad_id = json.squad_id;
     }
-    if (jsonProps.includes("pot_type")) {
-      toCheck.pot_type = json.pot_type;
-    }
     if (jsonProps.includes("fee")) {
       toCheck.fee = json.fee;
+    }
+    if (jsonProps.includes("start")) {
+      toCheck.start = json.start;
+    }    
+    if (jsonProps.includes("games")) {
+      toCheck.games = json.games;
     }
     if (jsonProps.includes("sort_order")) {
       toCheck.sort_order = json.sort_order;
     }
 
-    const errCode = validatePot(toCheck);
+    const errCode = validateElim(toCheck);
     if (errCode !== ErrorCode.None) {
       let errMsg: string;
       switch (errCode) {
-        case ErrorCode.MissingData:
-          errMsg = "missing data";
-          break;
         case ErrorCode.InvalidData:
           errMsg = "invalid data";
           break;
@@ -167,32 +174,39 @@ export async function PATCH(
       }
       return NextResponse.json({ error: errMsg }, { status: 422 });
     }
-    const toBePatched = sanitizePot(toCheck);
-    const toPatch = {      
+
+    const toBePatched = sanitizeElim(toCheck);
+    const toPatch = {
+      ...initElim,
       div_id: "",
       squad_id: "",
-      pot_type: "",
-      fee: "",
-      sort_order: null as number | null,
     };
-
     if (jsonProps.includes("div_id")) {
-      toPatch.div_id = toBePatched.div_id;
+      toPatch.div_id= toBePatched.div_id;
     }
     if (jsonProps.includes("squad_id")) {
       toPatch.squad_id = toBePatched.squad_id;
     }
-    if (jsonProps.includes("pot_type")) {
-      toPatch.pot_type = toBePatched.pot_type;
+    if (jsonProps.includes("fee")) {      
+      toPatch.fee = toBePatched.fee;     
     }
-    if (jsonProps.includes("fee")) {
-      toPatch.fee = toBePatched.fee;
+    if (jsonProps.includes("start")) {
+      toPatch.start = toBePatched.start;
+    } else {
+      toPatch.start = undefined as any;
+    }
+    if (jsonProps.includes("games")) {
+      toPatch.games = toBePatched.games;
+    } else {
+      toPatch.games = undefined as any;
     }
     if (jsonProps.includes("sort_order")) {
       toPatch.sort_order = toBePatched.sort_order;
+    } else {
+      toPatch.sort_order = undefined as any;
     }
 
-    const pot = await prisma.pot.update({
+    const elim = await prisma.elim.update({
       where: {
         id: id,
       },
@@ -200,12 +214,13 @@ export async function PATCH(
       data: {
         div_id: toPatch.div_id || undefined,
         squad_id: toPatch.squad_id || undefined,
-        pot_type: toPatch.pot_type || undefined,
         fee: toPatch.fee || undefined,
+        start: toPatch.start || undefined,
+        games: toPatch.games || undefined,
         sort_order: toPatch.sort_order || undefined,
       },
     });
-    return NextResponse.json({ pot }, { status: 200 });
+    return NextResponse.json({ elim }, { status: 200 });    
   } catch (err: any) {
     let errStatus: number;
     switch (err.code) {
@@ -215,12 +230,15 @@ export async function PATCH(
       case "P2003": // foreign key constraint
         errStatus = 422;
         break;
+      case "P2025": // record not found
+        errStatus = 404;
+        break;
       default:
         errStatus = 500;
         break;
     }
     return NextResponse.json(
-      { error: "error patching pot" },
+      { error: "error patching elim" },
       { status: errStatus }
     );    
   }
@@ -229,14 +247,13 @@ export async function PATCH(
 export async function DELETE(
   request: Request,
   { params }: { params: { id: string } }
-) { 
+) {
   try {
     const id = params.id;
-    if (!isValidBtDbId(id, "pot")) {
+    if (!isValidBtDbId(id, "elm")) {
       return NextResponse.json({ error: "not found" }, { status: 404 });
     }
-
-    const deleted = await prisma.pot.delete({
+    const deleted = await prisma.elim.delete({
       where: {
         id: id,
       },
@@ -256,8 +273,8 @@ export async function DELETE(
         break;
     }
     return NextResponse.json(
-      { error: "error deleting div" },
+      { error: "error deleting elim" },
       { status: errStatus }
-    );    
+    );
   }
 }

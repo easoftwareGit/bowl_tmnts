@@ -255,7 +255,7 @@ describe("tests for pot validation", () => {
     });
   })
 
-  describe('validatePots function', () => {
+  describe('validatePot function', () => {
 
     describe('validatePot function - valid data', () => { 
       it('should return ErrorCode.None when all data is valid', () => { 
@@ -367,7 +367,7 @@ describe("tests for pot validation", () => {
       expect(validPostId(invalidId, "pot")).toBe("");
     });
     it('should return "" when id starts with postSecret but does not follow with a valid BtDb id', () => {
-      const invalidId = process.env.POST_SECRET + "evt_invalidid";
+      const invalidId = nextPostSecret + "evt_invalidid";
       expect(validPostId(invalidId, "pot")).toBe("");
     });
     it('should return "" when id does not start with postSecret', () => {

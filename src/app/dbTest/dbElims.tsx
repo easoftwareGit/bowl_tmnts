@@ -1,81 +1,86 @@
 import React, { useEffect } from "react";
 import axios from "axios";
 import { baseApi, nextPostSecret } from "@/lib/tools";
-import { potType, PotCategories } from "@/lib/types/types";
-import { initPot } from "@/db/initVals";
+import { elimType } from "@/lib/types/types";
+import { initElim } from "@/db/initVals";
 
-const url = baseApi + "/pots";
-const potId = "pot_b2a7b02d761b4f5ab5438be84f642c3b";
-const potIdUrl = url + "/" + potId;
-const multiPotsDivId = 'div_1f42042f9ef24029a0a2d48cc276a087'
-const multiPotsSquadId = "sqd_1a6c885ee19a49489960389193e8f819";
-const noPotsDivId = "div_578834e04e5e4885bbae79229d8b96e8";
-const noPotsSquadId = "sqd_42be0f9d527e4081972ce8877190489d";
+const url = baseApi + "/elims";
+const elimId = "elm_45d884582e7042bb95b4818ccdd9974c";
+const elimIdUrl = url + "/" + elimId;
+const multiElimsDivId = 'div_f30aea2c534f4cfe87f4315531cef8ef'
+const multiElimsSquadId = "sqd_7116ce5f80164830830a7157eb093396";
+const noElimsDivId = "div_578834e04e5e4885bbae79229d8b96e8";
+const noElimsSquadId = "sqd_42be0f9d527e4081972ce8877190489d";
 let passed = true;
 let allResults = "";
 
-export const DbPots = () => {
-  const [potCrud, setPotCrud] = React.useState("create");
+export const DbElims = () => {
+  const [crud, setCrud] = React.useState("create");
   const [results, setResults] = React.useState("");
 
   useEffect(() => {
     setResults(results);
     // force textarea to scroll to bottom
-    var textarea = document.getElementById("potResults");
+    var textarea = document.getElementById("elimResults");
     if (textarea) {
       textarea.scrollTop = textarea.scrollHeight;
     }
   }, [results]);
 
-  const potToPost: potType = {
-    ...initPot,
+  const elimToPost: elimType = {
+    ...initElim,
     id: "",
     squad_id: "sqd_7116ce5f80164830830a7157eb093396",
-    div_id: "div_f30aea2c534f4cfe87f4315531cef8ef",    
-    fee: '10',
-    pot_type: "Series" as PotCategories,
-    sort_order: 2,
-  };
-
-  const potToUpdate: potType = {
-    ...initPot,
-    id: "pot_b2a7b02d761b4f5ab5438be84f642c3b",
-    squad_id: "sqd_7116ce5f80164830830a7157eb093396",
-    div_id: "div_f30aea2c534f4cfe87f4315531cef8ef",    
-    fee: '20',
-    pot_type: "Game",
-    sort_order: 1,
-  };
-
-  const potUpdatedTo: potType = {
-    ...initPot,
-    id: "pot_ab80213899ea424b938f52a062deacfe",
-    squad_id: "sqd_1a6c885ee19a49489960389193e8f819",
-    div_id: "div_1f42042f9ef24029a0a2d48cc276a087",
-    fee: '11',
-    pot_type: "Series",
+    div_id: "div_f30aea2c534f4cfe87f4315531cef8ef",
     sort_order: 3,
+    start: 2,
+    games: 3,
+    fee: '13',
   };
 
-  const potDuplicate: potType = {
-    ...initPot,
-    id: "",
+  const elimToUpdate: elimType = {
+    ...initElim,
+    id: "elm_45d884582e7042bb95b4818ccdd9974c",
+    squad_id: "sqd_7116ce5f80164830830a7157eb093396",
+    div_id: "div_f30aea2c534f4cfe87f4315531cef8ef",
+    sort_order: 1,
+    start: 1,
+    games: 3,
+    fee: '5',
+  };
+
+  const elimUpdatedTo: elimType = {
+    ...initElim,
+    id: "elm_4f176545e4294a0292732cccada91b9d",
     squad_id: "sqd_1a6c885ee19a49489960389193e8f819",
     div_id: "div_1f42042f9ef24029a0a2d48cc276a087",
-    pot_type: "Game",
+    sort_order: 3,
+    start: 3,
+    games: 3,
     fee: '10',
-    sort_order: 3,    
-};
+  };
 
-  const potToDel: potType = {
-    ...initPot,
-    id: "pot_e3758d99c5494efabb3b0d273cf22e7a",
-    squad_id: "sqd_20c24199328447f8bbe95c05e1b84644",
-    div_id: "div_29b9225d8dd44a4eae276f8bde855729",
-    fee: '20',
-    pot_type: "Game",
-    sort_order: 1,
-};
+  const elimDuplicate: elimType = {
+    ...initElim,
+    id: "",
+    squad_id: "brk_37345eb6049946ad83feb9fdbb43a307",
+    div_id: "sqd_1a6c885ee19a49489960389193e8f819",
+    sort_order: 3,
+    start: 1,
+    games: 3,
+    fee: '5',
+  };
+
+  const elimToDel: elimType = {
+    ...initElim,
+    id: "elm_4c5aad9baa7246c19e07f215561e58c4",
+    squad_id: "sqd_1a6c885ee19a49489960389193e8f819",
+    div_id: "div_1f42042f9ef24029a0a2d48cc276a087",
+    sort_order: 3,
+    start: 3,
+    games: 4,
+    fee: '10',
+  };
 
   const addToResults = (newText: string, pass: boolean = true): string => {
     if (pass) {
@@ -88,15 +93,15 @@ export const DbPots = () => {
     return newText + "\n";
   };
 
-  const removeCreatedPot = async (showResults: boolean) => {
+  const removeCreatedElim = async (showResults: boolean) => {
     let testResults = results;
     try {
-      const all: potType[] = (await potReadAll(false)) as unknown as potType[];
-      const justPosted = all.filter((obj) => obj.pot_type === potToPost.pot_type);
+      const all: elimType[] = (await elimReadAll(false)) as unknown as elimType[];
+      const justPosted = all.filter((obj) => obj.fee === elimToPost.fee);
       if (justPosted.length === 1) {
-        await potDelete(justPosted[0].id, false);
+        await elimDelete(justPosted[0].id, false);
         if (showResults) {
-          testResults += addToResults(`Reset Created Pot: ${justPosted[0].pot_type}`);
+          testResults += addToResults(`Reset Created Elim: ${justPosted[0].fee}`);
         }
       }
       return all;
@@ -110,18 +115,18 @@ export const DbPots = () => {
     }
   };
 
-  const resetPotToUpdate = async (showResults: boolean) => {
+  const resetElimToUpdate = async (showResults: boolean) => {
     let testResults = results;
     try {
       const response = await axios({
         method: "put",
-        data: potToUpdate,
+        data: elimToUpdate,
         withCredentials: true,
-        url: potIdUrl,
+        url: elimIdUrl,
       });
       if (response.status === 200) {
         if (showResults) {
-          testResults += addToResults(`Reset Pot: ${potToUpdate.pot_type}`);
+          testResults += addToResults(`Reset Elim: ${elimToUpdate.id}`);
         }
         return response.data;
       } else {
@@ -142,21 +147,21 @@ export const DbPots = () => {
     }
   };
 
-  const reAddDeletedPot = async () => {
+  const reAddDeletedElim = async () => {
     let testResults = results;
     try {
       let response;
       try {
-        const delUrl = url + "/" + potToDel.id;
+        const delUrl = url + "/" + elimToDel.id;
         response = await axios({
           method: "get",
           withCredentials: true,
           url: delUrl,
         });
-        // if pot already exisits, do not delete it
+        // if elim already exisits, do not delete it
         if (response.status === 200) {
           return {
-            data: potToDel,
+            data: elimToDel,
             status: 201,
           };
         } else {
@@ -166,7 +171,7 @@ export const DbPots = () => {
           };
         }
       } catch (error: any) {
-        // should get a 404 error if pot does not exist, ok to continue
+        // should get a 404 error if elim does not exist, ok to continue
         // non 404 return is bad
         if (error.response.status !== 404) {
           return {
@@ -175,11 +180,11 @@ export const DbPots = () => {
           };
         }
       }
-      const reAddPot = {
-        ...potToDel,
+      const reAddElim = {
+        ...elimToDel,
       };
-      reAddPot.id = nextPostSecret + reAddPot.id;
-      const reAddJSON = JSON.stringify(reAddPot);
+      reAddElim.id = nextPostSecret + reAddElim.id;
+      const reAddJSON = JSON.stringify(reAddElim);
       response = await axios({
         method: "post",
         data: reAddJSON,
@@ -188,7 +193,7 @@ export const DbPots = () => {
       });
       if (response.status === 201) {
         return {
-          data: potToDel,
+          data: elimToDel,
           status: 201,
         };
       } else {
@@ -207,8 +212,8 @@ export const DbPots = () => {
     }
   };
 
-  const potCreate = async () => {
-    let testResults: string = results + "Create Pot tests: \n";
+  const elimCreate = async () => {
+    let testResults: string = results + "Create Elim tests: \n";
     let createdId: string = "";
     passed = true;
 
@@ -220,14 +225,14 @@ export const DbPots = () => {
           url: url,
         });
         if (response.status === 200) {
-          const all: potType[] = response.data.pots as unknown as potType[];
-          const justCreated = all.filter((obj) => obj.pot_type === potToPost.pot_type);
+          const all: elimType[] = response.data.elims as unknown as elimType[];
+          const justCreated = all.filter((obj) => obj.fee === elimToPost.fee);
           if (justCreated.length === 1) {
-            await potDelete(justCreated[0].id, false);
+            await elimDelete(justCreated[0].id, false);
           }
         }
       } catch (error: any) {
-        testResults += addToResults("Error deleteing created pot", false);
+        testResults += addToResults("Error deleteing created elim", false);
         return {
           error: error.message,
           status: 404,
@@ -238,7 +243,7 @@ export const DbPots = () => {
     const invalidCreate = async (propertyName: string, value: any) => {
       try {
         const invalidJSON = JSON.stringify({
-          ...potToUpdate,
+          ...elimToUpdate,
           [propertyName]: value,
         });
         const invalidResponse = await axios({
@@ -249,26 +254,26 @@ export const DbPots = () => {
         });
         if (invalidResponse.status !== 422) {
           testResults += addToResults(
-            `Create Pot Error: did not return 422 for invalid ${propertyName}`,
+            `Create Elim Error: did not return 422 for invalid ${propertyName}`,
             false
           );
           return {
-            error: `Error creating pot with invalid ${propertyName}`,
+            error: `Error creating elim with invalid ${propertyName}`,
             status: invalidResponse.status,
           };
         } else {
           testResults += addToResults(
-            `Create Pot, non 422 response for pot: ${potToUpdate.pot_type} - invalid data`
+            `Create Brkt, non 422 response for elim: ${elimToUpdate.fee} - invalid data`
           );
           return {
-            error: "Error Creating Pot, non 422 response for invalid data",
+            error: "Error Creating Brkt, non 422 response for invalid data",
             status: invalidResponse.status,
           };
         }
       } catch (error: any) {
         if (error.response.status === 422) {
           testResults += addToResults(
-            `DID NOT Create pot: ${potToUpdate.pot_type} - invalid ${propertyName}`
+            `DID NOT Create elim: ${elimToUpdate.fee} - invalid ${propertyName}`
           );
           return {
             error: "",
@@ -280,7 +285,7 @@ export const DbPots = () => {
             false
           );
           return {
-            error: `Error Creating pot with invalid ${propertyName}`,
+            error: `Error Creating elim with invalid ${propertyName}`,
             status: error.response.status,
           };
         }
@@ -290,7 +295,7 @@ export const DbPots = () => {
     const createDuplicate = async () => {
       try {
         const duplicate = {
-          ...potDuplicate,
+          ...elimDuplicate,
           id: "",
         };
         const dupJSON = JSON.stringify(duplicate);
@@ -302,36 +307,36 @@ export const DbPots = () => {
         });
         if (invalidResponse.status !== 422) {
           testResults += addToResults(
-            `Create Pot Error: did not return 422 for duplicate pot_type+div_id`,
+            `Create Elim Error: did not return 422 for duplicate start+games+div_id`,
             false
           );
           return {
-            error: `Error creating pot with duplicate pot_type+div_id`,
+            error: `Error creating elim with duplicate start+games+div_id`,
             status: invalidResponse.status,
           };
         } else {
           testResults += addToResults(
-            `Create Pot, non 422 response for duplicate pot_type+div_id`
+            `Create Brkt, non 422 response for duplicate start+games+div_id`
           );
           return {
-            error: "Error Creating Pot, non 422 response for duplicate pot_type+div_id",
+            error: "Error Creating Brkt, non 422 response for duplicate start+games+div_id",
             status: invalidResponse.status,
           };
         }
       } catch (error: any) {
         if (error.response.status === 422) {
-          testResults += addToResults(`DID NOT Create pot: duplicate pot_type+div_id`);
+          testResults += addToResults(`DID NOT Create elim: duplicate start+games+div_id`);
           return {
             error: "",
             status: error.response.status,
           };
         } else {
           testResults += addToResults(
-            `Create Error: did not return 422 for duplicate pot_type+div_id`,
+            `Create Error: did not return 422 for duplicate start+games+div_id`,
             false
           );
           return {
-            error: `Error Creating pot with duplicate pot_type+div_id`,
+            error: `Error Creating elim with duplicate start+games+div_id`,
             status: error.response.status,
           };
         }
@@ -341,7 +346,7 @@ export const DbPots = () => {
     try {
       await deleteCreated();
 
-      const createJSON = JSON.stringify(potToPost);
+      const createJSON = JSON.stringify(elimToPost);
       const response = await axios({
         method: "post",
         data: createJSON,
@@ -349,50 +354,55 @@ export const DbPots = () => {
         url: url,
       });
       if (response.status === 201) {
-        createdId = response.data.pot.id;
-        testResults += addToResults(`Created pot: ${response.data.pot.pot_type}`);
-        const postedPot: potType = response.data.pot;
-        if (postedPot.div_id !== potToPost.div_id) {
-          testResults += addToResults("Created pot div_id !== potToPost.div_id", false);
-        } else if (postedPot.squad_id !== potToPost.squad_id) {
+        createdId = response.data.elim.id;
+        testResults += addToResults(`Created elim: ${response.data.elim.fee}`);
+        const postedElim: elimType = response.data.elim;
+        if (postedElim.div_id !== elimToPost.div_id) {
+          testResults += addToResults("Created elim div_id !== elimToPost.div_id", false);
+        } else if (postedElim.squad_id !== elimToPost.squad_id) {
           testResults += addToResults(
-            "Created pot squad_id !== potToPost.squad_id",
+            "Created elim squad_id !== elimToPost.squad_id",
             false
           );
-        } else if (postedPot.pot_type !== potToPost.pot_type) {
+        } else if (postedElim.fee !== elimToPost.fee) {
           testResults += addToResults(
-            "Created pot div_name !== potToPost.pot_type",
+            "Created elim fee !== elimToPost.fee",
             false
           );
-        } else if (postedPot.fee !== potToPost.fee) {
+        } else if (postedElim.start !== elimToPost.start) {
           testResults += addToResults(
-            "Created pot fee !== potToPost.fee",
+            "Created elim start !== elimToPost.start",
             false
           );
-        } else if (postedPot.sort_order !== potToPost.sort_order) {
+        } else if (postedElim.games !== elimToPost.games) {
           testResults += addToResults(
-            "Created pot sort_order !== potToPost.sort_order",
+            "Created elim games !== elimToPost.games",
+            false
+          );
+        } else if (postedElim.sort_order !== elimToPost.sort_order) {
+          testResults += addToResults(
+            "Created elim sort_order !== elimToPost.sort_order",
             false
           );
         } else {
-          testResults += addToResults(`Created pot === potToPost`);
+          testResults += addToResults(`Created elim === elimToPost`);
         }
       } else {
         testResults += addToResults(
-          `Error creating pot: ${potToPost.pot_type}, response status: ${response.status}`,
+          `Error creating elim: ${elimToPost.fee}, response status: ${response.status}`,
           false
         );
         return {
-          error: "Did not create pot",
+          error: "Did not create elim",
           status: response.status,
         };
       }
 
       await invalidCreate("div_id", "bwl_123");
       await invalidCreate("squad_id", "div_12345678901234567890123456789012");
-      await invalidCreate("pot_type", "Test");
-      await invalidCreate("fee", '-1');
-      await invalidCreate("sort_order", '-1');
+      await invalidCreate("fee", "-1");
+      await invalidCreate("start", 0);
+      await invalidCreate("games", 12345);
       await createDuplicate();
 
       return response.data;
@@ -404,19 +414,19 @@ export const DbPots = () => {
       };
     } finally {
       if (createdId) {
-        await potDelete(createdId, false);
+        await elimDelete(createdId, false);
       }
       if (passed) {
-        testResults += addToResults(`Create Pot tests: PASSED`, true);
+        testResults += addToResults(`Create Elim tests: PASSED`, true);
       } else {
-        testResults += addToResults(`Create Pot tests: FAILED`, false);
+        testResults += addToResults(`Create Elim tests: FAILED`, false);
       }
       setResults(testResults);
     }
   };
 
-  const potReadAll = async (showResults: boolean) => {
-    let testResults = results + "Read All Pots tests: \n";
+  const elimReadAll = async (showResults: boolean) => {
+    let testResults = results + "Read All Elims tests: \n";
     passed = true;
     try {
       const response = await axios({
@@ -427,29 +437,29 @@ export const DbPots = () => {
       if (response.status === 200) {
         if (showResults) {
           testResults += addToResults(
-            `Success: Read ${response.data.pots.length} Pots`,
+            `Success: Read ${response.data.elims.length} Brkts`,
             true
           );
         }
-        const all: potType[] = response.data.pots as unknown as potType[];
-        // 4 pots in /prisma/seeds.ts
-        const seedCount = 4;
+        const all: elimType[] = response.data.elims as unknown as elimType[];
+        // 4 elims in /prisma/seeds.ts
+        const seedCount = 5;
         if (all.length === seedCount) {
-          testResults += addToResults(`Read all ${seedCount} pots`, true);
+          testResults += addToResults(`Read all ${seedCount} elims`, true);
         } else {
           testResults += addToResults(
-            `Error: Read ${all.length} pots, expected ${seedCount}`,
+            `Error: Read ${all.length} elims, expected ${seedCount}`,
             false
           );
         }
-        return response.data.pots;
+        return response.data.elims;
       } else {
         testResults += addToResults(
-          `Error reading all pots, response status: ${response.status}`,
+          `Error reading all elims, response status: ${response.status}`,
           false
         );
         return {
-          error: "Did not read all pots",
+          error: "Did not read all elims",
           status: response.status,
         };
       }
@@ -462,17 +472,17 @@ export const DbPots = () => {
     } finally {
       if (showResults) {
         if (passed) {
-          testResults += addToResults(`Read All Pots tests: PASSED`, true);
+          testResults += addToResults(`Read All Elims tests: PASSED`, true);
         } else {
-          testResults += addToResults(`Read All Pots tests: FAILED`, false);
+          testResults += addToResults(`Read All Elims tests: FAILED`, false);
         }
         setResults(testResults);
       }
     }
   };
 
-  const potRead1 = async () => {
-    let testResults = results + "Read 1 Pot tests: \n";
+  const elimRead1 = async () => {
+    let testResults = results + "Read 1 Elim tests: \n";
     passed = true;
 
     const readInvalidId = async (id: string) => {
@@ -485,7 +495,7 @@ export const DbPots = () => {
         });
         if (invalidResponse.status !== 404) {
           testResults += addToResults(
-            `Read 1 Pot Error: did not return 404 for invalid id ${id}`,
+            `Read 1 Elim Error: did not return 404 for invalid id ${id}`,
             false
           );
           return {
@@ -494,79 +504,81 @@ export const DbPots = () => {
           };
         } else {
           testResults += addToResults(
-            `Read 1 Pot, non 404 response for invalid id: ${id}`
+            `Read 1 Brkt, non 404 response for invalid id: ${id}`
           );
           return {
-            error: `Error Reading 1 Pot, non 404 response for invalid id: ${id}`,
+            error: `Error Reading 1 Brkt, non 404 response for invalid id: ${id}`,
             status: invalidResponse.status,
           };
         }
       } catch (error: any) {
         if (error.response.status === 404) {
-          testResults += addToResults(`DID NOT Read 1 Pot: invalid id: ${id}`);
+          testResults += addToResults(`DID NOT Read 1 Elim: invalid id: ${id}`);
           return {
             error: `invalid id: ${id}`,
             status: 404,
           };
         } else {
           testResults += addToResults(
-            `Read 1 Pot Error: did not return 404 for invalid id: ${id}`,
+            `Read 1 Elim Error: did not return 404 for invalid id: ${id}`,
             false
           );
           return {
-            error: `Error Reading 1 Pot, non 404 response for invalid id: ${id}`,
+            error: `Error Reading 1 Brkt, non 404 response for invalid id: ${id}`,
             status: error.response.status,
           };
         }
       }
     };
 
-    const testPot: potType = {
-      ...potToUpdate,
+    const testElim: elimType = {
+      ...elimToUpdate,
     };
     try {
       const response = await axios({
         method: "get",
         withCredentials: true,
-        url: potIdUrl,
+        url: elimIdUrl,
       });
       if (response.status === 200) {
         testResults += addToResults(
-          `Success: Read 1 Pot: ${response.data.pot.pot_type}`,
+          `Success: Read 1 Elim: ${response.data.elim.fee}`,
           true
         );
-        const readPot: potType = response.data.pot;
-        if (readPot.div_id !== testPot.div_id) {
-          testResults += addToResults("Read 1 Pot div_id !== testPot.div_id", false);
-        } else if (readPot.squad_id !== testPot.squad_id) {
-          testResults += addToResults("Read 1 Pot squad_id !== testPot.squad_id", false);
-        } else if (readPot.pot_type !== testPot.pot_type) {
-          testResults += addToResults("Read 1 Pot pot_type !== testPot.pot_type", false);
-        } else if (readPot.fee !== testPot.fee) {
-          testResults += addToResults("Read 1 Pot fee !== testPot.fee", false);
-        } else if (readPot.sort_order !== testPot.sort_order) {
+        const readElim: elimType = response.data.elim;
+        if (readElim.div_id !== testElim.div_id) {
+          testResults += addToResults("Read 1 Elim div_id !== testElim.div_id", false);
+        } else if (readElim.squad_id !== testElim.squad_id) {
+          testResults += addToResults("Read 1 Elim squad_id !== testElim.squad_id", false);
+        } else if (readElim.fee !== testElim.fee) {
+          testResults += addToResults("Read 1 Elim fee !== testElim.fee", false);
+        } else if (readElim.start !== testElim.start) {
+          testResults += addToResults("Read 1 Elim start !== testElim.start", false);
+        } else if (readElim.games !== testElim.games) {
+          testResults += addToResults("Read 1 Elim games !== testElim.games", false);
+        } else if (readElim.sort_order !== testElim.sort_order) {
           testResults += addToResults(
-            "Read 1 Pot sort_order !== testPot.sort_order",
+            "Read 1 Elim sort_order !== testElim.sort_order",
             false
           );
         } else {
-          testResults += addToResults(`Read 1 Pot === testPot`);
+          testResults += addToResults(`Read 1 Elim === testElim`);
         }
       } else {
         testResults += addToResults(
-          `Error reading 1 pot, response status: ${response.status}`,
+          `Error reading 1 elim, response status: ${response.status}`,
           false
         );
         return {
-          error: "Did not read 1 pot",
+          error: "Did not read 1 elim",
           status: response.status,
         };
       }
 
       // test invalid url
       await readInvalidId("abc_123");
-      // test non existing pot
-      await readInvalidId("pot_12345678901234567890123456789012");
+      // test non existing elim
+      await readInvalidId("elm_12345678901234567890123456789012");
 
       return response.data;
     } catch (error: any) {
@@ -578,16 +590,16 @@ export const DbPots = () => {
       };
     } finally {
       if (passed) {
-        testResults += addToResults(`Read 1 Pot tests: PASSED`, true);
+        testResults += addToResults(`Read 1 Elim tests: PASSED`, true);
       } else {
-        testResults += addToResults(`Read 1 Pot tests: FAILED`, false);
+        testResults += addToResults(`Read 1 Elim tests: FAILED`, false);
       }
       setResults(testResults);
     }
   };
 
-  const potReadForDiv = async () => {
-    let testResults = results + "Read Pots for a Div tests: \n";
+  const elimReadForDiv = async () => {
+    let testResults = results + "Read Elims for a Div tests: \n";
     passed = true;
 
     const validReadForDiv = async (divId: string) => {
@@ -598,64 +610,64 @@ export const DbPots = () => {
           url: url + "/div/" + divId,
         });
         if (response.status === 200) {
-          testResults += addToResults(`Success: Read Pots for Div, div_id: ${divId}`);
-          const readPots: potType[] = response.data.pots;
-          if (divId === multiPotsDivId) {
-            if (readPots.length !== 2) {
+          testResults += addToResults(`Success: Read Elims for Div, div_id: ${divId}`);
+          const readElims: elimType[] = response.data.elims;
+          if (divId === multiElimsDivId) {
+            if (readElims.length !== 2) {
               testResults += addToResults(
-                "Error: Read Pots for Div length !== 2",
+                "Error: Read Elims for Div length !== 2",
                 false
               );
               return {
-                error: "Error: Read Pots for Div, length !== 2",
+                error: "Error: Read Elims for Div, length !== 2",
                 status: 404,
               };
             }
-            readPots.forEach((pot: potType) => {
+            readElims.forEach((elim: elimType) => {
               if (
                 !(
-                  pot.id === "pot_98b3a008619b43e493abf17d9f462a65" ||
-                  pot.id === "pot_ab80213899ea424b938f52a062deacfe"
+                  elim.id === "elm_45d884582e7042bb95b4818ccdd9974c" ||
+                  elim.id === "elm_9d01015272b54962a375cf3c91007a12"
                 )
               ) {
                 testResults += addToResults(
-                  "Error: Read Pots for Div pot.id invalid",
+                  "Error: Read Elims for Div elim.id invalid",
                   false
                 );
                 return {
-                  error: "Error: Read Pots for Div, pot.id invalid",
+                  error: "Error: Read Elims for Div, elim.id invalid",
                   status: 404,
                 };
               }
             });
-          } else if (divId === noPotsDivId) {
-            if (readPots.length !== 0) {
+          } else if (divId === noElimsDivId) {
+            if (readElims.length !== 0) {
               testResults += addToResults(
-                "Error: Read Pots for Div length !== 0",
+                "Error: Read Elims for Div length !== 0",
                 false
               );
               return {
-                error: "Error: Read Pots for Div, length !== 0",
+                error: "Error: Read Elims for Div, length !== 0",
                 status: 404,
               };
             }
           }
           testResults += addToResults(
-            `Success: Read Pots for Div, ${readPots.length} rows returned`
+            `Success: Read Elims for Div, ${readElims.length} rows returned`
           );
         } else {
           testResults += addToResults(
-            `Error reading pots for div, response status: ${response.status}`,
+            `Error reading elims for div, response status: ${response.status}`,
             false
           );
           return {
-            error: "Did not read pots for div",
+            error: "Did not read elims for div",
             status: response.status,
           };
         }
-        return response.data.pots;
+        return response.data.elims;
       } catch (error: any) {
-        testResults += addToResults(`Read Pots for Div Error: ${error.message}`, false);
+        testResults += addToResults(`Read Elims for Div Error: ${error.message}`, false);
         return {
           error: error.message,
           status: 404,
@@ -672,7 +684,7 @@ export const DbPots = () => {
         });
         if (invalidResponse.status !== 404) {
           testResults += addToResults(
-            `Read Pots for Div Error: did not return 404 for invalid id ${divId}`,
+            `Read Elims for Div Error: did not return 404 for invalid id ${divId}`,
             false
           );
           return {
@@ -681,17 +693,17 @@ export const DbPots = () => {
           };
         } else {
           testResults += addToResults(
-            `Read Pots for Div, non 404 response for invalid id: ${divId}`
+            `Read Elims for Div, non 404 response for invalid id: ${divId}`
           );
           return {
-            error: `Error Reading Pots for Div, non 404 response for invalid id: ${divId}`,
+            error: `Error Reading Elims for Div, non 404 response for invalid id: ${divId}`,
             status: invalidResponse.status,
           };
         }
       } catch (error: any) {
         if (error.response.status === 404) {
           testResults += addToResults(
-            `DID NOT Read Pots for Div: invalid id: ${divId}`
+            `DID NOT Read Elims for Div: invalid id: ${divId}`
           );
           return {
             error: `invalid id: ${divId}`,
@@ -699,11 +711,11 @@ export const DbPots = () => {
           };
         } else {
           testResults += addToResults(
-            `Read Pots for Div Error: did not return 404 for invalid id: ${divId}`,
+            `Read Elims for Div Error: did not return 404 for invalid id: ${divId}`,
             false
           );
           return {
-            error: `Error Reading Pots for Div, non 404 response for invalid id: ${divId}`,
+            error: `Error Reading Elims for Div, non 404 response for invalid id: ${divId}`,
             status: error.response.status,
           };
         }
@@ -711,8 +723,8 @@ export const DbPots = () => {
     };
 
     try {
-      await validReadForDiv(multiPotsDivId);
-      await validReadForDiv(noPotsDivId);
+      await validReadForDiv(multiElimsDivId);
+      await validReadForDiv(noElimsDivId);
 
       await invalidReadForDiv("tmt_123");
       await invalidReadForDiv("sqd_12345678901234567890123456789012");
@@ -727,16 +739,16 @@ export const DbPots = () => {
       };
     } finally {
       if (passed) {
-        testResults += addToResults(`Read Pots for a Div tests: PASSED`);
+        testResults += addToResults(`Read Elims for a Div tests: PASSED`);
       } else {
-        testResults += addToResults(`Read Pots for a Div tests: FAILED`, false);
+        testResults += addToResults(`Read Elims for a Div tests: FAILED`, false);
       }
       setResults(testResults);
     }
   };
 
-  const potReadForSquad = async () => {
-    let testResults = results + "Read Pots for a Squad tests: \n";
+  const elimReadForSquad = async () => {
+    let testResults = results + "Read Elims for a Squad tests: \n";
     passed = true;
 
     const validReadForSquad = async (squadId: string) => {
@@ -747,64 +759,64 @@ export const DbPots = () => {
           url: url + "/squad/" + squadId,
         });
         if (response.status === 200) {
-          testResults += addToResults(`Success: Read Pots for Squad, squad_id: ${squadId}`);
-          const readPots: potType[] = response.data.pots;
-          if (squadId === multiPotsSquadId) {
-            if (readPots.length !== 2) {
+          testResults += addToResults(`Success: Read Elims for Squad, squad_id: ${squadId}`);
+          const readBrkts: elimType[] = response.data.elims;
+          if (squadId === multiElimsSquadId) {
+            if (readBrkts.length !== 2) {
               testResults += addToResults(
-                "Error: Read Pots for Squad length !== 2",
+                "Error: Read Elims for Squad length !== 2",
                 false
               );
               return {
-                error: "Error: Read Pots for Squad, length !== 2",
+                error: "Error: Read Elims for Squad, length !== 2",
                 status: 404,
               };
             }
-            readPots.forEach((pot: potType) => {
+            readBrkts.forEach((elim: elimType) => {
               if (
                 !(
-                  pot.id === "pot_98b3a008619b43e493abf17d9f462a65" ||
-                  pot.id === "pot_ab80213899ea424b938f52a062deacfe"
+                  elim.id === "elm_45d884582e7042bb95b4818ccdd9974c" ||
+                  elim.id === "elm_9d01015272b54962a375cf3c91007a12"
                 )
               ) {
                 testResults += addToResults(
-                  "Error: Read Pots for Squad pot.id invalid",
+                  "Error: Read Elims for Squad elim.id invalid",
                   false
                 );
                 return {
-                  error: "Error: Read Pots for Squad, pot.id invalid",
+                  error: "Error: Read Elims for Squad, elim.id invalid",
                   status: 404,
                 };
               }
             });
-          } else if (squadId === noPotsDivId) {
-            if (readPots.length !== 0) {
+          } else if (squadId === noElimsDivId) {
+            if (readBrkts.length !== 0) {
               testResults += addToResults(
-                "Error: Read Pots for Squad length !== 0",
+                "Error: Read Elims for Squad length !== 0",
                 false
               );
               return {
-                error: "Error: Read Pots for Squad, length !== 0",
+                error: "Error: Read Elims for Squad, length !== 0",
                 status: 404,
               };
             }
           }
           testResults += addToResults(
-            `Success: Read Pots for Squad, ${readPots.length} rows returned`
+            `Success: Read Elims for Squad, ${readBrkts.length} rows returned`
           );
         } else {
           testResults += addToResults(
-            `Error reading pots for squad, response status: ${response.status}`,
+            `Error reading elims for squad, response status: ${response.status}`,
             false
           );
           return {
-            error: "Did not read pots for squad",
+            error: "Did not read elims for squad",
             status: response.status,
           };
         }
-        return response.data.pots;
+        return response.data.elims;
       } catch (error: any) {
-        testResults += addToResults(`Read Pots for Squad Error: ${error.message}`, false);
+        testResults += addToResults(`Read Elims for Squad Error: ${error.message}`, false);
         return {
           error: error.message,
           status: 404,
@@ -821,7 +833,7 @@ export const DbPots = () => {
         });
         if (invalidResponse.status !== 404) {
           testResults += addToResults(
-            `Read Pots for Squad Error: did not return 404 for invalid id ${squadId}`,
+            `Read Elims for Squad Error: did not return 404 for invalid id ${squadId}`,
             false
           );
           return {
@@ -830,17 +842,17 @@ export const DbPots = () => {
           };
         } else {
           testResults += addToResults(
-            `Read Pots for Squad, non 404 response for invalid id: ${squadId}`
+            `Read Elims for Squad, non 404 response for invalid id: ${squadId}`
           );
           return {
-            error: `Error Reading Pots for Squad, non 404 response for invalid id: ${squadId}`,
+            error: `Error Reading Elims for Squad, non 404 response for invalid id: ${squadId}`,
             status: invalidResponse.status,
           };
         }
       } catch (error: any) {
         if (error.response.status === 404) {
           testResults += addToResults(
-            `DID NOT Read Pots for Squad: invalid id: ${squadId}`
+            `DID NOT Read Elims for Squad: invalid id: ${squadId}`
           );
           return {
             error: `invalid id: ${squadId}`,
@@ -848,11 +860,11 @@ export const DbPots = () => {
           };
         } else {
           testResults += addToResults(
-            `Read Pots for Squad Error: did not return 404 for invalid id: ${squadId}`,
+            `Read Elims for Squad Error: did not return 404 for invalid id: ${squadId}`,
             false
           );
           return {
-            error: `Error Reading Pots for Squad, non 404 response for invalid id: ${squadId}`,
+            error: `Error Reading Elims for Squad, non 404 response for invalid id: ${squadId}`,
             status: error.response.status,
           };
         }
@@ -860,8 +872,8 @@ export const DbPots = () => {
     };
 
     try {
-      await validReadForSquad(multiPotsSquadId);
-      await validReadForSquad(noPotsSquadId);
+      await validReadForSquad(multiElimsSquadId);
+      await validReadForSquad(noElimsSquadId);
 
       await invalidReadForSquad("tmt_123");
       await invalidReadForSquad("div_12345678901234567890123456789012");
@@ -876,60 +888,65 @@ export const DbPots = () => {
       };
     } finally {
       if (passed) {
-        testResults += addToResults(`Read Pots for a Squad tests: PASSED`);
+        testResults += addToResults(`Read Elims for a Squad tests: PASSED`);
       } else {
-        testResults += addToResults(`Read Pots for a Squad tests: FAILED`, false);
+        testResults += addToResults(`Read Elims for a Squad tests: FAILED`, false);
       }
       setResults(testResults);
     }
   };
 
-  const potUpdate = async () => {
-    let testResults = results + "Update Pot tests: \n";
+  const elimUpdate = async () => {
+    let testResults = results + "Update Elim tests: \n";
     passed = true;
 
     const updateValid = async () => {
       try {
-        const updateJSON = JSON.stringify(potUpdatedTo);
+        const updateJSON = JSON.stringify(elimUpdatedTo);
         const response = await axios({
           method: "put",
           data: updateJSON,
           withCredentials: true,
-          url: potIdUrl,
+          url: elimIdUrl,
         });
         if (response.status !== 200) {
           const errMsg = (response as any).message;
           testResults += addToResults(`Error: ${errMsg.message}`, false);
           return response;
         }
-        const updated: potType = response.data.pot;
-        if (updated.div_id !== potUpdatedTo.div_id) {
+        const updated: elimType = response.data.elim;
+        if (updated.div_id !== elimUpdatedTo.div_id) {
           testResults += addToResults(
-            "Updated pot div_id !== potUpdatedTo.div_id",
+            "Updated elim div_id !== potUpdatedTo.div_id",
             false
           );
-        } else if (updated.squad_id !== potUpdatedTo.squad_id) {
+        } else if (updated.squad_id !== elimUpdatedTo.squad_id) {
           testResults += addToResults(
-            "Updated pot squad_id !== potUpdatedTo.squad_id",
+            "Updated elim squad_id !== potUpdatedTo.squad_id",
             false
           );
-        } else if (updated.pot_type !== potUpdatedTo.pot_type) {
+        } else if (updated.fee !== elimUpdatedTo.fee) {
           testResults += addToResults(
-            "Updated pot div_name !== potUpdatedTo.pot_type",
+            "Updated elim div_name !== potUpdatedTo.fee",
             false
           );
-        } else if (updated.fee !== potUpdatedTo.fee) {
+        } else if (updated.start !== elimUpdatedTo.start) {
           testResults += addToResults(
-            "Updated pot fee !== potUpdatedTo.fee",
+            "Updated elim start !== potUpdatedTo.start",
             false
           );
-        } else if (updated.sort_order !== potUpdatedTo.sort_order) {
+        } else if (updated.games !== elimUpdatedTo.games) {
           testResults += addToResults(
-            "Updated pot sort_order !== potUpdatedTo.sort_order",
+            "Updated elim games !== potUpdatedTo.games",
+            false
+          );
+        } else if (updated.sort_order !== elimUpdatedTo.sort_order) {
+          testResults += addToResults(
+            "Updated elim sort_order !== potUpdatedTo.sort_order",
             false
           );
         } else {
-          testResults += addToResults(`Updated Pot: ${updated.pot_type}`);
+          testResults += addToResults(`Updated Elim: ${updated.id}`);
         }
         return response;
       } catch (error: any) {
@@ -941,37 +958,37 @@ export const DbPots = () => {
     const invalidUpdate = async (propertyName: string, value: any) => {
       try {
         const invalidJSON = JSON.stringify({
-          ...potToUpdate,
+          ...elimToUpdate,
           [propertyName]: value,
         });
         const invalidResponse = await axios({
           method: "put",
           data: invalidJSON,
           withCredentials: true,
-          url: potIdUrl,
+          url: elimIdUrl,
         });
         if (invalidResponse.status !== 422) {
           testResults += addToResults(
-            `Update Pot Error: did not return 422 for invalid ${propertyName}`,
+            `Update Elim Error: did not return 422 for invalid ${propertyName}`,
             false
           );
           return {
-            error: `Error updating pot with invalid ${propertyName}`,
+            error: `Error updating elim with invalid ${propertyName}`,
             status: invalidResponse.status,
           };
         } else {
           testResults += addToResults(
-            `Update Pot, non 422 response for pot: ${potToUpdate.pot_type} - invalid data`
+            `Update Brkt, non 422 response for elim: ${elimToUpdate.id} - invalid data`
           );
           return {
-            error: "Error Updating Pot, non 422 response for invalid data",
+            error: "Error Updating Brkt, non 422 response for invalid data",
             status: invalidResponse.status,
           };
         }
       } catch (error: any) {
         if (error.response.status === 422) {
           testResults += addToResults(
-            `DID NOT Update pot: ${potToUpdate.pot_type} - invalid ${propertyName}`
+            `DID NOT Update elim: ${elimToUpdate.id} - invalid ${propertyName}`
           );
           return {
             error: "",
@@ -983,7 +1000,7 @@ export const DbPots = () => {
             false
           );
           return {
-            error: `Error Updating pot with invalid ${propertyName}`,
+            error: `Error Updating elim with invalid ${propertyName}`,
             status: error.response.status,
           };
         }
@@ -993,7 +1010,7 @@ export const DbPots = () => {
     const dontUpdateInvalidId = async (id: string) => {
       try {
         const invalidUrl = url + "/" + id;
-        const invalidJSON = JSON.stringify(potUpdatedTo);
+        const invalidJSON = JSON.stringify(elimUpdatedTo);
         const notUpdatedResponse = await axios({
           method: "put",
           data: invalidJSON,
@@ -1005,19 +1022,19 @@ export const DbPots = () => {
           testResults += addToResults(`Error: updated invalid id: ${id}`);
           return notUpdatedResponse;
         } else {
-          testResults += addToResults(`DID NOT update Pot, invalid id: ${id}`);
+          testResults += addToResults(`DID NOT update Brkt, invalid id: ${id}`);
         }
         return notUpdatedResponse;
       } catch (error: any) {
         if (error.response.status === 404) {
-          testResults += addToResults(`DID NOT update Pot, invalid id: ${id}`);
+          testResults += addToResults(`DID NOT update Brkt, invalid id: ${id}`);
         } else {
           testResults += addToResults(
-            `Update Pot Error: did not return 404 for invalid id: ${id}`,
+            `Update Elim Error: did not return 404 for invalid id: ${id}`,
             false
           );
           return {
-            error: `Error Updating Pot, non 404 response for invalid id: ${id}`,
+            error: `Error Updating Brkt, non 404 response for invalid id: ${id}`,
             status: error.response.status,
           };
         }
@@ -1025,10 +1042,10 @@ export const DbPots = () => {
     };
 
     const dontUpdateDuplicate = async () => {
-      // get url with id of pot to duplicate
-      const duplicatIdUrl = url + "/" + "pot_ab80213899ea424b938f52a062deacfe";
+      // get url with id of elim to duplicate
+      const duplicatIdUrl = url + "/" + "elm_4f176545e4294a0292732cccada91b9d";
       try {
-        const dupJSON = JSON.stringify(potDuplicate);
+        const dupJSON = JSON.stringify(elimDuplicate);
         const response = await axios({
           method: "put",
           data: dupJSON,
@@ -1036,25 +1053,25 @@ export const DbPots = () => {
           url: duplicatIdUrl,
         });
         if (response.status === 200) {
-          testResults += addToResults(`Error: updated duplicate pot_type+div_id`, false);
+          testResults += addToResults(`Error: updated duplicate start+games+div_id`, false);
           return response;
         } else {
           testResults += addToResults(
-            `DID NOT update Pot, duplicate pot_type+div_id`,
+            `DID NOT update Brkt, duplicate start+games+div_id`,
             false
           );
         }
         return response;
       } catch (error: any) {
         if (error.response.status === 422) {
-          testResults += addToResults(`DID NOT update Pot, duplicate pot_type+div_id`);
+          testResults += addToResults(`DID NOT update Brkt, duplicate start+games+div_id`);
         } else {
           testResults += addToResults(
-            `Update Pot Error: did not return 422 for duplicate pot_type+div_id`,
+            `Update Elim Error: did not return 422 for duplicate start+games+div_id`,
             false
           );
           return {
-            error: `Error Updating Pot, non 422 response for duplicate pot_type+div_id`,
+            error: `Error Updating Brkt, non 422 response for duplicate start+games+div_id`,
             status: error.response.status,
           };
         }
@@ -1063,20 +1080,21 @@ export const DbPots = () => {
     };
 
     try {
-      // 1) valid full pot object
+      // 1) valid full elim object
       const updated = await updateValid();
 
-      // 2) invalid Pot object
+      // 2) invalid Elim object
       await invalidUpdate("div_id", "bwl_123");
       await invalidUpdate("squad_id", "usr_12345678901234567890123456789012");
-      await invalidUpdate("pot_type", "Test");      
       await invalidUpdate("fee", "0");
+      await invalidUpdate("start", 0);      
+      await invalidUpdate("games", 1234);      
       await invalidUpdate("sort_order", "abc");
 
-      // 3) invalid Pot id
+      // 3) invalid Elim id
       await dontUpdateInvalidId("abc_123");
-      // 4 non existing Pot id
-      await dontUpdateInvalidId("pot_12345678901234567890123456789012");
+      // 4 non existing Elim id
+      await dontUpdateInvalidId("elm_12345678901234567890123456789012");
 
       // 5) duplicate Div
       await dontUpdateDuplicate();
@@ -1090,18 +1108,18 @@ export const DbPots = () => {
         status: 404,
       };
     } finally {
-      const reset = await resetPotToUpdate(false);
+      const reset = await resetElimToUpdate(false);
       if (passed) {
-        testResults += addToResults(`Update Pot tests: PASSED`, true);
+        testResults += addToResults(`Update Elim tests: PASSED`, true);
       } else {
-        testResults += addToResults(`Update Pot tests: FAILED`, false);
+        testResults += addToResults(`Update Elim tests: FAILED`, false);
       }
       setResults(testResults);
     }
   };
 
-  const potPatch = async () => {
-    let testResults = results + "Patch Pot tests: \n";
+  const elimPatch = async () => {
+    let testResults = results + "Patch Elim tests: \n";
     passed = true;
 
     const doPatch = async (propertyName: string, value: any, matchValue: any) => {
@@ -1113,18 +1131,18 @@ export const DbPots = () => {
           method: "patch",
           data: patchJSON,
           withCredentials: true,
-          url: potIdUrl,
+          url: elimIdUrl,
         });
         if (response.status === 200) {
-          if (response.data.pot[propertyName] === matchValue) {
+          if (response.data.elim[propertyName] === matchValue) {
             testResults += addToResults(
-              `Patched Pot: ${potToUpdate.pot_type} - just ${propertyName}`
+              `Patched Elim: ${elimToUpdate.id} - just ${propertyName}`
             );
           } else {
-            testResults += addToResults(`DID NOT Patch Pot ${propertyName}`, false);
+            testResults += addToResults(`DID NOT Patch Elim ${propertyName}`, false);
           }
           return {
-            data: response.data.pot,
+            data: response.data.elim,
             status: response.status,
           };
         } else {
@@ -1135,13 +1153,13 @@ export const DbPots = () => {
           };
         }
       } catch (error: any) {
-        testResults += addToResults(`doPatch Error: ${error.message}`, false);
+        testResults += addToResults(`doPatch Error: ${error.message} for ${propertyName}`, false);
         return {
           error: error.message,
           status: 404,
         };
       } finally {
-        const reset = await resetPotToUpdate(false);
+        const reset = await resetElimToUpdate(false);
       }
     };
 
@@ -1154,7 +1172,7 @@ export const DbPots = () => {
           method: "patch",
           data: dontPatchJSON,
           withCredentials: true,
-          url: potIdUrl,
+          url: elimIdUrl,
         });
         if (response.status !== 422) {
           testResults += addToResults(
@@ -1167,7 +1185,7 @@ export const DbPots = () => {
           };
         } else {
           testResults += addToResults(
-            `Patch Pot, non 422 response for pot: ${potToUpdate.pot_type} - invalid ${propertyName}`
+            `Patch Brkt, non 422 response for elim: ${elimToUpdate.id} - invalid ${propertyName}`
           );
           return {
             error: "Error Patching Event",
@@ -1177,7 +1195,7 @@ export const DbPots = () => {
       } catch (error: any) {
         if (error.response.status === 422) {
           testResults += addToResults(
-            `DID NOT Patch Pot: ${potToUpdate.pot_type} - invalid ${propertyName}`
+            `DID NOT Patch Elim: ${elimToUpdate.id} - invalid ${propertyName}`
           );
           return {
             error: "",
@@ -1199,7 +1217,7 @@ export const DbPots = () => {
     const dontPatchInvalidId = async (id: string) => {
       try {
         const invalidUrl = url + "/" + id;
-        const invalidJSON = JSON.stringify(potUpdatedTo);
+        const invalidJSON = JSON.stringify(elimUpdatedTo);
         const notUpdatedResponse = await axios({
           method: "patch",
           data: invalidJSON,
@@ -1211,19 +1229,19 @@ export const DbPots = () => {
           testResults += addToResults(`Error: patched invalid id: ${id}`);
           return notUpdatedResponse;
         } else {
-          testResults += addToResults(`DID NOT patch Pot, invalid id: ${id}`);
+          testResults += addToResults(`DID NOT patch Brkt, invalid id: ${id}`);
         }
         return notUpdatedResponse;
       } catch (error: any) {
         if (error.response.status === 404) {
-          testResults += addToResults(`DID NOT patch Pot, invalid id: ${id}`);
+          testResults += addToResults(`DID NOT patch Brkt, invalid id: ${id}`);
         } else {
           testResults += addToResults(
-            `Patch Pot Error: did not return 404 for invalid id: ${id}`,
+            `Patch Elim Error: did not return 404 for invalid id: ${id}`,
             false
           );
           return {
-            error: `Error Patching Pot, non 404 response for invalid id: ${id}`,
+            error: `Error Patching Brkt, non 404 response for invalid id: ${id}`,
             status: error.response.status,
           };
         }
@@ -1238,19 +1256,22 @@ export const DbPots = () => {
       await doPatch("squad_id", 'sqd_42be0f9d527e4081972ce8877190489d', 'sqd_42be0f9d527e4081972ce8877190489d');
       await dontPatch("squad_id", 'sqd_12345678901234567890123456789012');
 
-      await doPatch("pot_type", 'Series', 'Series');
-      await dontPatch("pot_type", 'Test');
+      await doPatch("start", 2, 2);
+      await dontPatch("start", 0);
+
+      await doPatch("games", 4, 4);
+      await dontPatch("games", 0);
 
       await doPatch("fee", '15', '15');
-      await dontPatch("fee", null);
+      await dontPatch("fee", 'abc');
 
       await doPatch("sort_order", 5, 5);
-      await dontPatch("sort_order", -1);
+      await dontPatch("sort_order", -1);      
 
       await dontPatchInvalidId("abc_123");
       await dontPatchInvalidId("bwl_12345678901234567890123456789012");
 
-      return potToUpdate;
+      return elimToUpdate;
     } catch (error: any) {
       testResults += addToResults(`Patch Error: ${error.message}`, false);
       return {
@@ -1258,18 +1279,18 @@ export const DbPots = () => {
         status: 404,
       };
     } finally {
-      const reset = await resetPotToUpdate(false);
+      const reset = await resetElimToUpdate(false);
       if (passed) {
-        testResults += addToResults(`Patch Pot tests: PASSED`, true);
+        testResults += addToResults(`Patch Elim tests: PASSED`, true);
       } else {
-        testResults += addToResults(`Patch Pot tests: FAILED`, false);
+        testResults += addToResults(`Patch Elim tests: FAILED`, false);
       }
       setResults(testResults);
     }
   };
 
-  const potDelete = async (potIdToDel: string, testing: boolean = true) => {
-    let testResults = results + "Delete Pot tests: \n";
+  const elimDelete = async (elimIdToDel: string, testing: boolean = true) => {
+    let testResults = results + "Delete Elim tests: \n";
     if (!testing) {
       passed = true;
     }    
@@ -1284,21 +1305,21 @@ export const DbPots = () => {
         });
         if (cantDelResponse.status === 404) {
           testResults += addToResults(
-            `Did not not delete Pot with invalid id: "${invalidId}"`
+            `Did not not delete Elim with invalid id: "${invalidId}"`
           );
         } else {
           testResults += addToResults(
-            `Error: Could not delete Pot with invalid id: "${invalidId}"`,
+            `Error: Could not delete Elim with invalid id: "${invalidId}"`,
             false
           );
         }
       } catch (error: any) {
         if (error.response.status === 404) {
           testResults += addToResults(
-            `Did not not delete Pot - invalid id: "${invalidId}"`
+            `Did not not delete Elim - invalid id: "${invalidId}"`
           );
         } else {
-          testResults += addToResults(`Delete Pot Error: ${error.message}`, false);
+          testResults += addToResults(`Delete Elim Error: ${error.message}`, false);
           return {
             error: error.message,
             status: error.response.status,
@@ -1307,7 +1328,7 @@ export const DbPots = () => {
       }
     };
 
-    const delUrl = url + "/" + potIdToDel;
+    const delUrl = url + "/" + elimIdToDel;
     try {
       const response = await axios({
         method: "delete",
@@ -1315,42 +1336,42 @@ export const DbPots = () => {
         url: delUrl,
       });
       if (response.status === 200) {
-        // if potIdToDel !== potToDel.id, delete called from reset
+        // if elimIdToDel !== elimToDel.id, delete called from reset
         // DO NOT update on success
         // only show update on screen if in delete test
-        if (potIdToDel === potToDel.id) {
-          if (response.data.deleted.pot_type === potToDel.pot_type) {
+        if (elimIdToDel === elimToDel.id) {
+          if (response.data.deleted.id === elimToDel.id) {
             testResults += addToResults(
-              `Success: Deleted Pot: ${potToDel.pot_type}`
+              `Success: Deleted Elim: ${elimToDel.id}`
             );
           } else {
             testResults += addToResults(
-              `Error Deleted Pot: ${potToDel.pot_type}: no pot_type in response`,
+              `Error Deleted Elim: ${elimToDel.id}`,
               false
             );
             return {
-              error: "No pot_type in response",
+              error: "Error deleting elim",
               status: 404,
             };
           }
           testResults += addToResults(
-            `Success: Deleted Pot: ${response.data.deleted.pot_type}`
+            `Success: Deleted Elim: ${response.data.deleted.id}`
           );
         }
       } else {
-        testResults += addToResults("Error: could not delete pot", false);        
+        testResults += addToResults("Error: could not delete elim", false);        
         return {
-          error: "Could not delete pot",
+          error: "Could not delete elim",
           status: 404,
         };
       }
 
       if (testing) {
-        // try to delete Pot that is parent to tmnt
+        // try to delete Elim that is parent to tmnt
         // no child tables for pots
         
         await invalidDelete("abc_123");
-        await invalidDelete("pot_12345678901234567890123456789012");
+        await invalidDelete("elm_12345678901234567890123456789012");
       }
       return response.data;
     } catch (error: any) {
@@ -1364,12 +1385,12 @@ export const DbPots = () => {
         status: 404,
       };
     } finally {
-      await reAddDeletedPot();
       if (testing) {
+        await reAddDeletedElim();
         if (passed) {
-          testResults += addToResults(`Delete Pot tests: PASSED`, true);
+          testResults += addToResults(`Delete Elim tests: PASSED`, true);
         } else {
-          testResults += addToResults(`Delete Pot tests: FAILED`, false);
+          testResults += addToResults(`Delete Elim tests: FAILED`, false);
         }
         setResults(testResults);
       }
@@ -1380,27 +1401,27 @@ export const DbPots = () => {
     let testResults: string = "";
     passed = true;
     try {
-      const reset = await resetPotToUpdate(false);
+      const reset = await resetElimToUpdate(false);
       if (reset.error) {
         testResults += addToResults(`Error Resetting: ${reset.error}`, false);
         return;
       }
 
-      const allPots: any = await removeCreatedPot(true);
-      if (allPots.error) {
-        testResults += addToResults(`Error Resetting: ${allPots.error}`, false);
+      const allElims: any = await removeCreatedElim(true);
+      if (allElims.error) {
+        testResults += addToResults(`Error Resetting: ${allElims.error}`, false);
         return;
       }
 
-      const reAdded: any = await reAddDeletedPot();
+      const reAdded: any = await reAddDeletedElim();
       if (reAdded.error) {
         testResults += addToResults(`Error Resetting: ${reAdded.error}`, false);
         return;
       }
 
-      testResults += addToResults(`Reset Pots`);
+      testResults += addToResults(`Reset Brkts`);
       return {
-        divs: allPots,
+        divs: allElims,
         status: 200,
       };
     } catch (error: any) {
@@ -1415,7 +1436,7 @@ export const DbPots = () => {
   };
 
   const handleCrudChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setPotCrud(e.target.value);
+    setCrud(e.target.value);
   };
 
   const handleClear = (e: React.FormEvent) => {
@@ -1428,54 +1449,54 @@ export const DbPots = () => {
     await resetAll();
   };
 
-  const handlePotTest = async (e: React.FormEvent) => {
+  const handleElimTest = async (e: React.FormEvent) => {
     e.preventDefault();
-    switch (potCrud) {
+    switch (crud) {
       case "create":
-        await potCreate();
+        await elimCreate();
         break;
       case "read":
-        await potReadAll(true);
+        await elimReadAll(true);
         break;
       case "read1":
-        await potRead1();
+        await elimRead1();
         break;
       case "update":
-        await potUpdate();
+        await elimUpdate();
         break;
       case "patch":
-        await potPatch();
+        await elimPatch();
         break;
       case "delete":
-        await potDelete(potToDel.id);
+        await elimDelete(elimToDel.id);
         break;
       case "readDiv":
-        await potReadForDiv();
+        await elimReadForDiv();
         break;
       case "readSquad":
-        await potReadForSquad();
+        await elimReadForSquad();
         break;
       default:
         break;
     }
   };
 
-  const handlePotTestAll = async (e: React.FormEvent) => {
+  const handleElimTestAll = async (e: React.FormEvent) => {
     e.preventDefault();
     allResults = "Testing all...";
     passed = true;
     try {
-      await potCreate();
+      await elimCreate();
       allResults = results;
-      await potReadAll(true);
+      await elimReadAll(true);
       allResults = results;
-      await potRead1();
+      await elimRead1();
       allResults = results;
-      await potUpdate();
+      await elimUpdate();
       allResults = results;
-      await potPatch();
+      await elimPatch();
       allResults = results;
-      await potDelete(potToDel.id);
+      await elimDelete(elimToDel.id);
       allResults = results;
     } catch (error: any) {
       allResults += addToResults(`Test All Error: ${error.message}`, false);
@@ -1496,115 +1517,115 @@ export const DbPots = () => {
     <>
       <div className="row g-3 mb-3">
         <div className="col-sm-6">
-          <h4>Pots</h4>
+          <h4>Eliminators</h4>
         </div>
         <div className="col-sm-2">
-          <button className="btn btn-success" id="potTest" onClick={handlePotTest}>
+          <button className="btn btn-success" id="elimTest" onClick={handleElimTest}>
             Test
           </button>
         </div>
         {/* <div className="col-sm-2">
           <button
             className="btn btn-primary"
-            id="potTestAll"
-            onClick={handlePotTestAll}
+            id="elimTestAll"
+            onClick={handleBrktTestAll}
           >
             Test All
           </button>
         </div> */}
         <div className="col-sm-2">
-          <button className="btn btn-warning" id="potClear" onClick={handleClear}>
+          <button className="btn btn-warning" id="elimClear" onClick={handleClear}>
             Clear
           </button>
         </div>
         <div className="col-sm-2">
-          <button className="btn btn-info" id="potReset" onClick={handleReset}>
+          <button className="btn btn-info" id="elimReset" onClick={handleReset}>
             Reset
           </button>
         </div>
       </div>
       <div className="row g-3 mb-3">
         <div className="col-sm-2">
-          <label htmlFor="potCreate" className="form-check-label">
+          <label htmlFor="elimCreate" className="form-check-label">
             &nbsp;Create &nbsp;
           </label>
           <input
             type="radio"
             className="form-check-input"
-            id="potCreate"
-            name="pot"
+            id="elimCreate"
+            name="elim"
             value="create"
-            checked={potCrud === "create"}
+            checked={crud === "create"}
             onChange={handleCrudChange}
           />
         </div>
         <div className="col-sm-2">
-          <label htmlFor="potRead" className="form-check-label">
+          <label htmlFor="elimRead" className="form-check-label">
             &nbsp;Read All &nbsp;
           </label>
           <input
             type="radio"
             className="form-check-input"
-            id="potRead"
-            name="pot"
+            id="elimRead"
+            name="elim"
             value="read"
-            checked={potCrud === "read"}
+            checked={crud === "read"}
             onChange={handleCrudChange}
           />
         </div>
         <div className="col-sm-2">
-          <label htmlFor="potRead1" className="form-check-label">
+          <label htmlFor="elimRead1" className="form-check-label">
             &nbsp;Read 1 &nbsp;
           </label>
           <input
             type="radio"
             className="form-check-input"
-            id="potRead1"
-            name="pot"
+            id="elimRead1"
+            name="elim"
             value="read1"
-            checked={potCrud === "read1"}
+            checked={crud === "read1"}
             onChange={handleCrudChange}
           />
         </div>
         <div className="col-sm-2">
-          <label htmlFor="potUpdate" className="form-check-label">
+          <label htmlFor="elimUpdate" className="form-check-label">
             &nbsp;Update &nbsp;
           </label>
           <input
             type="radio"
             className="form-check-input"
-            id="potUpdate"
-            name="pot"
+            id="elimUpdate"
+            name="elim"
             value="update"
-            checked={potCrud === "update"}
+            checked={crud === "update"}
             onChange={handleCrudChange}
           />
         </div>
         <div className="col-sm-2">
-          <label htmlFor="potPatch" className="form-check-label">
+          <label htmlFor="elimPatch" className="form-check-label">
             &nbsp;Patch &nbsp;
           </label>
           <input
             type="radio"
             className="form-check-input"
-            id="potPatch"
-            name="pot"
+            id="elimPatch"
+            name="elim"
             value="patch"
-            checked={potCrud === "patch"}
+            checked={crud === "patch"}
             onChange={handleCrudChange}
           />
         </div>
         <div className="col-sm-2">
-          <label htmlFor="potDelete" className="form-check-label">
+          <label htmlFor="elimDelete" className="form-check-label">
             &nbsp;Delete &nbsp;
           </label>
           <input
             type="radio"
             className="form-check-input"
-            id="potDelete"
-            name="pot"
+            id="elimDelete"
+            name="elim"
             value="delete"
-            checked={potCrud === "delete"}
+            checked={crud === "delete"}
             onChange={handleCrudChange}
           />
         </div>
@@ -1612,30 +1633,30 @@ export const DbPots = () => {
       <div className="row g-3 mb-3">
         <div className="col-sm-2"></div>
         <div className="col-sm-2">
-          <label htmlFor="potReadDiv" className="form-check-label">
+          <label htmlFor="elimReadDiv" className="form-check-label">
             &nbsp;Read Div &nbsp;
           </label>
           <input
             type="radio"
             className="form-check-input"
-            id="potReadDiv"
-            name="pot"
+            id="elimReadDiv"
+            name="elim"
             value="readDiv"
-            checked={potCrud === "readDiv"}
+            checked={crud === "readDiv"}
             onChange={handleCrudChange}
           />
         </div>
         <div className="col-sm-3">
-          <label htmlFor="potReadSquad" className="form-check-label">
+          <label htmlFor="elimReadSquad" className="form-check-label">
             &nbsp;Read Squad &nbsp;
           </label>
           <input
             type="radio"
             className="form-check-input"
-            id="potReadSquad"
-            name="pot"
+            id="elimReadSquad"
+            name="elim"
             value="readSquad"
-            checked={potCrud === "readSquad"}
+            checked={crud === "readSquad"}
             onChange={handleCrudChange}
           />
         </div>
@@ -1643,8 +1664,8 @@ export const DbPots = () => {
       <div className="row g-3 mb-3">
         <div className="col-sm-12">
           <textarea
-            id="potResults"
-            name="potResults"
+            id="elimResults"
+            name="elimResults"
             rows={10}
             value={results}
             readOnly={true}

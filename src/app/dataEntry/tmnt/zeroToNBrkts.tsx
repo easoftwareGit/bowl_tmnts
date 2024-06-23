@@ -1,4 +1,4 @@
-import React, { useState, ChangeEvent, Dispatch, SetStateAction } from "react";
+import React, { useState, ChangeEvent } from "react";
 import { divType, squadType, AcdnErrType, brktType } from "../../../lib/types/types";
 import { initModalObj } from "@/components/modal/modalObjType";
 import ModalConfirm, { delConfTitle } from "@/components/modal/confirmModal";
@@ -8,11 +8,9 @@ import EaCurrencyInput, {
   minFeeText,
 } from "@/components/currency/eaCurrencyInput";
 import { defaultBrktGames, defaultBrktPlayers, initBrkt } from "../../../db/initVals";
-import {
-  maxGames,
+import {  
   maxMoney,
-  minFee,
-  minGames,
+  minFee,  
   zeroAmount,
 } from "@/lib/validation";
 import {

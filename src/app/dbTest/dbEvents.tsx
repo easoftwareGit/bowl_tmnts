@@ -3,6 +3,7 @@ import axios from "axios";
 import { baseApi, nextPostSecret } from "@/lib/tools";
 import { eventType } from "@/lib/types/types";
 import { initEvent } from "@/db/initVals";
+import exp from "constants";
 
 const url = baseApi + "/events";
 const eventId = "evt_cb97b73cb538418ab993fc867f860510";
@@ -393,7 +394,7 @@ export const DbEvents = () => {
           testResults += addToResults(`Created event === eventToPost`)
         }        
       } else {
-        testResults += addToResults(`Error creating event: ${eventToPost.event_name}, response statue: ${response.status}`, false);                
+        testResults += addToResults(`Error creating event: ${eventToPost.event_name}, response status: ${response.status}`, false);                
         return {
           error: 'Did not create event',
           status: response.status,
@@ -462,7 +463,7 @@ export const DbEvents = () => {
         
         return response.data.events;
       } else {
-        testResults += addToResults(`Error reading all events, response statue: ${response.status}`, false);                
+        testResults += addToResults(`Error reading all events, response status: ${response.status}`, false);                
         return {
           error: 'Did not read all events',
           status: response.status,
@@ -566,7 +567,7 @@ export const DbEvents = () => {
           testResults += addToResults(`Read 1 Event === testEvent`)
         }        
       } else {
-        testResults += addToResults(`Error reading 1 event, response statue: ${response.status}`, false);                
+        testResults += addToResults(`Error reading 1 event, response status: ${response.status}`, false);                
         return {
           error: 'Did not read 1 event',
           status: response.status,
@@ -639,7 +640,7 @@ export const DbEvents = () => {
           }
           testResults += addToResults(`Success: Read Events for Tmnt, ${readEvents.length} rows returned`)
         } else {
-          testResults += addToResults(`Error reading events for tmnt, response statue: ${response.status}`, false);          
+          testResults += addToResults(`Error reading events for tmnt, response status: ${response.status}`, false);          
           return {
             error: 'Did not read events for tmnt',
             status: response.status,
@@ -926,45 +927,45 @@ export const DbEvents = () => {
 
     const doPatch = async (propertyName: string, value: any, matchValue: any) => {
 
-      const eventEntryFee = Number(eventToUpdate.entry_fee);
-      const eventLineage = Number(eventToUpdate.lineage)
-      const eventPrizeFund = Number(eventToUpdate.prize_fund)
-      const eventOther = Number(eventToUpdate.other)
-      const eventExpenses = Number(eventToUpdate.expenses)
+      // const eventEntryFee = Number(eventToUpdate.entry_fee);
+      // const eventLineage = Number(eventToUpdate.lineage)
+      // const eventPrizeFund = Number(eventToUpdate.prize_fund)
+      // const eventOther = Number(eventToUpdate.other)
+      // const eventExpenses = Number(eventToUpdate.expenses)
       try {
-        let patchJSON 
+        // let patchJSON 
         // if lineage, prize_fund, other, expenses are changed
         // need to recalculate entry_fee; entry_fee = lineage + prize_fund + other - expenses
-        if (propertyName === "lineage" || propertyName === "prize_fund"
-          || propertyName === "other" || propertyName === "expenses") {
-          const valueAmount = Number(value)
-          let entryFeeChange = 0          
-          switch (propertyName) {
-            case "lineage":
-              entryFeeChange = valueAmount - eventLineage              
-              break;
-            case "prize_fund":
-              entryFeeChange = valueAmount - eventPrizeFund
-              break;
-            case "other":
-              entryFeeChange = valueAmount - eventOther
-              break;
-            case "expenses":
-              entryFeeChange = valueAmount - eventExpenses
-              break;
-            default:
-              break;
-          }
-          const patchedEntryFee = eventEntryFee + entryFeeChange
-          patchJSON = JSON.stringify({
-            entry_fee: patchedEntryFee + '',
+        // if (propertyName === "lineage" || propertyName === "prize_fund"
+        //   || propertyName === "other" || propertyName === "expenses") {
+        //   const valueAmount = Number(value)
+        //   let entryFeeChange = 0          
+        //   switch (propertyName) {
+        //     case "lineage":
+        //       entryFeeChange = valueAmount - eventLineage              
+        //       break;
+        //     case "prize_fund":
+        //       entryFeeChange = valueAmount - eventPrizeFund
+        //       break;
+        //     case "other":
+        //       entryFeeChange = valueAmount - eventOther
+        //       break;
+        //     case "expenses":
+        //       entryFeeChange = valueAmount - eventExpenses
+        //       break;
+        //     default:
+        //       break;
+        //   }
+        //   const patchedEntryFee = eventEntryFee + entryFeeChange
+        //   patchJSON = JSON.stringify({
+        //     entry_fee: patchedEntryFee + '',
+        //     [propertyName]: value,
+        //   })
+        // } else {
+          const patchJSON = JSON.stringify({          
             [propertyName]: value,
           })
-        } else {
-          patchJSON = JSON.stringify({          
-            [propertyName]: value,
-          })
-        }
+        // }
         const response = await axios({
           method: "patch",
           data: patchJSON,
@@ -1117,6 +1118,50 @@ export const DbEvents = () => {
       }          
     }
 
+    const doPatchLpox = async () => {
+      try {
+        const patchJSON = JSON.stringify({          
+          entry_fee: '100',
+          lineage: '30',
+          prize_fund: '65',
+          other: '0',
+          expenses: '5',
+          lpox: '100',
+        })
+        const response = await axios({
+          method: "patch",
+          data: patchJSON,
+          withCredentials: true,
+          url: eventIdUrl,
+        })
+        if (response.status === 200) {          
+          if (response.data.event.lpox === '100') {
+            testResults += addToResults(`Patched Event: ${eventToUpdate.event_name} - LPOX`)                        
+          } else {
+            testResults += addToResults(`DID NOT Patch Event LPOX`, false)            
+          }
+          return {
+            data: response.data.event,
+            status: response.status
+          };
+        } else {
+          testResults += addToResults(`doPatch Error: LPOX`, false)          
+          return {
+            error: `Error Patching LPOX`,
+            status: response.status,
+          };
+        }        
+      } catch (err: any) {
+        testResults += addToResults(`doPatch Lpox Error: ${err.message}`, false);        
+        return {
+          error: err.message,
+          status: 404,
+        };
+      } finally {
+        const reset = await resetEventToUpdate(false);
+      }
+    }
+
     try {      
       // cant patch the tmnt_id
 
@@ -1133,20 +1178,22 @@ export const DbEvents = () => {
       await doPatch('added_money', '1000', '1000')
       await dontPatch('added_money', 'abc123')
 
-      await dontPatch('entry_fee', '110') // lpox error
-      await dontPatch('entry_fee', '-3')  // invalid value
+      await dontPatch('entry_fee', '110')   // lpox error
+      await dontPatch('entry_fee', '-3')    // invalid value
 
-      await doPatch('lineage', '12', '12')      
-      await dontPatch('lineage', 'abc123')
+      await dontPatch('lineage', '12')      // lpox error
+      await dontPatch('lineage', 'abc123')  // invalid value
 
-      await doPatch('prize_fund', '100', '100')
+      await dontPatch('prize_fund', '100')
       await dontPatch('prize_fund', 'abc123')
 
-      await doPatch('other', '5', '5')
+      await dontPatch('other', '5')
       await dontPatch('other', 'abc123')
 
-      await doPatch('expenses', '5', '5')
+      await dontPatch('expenses', '50')
       await dontPatch('expenses', 'abc123')
+
+      await doPatchLpox()
 
       await dontPatchDuplicate('event_name', 'Singles')      
 

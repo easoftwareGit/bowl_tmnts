@@ -14,7 +14,7 @@ import OneToNLanes from "./oneToNLanes";
 import { todayStr } from "@/lib/dateTools";
 import { isValid } from "date-fns";
 import ZeroToNPots, { validatePots } from "./zeroToNPots";
-import ZeroToNBrackets, { validateBrkts } from "./zeroToNBrackets";
+import ZeroToNBrackets, { validateBrkts } from "./zeroToNBrkts";
 import ZeroToNElims, { validateElims } from "./zeroToNElims";
 import "./form.css";
 

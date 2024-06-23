@@ -300,7 +300,7 @@ export const DbBowls = () => {
         }
       } else {
         testResults += addToResults(
-          `Error creating bowl: ${bowlToPost.bowl_name}, response statue: ${response.status}`,
+          `Error creating bowl: ${bowlToPost.bowl_name}, response status: ${response.status}`,
           false
         );
         return {
@@ -366,7 +366,7 @@ export const DbBowls = () => {
         return response.data.bowls;
       } else {
         testResults += addToResults(
-          `Error reading all bowls, response statue: ${response.status}`,
+          `Error reading all bowls, response status: ${response.status}`,
           false
         );
         return {
@@ -471,7 +471,7 @@ export const DbBowls = () => {
         }
       } else {
         testResults += addToResults(
-          `Error reading 1 Bowl, response statue: ${response.status}`,
+          `Error reading 1 Bowl, response status: ${response.status}`,
           false
         );
         return {

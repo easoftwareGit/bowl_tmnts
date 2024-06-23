@@ -24,7 +24,7 @@ export async function GET(request: NextRequest) {
       ...gotEvent,
       lpox: gotEvent.entry_fee
     }))    
-    return NextResponse.json({events}, {status: 200});
+    return NextResponse.json({ events }, { status: 200 });    
   } catch (error: any) {
     return NextResponse.json(
       { error: "error getting events" },

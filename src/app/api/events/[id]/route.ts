@@ -154,12 +154,6 @@ export async function PATCH(
     const json = await request.json();
     // populate toCheck with json
     const jsonProps = Object.getOwnPropertyNames(json);
-    // if (jsonProps.includes("tmnt_id")) {
-    //   return NextResponse.json(
-    //     { error: "foreign key constraint" },
-    //     { status: 422 }
-    //   );
-    // }
 
     const currentEvent = await findEventById(id);
     if (!currentEvent) {

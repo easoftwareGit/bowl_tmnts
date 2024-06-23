@@ -402,7 +402,7 @@ export const DbDivs = () => {
         }
       } else {
         testResults += addToResults(
-          `Error creating div: ${divToPost.div_name}, response statue: ${response.status}`,
+          `Error creating div: ${divToPost.div_name}, response status: ${response.status}`,
           false
         );
         return {
@@ -470,7 +470,7 @@ export const DbDivs = () => {
         return response.data.divs;
       } else {
         testResults += addToResults(
-          `Error reading all divs, response statue: ${response.status}`,
+          `Error reading all divs, response status: ${response.status}`,
           false
         );
         return {
@@ -586,7 +586,7 @@ export const DbDivs = () => {
         }
       } else {
         testResults += addToResults(
-          `Error reading 1 div, response statue: ${response.status}`,
+          `Error reading 1 div, response status: ${response.status}`,
           false
         );
         return {
@@ -677,7 +677,7 @@ export const DbDivs = () => {
           );
         } else {
           testResults += addToResults(
-            `Error reading divs for tmnt, response statue: ${response.status}`,
+            `Error reading divs for tmnt, response status: ${response.status}`,
             false
           );
           return {

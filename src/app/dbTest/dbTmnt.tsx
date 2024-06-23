@@ -335,7 +335,7 @@ export const DbTmnts = () => {
         }
       } else {
         testResults += addToResults(
-          `Error creating tmnt: ${tmntToPost.tmnt_name}, response statue: ${response.status}`,
+          `Error creating tmnt: ${tmntToPost.tmnt_name}, response status: ${response.status}`,
           false
         );
         return {
@@ -419,7 +419,7 @@ export const DbTmnts = () => {
         return response.data.tmnts;
       } else {
         testResults += addToResults(
-          `Error reading all tmnts, response statue: ${response.status}`,
+          `Error reading all tmnts, response status: ${response.status}`,
           false
         );
         return {
@@ -534,7 +534,7 @@ export const DbTmnts = () => {
         }
       } else {
         testResults += addToResults(
-          `Error reading 1 Tmnt, response statue: ${response.status}`,
+          `Error reading 1 Tmnt, response status: ${response.status}`,
           false
         );
         return {

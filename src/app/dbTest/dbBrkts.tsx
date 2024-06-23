@@ -1,81 +1,111 @@
 import React, { useEffect } from "react";
 import axios from "axios";
 import { baseApi, nextPostSecret } from "@/lib/tools";
-import { potType, PotCategories } from "@/lib/types/types";
-import { initPot } from "@/db/initVals";
+import { brktType } from "@/lib/types/types";
+import { initBrkt } from "@/db/initVals";
 
-const url = baseApi + "/pots";
-const potId = "pot_b2a7b02d761b4f5ab5438be84f642c3b";
-const potIdUrl = url + "/" + potId;
-const multiPotsDivId = 'div_1f42042f9ef24029a0a2d48cc276a087'
-const multiPotsSquadId = "sqd_1a6c885ee19a49489960389193e8f819";
-const noPotsDivId = "div_578834e04e5e4885bbae79229d8b96e8";
-const noPotsSquadId = "sqd_42be0f9d527e4081972ce8877190489d";
+const url = baseApi + "/brkts";
+const brktId = "brk_5109b54c2cc44ff9a3721de42c80c8c1";
+const brktIdUrl = url + "/" + brktId;
+const multiBrktsDivId = 'div_f30aea2c534f4cfe87f4315531cef8ef'
+const multiBrktsSquadId = "sqd_7116ce5f80164830830a7157eb093396";
+const noBrktsDivId = "div_578834e04e5e4885bbae79229d8b96e8";
+const noBrktsSquadId = "sqd_42be0f9d527e4081972ce8877190489d";
 let passed = true;
 let allResults = "";
 
-export const DbPots = () => {
-  const [potCrud, setPotCrud] = React.useState("create");
+export const DbBrkts = () => {
+  const [brktCrud, setBrktCrud] = React.useState("create");
   const [results, setResults] = React.useState("");
 
   useEffect(() => {
     setResults(results);
     // force textarea to scroll to bottom
-    var textarea = document.getElementById("potResults");
+    var textarea = document.getElementById("brktResults");
     if (textarea) {
       textarea.scrollTop = textarea.scrollHeight;
     }
   }, [results]);
 
-  const potToPost: potType = {
-    ...initPot,
+  const brktToPost: brktType = {
+    ...initBrkt,
     id: "",
     squad_id: "sqd_7116ce5f80164830830a7157eb093396",
-    div_id: "div_f30aea2c534f4cfe87f4315531cef8ef",    
-    fee: '10',
-    pot_type: "Series" as PotCategories,
-    sort_order: 2,
-  };
-
-  const potToUpdate: potType = {
-    ...initPot,
-    id: "pot_b2a7b02d761b4f5ab5438be84f642c3b",
-    squad_id: "sqd_7116ce5f80164830830a7157eb093396",
-    div_id: "div_f30aea2c534f4cfe87f4315531cef8ef",    
-    fee: '20',
-    pot_type: "Game",
-    sort_order: 1,
-  };
-
-  const potUpdatedTo: potType = {
-    ...initPot,
-    id: "pot_ab80213899ea424b938f52a062deacfe",
-    squad_id: "sqd_1a6c885ee19a49489960389193e8f819",
-    div_id: "div_1f42042f9ef24029a0a2d48cc276a087",
-    fee: '11',
-    pot_type: "Series",
+    div_id: "div_f30aea2c534f4cfe87f4315531cef8ef",
     sort_order: 3,
+    start: 2,
+    games: 3,
+    players: 8,
+    fee: '3',
+    first: '15',
+    second: '6',
+    admin: '3',
+    fsa: '24',    
   };
 
-  const potDuplicate: potType = {
-    ...initPot,
-    id: "",
+  const brktToUpdate: brktType = {
+    ...initBrkt,
+    id: "brk_5109b54c2cc44ff9a3721de42c80c8c1",
+    squad_id: "sqd_7116ce5f80164830830a7157eb093396",
+    div_id: "div_f30aea2c534f4cfe87f4315531cef8ef",
+    sort_order: 1,
+    start: 1,
+    games: 3,
+    players: 8,
+    fee: '5',
+    first: '25',
+    second: '10',
+    admin: '5',
+    fsa: '40',
+  };
+
+  const brktUpdatedTo: brktType = {
+    ...initBrkt,
+    id: "brk_37345eb6049946ad83feb9fdbb43a307",
     squad_id: "sqd_1a6c885ee19a49489960389193e8f819",
     div_id: "div_1f42042f9ef24029a0a2d48cc276a087",
-    pot_type: "Game",
+    sort_order: 3,
+    start: 3,
+    games: 3,
+    players: 8,
     fee: '10',
-    sort_order: 3,    
-};
+    first: '50',
+    second: '20',
+    admin: '10',
+    fsa: '80',
+  };
 
-  const potToDel: potType = {
-    ...initPot,
-    id: "pot_e3758d99c5494efabb3b0d273cf22e7a",
-    squad_id: "sqd_20c24199328447f8bbe95c05e1b84644",
-    div_id: "div_29b9225d8dd44a4eae276f8bde855729",
-    fee: '20',
-    pot_type: "Game",
-    sort_order: 1,
-};
+  const brktDuplicate: brktType = {
+    ...initBrkt,
+    id: "",
+    squad_id: "brk_37345eb6049946ad83feb9fdbb43a307",
+    div_id: "sqd_1a6c885ee19a49489960389193e8f819",
+    sort_order: 3,
+    start: 1,
+    games: 3,
+    players: 8,
+    fee: '5',
+    first: '25',
+    second: '10',
+    admin: '5',
+    fsa: '40',
+  };
+
+  const brktToDel: brktType = {
+    ...initBrkt,
+    id: "brk_400737cab3584ab7a59b7a4411da4474",
+    squad_id: "sqd_1a6c885ee19a49489960389193e8f819",
+    div_id: "div_1f42042f9ef24029a0a2d48cc276a087",
+    sort_order: 3,
+    start: 2,
+    games: 3,
+    players: 8,
+    fee: '5',
+    first: '25',
+    second: '10',
+    admin: '5',
+    fsa: '40',
+  };
 
   const addToResults = (newText: string, pass: boolean = true): string => {
     if (pass) {
@@ -88,15 +118,15 @@ export const DbPots = () => {
     return newText + "\n";
   };
 
-  const removeCreatedPot = async (showResults: boolean) => {
+  const removeCreatedBrkt = async (showResults: boolean) => {
     let testResults = results;
     try {
-      const all: potType[] = (await potReadAll(false)) as unknown as potType[];
-      const justPosted = all.filter((obj) => obj.pot_type === potToPost.pot_type);
+      const all: brktType[] = (await brktReadAll(false)) as unknown as brktType[];
+      const justPosted = all.filter((obj) => obj.fee === brktToPost.fee);
       if (justPosted.length === 1) {
-        await potDelete(justPosted[0].id, false);
+        await brktDelete(justPosted[0].id, false);
         if (showResults) {
-          testResults += addToResults(`Reset Created Pot: ${justPosted[0].pot_type}`);
+          testResults += addToResults(`Reset Created Brkt: ${justPosted[0].fee}`);
         }
       }
       return all;
@@ -110,18 +140,18 @@ export const DbPots = () => {
     }
   };
 
-  const resetPotToUpdate = async (showResults: boolean) => {
+  const resetBrktToUpdate = async (showResults: boolean) => {
     let testResults = results;
     try {
       const response = await axios({
         method: "put",
-        data: potToUpdate,
+        data: brktToUpdate,
         withCredentials: true,
-        url: potIdUrl,
+        url: brktIdUrl,
       });
       if (response.status === 200) {
         if (showResults) {
-          testResults += addToResults(`Reset Pot: ${potToUpdate.pot_type}`);
+          testResults += addToResults(`Reset Brkt: ${brktToUpdate.fee}`);
         }
         return response.data;
       } else {
@@ -142,21 +172,21 @@ export const DbPots = () => {
     }
   };
 
-  const reAddDeletedPot = async () => {
+  const reAddDeletedBrkt = async () => {
     let testResults = results;
     try {
       let response;
       try {
-        const delUrl = url + "/" + potToDel.id;
+        const delUrl = url + "/" + brktToDel.id;
         response = await axios({
           method: "get",
           withCredentials: true,
           url: delUrl,
         });
-        // if pot already exisits, do not delete it
+        // if brkt already exisits, do not delete it
         if (response.status === 200) {
           return {
-            data: potToDel,
+            data: brktToDel,
             status: 201,
           };
         } else {
@@ -166,7 +196,7 @@ export const DbPots = () => {
           };
         }
       } catch (error: any) {
-        // should get a 404 error if pot does not exist, ok to continue
+        // should get a 404 error if brkt does not exist, ok to continue
         // non 404 return is bad
         if (error.response.status !== 404) {
           return {
@@ -175,11 +205,11 @@ export const DbPots = () => {
           };
         }
       }
-      const reAddPot = {
-        ...potToDel,
+      const reAddBrkt = {
+        ...brktToDel,
       };
-      reAddPot.id = nextPostSecret + reAddPot.id;
-      const reAddJSON = JSON.stringify(reAddPot);
+      reAddBrkt.id = nextPostSecret + reAddBrkt.id;
+      const reAddJSON = JSON.stringify(reAddBrkt);
       response = await axios({
         method: "post",
         data: reAddJSON,
@@ -188,7 +218,7 @@ export const DbPots = () => {
       });
       if (response.status === 201) {
         return {
-          data: potToDel,
+          data: brktToDel,
           status: 201,
         };
       } else {
@@ -207,8 +237,8 @@ export const DbPots = () => {
     }
   };
 
-  const potCreate = async () => {
-    let testResults: string = results + "Create Pot tests: \n";
+  const brktCreate = async () => {
+    let testResults: string = results + "Create Brkt tests: \n";
     let createdId: string = "";
     passed = true;
 
@@ -220,14 +250,14 @@ export const DbPots = () => {
           url: url,
         });
         if (response.status === 200) {
-          const all: potType[] = response.data.pots as unknown as potType[];
-          const justCreated = all.filter((obj) => obj.pot_type === potToPost.pot_type);
+          const all: brktType[] = response.data.brkts as unknown as brktType[];
+          const justCreated = all.filter((obj) => obj.fee === brktToPost.fee);
           if (justCreated.length === 1) {
-            await potDelete(justCreated[0].id, false);
+            await brktDelete(justCreated[0].id, false);
           }
         }
       } catch (error: any) {
-        testResults += addToResults("Error deleteing created pot", false);
+        testResults += addToResults("Error deleteing created brkt", false);
         return {
           error: error.message,
           status: 404,
@@ -238,7 +268,7 @@ export const DbPots = () => {
     const invalidCreate = async (propertyName: string, value: any) => {
       try {
         const invalidJSON = JSON.stringify({
-          ...potToUpdate,
+          ...brktToUpdate,
           [propertyName]: value,
         });
         const invalidResponse = await axios({
@@ -249,26 +279,26 @@ export const DbPots = () => {
         });
         if (invalidResponse.status !== 422) {
           testResults += addToResults(
-            `Create Pot Error: did not return 422 for invalid ${propertyName}`,
+            `Create Brkt Error: did not return 422 for invalid ${propertyName}`,
             false
           );
           return {
-            error: `Error creating pot with invalid ${propertyName}`,
+            error: `Error creating brkt with invalid ${propertyName}`,
             status: invalidResponse.status,
           };
         } else {
           testResults += addToResults(
-            `Create Pot, non 422 response for pot: ${potToUpdate.pot_type} - invalid data`
+            `Create Brkt, non 422 response for brkt: ${brktToUpdate.fee} - invalid data`
           );
           return {
-            error: "Error Creating Pot, non 422 response for invalid data",
+            error: "Error Creating Brkt, non 422 response for invalid data",
             status: invalidResponse.status,
           };
         }
       } catch (error: any) {
         if (error.response.status === 422) {
           testResults += addToResults(
-            `DID NOT Create pot: ${potToUpdate.pot_type} - invalid ${propertyName}`
+            `DID NOT Create brkt: ${brktToUpdate.fee} - invalid ${propertyName}`
           );
           return {
             error: "",
@@ -280,7 +310,7 @@ export const DbPots = () => {
             false
           );
           return {
-            error: `Error Creating pot with invalid ${propertyName}`,
+            error: `Error Creating brkt with invalid ${propertyName}`,
             status: error.response.status,
           };
         }
@@ -290,7 +320,7 @@ export const DbPots = () => {
     const createDuplicate = async () => {
       try {
         const duplicate = {
-          ...potDuplicate,
+          ...brktDuplicate,
           id: "",
         };
         const dupJSON = JSON.stringify(duplicate);
@@ -302,36 +332,36 @@ export const DbPots = () => {
         });
         if (invalidResponse.status !== 422) {
           testResults += addToResults(
-            `Create Pot Error: did not return 422 for duplicate pot_type+div_id`,
+            `Create Brkt Error: did not return 422 for duplicate start+div_id`,
             false
           );
           return {
-            error: `Error creating pot with duplicate pot_type+div_id`,
+            error: `Error creating brkt with duplicate start+div_id`,
             status: invalidResponse.status,
           };
         } else {
           testResults += addToResults(
-            `Create Pot, non 422 response for duplicate pot_type+div_id`
+            `Create Brkt, non 422 response for duplicate start+div_id`
           );
           return {
-            error: "Error Creating Pot, non 422 response for duplicate pot_type+div_id",
+            error: "Error Creating Brkt, non 422 response for duplicate start+div_id",
             status: invalidResponse.status,
           };
         }
       } catch (error: any) {
         if (error.response.status === 422) {
-          testResults += addToResults(`DID NOT Create pot: duplicate pot_type+div_id`);
+          testResults += addToResults(`DID NOT Create brkt: duplicate start+div_id`);
           return {
             error: "",
             status: error.response.status,
           };
         } else {
           testResults += addToResults(
-            `Create Error: did not return 422 for duplicate pot_type+div_id`,
+            `Create Error: did not return 422 for duplicate start+div_id`,
             false
           );
           return {
-            error: `Error Creating pot with duplicate pot_type+div_id`,
+            error: `Error Creating brkt with duplicate start+div_id`,
             status: error.response.status,
           };
         }
@@ -341,7 +371,7 @@ export const DbPots = () => {
     try {
       await deleteCreated();
 
-      const createJSON = JSON.stringify(potToPost);
+      const createJSON = JSON.stringify(brktToPost);
       const response = await axios({
         method: "post",
         data: createJSON,
@@ -349,50 +379,82 @@ export const DbPots = () => {
         url: url,
       });
       if (response.status === 201) {
-        createdId = response.data.pot.id;
-        testResults += addToResults(`Created pot: ${response.data.pot.pot_type}`);
-        const postedPot: potType = response.data.pot;
-        if (postedPot.div_id !== potToPost.div_id) {
-          testResults += addToResults("Created pot div_id !== potToPost.div_id", false);
-        } else if (postedPot.squad_id !== potToPost.squad_id) {
+        createdId = response.data.brkt.id;
+        testResults += addToResults(`Created brkt: ${response.data.brkt.fee}`);
+        const postedBrkt: brktType = response.data.brkt;
+        if (postedBrkt.div_id !== brktToPost.div_id) {
+          testResults += addToResults("Created brkt div_id !== brktToPost.div_id", false);
+        } else if (postedBrkt.squad_id !== brktToPost.squad_id) {
           testResults += addToResults(
-            "Created pot squad_id !== potToPost.squad_id",
+            "Created brkt squad_id !== brktToPost.squad_id",
             false
           );
-        } else if (postedPot.pot_type !== potToPost.pot_type) {
+        } else if (postedBrkt.fee !== brktToPost.fee) {
           testResults += addToResults(
-            "Created pot div_name !== potToPost.pot_type",
+            "Created brkt fee !== brktToPost.fee",
             false
           );
-        } else if (postedPot.fee !== potToPost.fee) {
+        } else if (postedBrkt.start !== brktToPost.start) {
           testResults += addToResults(
-            "Created pot fee !== potToPost.fee",
+            "Created brkt start !== brktToPost.start",
             false
           );
-        } else if (postedPot.sort_order !== potToPost.sort_order) {
+        } else if (postedBrkt.games !== brktToPost.games) {
           testResults += addToResults(
-            "Created pot sort_order !== potToPost.sort_order",
+            "Created brkt games !== brktToPost.games",
+            false
+          );
+        } else if (postedBrkt.first !== brktToPost.first) {
+          testResults += addToResults(
+            "Created brkt first !== brktToPost.first",
+            false
+          );
+        } else if (postedBrkt.second !== brktToPost.second) {
+          testResults += addToResults(
+            "Created brkt second !== brktToPost.second",
+            false
+          );
+        } else if (postedBrkt.admin !== brktToPost.admin) {
+          testResults += addToResults(
+            "Created brkt admin !== brktToPost.admin",
+            false
+          );
+        } else if (postedBrkt.fsa !== brktToPost.fsa) {
+          testResults += addToResults(
+            "Created brkt fsa !== brktToPost.fsa",
+            false
+          );
+        } else if (postedBrkt.sort_order !== brktToPost.sort_order) {
+          testResults += addToResults(
+            "Created brkt sort_order !== brktToPost.sort_order",
             false
           );
         } else {
-          testResults += addToResults(`Created pot === potToPost`);
+          testResults += addToResults(`Created brkt === brktToPost`);
         }
       } else {
         testResults += addToResults(
-          `Error creating pot: ${potToPost.pot_type}, response status: ${response.status}`,
+          `Error creating brkt: ${brktToPost.fee}, response status: ${response.status}`,
           false
         );
         return {
-          error: "Did not create pot",
+          error: "Did not create brkt",
           status: response.status,
         };
       }
 
       await invalidCreate("div_id", "bwl_123");
       await invalidCreate("squad_id", "div_12345678901234567890123456789012");
-      await invalidCreate("pot_type", "Test");
-      await invalidCreate("fee", '-1');
-      await invalidCreate("sort_order", '-1');
+      await invalidCreate("fee", "-1");
+      await invalidCreate("start", 0);
+      await invalidCreate("games", 12345);
+      await invalidCreate("first", '');
+      await invalidCreate("second", "1234567890");
+      await invalidCreate("admin", "abc");
+      await invalidCreate("sort_order", -1);
+      await invalidCreate("fsa", '41');   // fee * players !== fsa
+      await invalidCreate("fee", '6');    // fee * players !== fsa
+      await invalidCreate('first', '10'); // fee * players !== first + second + admin
       await createDuplicate();
 
       return response.data;
@@ -404,19 +466,19 @@ export const DbPots = () => {
       };
     } finally {
       if (createdId) {
-        await potDelete(createdId, false);
+        await brktDelete(createdId, false);
       }
       if (passed) {
-        testResults += addToResults(`Create Pot tests: PASSED`, true);
+        testResults += addToResults(`Create Brkt tests: PASSED`, true);
       } else {
-        testResults += addToResults(`Create Pot tests: FAILED`, false);
+        testResults += addToResults(`Create Brkt tests: FAILED`, false);
       }
       setResults(testResults);
     }
   };
 
-  const potReadAll = async (showResults: boolean) => {
-    let testResults = results + "Read All Pots tests: \n";
+  const brktReadAll = async (showResults: boolean) => {
+    let testResults = results + "Read All Brkts tests: \n";
     passed = true;
     try {
       const response = await axios({
@@ -427,29 +489,29 @@ export const DbPots = () => {
       if (response.status === 200) {
         if (showResults) {
           testResults += addToResults(
-            `Success: Read ${response.data.pots.length} Pots`,
+            `Success: Read ${response.data.brkts.length} Brkts`,
             true
           );
         }
-        const all: potType[] = response.data.pots as unknown as potType[];
-        // 4 pots in /prisma/seeds.ts
-        const seedCount = 4;
+        const all: brktType[] = response.data.brkts as unknown as brktType[];
+        // 5 brkts in /prisma/seeds.ts
+        const seedCount = 5;
         if (all.length === seedCount) {
-          testResults += addToResults(`Read all ${seedCount} pots`, true);
+          testResults += addToResults(`Read all ${seedCount} brkts`, true);
         } else {
           testResults += addToResults(
-            `Error: Read ${all.length} pots, expected ${seedCount}`,
+            `Error: Read ${all.length} brkts, expected ${seedCount}`,
             false
           );
         }
-        return response.data.pots;
+        return response.data.brkts;
       } else {
         testResults += addToResults(
-          `Error reading all pots, response status: ${response.status}`,
+          `Error reading all brkts, response status: ${response.status}`,
           false
         );
         return {
-          error: "Did not read all pots",
+          error: "Did not read all brkts",
           status: response.status,
         };
       }
@@ -462,17 +524,17 @@ export const DbPots = () => {
     } finally {
       if (showResults) {
         if (passed) {
-          testResults += addToResults(`Read All Pots tests: PASSED`, true);
+          testResults += addToResults(`Read All Brkts tests: PASSED`, true);
         } else {
-          testResults += addToResults(`Read All Pots tests: FAILED`, false);
+          testResults += addToResults(`Read All Brkts tests: FAILED`, false);
         }
         setResults(testResults);
       }
     }
   };
 
-  const potRead1 = async () => {
-    let testResults = results + "Read 1 Pot tests: \n";
+  const brktRead1 = async () => {
+    let testResults = results + "Read 1 Brkt tests: \n";
     passed = true;
 
     const readInvalidId = async (id: string) => {
@@ -485,7 +547,7 @@ export const DbPots = () => {
         });
         if (invalidResponse.status !== 404) {
           testResults += addToResults(
-            `Read 1 Pot Error: did not return 404 for invalid id ${id}`,
+            `Read 1 Brkt Error: did not return 404 for invalid id ${id}`,
             false
           );
           return {
@@ -494,79 +556,91 @@ export const DbPots = () => {
           };
         } else {
           testResults += addToResults(
-            `Read 1 Pot, non 404 response for invalid id: ${id}`
+            `Read 1 Brkt, non 404 response for invalid id: ${id}`
           );
           return {
-            error: `Error Reading 1 Pot, non 404 response for invalid id: ${id}`,
+            error: `Error Reading 1 Brkt, non 404 response for invalid id: ${id}`,
             status: invalidResponse.status,
           };
         }
       } catch (error: any) {
         if (error.response.status === 404) {
-          testResults += addToResults(`DID NOT Read 1 Pot: invalid id: ${id}`);
+          testResults += addToResults(`DID NOT Read 1 Brkt: invalid id: ${id}`);
           return {
             error: `invalid id: ${id}`,
             status: 404,
           };
         } else {
           testResults += addToResults(
-            `Read 1 Pot Error: did not return 404 for invalid id: ${id}`,
+            `Read 1 Brkt Error: did not return 404 for invalid id: ${id}`,
             false
           );
           return {
-            error: `Error Reading 1 Pot, non 404 response for invalid id: ${id}`,
+            error: `Error Reading 1 Brkt, non 404 response for invalid id: ${id}`,
             status: error.response.status,
           };
         }
       }
     };
 
-    const testPot: potType = {
-      ...potToUpdate,
+    const testBrkt: brktType = {
+      ...brktToUpdate,
     };
     try {
       const response = await axios({
         method: "get",
         withCredentials: true,
-        url: potIdUrl,
+        url: brktIdUrl,
       });
       if (response.status === 200) {
         testResults += addToResults(
-          `Success: Read 1 Pot: ${response.data.pot.pot_type}`,
+          `Success: Read 1 Brkt: ${response.data.brkt.fee}`,
           true
         );
-        const readPot: potType = response.data.pot;
-        if (readPot.div_id !== testPot.div_id) {
-          testResults += addToResults("Read 1 Pot div_id !== testPot.div_id", false);
-        } else if (readPot.squad_id !== testPot.squad_id) {
-          testResults += addToResults("Read 1 Pot squad_id !== testPot.squad_id", false);
-        } else if (readPot.pot_type !== testPot.pot_type) {
-          testResults += addToResults("Read 1 Pot pot_type !== testPot.pot_type", false);
-        } else if (readPot.fee !== testPot.fee) {
-          testResults += addToResults("Read 1 Pot fee !== testPot.fee", false);
-        } else if (readPot.sort_order !== testPot.sort_order) {
+        const readBrkt: brktType = response.data.brkt;
+        if (readBrkt.div_id !== testBrkt.div_id) {
+          testResults += addToResults("Read 1 Brkt div_id !== testBrkt.div_id", false);
+        } else if (readBrkt.squad_id !== testBrkt.squad_id) {
+          testResults += addToResults("Read 1 Brkt squad_id !== testBrkt.squad_id", false);
+        } else if (readBrkt.fee !== testBrkt.fee) {
+          testResults += addToResults("Read 1 Brkt fee !== testBrkt.fee", false);
+        } else if (readBrkt.start !== testBrkt.start) {
+          testResults += addToResults("Read 1 Brkt start !== testBrkt.start", false);
+        } else if (readBrkt.games !== testBrkt.games) {
+          testResults += addToResults("Read 1 Brkt games !== testBrkt.games", false);
+        } else if (readBrkt.players !== testBrkt.players) {
+          testResults += addToResults("Read 1 Brkt players !== testBrkt.players", false);
+        } else if (readBrkt.first !== testBrkt.first) {
+          testResults += addToResults("Read 1 Brkt first !== testBrkt.first", false);
+        } else if (readBrkt.second !== testBrkt.second) {
+          testResults += addToResults("Read 1 Brkt second !== testBrkt.second", false);
+        } else if (readBrkt.admin !== testBrkt.admin) {
+          testResults += addToResults("Read 1 Brkt admin !== testBrkt.admin", false);
+        } else if (readBrkt.fsa !== testBrkt.fsa) {
+          testResults += addToResults("Read 1 Brkt fsa !== testBrkt.fsa", false);
+        } else if (readBrkt.sort_order !== testBrkt.sort_order) {
           testResults += addToResults(
-            "Read 1 Pot sort_order !== testPot.sort_order",
+            "Read 1 Brkt sort_order !== testBrkt.sort_order",
             false
           );
         } else {
-          testResults += addToResults(`Read 1 Pot === testPot`);
+          testResults += addToResults(`Read 1 Brkt === testBrkt`);
         }
       } else {
         testResults += addToResults(
-          `Error reading 1 pot, response status: ${response.status}`,
+          `Error reading 1 brkt, response status: ${response.status}`,
           false
         );
         return {
-          error: "Did not read 1 pot",
+          error: "Did not read 1 brkt",
           status: response.status,
         };
       }
 
       // test invalid url
       await readInvalidId("abc_123");
-      // test non existing pot
-      await readInvalidId("pot_12345678901234567890123456789012");
+      // test non existing brkt
+      await readInvalidId("brk_12345678901234567890123456789012");
 
       return response.data;
     } catch (error: any) {
@@ -578,16 +652,16 @@ export const DbPots = () => {
       };
     } finally {
       if (passed) {
-        testResults += addToResults(`Read 1 Pot tests: PASSED`, true);
+        testResults += addToResults(`Read 1 Brkt tests: PASSED`, true);
       } else {
-        testResults += addToResults(`Read 1 Pot tests: FAILED`, false);
+        testResults += addToResults(`Read 1 Brkt tests: FAILED`, false);
       }
       setResults(testResults);
     }
   };
 
-  const potReadForDiv = async () => {
-    let testResults = results + "Read Pots for a Div tests: \n";
+  const brktReadForDiv = async () => {
+    let testResults = results + "Read Brkts for a Div tests: \n";
     passed = true;
 
     const validReadForDiv = async (divId: string) => {
@@ -598,64 +672,64 @@ export const DbPots = () => {
           url: url + "/div/" + divId,
         });
         if (response.status === 200) {
-          testResults += addToResults(`Success: Read Pots for Div, div_id: ${divId}`);
-          const readPots: potType[] = response.data.pots;
-          if (divId === multiPotsDivId) {
-            if (readPots.length !== 2) {
+          testResults += addToResults(`Success: Read Brkts for Div, div_id: ${divId}`);
+          const readBrkts: brktType[] = response.data.brkts;
+          if (divId === multiBrktsDivId) {
+            if (readBrkts.length !== 2) {
               testResults += addToResults(
-                "Error: Read Pots for Div length !== 2",
+                "Error: Read Brkts for Div length !== 2",
                 false
               );
               return {
-                error: "Error: Read Pots for Div, length !== 2",
+                error: "Error: Read Brkts for Div, length !== 2",
                 status: 404,
               };
             }
-            readPots.forEach((pot: potType) => {
+            readBrkts.forEach((brkt: brktType) => {
               if (
                 !(
-                  pot.id === "pot_98b3a008619b43e493abf17d9f462a65" ||
-                  pot.id === "pot_ab80213899ea424b938f52a062deacfe"
+                  brkt.id === "brk_5109b54c2cc44ff9a3721de42c80c8c1" ||
+                  brkt.id === "brk_6ede2512c7d4409ca7b055505990a499"
                 )
               ) {
                 testResults += addToResults(
-                  "Error: Read Pots for Div pot.id invalid",
+                  "Error: Read Brkts for Div brkt.id invalid",
                   false
                 );
                 return {
-                  error: "Error: Read Pots for Div, pot.id invalid",
+                  error: "Error: Read Brkts for Div, brkt.id invalid",
                   status: 404,
                 };
               }
             });
-          } else if (divId === noPotsDivId) {
-            if (readPots.length !== 0) {
+          } else if (divId === noBrktsDivId) {
+            if (readBrkts.length !== 0) {
               testResults += addToResults(
-                "Error: Read Pots for Div length !== 0",
+                "Error: Read Brkts for Div length !== 0",
                 false
               );
               return {
-                error: "Error: Read Pots for Div, length !== 0",
+                error: "Error: Read Brkts for Div, length !== 0",
                 status: 404,
               };
             }
           }
           testResults += addToResults(
-            `Success: Read Pots for Div, ${readPots.length} rows returned`
+            `Success: Read Brkts for Div, ${readBrkts.length} rows returned`
           );
         } else {
           testResults += addToResults(
-            `Error reading pots for div, response status: ${response.status}`,
+            `Error reading brkts for div, response status: ${response.status}`,
             false
           );
           return {
-            error: "Did not read pots for div",
+            error: "Did not read brkts for div",
             status: response.status,
           };
         }
-        return response.data.pots;
+        return response.data.brkts;
       } catch (error: any) {
-        testResults += addToResults(`Read Pots for Div Error: ${error.message}`, false);
+        testResults += addToResults(`Read Brkts for Div Error: ${error.message}`, false);
         return {
           error: error.message,
           status: 404,
@@ -672,7 +746,7 @@ export const DbPots = () => {
         });
         if (invalidResponse.status !== 404) {
           testResults += addToResults(
-            `Read Pots for Div Error: did not return 404 for invalid id ${divId}`,
+            `Read Brkts for Div Error: did not return 404 for invalid id ${divId}`,
             false
           );
           return {
@@ -681,17 +755,17 @@ export const DbPots = () => {
           };
         } else {
           testResults += addToResults(
-            `Read Pots for Div, non 404 response for invalid id: ${divId}`
+            `Read Brkts for Div, non 404 response for invalid id: ${divId}`
           );
           return {
-            error: `Error Reading Pots for Div, non 404 response for invalid id: ${divId}`,
+            error: `Error Reading Brkts for Div, non 404 response for invalid id: ${divId}`,
             status: invalidResponse.status,
           };
         }
       } catch (error: any) {
         if (error.response.status === 404) {
           testResults += addToResults(
-            `DID NOT Read Pots for Div: invalid id: ${divId}`
+            `DID NOT Read Brkts for Div: invalid id: ${divId}`
           );
           return {
             error: `invalid id: ${divId}`,
@@ -699,11 +773,11 @@ export const DbPots = () => {
           };
         } else {
           testResults += addToResults(
-            `Read Pots for Div Error: did not return 404 for invalid id: ${divId}`,
+            `Read Brkts for Div Error: did not return 404 for invalid id: ${divId}`,
             false
           );
           return {
-            error: `Error Reading Pots for Div, non 404 response for invalid id: ${divId}`,
+            error: `Error Reading Brkts for Div, non 404 response for invalid id: ${divId}`,
             status: error.response.status,
           };
         }
@@ -711,8 +785,8 @@ export const DbPots = () => {
     };
 
     try {
-      await validReadForDiv(multiPotsDivId);
-      await validReadForDiv(noPotsDivId);
+      await validReadForDiv(multiBrktsDivId);
+      await validReadForDiv(noBrktsDivId);
 
       await invalidReadForDiv("tmt_123");
       await invalidReadForDiv("sqd_12345678901234567890123456789012");
@@ -727,16 +801,16 @@ export const DbPots = () => {
       };
     } finally {
       if (passed) {
-        testResults += addToResults(`Read Pots for a Div tests: PASSED`);
+        testResults += addToResults(`Read Brkts for a Div tests: PASSED`);
       } else {
-        testResults += addToResults(`Read Pots for a Div tests: FAILED`, false);
+        testResults += addToResults(`Read Brkts for a Div tests: FAILED`, false);
       }
       setResults(testResults);
     }
   };
 
-  const potReadForSquad = async () => {
-    let testResults = results + "Read Pots for a Squad tests: \n";
+  const brktReadForSquad = async () => {
+    let testResults = results + "Read Brkts for a Squad tests: \n";
     passed = true;
 
     const validReadForSquad = async (squadId: string) => {
@@ -747,64 +821,64 @@ export const DbPots = () => {
           url: url + "/squad/" + squadId,
         });
         if (response.status === 200) {
-          testResults += addToResults(`Success: Read Pots for Squad, squad_id: ${squadId}`);
-          const readPots: potType[] = response.data.pots;
-          if (squadId === multiPotsSquadId) {
-            if (readPots.length !== 2) {
+          testResults += addToResults(`Success: Read Brkts for Squad, squad_id: ${squadId}`);
+          const readBrkts: brktType[] = response.data.brkts;
+          if (squadId === multiBrktsSquadId) {
+            if (readBrkts.length !== 2) {
               testResults += addToResults(
-                "Error: Read Pots for Squad length !== 2",
+                "Error: Read Brkts for Squad length !== 2",
                 false
               );
               return {
-                error: "Error: Read Pots for Squad, length !== 2",
+                error: "Error: Read Brkts for Squad, length !== 2",
                 status: 404,
               };
             }
-            readPots.forEach((pot: potType) => {
+            readBrkts.forEach((brkt: brktType) => {
               if (
                 !(
-                  pot.id === "pot_98b3a008619b43e493abf17d9f462a65" ||
-                  pot.id === "pot_ab80213899ea424b938f52a062deacfe"
+                  brkt.id === "brk_5109b54c2cc44ff9a3721de42c80c8c1" ||
+                  brkt.id === "brk_6ede2512c7d4409ca7b055505990a499"
                 )
               ) {
                 testResults += addToResults(
-                  "Error: Read Pots for Squad pot.id invalid",
+                  "Error: Read Brkts for Squad brkt.id invalid",
                   false
                 );
                 return {
-                  error: "Error: Read Pots for Squad, pot.id invalid",
+                  error: "Error: Read Brkts for Squad, brkt.id invalid",
                   status: 404,
                 };
               }
             });
-          } else if (squadId === noPotsDivId) {
-            if (readPots.length !== 0) {
+          } else if (squadId === noBrktsDivId) {
+            if (readBrkts.length !== 0) {
               testResults += addToResults(
-                "Error: Read Pots for Squad length !== 0",
+                "Error: Read Brkts for Squad length !== 0",
                 false
               );
               return {
-                error: "Error: Read Pots for Squad, length !== 0",
+                error: "Error: Read Brkts for Squad, length !== 0",
                 status: 404,
               };
             }
           }
           testResults += addToResults(
-            `Success: Read Pots for Squad, ${readPots.length} rows returned`
+            `Success: Read Brkts for Squad, ${readBrkts.length} rows returned`
           );
         } else {
           testResults += addToResults(
-            `Error reading pots for squad, response status: ${response.status}`,
+            `Error reading brkts for squad, response status: ${response.status}`,
             false
           );
           return {
-            error: "Did not read pots for squad",
+            error: "Did not read brkts for squad",
             status: response.status,
           };
         }
-        return response.data.pots;
+        return response.data.brkts;
       } catch (error: any) {
-        testResults += addToResults(`Read Pots for Squad Error: ${error.message}`, false);
+        testResults += addToResults(`Read Brkts for Squad Error: ${error.message}`, false);
         return {
           error: error.message,
           status: 404,
@@ -821,7 +895,7 @@ export const DbPots = () => {
         });
         if (invalidResponse.status !== 404) {
           testResults += addToResults(
-            `Read Pots for Squad Error: did not return 404 for invalid id ${squadId}`,
+            `Read Brkts for Squad Error: did not return 404 for invalid id ${squadId}`,
             false
           );
           return {
@@ -830,17 +904,17 @@ export const DbPots = () => {
           };
         } else {
           testResults += addToResults(
-            `Read Pots for Squad, non 404 response for invalid id: ${squadId}`
+            `Read Brkts for Squad, non 404 response for invalid id: ${squadId}`
           );
           return {
-            error: `Error Reading Pots for Squad, non 404 response for invalid id: ${squadId}`,
+            error: `Error Reading Brkts for Squad, non 404 response for invalid id: ${squadId}`,
             status: invalidResponse.status,
           };
         }
       } catch (error: any) {
         if (error.response.status === 404) {
           testResults += addToResults(
-            `DID NOT Read Pots for Squad: invalid id: ${squadId}`
+            `DID NOT Read Brkts for Squad: invalid id: ${squadId}`
           );
           return {
             error: `invalid id: ${squadId}`,
@@ -848,11 +922,11 @@ export const DbPots = () => {
           };
         } else {
           testResults += addToResults(
-            `Read Pots for Squad Error: did not return 404 for invalid id: ${squadId}`,
+            `Read Brkts for Squad Error: did not return 404 for invalid id: ${squadId}`,
             false
           );
           return {
-            error: `Error Reading Pots for Squad, non 404 response for invalid id: ${squadId}`,
+            error: `Error Reading Brkts for Squad, non 404 response for invalid id: ${squadId}`,
             status: error.response.status,
           };
         }
@@ -860,11 +934,11 @@ export const DbPots = () => {
     };
 
     try {
-      await validReadForSquad(multiPotsSquadId);
-      await validReadForSquad(noPotsSquadId);
+      await validReadForSquad(multiBrktsSquadId);
+      await validReadForSquad(noBrktsSquadId);
 
       await invalidReadForSquad("tmt_123");
-      await invalidReadForSquad("div_12345678901234567890123456789012");
+      await invalidReadForSquad("sqd_12345678901234567890123456789012");
       return {
         divs: [],
         status: 200,
@@ -876,60 +950,90 @@ export const DbPots = () => {
       };
     } finally {
       if (passed) {
-        testResults += addToResults(`Read Pots for a Squad tests: PASSED`);
+        testResults += addToResults(`Read Brkts for a Squad tests: PASSED`);
       } else {
-        testResults += addToResults(`Read Pots for a Squad tests: FAILED`, false);
+        testResults += addToResults(`Read Brkts for a Squad tests: FAILED`, false);
       }
       setResults(testResults);
     }
   };
 
-  const potUpdate = async () => {
-    let testResults = results + "Update Pot tests: \n";
+  const brktUpdate = async () => {
+    let testResults = results + "Update Brkt tests: \n";
     passed = true;
 
     const updateValid = async () => {
       try {
-        const updateJSON = JSON.stringify(potUpdatedTo);
+        const updateJSON = JSON.stringify(brktUpdatedTo);
         const response = await axios({
           method: "put",
           data: updateJSON,
           withCredentials: true,
-          url: potIdUrl,
+          url: brktIdUrl,
         });
         if (response.status !== 200) {
           const errMsg = (response as any).message;
           testResults += addToResults(`Error: ${errMsg.message}`, false);
           return response;
         }
-        const updated: potType = response.data.pot;
-        if (updated.div_id !== potUpdatedTo.div_id) {
+        const updated: brktType = response.data.brkt;
+        if (updated.div_id !== brktUpdatedTo.div_id) {
           testResults += addToResults(
-            "Updated pot div_id !== potUpdatedTo.div_id",
+            "Updated brkt div_id !== potUpdatedTo.div_id",
             false
           );
-        } else if (updated.squad_id !== potUpdatedTo.squad_id) {
+        } else if (updated.squad_id !== brktUpdatedTo.squad_id) {
           testResults += addToResults(
-            "Updated pot squad_id !== potUpdatedTo.squad_id",
+            "Updated brkt squad_id !== potUpdatedTo.squad_id",
             false
           );
-        } else if (updated.pot_type !== potUpdatedTo.pot_type) {
+        } else if (updated.fee !== brktUpdatedTo.fee) {
           testResults += addToResults(
-            "Updated pot div_name !== potUpdatedTo.pot_type",
+            "Updated brkt div_name !== potUpdatedTo.fee",
             false
           );
-        } else if (updated.fee !== potUpdatedTo.fee) {
+        } else if (updated.start !== brktUpdatedTo.start) {
           testResults += addToResults(
-            "Updated pot fee !== potUpdatedTo.fee",
+            "Updated brkt start !== potUpdatedTo.start",
             false
           );
-        } else if (updated.sort_order !== potUpdatedTo.sort_order) {
+        } else if (updated.games !== brktUpdatedTo.games) {
           testResults += addToResults(
-            "Updated pot sort_order !== potUpdatedTo.sort_order",
+            "Updated brkt games !== potUpdatedTo.games",
+            false
+          );
+        } else if (updated.players !== brktUpdatedTo.players) {
+          testResults += addToResults(
+            "Updated brkt players !== potUpdatedTo.players",
+            false
+          );
+        } else if (updated.first !== brktUpdatedTo.first) {
+          testResults += addToResults(
+            "Updated brkt first !== potUpdatedTo.first",
+            false
+          );
+        } else if (updated.second !== brktUpdatedTo.second) {
+          testResults += addToResults(
+            "Updated brkt second !== potUpdatedTo.second",
+            false
+          );
+        } else if (updated.admin !== brktUpdatedTo.admin) {
+          testResults += addToResults(
+            "Updated brkt admin !== potUpdatedTo.admin",
+            false
+          );
+        } else if (updated.fsa !== brktUpdatedTo.fsa) {
+          testResults += addToResults(
+            "Updated brkt fsa !== potUpdatedTo.fsa",
+            false
+          );
+        } else if (updated.sort_order !== brktUpdatedTo.sort_order) {
+          testResults += addToResults(
+            "Updated brkt sort_order !== potUpdatedTo.sort_order",
             false
           );
         } else {
-          testResults += addToResults(`Updated Pot: ${updated.pot_type}`);
+          testResults += addToResults(`Updated Brkt: ${updated.id}`);
         }
         return response;
       } catch (error: any) {
@@ -941,37 +1045,37 @@ export const DbPots = () => {
     const invalidUpdate = async (propertyName: string, value: any) => {
       try {
         const invalidJSON = JSON.stringify({
-          ...potToUpdate,
+          ...brktToUpdate,
           [propertyName]: value,
         });
         const invalidResponse = await axios({
           method: "put",
           data: invalidJSON,
           withCredentials: true,
-          url: potIdUrl,
+          url: brktIdUrl,
         });
         if (invalidResponse.status !== 422) {
           testResults += addToResults(
-            `Update Pot Error: did not return 422 for invalid ${propertyName}`,
+            `Update Brkt Error: did not return 422 for invalid ${propertyName}`,
             false
           );
           return {
-            error: `Error updating pot with invalid ${propertyName}`,
+            error: `Error updating brkt with invalid ${propertyName}`,
             status: invalidResponse.status,
           };
         } else {
           testResults += addToResults(
-            `Update Pot, non 422 response for pot: ${potToUpdate.pot_type} - invalid data`
+            `Update Brkt, non 422 response for brkt: ${brktToUpdate.id} - invalid data`
           );
           return {
-            error: "Error Updating Pot, non 422 response for invalid data",
+            error: "Error Updating Brkt, non 422 response for invalid data",
             status: invalidResponse.status,
           };
         }
       } catch (error: any) {
         if (error.response.status === 422) {
           testResults += addToResults(
-            `DID NOT Update pot: ${potToUpdate.pot_type} - invalid ${propertyName}`
+            `DID NOT Update brkt: ${brktToUpdate.id} - invalid ${propertyName}`
           );
           return {
             error: "",
@@ -983,7 +1087,7 @@ export const DbPots = () => {
             false
           );
           return {
-            error: `Error Updating pot with invalid ${propertyName}`,
+            error: `Error Updating brkt with invalid ${propertyName}`,
             status: error.response.status,
           };
         }
@@ -993,7 +1097,7 @@ export const DbPots = () => {
     const dontUpdateInvalidId = async (id: string) => {
       try {
         const invalidUrl = url + "/" + id;
-        const invalidJSON = JSON.stringify(potUpdatedTo);
+        const invalidJSON = JSON.stringify(brktUpdatedTo);
         const notUpdatedResponse = await axios({
           method: "put",
           data: invalidJSON,
@@ -1005,19 +1109,19 @@ export const DbPots = () => {
           testResults += addToResults(`Error: updated invalid id: ${id}`);
           return notUpdatedResponse;
         } else {
-          testResults += addToResults(`DID NOT update Pot, invalid id: ${id}`);
+          testResults += addToResults(`DID NOT update Brkt, invalid id: ${id}`);
         }
         return notUpdatedResponse;
       } catch (error: any) {
         if (error.response.status === 404) {
-          testResults += addToResults(`DID NOT update Pot, invalid id: ${id}`);
+          testResults += addToResults(`DID NOT update Brkt, invalid id: ${id}`);
         } else {
           testResults += addToResults(
-            `Update Pot Error: did not return 404 for invalid id: ${id}`,
+            `Update Brkt Error: did not return 404 for invalid id: ${id}`,
             false
           );
           return {
-            error: `Error Updating Pot, non 404 response for invalid id: ${id}`,
+            error: `Error Updating Brkt, non 404 response for invalid id: ${id}`,
             status: error.response.status,
           };
         }
@@ -1025,10 +1129,10 @@ export const DbPots = () => {
     };
 
     const dontUpdateDuplicate = async () => {
-      // get url with id of pot to duplicate
-      const duplicatIdUrl = url + "/" + "pot_ab80213899ea424b938f52a062deacfe";
+      // get url with id of brkt to duplicate
+      const duplicatIdUrl = url + "/" + "brk_37345eb6049946ad83feb9fdbb43a307";
       try {
-        const dupJSON = JSON.stringify(potDuplicate);
+        const dupJSON = JSON.stringify(brktDuplicate);
         const response = await axios({
           method: "put",
           data: dupJSON,
@@ -1036,25 +1140,25 @@ export const DbPots = () => {
           url: duplicatIdUrl,
         });
         if (response.status === 200) {
-          testResults += addToResults(`Error: updated duplicate pot_type+div_id`, false);
+          testResults += addToResults(`Error: updated duplicate start+div_id`, false);
           return response;
         } else {
           testResults += addToResults(
-            `DID NOT update Pot, duplicate pot_type+div_id`,
+            `DID NOT update Brkt, duplicate start+div_id`,
             false
           );
         }
         return response;
       } catch (error: any) {
         if (error.response.status === 422) {
-          testResults += addToResults(`DID NOT update Pot, duplicate pot_type+div_id`);
+          testResults += addToResults(`DID NOT update Brkt, duplicate start+div_id`);
         } else {
           testResults += addToResults(
-            `Update Pot Error: did not return 422 for duplicate pot_type+div_id`,
+            `Update Brkt Error: did not return 422 for duplicate start+div_id`,
             false
           );
           return {
-            error: `Error Updating Pot, non 422 response for duplicate pot_type+div_id`,
+            error: `Error Updating Brkt, non 422 response for duplicate start+div_id`,
             status: error.response.status,
           };
         }
@@ -1063,20 +1167,20 @@ export const DbPots = () => {
     };
 
     try {
-      // 1) valid full pot object
+      // 1) valid full brkt object
       const updated = await updateValid();
 
-      // 2) invalid Pot object
+      // 2) invalid Brkt object
       await invalidUpdate("div_id", "bwl_123");
       await invalidUpdate("squad_id", "usr_12345678901234567890123456789012");
-      await invalidUpdate("pot_type", "Test");      
       await invalidUpdate("fee", "0");
+      await invalidUpdate("start", 0);      
       await invalidUpdate("sort_order", "abc");
 
-      // 3) invalid Pot id
+      // 3) invalid Brkt id
       await dontUpdateInvalidId("abc_123");
-      // 4 non existing Pot id
-      await dontUpdateInvalidId("pot_12345678901234567890123456789012");
+      // 4 non existing Brkt id
+      await dontUpdateInvalidId("brk_12345678901234567890123456789012");
 
       // 5) duplicate Div
       await dontUpdateDuplicate();
@@ -1090,18 +1194,18 @@ export const DbPots = () => {
         status: 404,
       };
     } finally {
-      const reset = await resetPotToUpdate(false);
+      const reset = await resetBrktToUpdate(false);
       if (passed) {
-        testResults += addToResults(`Update Pot tests: PASSED`, true);
+        testResults += addToResults(`Update Brkt tests: PASSED`, true);
       } else {
-        testResults += addToResults(`Update Pot tests: FAILED`, false);
+        testResults += addToResults(`Update Brkt tests: FAILED`, false);
       }
       setResults(testResults);
     }
   };
 
-  const potPatch = async () => {
-    let testResults = results + "Patch Pot tests: \n";
+  const brktPatch = async () => {
+    let testResults = results + "Patch Brkt tests: \n";
     passed = true;
 
     const doPatch = async (propertyName: string, value: any, matchValue: any) => {
@@ -1113,18 +1217,18 @@ export const DbPots = () => {
           method: "patch",
           data: patchJSON,
           withCredentials: true,
-          url: potIdUrl,
+          url: brktIdUrl,
         });
         if (response.status === 200) {
-          if (response.data.pot[propertyName] === matchValue) {
+          if (response.data.brkt[propertyName] === matchValue) {
             testResults += addToResults(
-              `Patched Pot: ${potToUpdate.pot_type} - just ${propertyName}`
+              `Patched Brkt: ${brktToUpdate.id} - just ${propertyName}`
             );
           } else {
-            testResults += addToResults(`DID NOT Patch Pot ${propertyName}`, false);
+            testResults += addToResults(`DID NOT Patch Brkt ${propertyName}`, false);
           }
           return {
-            data: response.data.pot,
+            data: response.data.brkt,
             status: response.status,
           };
         } else {
@@ -1135,13 +1239,13 @@ export const DbPots = () => {
           };
         }
       } catch (error: any) {
-        testResults += addToResults(`doPatch Error: ${error.message}`, false);
+        testResults += addToResults(`doPatch Error: ${error.message} for ${propertyName}`, false);
         return {
           error: error.message,
           status: 404,
         };
       } finally {
-        const reset = await resetPotToUpdate(false);
+        const reset = await resetBrktToUpdate(false);
       }
     };
 
@@ -1154,7 +1258,7 @@ export const DbPots = () => {
           method: "patch",
           data: dontPatchJSON,
           withCredentials: true,
-          url: potIdUrl,
+          url: brktIdUrl,
         });
         if (response.status !== 422) {
           testResults += addToResults(
@@ -1167,7 +1271,7 @@ export const DbPots = () => {
           };
         } else {
           testResults += addToResults(
-            `Patch Pot, non 422 response for pot: ${potToUpdate.pot_type} - invalid ${propertyName}`
+            `Patch Brkt, non 422 response for brkt: ${brktToUpdate.id} - invalid ${propertyName}`
           );
           return {
             error: "Error Patching Event",
@@ -1177,7 +1281,7 @@ export const DbPots = () => {
       } catch (error: any) {
         if (error.response.status === 422) {
           testResults += addToResults(
-            `DID NOT Patch Pot: ${potToUpdate.pot_type} - invalid ${propertyName}`
+            `DID NOT Patch Brkt: ${brktToUpdate.id} - invalid ${propertyName}`
           );
           return {
             error: "",
@@ -1199,7 +1303,7 @@ export const DbPots = () => {
     const dontPatchInvalidId = async (id: string) => {
       try {
         const invalidUrl = url + "/" + id;
-        const invalidJSON = JSON.stringify(potUpdatedTo);
+        const invalidJSON = JSON.stringify(brktUpdatedTo);
         const notUpdatedResponse = await axios({
           method: "patch",
           data: invalidJSON,
@@ -1211,24 +1315,71 @@ export const DbPots = () => {
           testResults += addToResults(`Error: patched invalid id: ${id}`);
           return notUpdatedResponse;
         } else {
-          testResults += addToResults(`DID NOT patch Pot, invalid id: ${id}`);
+          testResults += addToResults(`DID NOT patch Brkt, invalid id: ${id}`);
         }
         return notUpdatedResponse;
       } catch (error: any) {
         if (error.response.status === 404) {
-          testResults += addToResults(`DID NOT patch Pot, invalid id: ${id}`);
+          testResults += addToResults(`DID NOT patch Brkt, invalid id: ${id}`);
         } else {
           testResults += addToResults(
-            `Patch Pot Error: did not return 404 for invalid id: ${id}`,
+            `Patch Brkt Error: did not return 404 for invalid id: ${id}`,
             false
           );
           return {
-            error: `Error Patching Pot, non 404 response for invalid id: ${id}`,
+            error: `Error Patching Brkt, non 404 response for invalid id: ${id}`,
             status: error.response.status,
           };
         }
       }
     };
+
+    const doPatchFsa = async () => {      
+      try {
+        const patchJSON = JSON.stringify({
+          fee: "3",
+          first: "15",
+          second: "6",
+          admin: "3",
+        });
+        const response = await axios({
+          method: "patch",
+          data: patchJSON,
+          withCredentials: true,
+          url: brktIdUrl,
+        });
+        if (response.status === 200) {
+          if (response.data.brkt.fee === '3' &&
+              response.data.brkt.first === '15' &&
+              response.data.brkt.second === '6' &&
+              response.data.brkt.admin === '3') {
+            testResults += addToResults(
+              `Patched Brkt: ${brktToUpdate.id} - fee & fsa values`
+            );
+          } else {
+            testResults += addToResults(`DID NOT Patch Brkt fee & fsa values`, false);
+          }
+          return {
+            data: response.data.brkt,
+            status: response.status,
+          };
+        } else {
+          testResults += addToResults(`doPatch Error: fee & fsa values`, false);
+          return {
+            error: `Error Patching fee & fsa values`,
+            status: response.status,
+          };
+        }        
+      } catch (err: any) {
+        testResults += addToResults(`doPatch Error: ${err.message} for fee & fsa values`, false);
+        return {
+          error: err.message,
+          status: 404,
+        };
+      } finally {
+        const reset = await resetBrktToUpdate(false);        
+      }
+    }
 
     try {      
 
@@ -1238,19 +1389,30 @@ export const DbPots = () => {
       await doPatch("squad_id", 'sqd_42be0f9d527e4081972ce8877190489d', 'sqd_42be0f9d527e4081972ce8877190489d');
       await dontPatch("squad_id", 'sqd_12345678901234567890123456789012');
 
-      await doPatch("pot_type", 'Series', 'Series');
-      await dontPatch("pot_type", 'Test');
+      await doPatch("start", 2, 2);
+      await dontPatch("start", 0);
 
-      await doPatch("fee", '15', '15');
-      await dontPatch("fee", null);
+      await dontPatch("fee", '15');
+      await dontPatch("fee", 'abc');
+
+      await dontPatch("first", '15');
+      await dontPatch("first", '');
+
+      await dontPatch("second", '15');
+      await dontPatch("second", '-1');
+
+      await dontPatch('admin', '4');
+      await dontPatch('admin', '1234567890');
 
       await doPatch("sort_order", 5, 5);
       await dontPatch("sort_order", -1);
 
+      await doPatchFsa();
+
       await dontPatchInvalidId("abc_123");
       await dontPatchInvalidId("bwl_12345678901234567890123456789012");
 
-      return potToUpdate;
+      return brktToUpdate;
     } catch (error: any) {
       testResults += addToResults(`Patch Error: ${error.message}`, false);
       return {
@@ -1258,18 +1420,18 @@ export const DbPots = () => {
         status: 404,
       };
     } finally {
-      const reset = await resetPotToUpdate(false);
+      const reset = await resetBrktToUpdate(false);
       if (passed) {
-        testResults += addToResults(`Patch Pot tests: PASSED`, true);
+        testResults += addToResults(`Patch Brkt tests: PASSED`, true);
       } else {
-        testResults += addToResults(`Patch Pot tests: FAILED`, false);
+        testResults += addToResults(`Patch Brkt tests: FAILED`, false);
       }
       setResults(testResults);
     }
   };
 
-  const potDelete = async (potIdToDel: string, testing: boolean = true) => {
-    let testResults = results + "Delete Pot tests: \n";
+  const brktDelete = async (brktIdToDel: string, testing: boolean = true) => {
+    let testResults = results + "Delete Brkt tests: \n";
     if (!testing) {
       passed = true;
     }    
@@ -1284,21 +1446,21 @@ export const DbPots = () => {
         });
         if (cantDelResponse.status === 404) {
           testResults += addToResults(
-            `Did not not delete Pot with invalid id: "${invalidId}"`
+            `Did not not delete Brkt with invalid id: "${invalidId}"`
           );
         } else {
           testResults += addToResults(
-            `Error: Could not delete Pot with invalid id: "${invalidId}"`,
+            `Error: Could not delete Brkt with invalid id: "${invalidId}"`,
             false
           );
         }
       } catch (error: any) {
         if (error.response.status === 404) {
           testResults += addToResults(
-            `Did not not delete Pot - invalid id: "${invalidId}"`
+            `Did not not delete Brkt - invalid id: "${invalidId}"`
           );
         } else {
-          testResults += addToResults(`Delete Pot Error: ${error.message}`, false);
+          testResults += addToResults(`Delete Brkt Error: ${error.message}`, false);
           return {
             error: error.message,
             status: error.response.status,
@@ -1307,7 +1469,7 @@ export const DbPots = () => {
       }
     };
 
-    const delUrl = url + "/" + potIdToDel;
+    const delUrl = url + "/" + brktIdToDel;
     try {
       const response = await axios({
         method: "delete",
@@ -1315,42 +1477,42 @@ export const DbPots = () => {
         url: delUrl,
       });
       if (response.status === 200) {
-        // if potIdToDel !== potToDel.id, delete called from reset
+        // if brktIdToDel !== brktToDel.id, delete called from reset
         // DO NOT update on success
         // only show update on screen if in delete test
-        if (potIdToDel === potToDel.id) {
-          if (response.data.deleted.pot_type === potToDel.pot_type) {
+        if (brktIdToDel === brktToDel.id) {
+          if (response.data.deleted.fee === brktToDel.fee) {
             testResults += addToResults(
-              `Success: Deleted Pot: ${potToDel.pot_type}`
+              `Success: Deleted Brkt: ${brktToDel.fee} - got fsa in response`
             );
           } else {
             testResults += addToResults(
-              `Error Deleted Pot: ${potToDel.pot_type}: no pot_type in response`,
+              `Error Deleted Brkt: ${brktToDel.fee}: no fsa in response`,
               false
             );
             return {
-              error: "No pot_type in response",
+              error: "No fsa in response",
               status: 404,
             };
           }
           testResults += addToResults(
-            `Success: Deleted Pot: ${response.data.deleted.pot_type}`
+            `Success: Deleted Brkt: ${response.data.deleted.fee}`
           );
         }
       } else {
-        testResults += addToResults("Error: could not delete pot", false);        
+        testResults += addToResults("Error: could not delete brkt", false);        
         return {
-          error: "Could not delete pot",
+          error: "Could not delete brkt",
           status: 404,
         };
       }
 
       if (testing) {
-        // try to delete Pot that is parent to tmnt
+        // try to delete Brkt that is parent to tmnt
         // no child tables for pots
         
         await invalidDelete("abc_123");
-        await invalidDelete("pot_12345678901234567890123456789012");
+        await invalidDelete("brk_12345678901234567890123456789012");
       }
       return response.data;
     } catch (error: any) {
@@ -1364,12 +1526,12 @@ export const DbPots = () => {
         status: 404,
       };
     } finally {
-      await reAddDeletedPot();
+      await reAddDeletedBrkt();
       if (testing) {
         if (passed) {
-          testResults += addToResults(`Delete Pot tests: PASSED`, true);
+          testResults += addToResults(`Delete Brkt tests: PASSED`, true);
         } else {
-          testResults += addToResults(`Delete Pot tests: FAILED`, false);
+          testResults += addToResults(`Delete Brkt tests: FAILED`, false);
         }
         setResults(testResults);
       }
@@ -1380,27 +1542,27 @@ export const DbPots = () => {
     let testResults: string = "";
     passed = true;
     try {
-      const reset = await resetPotToUpdate(false);
+      const reset = await resetBrktToUpdate(false);
       if (reset.error) {
         testResults += addToResults(`Error Resetting: ${reset.error}`, false);
         return;
       }
 
-      const allPots: any = await removeCreatedPot(true);
-      if (allPots.error) {
-        testResults += addToResults(`Error Resetting: ${allPots.error}`, false);
+      const allBrkts: any = await removeCreatedBrkt(true);
+      if (allBrkts.error) {
+        testResults += addToResults(`Error Resetting: ${allBrkts.error}`, false);
         return;
       }
 
-      const reAdded: any = await reAddDeletedPot();
+      const reAdded: any = await reAddDeletedBrkt();
       if (reAdded.error) {
         testResults += addToResults(`Error Resetting: ${reAdded.error}`, false);
         return;
       }
 
-      testResults += addToResults(`Reset Pots`);
+      testResults += addToResults(`Reset Brkts`);
       return {
-        divs: allPots,
+        divs: allBrkts,
         status: 200,
       };
     } catch (error: any) {
@@ -1415,7 +1577,7 @@ export const DbPots = () => {
   };
 
   const handleCrudChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setPotCrud(e.target.value);
+    setBrktCrud(e.target.value);
   };
 
   const handleClear = (e: React.FormEvent) => {
@@ -1428,54 +1590,54 @@ export const DbPots = () => {
     await resetAll();
   };
 
-  const handlePotTest = async (e: React.FormEvent) => {
+  const handleBrktTest = async (e: React.FormEvent) => {
     e.preventDefault();
-    switch (potCrud) {
+    switch (brktCrud) {
       case "create":
-        await potCreate();
+        await brktCreate();
         break;
       case "read":
-        await potReadAll(true);
+        await brktReadAll(true);
         break;
       case "read1":
-        await potRead1();
+        await brktRead1();
         break;
       case "update":
-        await potUpdate();
+        await brktUpdate();
         break;
       case "patch":
-        await potPatch();
+        await brktPatch();
         break;
       case "delete":
-        await potDelete(potToDel.id);
+        await brktDelete(brktToDel.id);
         break;
       case "readDiv":
-        await potReadForDiv();
+        await brktReadForDiv();
         break;
       case "readSquad":
-        await potReadForSquad();
+        await brktReadForSquad();
         break;
       default:
         break;
     }
   };
 
-  const handlePotTestAll = async (e: React.FormEvent) => {
+  const handleBrktTestAll = async (e: React.FormEvent) => {
     e.preventDefault();
     allResults = "Testing all...";
     passed = true;
     try {
-      await potCreate();
+      await brktCreate();
       allResults = results;
-      await potReadAll(true);
+      await brktReadAll(true);
       allResults = results;
-      await potRead1();
+      await brktRead1();
       allResults = results;
-      await potUpdate();
+      await brktUpdate();
       allResults = results;
-      await potPatch();
+      await brktPatch();
       allResults = results;
-      await potDelete(potToDel.id);
+      await brktDelete(brktToDel.id);
       allResults = results;
     } catch (error: any) {
       allResults += addToResults(`Test All Error: ${error.message}`, false);
@@ -1496,115 +1658,115 @@ export const DbPots = () => {
     <>
       <div className="row g-3 mb-3">
         <div className="col-sm-6">
-          <h4>Pots</h4>
+          <h4>Brackets</h4>
         </div>
         <div className="col-sm-2">
-          <button className="btn btn-success" id="potTest" onClick={handlePotTest}>
+          <button className="btn btn-success" id="brktTest" onClick={handleBrktTest}>
             Test
           </button>
         </div>
         {/* <div className="col-sm-2">
           <button
             className="btn btn-primary"
-            id="potTestAll"
-            onClick={handlePotTestAll}
+            id="brktTestAll"
+            onClick={handleBrktTestAll}
           >
             Test All
           </button>
         </div> */}
         <div className="col-sm-2">
-          <button className="btn btn-warning" id="potClear" onClick={handleClear}>
+          <button className="btn btn-warning" id="brktClear" onClick={handleClear}>
             Clear
           </button>
         </div>
         <div className="col-sm-2">
-          <button className="btn btn-info" id="potReset" onClick={handleReset}>
+          <button className="btn btn-info" id="brktReset" onClick={handleReset}>
             Reset
           </button>
         </div>
       </div>
       <div className="row g-3 mb-3">
         <div className="col-sm-2">
-          <label htmlFor="potCreate" className="form-check-label">
+          <label htmlFor="brktCreate" className="form-check-label">
             &nbsp;Create &nbsp;
           </label>
           <input
             type="radio"
             className="form-check-input"
-            id="potCreate"
-            name="pot"
+            id="brktCreate"
+            name="brkt"
             value="create"
-            checked={potCrud === "create"}
+            checked={brktCrud === "create"}
             onChange={handleCrudChange}
           />
         </div>
         <div className="col-sm-2">
-          <label htmlFor="potRead" className="form-check-label">
+          <label htmlFor="brktRead" className="form-check-label">
             &nbsp;Read All &nbsp;
           </label>
           <input
             type="radio"
             className="form-check-input"
-            id="potRead"
-            name="pot"
+            id="brktRead"
+            name="brkt"
             value="read"
-            checked={potCrud === "read"}
+            checked={brktCrud === "read"}
             onChange={handleCrudChange}
           />
         </div>
         <div className="col-sm-2">
-          <label htmlFor="potRead1" className="form-check-label">
+          <label htmlFor="brktRead1" className="form-check-label">
             &nbsp;Read 1 &nbsp;
           </label>
           <input
             type="radio"
             className="form-check-input"
-            id="potRead1"
-            name="pot"
+            id="brktRead1"
+            name="brkt"
             value="read1"
-            checked={potCrud === "read1"}
+            checked={brktCrud === "read1"}
             onChange={handleCrudChange}
           />
         </div>
         <div className="col-sm-2">
-          <label htmlFor="potUpdate" className="form-check-label">
+          <label htmlFor="brktUpdate" className="form-check-label">
             &nbsp;Update &nbsp;
           </label>
           <input
             type="radio"
             className="form-check-input"
-            id="potUpdate"
-            name="pot"
+            id="brktUpdate"
+            name="brkt"
             value="update"
-            checked={potCrud === "update"}
+            checked={brktCrud === "update"}
             onChange={handleCrudChange}
           />
         </div>
         <div className="col-sm-2">
-          <label htmlFor="potPatch" className="form-check-label">
+          <label htmlFor="brktPatch" className="form-check-label">
             &nbsp;Patch &nbsp;
           </label>
           <input
             type="radio"
             className="form-check-input"
-            id="potPatch"
-            name="pot"
+            id="brktPatch"
+            name="brkt"
             value="patch"
-            checked={potCrud === "patch"}
+            checked={brktCrud === "patch"}
             onChange={handleCrudChange}
           />
         </div>
         <div className="col-sm-2">
-          <label htmlFor="potDelete" className="form-check-label">
+          <label htmlFor="brktDelete" className="form-check-label">
             &nbsp;Delete &nbsp;
           </label>
           <input
             type="radio"
             className="form-check-input"
-            id="potDelete"
-            name="pot"
+            id="brktDelete"
+            name="brkt"
             value="delete"
-            checked={potCrud === "delete"}
+            checked={brktCrud === "delete"}
             onChange={handleCrudChange}
           />
         </div>
@@ -1612,30 +1774,30 @@ export const DbPots = () => {
       <div className="row g-3 mb-3">
         <div className="col-sm-2"></div>
         <div className="col-sm-2">
-          <label htmlFor="potReadDiv" className="form-check-label">
+          <label htmlFor="brktReadDiv" className="form-check-label">
             &nbsp;Read Div &nbsp;
           </label>
           <input
             type="radio"
             className="form-check-input"
-            id="potReadDiv"
-            name="pot"
+            id="brktReadDiv"
+            name="brkt"
             value="readDiv"
-            checked={potCrud === "readDiv"}
+            checked={brktCrud === "readDiv"}
             onChange={handleCrudChange}
           />
         </div>
         <div className="col-sm-3">
-          <label htmlFor="potReadSquad" className="form-check-label">
+          <label htmlFor="brktReadSquad" className="form-check-label">
             &nbsp;Read Squad &nbsp;
           </label>
           <input
             type="radio"
             className="form-check-input"
-            id="potReadSquad"
-            name="pot"
+            id="brktReadSquad"
+            name="brkt"
             value="readSquad"
-            checked={potCrud === "readSquad"}
+            checked={brktCrud === "readSquad"}
             onChange={handleCrudChange}
           />
         </div>
@@ -1643,8 +1805,8 @@ export const DbPots = () => {
       <div className="row g-3 mb-3">
         <div className="col-sm-12">
           <textarea
-            id="potResults"
-            name="potResults"
+            id="brktResults"
+            name="brktResults"
             rows={10}
             value={results}
             readOnly={true}

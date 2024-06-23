@@ -431,7 +431,7 @@ export const DbSquads = () => {
         }
       } else {
         testResults += addToResults(
-          `Error creating squad: ${squadToPost.squad_name}, response statue: ${response.status}`,
+          `Error creating squad: ${squadToPost.squad_name}, response status: ${response.status}`,
           false
         );
         return {
@@ -503,7 +503,7 @@ export const DbSquads = () => {
         return response.data.squads;
       } else {
         testResults += addToResults(
-          `Error reading all squads, response statue: ${response.status}`,
+          `Error reading all squads, response status: ${response.status}`,
           false
         );
         return {
@@ -649,7 +649,7 @@ export const DbSquads = () => {
         }
       } else {
         testResults += addToResults(
-          `Error reading 1 squad, response statue: ${response.status}`,
+          `Error reading 1 squad, response status: ${response.status}`,
           false
         );
         return {
@@ -741,7 +741,7 @@ export const DbSquads = () => {
           );
         } else {
           testResults += addToResults(
-            `Error reading squads for Event, response statue: ${response.status}`,
+            `Error reading squads for Event, response status: ${response.status}`,
             false
           );
           return {

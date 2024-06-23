@@ -1706,11 +1706,22 @@ async function potsUpsert() {
 
 async function brktUpsert() {
   try {
-    let brkt = await prisma.bracket.upsert({
+    let brkt = await prisma.brkt.upsert({
       where: {
         id: "brk_5109b54c2cc44ff9a3721de42c80c8c1",
       },
-      update: {},
+      update: {
+        squad_id: "sqd_7116ce5f80164830830a7157eb093396",
+        div_id: "div_f30aea2c534f4cfe87f4315531cef8ef",
+        sort_order: 1,
+        start: 1,
+        games: 3,
+        players: 8,
+        fee: 5,
+        first: 25,
+        second: 10,
+        admin: 5,
+      },
       create: {
         id: "brk_5109b54c2cc44ff9a3721de42c80c8c1",
         squad_id: "sqd_7116ce5f80164830830a7157eb093396",
@@ -1725,11 +1736,22 @@ async function brktUpsert() {
         admin: 5,
       },
     });
-    brkt = await prisma.bracket.upsert({
+    brkt = await prisma.brkt.upsert({
       where: {
         id: "brk_6ede2512c7d4409ca7b055505990a499",
       },
-      update: {},
+      update: {
+        squad_id: "sqd_7116ce5f80164830830a7157eb093396",
+        div_id: "div_f30aea2c534f4cfe87f4315531cef8ef",
+        sort_order: 2,
+        start: 4,
+        games: 3,
+        players: 8,
+        fee: 5,
+        first: 25,
+        second: 10,
+        admin: 5,
+      },
       create: {
         id: "brk_6ede2512c7d4409ca7b055505990a499",
         squad_id: "sqd_7116ce5f80164830830a7157eb093396",
@@ -1744,11 +1766,22 @@ async function brktUpsert() {
         admin: 5,
       },
     });
-    brkt = await prisma.bracket.upsert({
+    brkt = await prisma.brkt.upsert({
       where: {
         id: "brk_aa3da3a411b346879307831b6fdadd5f",
       },
-      update: {},
+      update: {
+        squad_id: "sqd_1a6c885ee19a49489960389193e8f819",
+        div_id: "div_1f42042f9ef24029a0a2d48cc276a087",
+        sort_order: 1,
+        start: 1,
+        games: 3,
+        players: 8,
+        fee: 5,
+        first: 25,
+        second: 10,
+        admin: 5,
+      },
       create: {
         id: "brk_aa3da3a411b346879307831b6fdadd5f",
         squad_id: "sqd_1a6c885ee19a49489960389193e8f819",
@@ -1763,11 +1796,22 @@ async function brktUpsert() {
         admin: 5,
       },
     });
-    brkt = await prisma.bracket.upsert({
+    brkt = await prisma.brkt.upsert({
       where: {
         id: "brk_37345eb6049946ad83feb9fdbb43a307",
       },
-      update: {},
+      update: {
+        squad_id: "sqd_1a6c885ee19a49489960389193e8f819",
+        div_id: "div_1f42042f9ef24029a0a2d48cc276a087",
+        sort_order: 2,
+        start: 4,
+        games: 3,
+        players: 8,
+        fee: 5,
+        first: 25,
+        second: 10,
+        admin: 5,
+      },
       create: {
         id: "brk_37345eb6049946ad83feb9fdbb43a307",
         squad_id: "sqd_1a6c885ee19a49489960389193e8f819",
@@ -1782,9 +1826,39 @@ async function brktUpsert() {
         admin: 5,
       },
     });
-
-    console.log("Upserted brackets:", 4);
-    return 4;
+    // bracket to delete
+    brkt = await prisma.brkt.upsert({
+      where: {
+        id: "brk_400737cab3584ab7a59b7a4411da4474",
+      },
+      update: {
+        squad_id: "sqd_1a6c885ee19a49489960389193e8f819",
+        div_id: "div_1f42042f9ef24029a0a2d48cc276a087",
+        sort_order: 3,
+        start: 2,
+        games: 3,
+        players: 8,
+        fee: 5,
+        first: 25,
+        second: 10,
+        admin: 5,
+      },
+      create: {
+        id: "brk_400737cab3584ab7a59b7a4411da4474",
+        squad_id: "sqd_1a6c885ee19a49489960389193e8f819",
+        div_id: "div_1f42042f9ef24029a0a2d48cc276a087",
+        sort_order: 3,
+        start: 2,
+        games: 3,
+        players: 8,
+        fee: 5,
+        first: 25,
+        second: 10,
+        admin: 5,
+      },
+    });    
+    console.log("Upserted brackets:", 5);
+    return 5;
   } catch (error) {
     console.log(error);
     return -1;
@@ -1793,11 +1867,18 @@ async function brktUpsert() {
 
 async function elimUpsert() {
   try {
-    let elim = await prisma.eliminator.upsert({
+    let elim = await prisma.elim.upsert({
       where: {
         id: "elm_45d884582e7042bb95b4818ccdd9974c",
       },
-      update: {},
+      update: {
+        squad_id: "sqd_7116ce5f80164830830a7157eb093396",
+        div_id: "div_f30aea2c534f4cfe87f4315531cef8ef",
+        sort_order: 1,
+        start: 1,
+        games: 3,
+        fee: 5,
+      },
       create: {
         id: "elm_45d884582e7042bb95b4818ccdd9974c",
         squad_id: "sqd_7116ce5f80164830830a7157eb093396",
@@ -1808,11 +1889,18 @@ async function elimUpsert() {
         fee: 5,
       },
     });
-    elim = await prisma.eliminator.upsert({
+    elim = await prisma.elim.upsert({
       where: {
         id: "elm_9d01015272b54962a375cf3c91007a12",
       },
-      update: {},
+      update: {
+        squad_id: "sqd_7116ce5f80164830830a7157eb093396",
+        div_id: "div_f30aea2c534f4cfe87f4315531cef8ef",
+        sort_order: 2,
+        start: 4,
+        games: 3,
+        fee: 5,
+      },
       create: {
         id: "elm_9d01015272b54962a375cf3c91007a12",
         squad_id: "sqd_7116ce5f80164830830a7157eb093396",
@@ -1823,13 +1911,20 @@ async function elimUpsert() {
         fee: 5,
       },
     });
-    elim = await prisma.eliminator.upsert({
+    elim = await prisma.elim.upsert({
       where: {
-        id: "brk_aa3da3a411b346879307831b6fdadd5f",
+        id: "elm_b4c3939adca140898b1912b75b3725f8",
       },
-      update: {},
+      update: {
+        squad_id: "sqd_1a6c885ee19a49489960389193e8f819",
+        div_id: "div_1f42042f9ef24029a0a2d48cc276a087",
+        sort_order: 1,
+        start: 1,
+        games: 3,
+        fee: 5,
+      },
       create: {
-        id: "brk_aa3da3a411b346879307831b6fdadd5f",
+        id: "elm_b4c3939adca140898b1912b75b3725f8",
         squad_id: "sqd_1a6c885ee19a49489960389193e8f819",
         div_id: "div_1f42042f9ef24029a0a2d48cc276a087",
         sort_order: 1,
@@ -1838,19 +1933,49 @@ async function elimUpsert() {
         fee: 5,
       },
     });
-    elim = await prisma.eliminator.upsert({
+    elim = await prisma.elim.upsert({
       where: {
-        id: "brk_37345eb6049946ad83feb9fdbb43a307",
+        id: "elm_4f176545e4294a0292732cccada91b9d",
       },
-      update: {},
-      create: {
-        id: "brk_37345eb6049946ad83feb9fdbb43a307",
+      update: {
         squad_id: "sqd_1a6c885ee19a49489960389193e8f819",
         div_id: "div_1f42042f9ef24029a0a2d48cc276a087",
         sort_order: 2,
         start: 4,
         games: 3,
         fee: 5,
+      },
+      create: {
+        id: "elm_4f176545e4294a0292732cccada91b9d",
+        squad_id: "sqd_1a6c885ee19a49489960389193e8f819",
+        div_id: "div_1f42042f9ef24029a0a2d48cc276a087",
+        sort_order: 2,
+        start: 4,
+        games: 3,
+        fee: 5,
+      },
+    });
+    // elim to delete
+    elim = await prisma.elim.upsert({
+      where: {
+        id: "elm_4c5aad9baa7246c19e07f215561e58c4",
+      },
+      update: {
+        squad_id: "sqd_1a6c885ee19a49489960389193e8f819",
+        div_id: "div_1f42042f9ef24029a0a2d48cc276a087",
+        sort_order: 3,
+        start: 3,
+        games: 4,
+        fee: 10,
+      },
+      create: {
+        id: "elm_4c5aad9baa7246c19e07f215561e58c4",
+        squad_id: "sqd_1a6c885ee19a49489960389193e8f819",
+        div_id: "div_1f42042f9ef24029a0a2d48cc276a087",
+        sort_order: 3,
+        start: 3,
+        games: 4,
+        fee: 10,
       },
     });
 

@@ -308,7 +308,7 @@ export const DbUsers = () => {
         }
       } else {
         testResults += addToResults(
-          `Error creating user: ${userToPost.email}, response statue: ${response.status}`,
+          `Error creating user: ${userToPost.email}, response status: ${response.status}`,
           false
         );        
         return {
@@ -375,7 +375,7 @@ export const DbUsers = () => {
         return response.data.users;
       } else {
         testResults += addToResults(
-          `Error reading all users, response statue: ${response.status}`,
+          `Error reading all users, response status: ${response.status}`,
           false
         );        
         return {
@@ -481,7 +481,7 @@ export const DbUsers = () => {
         }
       } else {
         testResults += addToResults(
-          `Error reading 1 user, response statue: ${response.status}`,
+          `Error reading 1 user, response status: ${response.status}`,
           false
         );        
         return {

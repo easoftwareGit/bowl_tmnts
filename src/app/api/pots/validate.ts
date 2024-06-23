@@ -91,7 +91,7 @@ const validPotData = (pot: potType): ErrorCode => {
  */
 export const sanitizePot = (pot: potType): potType => {
   if (!pot) return null as any;
-  const sanitizedPot = { ...initPot };  
+  const sanitizedPot = { ...initPot };    
   if (validPotFkId(pot.div_id, "div")) {
     sanitizedPot.div_id = pot.div_id
   };
