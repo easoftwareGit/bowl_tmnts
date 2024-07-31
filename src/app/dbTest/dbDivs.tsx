@@ -1170,7 +1170,7 @@ export const DbDivs = () => {
 
   const divDelete = async (divIdToDel: string, testing: boolean = true) => {
     let testResults = results + "Delete Div tests: \n";
-    if (!testing) {
+    if (testing) {
       passed = true;
     }    
 
@@ -1287,9 +1287,9 @@ export const DbDivs = () => {
         error: error.message,
         status: 404,
       };
-    } finally {
-      await reAddDeletedDiv();
+    } finally {      
       if (testing) {
+        await reAddDeletedDiv();
         if (passed) {
           testResults += addToResults(`Delete Div tests: PASSED`, true);
         } else {

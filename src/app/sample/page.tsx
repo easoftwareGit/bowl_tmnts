@@ -6,10 +6,10 @@ import { mockEvents } from "../../../test/mocks/tmnts/singlesAndDoubles/mockEven
 import { tmntType, brktType, divType, elimType, potType, squadType, tmntPropsType, laneType, eventType } from "../../lib/types/types";
 import { SampleForm } from "./form";
 import { Form5 } from "./form5";
+import { Form6 } from "./form6";
 
 const blankTmnt = {
-  ...initTmnt,  
-  start_date: '' // used to hold event id in this test
+  ...initTmnt,    
 }
 
 interface FormProps {
@@ -54,7 +54,8 @@ export const SamplePage: React.FC<FormProps> = ({ tmnt = blankTmnt }) => {
         {/* <Form2 /> */}
         {/* <Form3 events={events} setEvents={setEvents} pets={pets} setPets={setPets} /> */}
         {/* <Form4 tmntProps={tmntFormProps} /> */}
-        <Form5 tmntProps={tmntFormProps} />
+        {/* <Form5 tmntProps={tmntFormProps} /> */}
+        <Form6 />
       </div>
     </div>
   )

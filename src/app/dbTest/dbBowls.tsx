@@ -768,7 +768,7 @@ export const DbBowls = () => {
 
   const bowlDelete = async (bowlIdToDel: string, testing: boolean = true) => {
     let testResults = results + "Delete Bowl tests: \n";
-    if (!testing) {
+    if (testing) {
       passed = true;
     }
     
@@ -871,9 +871,9 @@ export const DbBowls = () => {
         error: error.message,
         status: 404,
       };
-    } finally {
-      await reAddDeletedBowl();
+    } finally {      
       if (testing) {
+        await reAddDeletedBowl();
         if (passed) {
           testResults += addToResults(`Delete Bowl tests: PASSED`, true);
         } else {

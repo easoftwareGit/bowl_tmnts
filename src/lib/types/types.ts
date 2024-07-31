@@ -40,9 +40,9 @@ export type tmntType = {
   bowl_id: string,
   bowls: BowlInTmntData
   bowl_id_err: string,
-  start_date: string,
+  start_date: Date,  
   start_date_err: string,
-  end_date: string,
+  end_date: Date,
   end_date_err: string,
 }
 
@@ -110,7 +110,8 @@ export type squadType = {
   lane_count_err: string,
   starting_lane: number,
   starting_lane_err: string,
-  squad_date: string,
+  squad_date: Date,
+  squad_date_str: string,
   squad_date_err: string,
   squad_time: string | null,
   squad_time_err: string,
@@ -230,3 +231,11 @@ export type tmntPropsType = {
   brkts: brktType[];
   setBrkts: (brkts: brktType[]) => void;
 }
+
+export type testDateType = {
+  id: number,
+  sod: Date,
+  eod: Date,
+  gmt: Date,
+}
+

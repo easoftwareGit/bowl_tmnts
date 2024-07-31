@@ -320,7 +320,8 @@ describe('TmntDataPage - Event Component', () => {
       const acdns = await screen.findAllByRole('button', { name: /events/i });
       await user.click(acdns[0]);
       const singlesTabs = await screen.findAllByRole('tab', { name: /singles/i })
-      expect(singlesTabs).toHaveLength(2);
+      // expect 3 singles tab buttos 1 each in events, squads and lanes
+      expect(singlesTabs).toHaveLength(3);
       const eventNames = screen.getAllByRole("textbox", { name: /event name/i }) as HTMLInputElement[];          
       expect(eventNames).toHaveLength(2);
       await user.clear(eventNames[0]);

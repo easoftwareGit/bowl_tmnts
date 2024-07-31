@@ -11,6 +11,7 @@ import { DbLanes } from "./dbLanes";
 import { DbPots } from "./dbPots";
 import { DbBrkts } from "./dbBrkts";
 import { DbElims } from "./dbElims";
+import { DbTestDate } from "./dbTestDate";
 
 import "./form.css";
 
@@ -104,6 +105,14 @@ export const DbTestForm: React.FC = () => {
           <Accordion.Header>Eliminators</Accordion.Header>
           <Accordion.Body >
             <DbElims />
+          </Accordion.Body>
+        </AccordionItem>
+      </Accordion>
+      <Accordion>
+        <AccordionItem eventKey="tds">
+          <Accordion.Header>Test Dates</Accordion.Header>
+          <Accordion.Body >
+            <DbTestDate />
           </Accordion.Body>
         </AccordionItem>
       </Accordion>

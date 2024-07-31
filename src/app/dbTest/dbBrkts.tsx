@@ -979,57 +979,57 @@ export const DbBrkts = () => {
         const updated: brktType = response.data.brkt;
         if (updated.div_id !== brktUpdatedTo.div_id) {
           testResults += addToResults(
-            "Updated brkt div_id !== potUpdatedTo.div_id",
+            "Updated brkt div_id !== brktUpdatedTo.div_id",
             false
           );
         } else if (updated.squad_id !== brktUpdatedTo.squad_id) {
           testResults += addToResults(
-            "Updated brkt squad_id !== potUpdatedTo.squad_id",
+            "Updated brkt squad_id !== brktUpdatedTo.squad_id",
             false
           );
         } else if (updated.fee !== brktUpdatedTo.fee) {
           testResults += addToResults(
-            "Updated brkt div_name !== potUpdatedTo.fee",
+            "Updated brkt div_name !== brktUpdatedTo.fee",
             false
           );
         } else if (updated.start !== brktUpdatedTo.start) {
           testResults += addToResults(
-            "Updated brkt start !== potUpdatedTo.start",
+            "Updated brkt start !== brktUpdatedTo.start",
             false
           );
         } else if (updated.games !== brktUpdatedTo.games) {
           testResults += addToResults(
-            "Updated brkt games !== potUpdatedTo.games",
+            "Updated brkt games !== brktUpdatedTo.games",
             false
           );
         } else if (updated.players !== brktUpdatedTo.players) {
           testResults += addToResults(
-            "Updated brkt players !== potUpdatedTo.players",
+            "Updated brkt players !== brktUpdatedTo.players",
             false
           );
         } else if (updated.first !== brktUpdatedTo.first) {
           testResults += addToResults(
-            "Updated brkt first !== potUpdatedTo.first",
+            "Updated brkt first !== brktUpdatedTo.first",
             false
           );
         } else if (updated.second !== brktUpdatedTo.second) {
           testResults += addToResults(
-            "Updated brkt second !== potUpdatedTo.second",
+            "Updated brkt second !== brktUpdatedTo.second",
             false
           );
         } else if (updated.admin !== brktUpdatedTo.admin) {
           testResults += addToResults(
-            "Updated brkt admin !== potUpdatedTo.admin",
+            "Updated brkt admin !== brktUpdatedTo.admin",
             false
           );
         } else if (updated.fsa !== brktUpdatedTo.fsa) {
           testResults += addToResults(
-            "Updated brkt fsa !== potUpdatedTo.fsa",
+            "Updated brkt fsa !== brktUpdatedTo.fsa",
             false
           );
         } else if (updated.sort_order !== brktUpdatedTo.sort_order) {
           testResults += addToResults(
-            "Updated brkt sort_order !== potUpdatedTo.sort_order",
+            "Updated brkt sort_order !== brktUpdatedTo.sort_order",
             false
           );
         } else {
@@ -1432,7 +1432,7 @@ export const DbBrkts = () => {
 
   const brktDelete = async (brktIdToDel: string, testing: boolean = true) => {
     let testResults = results + "Delete Brkt tests: \n";
-    if (!testing) {
+    if (testing) {
       passed = true;
     }    
 
@@ -1525,9 +1525,9 @@ export const DbBrkts = () => {
         error: error.message,
         status: 404,
       };
-    } finally {
-      await reAddDeletedBrkt();
+    } finally {      
       if (testing) {
+        await reAddDeletedBrkt();
         if (passed) {
           testResults += addToResults(`Delete Brkt tests: PASSED`, true);
         } else {

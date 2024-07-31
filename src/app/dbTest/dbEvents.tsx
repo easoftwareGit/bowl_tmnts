@@ -1220,7 +1220,7 @@ export const DbEvents = () => {
 
   const eventDelete = async (eventIdToDel: string, testing: boolean = true) => {
     let testResults = results + 'Delete Event tests: \n';
-    if (!testing) {
+    if (testing) {
       passed = true;
     }    
 
@@ -1316,9 +1316,9 @@ export const DbEvents = () => {
         error: error.message,
         status: 404,
       };
-    } finally {
-      await reAddDeletedEvent()
+    } finally {      
       if (testing) {
+        await reAddDeletedEvent()
         if (passed) {
           testResults += addToResults(`Delete Event tests: PASSED`, true);
         } else {

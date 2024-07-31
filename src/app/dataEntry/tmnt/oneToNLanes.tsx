@@ -1,11 +1,7 @@
 "use client";
-import React, { useState, ChangeEvent } from "react";
-import { squadType, AcdnErrType, laneType } from "../../../lib/types/types";
-import { initLanes } from "../../../db/initVals";
+import React, { useState } from "react";
+import { squadType, laneType } from "../../../lib/types/types";
 import { Tabs, Tab } from "react-bootstrap";
-import { objErrClassName, acdnErrClassName, getAcdnErrMsg, noAcdnErr } from "./errors";
-import ModalConfirm from "@/components/modal/confirmModal";
-import { initModalObj } from "@/components/modal/modalObjType";
 import LanesList from "@/components/tmnts/lanesList";
 
 interface ChildProps {
@@ -20,7 +16,6 @@ const OneToNLanes: React.FC<ChildProps> = ({
   squads,  
 }) => {
   
-  const [confModalObj, setConfModalObj] = useState(initModalObj);
   const [tabKey, setTabKey] = useState(defaultTabKey); 
 
   const handleTabSelect = (key: string | null) => {
@@ -31,13 +26,6 @@ const OneToNLanes: React.FC<ChildProps> = ({
 
   return (
     <>
-      {/* <ModalConfirm
-        show={confModalObj.show}
-        title={confModalObj.title}
-        message={confModalObj.message}
-        onConfirm={confirmDontUse}  
-        onCancel={cancelDontUse}
-      />     */}
       <Tabs
         defaultActiveKey={defaultTabKey}
         id="lanes-tabs"

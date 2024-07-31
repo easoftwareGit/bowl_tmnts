@@ -10,7 +10,12 @@ export const mockSquad: squadType[] = [
     squad_name_err: "",
     games: 6,
     games_err: "",
-    squad_date: '2023-12-31',
+    starting_lane: 13,
+    starting_lane_err: "",
+    lane_count: 28,
+    lane_count_err: "",  
+    squad_date: new Date(Date.UTC(2023, 11, 31)),  // month is -1
+    squad_date_str: "2023-12-31",
     squad_date_err: "",
     squad_time: "18:00",
     squad_time_err: "",

@@ -1,5 +1,5 @@
 import React from "react";
-import { render, screen } from '../../../test-utils'
+import { render, screen, waitFor } from '../../../test-utils'
 import userEvent from "@testing-library/user-event";
 import RootLayout from '../../../../src/app/layout'; 
 import TmntDataPage from "@/app/dataEntry/tmnt/page";
@@ -8,7 +8,7 @@ import { mockEvent } from "../../../mocks/tmnts/twoDivs/mockEvent";
 import { mockDivs, mockPots, mockBrkts, mockElims } from "../../../mocks/tmnts/twoDivs/mockDivs";
 import { mockSquad } from "../../../mocks/tmnts/twoDivs/mockSquad";
 import { fullTmntDataType } from "@/lib/types/types";
-import { defaultHdcpPer, defaultHdcpFrom, initBrkts, initDivs, initElims, initEvents, initPots, initSquads } from "@/db/initVals";
+import { defaultHdcpPer, defaultHdcpFrom, initBrkts, initDivs, initElims, initEvents, initPots, initSquads, initLanes } from "@/db/initVals";
 
 describe('TmntDataPage - Divs Component', () => { 
 
@@ -53,6 +53,7 @@ describe('TmntDataPage - Divs Component', () => {
       events: mockEvent,
       divs: mockDivs,
       squads: mockSquad,
+      lanes: initLanes,
       pots: initPots,
       brkts: initBrkts,
       elims: initElims
@@ -96,6 +97,7 @@ describe('TmntDataPage - Divs Component', () => {
       events: mockEvent,
       divs: mockDivs,
       squads: mockSquad,
+      lanes: initLanes,
       pots: initPots,
       brkts: initBrkts,
       elims: initElims
@@ -208,6 +210,7 @@ describe('TmntDataPage - Divs Component', () => {
       events: mockEvent,
       divs: mockDivs,
       squads: mockSquad,
+      lanes: initLanes,
       pots: initPots,
       brkts: initBrkts,
       elims: initElims
@@ -216,6 +219,10 @@ describe('TmntDataPage - Divs Component', () => {
     it('render the div name required error', async () => { 
       const user = userEvent.setup()
       render(<RootLayout><TmntDataPage /></RootLayout>)
+
+      const loadingMessage = screen.getByText(/loading/i);        
+      await waitFor(() => expect(loadingMessage).not.toBeInTheDocument());    
+  
       const saveBtn = await screen.findByRole('button', { name: /save tournament/i });      
       const acdns = await screen.findAllByRole('button', { name: /divisions/i });
       await user.click(acdns[0]);
@@ -283,6 +290,7 @@ describe('TmntDataPage - Divs Component', () => {
       events: mockEvent,
       divs: mockDivs,
       squads: mockSquad,
+      lanes: initLanes,
       pots: initPots,
       brkts: initBrkts,
       elims: initElims
@@ -477,6 +485,7 @@ describe('TmntDataPage - Divs Component', () => {
       events: mockEvent,
       divs: mockDivs,
       squads: mockSquad,
+      lanes: initLanes,
       pots: initPots,
       brkts: initBrkts,
       elims: initElims
@@ -510,7 +519,7 @@ describe('TmntDataPage - Divs Component', () => {
       expect(hdcps[0]).toHaveValue(100)
       await user.click(saveBtn);    
       expect(divTab).toHaveClass('objError');      
-      expect(acdns[0]).toHaveTextContent("Hdcp From must be less than");
+      expect(acdns[0]).toHaveTextContent("Hdcp % must be less than");
     })
     it('clear hdcp from error, reset hdcp from to default if hdcp set to 0', async () => { 
       const user = userEvent.setup()      
@@ -581,6 +590,7 @@ describe('TmntDataPage - Divs Component', () => {
         events: mockEvent,
         divs: mockDivs,
         squads: mockSquad,
+        lanes: initLanes,
         pots: mockPots,
         brkts: initBrkts,
         elims: initElims,
@@ -607,6 +617,7 @@ describe('TmntDataPage - Divs Component', () => {
         events: mockEvent,
         divs: mockDivs,
         squads: mockSquad,
+        lanes: initLanes,
         pots: initPots,
         brkts: mockBrkts,
         elims: initElims,
@@ -633,6 +644,7 @@ describe('TmntDataPage - Divs Component', () => {
         events: mockEvent,
         divs: mockDivs,
         squads: mockSquad,
+        lanes: initLanes,
         pots: initPots,
         brkts: initBrkts,
         elims: mockBrkts,
@@ -655,43 +667,44 @@ describe('TmntDataPage - Divs Component', () => {
     })
   })
 
-  // describe('add new division', () => { 
-  //   it('should add new division', async () => { 
-  //     const user = userEvent.setup()      
-  //     render(<RootLayout><TmntDataPage /></RootLayout>)      
-  //     const acdns = await screen.findAllByRole('button', { name: /divisions/i });
-  //     await user.click(acdns[0]);
-  //     const addBtns = await screen.findAllByRole('button', { name: /add/i });
-  //     await user.click(addBtns[1]);      
-  //     const div2Tab = await screen.findByRole('tab', { name: /division 2/i })
-  //     expect(div2Tab).toBeInTheDocument(); 
-  //   })
-  // })
+  describe('add new division', () => { 
+    it('should add new division', async () => { 
+      const user = userEvent.setup()      
+      render(<RootLayout><TmntDataPage /></RootLayout>)      
+      const acdns = await screen.findAllByRole('button', { name: /divisions/i });
+      await user.click(acdns[0]);
+      const addBtns = await screen.findAllByRole('button', { name: /add/i });
+      await user.click(addBtns[1]);      
+      const div2Tab = await screen.findByRole('tab', { name: /division 2/i })
+      expect(div2Tab).toBeInTheDocument(); 
+    })
+  })
 
-  // describe('delete division', () => { 
-  //   const mockFullTmnt: fullTmntDataType = {
-  //     tmnt: mockTmnt,
-  //     events: mockEvent,
-  //     divs: mockDivs,
-  //     squads: mockSquad,
-  //     pots: initPots,
-  //     brkts: initBrkts,
-  //     elims: initElims
-  //   }
+  describe('delete division', () => { 
+    const mockFullTmnt: fullTmntDataType = {
+      tmnt: mockTmnt,
+      events: mockEvent,
+      divs: mockDivs,
+      squads: mockSquad,
+      lanes: initLanes,
+      pots: initPots,
+      brkts: initBrkts,
+      elims: initElims
+    }
 
-  //   it('should delete the division', async () => { 
-  //     const user = userEvent.setup()      
-  //     render(<RootLayout><TmntDataPage fullTmntData={mockFullTmnt} /></RootLayout>)
-  //     const saveBtn = await screen.findByRole('button', { name: /save tournament/i });      
-  //     const acdns = await screen.findAllByRole('button', { name: /divisions/i });
-  //     await user.click(acdns[0]);
-  //     const scratchTab = await screen.findByRole('tab', { name: /scratch/i })
-  //     const hdcpTab = await screen.findByRole('tab', { name: /hdcp/i })
-  //     await user.click(hdcpTab);
-  //     const delBtn = await screen.findByRole('button', { name: /delete div/i });
-  //     await user.click(delBtn);
+    it('should delete the division', async () => { 
+      const user = userEvent.setup()      
+      render(<RootLayout><TmntDataPage fullTmntData={mockFullTmnt} /></RootLayout>)
+      const saveBtn = await screen.findByRole('button', { name: /save tournament/i });      
+      const acdns = await screen.findAllByRole('button', { name: /divisions/i });
+      await user.click(acdns[0]);
+      const scratchTab = await screen.findByRole('tab', { name: /scratch/i })
+      const hdcpTab = await screen.findByRole('tab', { name: /hdcp/i })
+      await user.click(hdcpTab);
+      const delBtn = await screen.findByRole('button', { name: /delete div/i });
+      await user.click(delBtn);
       
-  //   })  
-  // })
+    })  
+  })
 
 })

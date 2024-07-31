@@ -10,21 +10,32 @@ interface LanesListProps {
   lanes: laneType[],
 }
 
+/**
+ * gets the array of pairs of lanes for the squad
+ * 
+ * @param pairs - array of pairs of lanes
+ * @param squadId - the id of the squad
+ * @returns {lanes[]} - an array of lanes for the squad or empty array
+ */
 export const getLanesFromPairs = (pairs: pairsOfLanesType[], squadId: string): laneType[] => {
   if (!pairs || pairs.length === 0) return [];
   const lanes: laneType[] = [];
   const inUsePairs = pairs.filter(pair => pair.in_use);
+  // make sure got valid data
+  inUsePairs.forEach(pair => {
+    if (!pair.left_id || !pair.left_lane || !pair.right_id || !pair.right_lane) return [];    
+  })
   inUsePairs.forEach(pair => {
     if (pair.in_use) {
       lanes.push(
         {
           id: pair.left_id,
-          lane: pair.left_lane,
+          lane_number: pair.left_lane,
           squad_id: squadId
         },
         {
           id: pair.right_id,
-          lane: pair.right_lane,
+          lane_number: pair.right_lane,
           squad_id: squadId
         }
       )
@@ -33,27 +44,48 @@ export const getLanesFromPairs = (pairs: pairsOfLanesType[], squadId: string): l
   return lanes
 }
 
+/**
+ * filters the array of lanes for the squad
+ * 
+ * @param squadId - the id of the squad
+ * @param lanes - the array of all lanes for all squads
+ * @returns {lanes[]} - an array of lanes just for the squad
+ */
 export const lanesThisSquad = (squadId: string, lanes: laneType[]): laneType[] => {
-  if (!lanes || lanes.length === 0) return [];
+  if (!squadId || !lanes || lanes.length === 0) return [];
   return lanes.filter(lane => lane.squad_id === squadId);
 }
 
+/**
+ * filters the array of lanes not for the squad
+ * 
+ * @param squadId - the id of the squad
+ * @param lanes - the array of all lanes for all squads
+ * @returns {lanes[]} - an array of lanes not for the squad
+ */
 export const lanesNotThisSquad = (squadId: string, lanes: laneType[]): laneType[] => {
-  if (!lanes || lanes.length === 0) return [];
+  if (!squadId || !lanes || lanes.length === 0) return [];
   return lanes.filter(lane => lane.squad_id !== squadId);
 }
 
+/**
+ * gets the pairs of lanes for the squad 
+ * 
+ * @param squadId - the id of the squad
+ * @param lanes - array of all lanes
+ * @returns {pairsOfLanesType[]} - an array of pairs of lanes or empty array
+ */
 export const pairsOfLanes = (squadId: string, lanes: laneType[]): pairsOfLanesType[] => {
-  if (!lanes || lanes.length === 0 || isOdd(lanes.length)) return [];
+  if (!squadId || !lanes || lanes.length === 0 || isOdd(lanes.length)) return [];
   const pairs: pairsOfLanesType[] = [];
   const squadLanes = lanesThisSquad(squadId, lanes);
   for (let i = 0; i < squadLanes.length - 1; i += 2) {
     pairs.push(
       {
         left_id: squadLanes[i].id,
-        left_lane: squadLanes[i].lane,
+        left_lane: squadLanes[i].lane_number,
         right_id: squadLanes[i + 1].id,
-        right_lane: squadLanes[i + 1].lane,
+        right_lane: squadLanes[i + 1].lane_number,
         in_use: true,
       }  
     )
@@ -71,23 +103,26 @@ const LanesList: FC<LanesListProps> = (props) => {
     setPairs(pairsOfLanes(squadId, lanes));
   },[squadId, lanes])
 
-  const handleInputChnage = (id: string) => (e: ChangeEvent<HTMLInputElement>) => { 
+  const handleInputChange = (id: string) => (e: ChangeEvent<HTMLInputElement>) => { 
     const { checked } = e.target;
 
     if (checked) { 
-      pairs.pop();
-      setPairs(
-        pairs.map((pair) => {
-          if (pair.left_id === id) {          
-            return {
-              ...pair,
-              in_use: checked,
-            }
-          } else {
-            return pair
+      const tempPairs = pairs.map((pair) => {
+        if (pair.left_id === id) {          
+          return {
+            ...pair,
+            in_use: checked,
           }
-        })
-      )
+        } else {
+          return pair
+        }
+      })        
+      tempPairs.pop();                // always remove the last one
+      // while there is a pair that at the end of the array that is not in use
+      while (tempPairs.length > 0 && !tempPairs[tempPairs.length - 1].in_use) {
+        tempPairs.pop();    
+      }
+      setPairs(tempPairs);
     } else {
       const newPairs = pairs.map((pair) => {
         if (pair.left_id === id) {          
@@ -121,12 +156,14 @@ const LanesList: FC<LanesListProps> = (props) => {
       >
         <table className="table table-striped table-hover w-100">
           <thead>
-            <th>
-              Lanes
-            </th>
-            <th className="text-center">
-              In Use
-            </th>
+            <tr>
+              <th scope="col">
+                Lanes
+              </th>
+              <th scope="col" className="text-center">
+                In Use
+              </th>
+            </tr>
           </thead>
           <tbody>
             {pairs.map((pair) => (
@@ -138,7 +175,7 @@ const LanesList: FC<LanesListProps> = (props) => {
                     name="in_use"
                     id={`inUse${pair.left_id}`}
                     checked={pair.in_use}
-                    onChange={handleInputChnage(pair.left_id)}
+                    onChange={handleInputChange(pair.left_id)}
                   >
                   </input>
                 </td>

@@ -37,13 +37,15 @@ export const maxSortOrder = 1000000;
 
 export const minYear = 1900;
 export const maxYear = 2200;
+export const minDate = new Date(Date.UTC(minYear, 0, 1, 0, 0, 0, 0))
+export const maxDate = new Date(Date.UTC(maxYear, 11, 31, 23, 59, 59, 999));
 
 export const minLane = 1;
 
 export enum ErrorCode {
   None = 0,
   MissingData = -1,
-  InvalidData = -2,
+  InvalidData = -2,    
   OtherError = -99,
 }
 

@@ -195,7 +195,7 @@ describe("OneToNDivs - Component", () => {
         await user.click(tabs[1]);
         const hdcpPers = screen.getAllByRole('spinbutton', { name: /hdcp %/i }) as HTMLInputElement[];        
         expect(hdcpPers[1]).toHaveClass("is-invalid");
-        expect(hdcpPers[1]).toHaveValue(100)
+        expect(hdcpPers[1]).toHaveValue(1)
       })
       it('render 2nd hdcp % errors', async () => { 
         const user = userEvent.setup()

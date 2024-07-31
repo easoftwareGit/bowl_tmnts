@@ -1,6 +1,6 @@
 "use client";
 import { useState } from "react";
-import { TmntDataForm } from "./form";
+import TmntDataForm from "./form";
 import {
   initBrkts,
   initDivs,
@@ -11,13 +11,14 @@ import {
   initSquads,
   initTmnt,
 } from "../../../db/initVals";
-import { todayStr } from "@/lib/dateTools";
+import { startOfDayFromString, startOfTodayUTC, todayStr } from "@/lib/dateTools";
 import { fullTmntDataType, tmntPropsType } from "../../../lib/types/types";
+import { endOfToday, startOfToday } from "date-fns";
 
 const blankTmnt = {
   ...initTmnt,
-  start_date: todayStr,
-  end_date: todayStr,
+  start_date: startOfToday(),
+  end_date: startOfToday(),
 };
 
 interface FormProps {

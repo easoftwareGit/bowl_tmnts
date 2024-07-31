@@ -848,7 +848,7 @@ export const DbUsers = () => {
 
   const userDelete = async (userId: string, testing: boolean = true) => {
     let testResults = results + "Delete User tests: \n";
-    if (!testing) {
+    if (testing) {
       passed = true;
     }    
 
@@ -953,13 +953,15 @@ export const DbUsers = () => {
         status: 404,
       };
     } finally {
-      await reAddDeletedUser();
-      if (passed) {
-        testResults += addToResults(`Delete User tests: PASSED`);
-      } else {
-        testResults += addToResults(`Delete User tests: FAILED`, false);
+      if (testing) {
+        await reAddDeletedUser();
+        if (passed) {
+          testResults += addToResults(`Delete User tests: PASSED`);
+        } else {
+          testResults += addToResults(`Delete User tests: FAILED`, false);
+        }
+        setResults(testResults);
       }
-      setResults(testResults);
     }
   };
 

@@ -1,5 +1,5 @@
 import React from 'react';
-import CurrencyInput, { CurrencyInputProps, CurrencyInputOnChangeValues } from '@/lib/currency';
+import CurrencyInput, { CurrencyInputProps } from '@/lib/currency';
 import { IntlConfig } from "@/lib/currency/components/CurrencyInputProps";
 import { getLocaleConfig } from "@/lib/currency/components/utils";
 import { formatValueSymbSep2Dec } from '@/lib/currency/formatValue';
@@ -8,7 +8,6 @@ import {
   maxMoney,
   minFee,
 } from "@/lib/validation";
-import exp from 'constants';
 
 interface EaCurrencyInputProps extends CurrencyInputProps {
   placeholder?: string;
@@ -137,7 +136,6 @@ const EaPercentInput: React.FC<EaPercentInputProps> = (props) => {
 
   return <CurrencyInput {...mergedProps} />;
 };
-
 
 export default EaCurrencyInput;
 export { EaPercentInput };

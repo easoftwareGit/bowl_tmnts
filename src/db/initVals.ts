@@ -9,8 +9,9 @@ import {
   elimType,
   brktType,
   potType,
+  testDateType,
 } from "../lib/types/types";
-import { todayStr } from "@/lib/dateTools";
+import { startOfDayFromString, startOfTodayUTC, todayStr } from "@/lib/dateTools";
 
 export const initUser: userType = {
   id: "1",  
@@ -38,9 +39,9 @@ export const initTmnt: tmntType = {
   tmnt_name_err: "",
   bowl_id: "",
   bowl_id_err: "",
-  start_date: todayStr,
+  start_date: startOfDayFromString(todayStr) as Date,  
   start_date_err: "",
-  end_date: "",
+  end_date: startOfDayFromString(todayStr) as Date,  
   end_date_err: "",
   bowls: {
     bowl_name: "",
@@ -113,7 +114,8 @@ export const initSquad: squadType = {
   starting_lane_err: "",
   lane_count: defaultLaneCount,
   lane_count_err: "",
-  squad_date: todayStr,
+  squad_date: startOfDayFromString(todayStr) as Date,  
+  squad_date_str: todayStr,
   squad_date_err: "",
   squad_time: "",
   squad_time_err: "",
@@ -235,3 +237,10 @@ export const initElims: elimType[] = [
     ...initElim,
   },
 ];
+
+export const initTestDate: testDateType = {
+  id: 0,
+  sod: new Date(Date.UTC(2000, 0, 1)),
+  eod: new Date(Date.UTC(2000, 0, 1, 23, 59, 59, 999)),
+  gmt: new Date(Date.UTC(2000, 0, 1, 1, 2, 3, 0))        
+}

@@ -1,8 +1,9 @@
-import { isValidBtDbId, maxTmntNameLength, ErrorCode } from "@/lib/validation";
+import { isValidBtDbId, maxTmntNameLength, ErrorCode, minDate, maxDate } from "@/lib/validation";
 import { sanitize } from "@/lib/sanitize";
-import { startOfDay, isValid, isDate } from "date-fns";
+import { startOfDay, isValid, isDate, compareAsc } from "date-fns";
 import { idTypes, tmntType } from "@/lib/types/types";
 import { initTmnt } from "@/db/initVals";
+import { validFullDateISOString } from "@/lib/dateTools";
 
 /**
  * checks for required data and returns error code if missing 
@@ -13,8 +14,8 @@ import { initTmnt } from "@/db/initVals";
 const gotTmntData = (tmnt: tmntType): ErrorCode => { 
   try {
     if (!sanitize(tmnt.tmnt_name)
-      || (!tmnt.start_date && tmnt.end_date)
-      || (tmnt.start_date && !tmnt.end_date)
+      || (!tmnt.start_date) 
+      || (!tmnt.end_date)  
       || !tmnt.bowl_id) {
       return ErrorCode.MissingData
     }
@@ -30,32 +31,44 @@ export const validTmntName = (tmntName: string): boolean => {
 }
 
 /**
- * checks if start and end dates are valid
+ * checks if start and end dates are valid 
  * 
  * @param startDateStr - start date as string
  * @param endDateStr = end date as string
  * @returns - boolean: true if dates are valid 
  */
-export const validTmntDates = (startDateStr: string, endDateStr: string): boolean => { 
-  // if both start and end dates, 
+export const validTmntDates = (startDate: Date, endDate: Date): boolean => {     
   //  - both must be valid dates
   //  - end cannot be before start  
-  if (startDateStr && endDateStr) {
-    const startDate = startOfDay(new Date(startDateStr))
-    const endDate = startOfDay(new Date(endDateStr))
-    if (!isValid(startDate) || !isValid(endDate)) {
-      return false
-    }       
-    if (endDate < startDate) {
+  if (!startDate || !endDate) {
+    return false
+  }
+  if (typeof startDate === 'string') {
+    if (validFullDateISOString(startDate)) {
+      startDate = new Date(startDate)
+    } else {
       return false
     }
-    return true
-    // if no dates - valid
-  } else if (!startDateStr && !endDateStr) {
-    return true
   }
-  // if got only start or only end, not valid
-  return false
+  if (typeof endDate === 'string') {
+    if (validFullDateISOString(endDate)) {
+      endDate = new Date(endDate)
+    } else {
+      return false
+    }
+  }
+  if (!isValid(startDate) || !isValid(endDate)) {
+    return false
+  }       
+  // if date not in valid range
+  if (compareAsc(startDate, minDate) < 0 || compareAsc(startDate, maxDate) > 0) { 
+    return false               
+  }
+  if (compareAsc(endDate, minDate) < 0 || compareAsc(endDate, maxDate) > 0) {
+    return false
+  }   
+  // start must be before or equal to end
+  return (compareAsc(startDate, endDate) <= 0) 
 }
 
 /**
@@ -104,27 +117,45 @@ const validTmntData = (tmnt: tmntType): ErrorCode => {
 }
 
 /**
- * sanitizes tournament data  
+ * sanitizes tournament data - DOES NOT VALIDATE 
  * 
  * @param tmnt  - tournament data to sanitize
  * @returns tmnt object with sanitized data
  */
 export const sanitizeTmnt = (tmnt: tmntType): tmntType => { 
-
-  // using initTmnt as a starting point, all user edited 
-  // fields will be empty, except for start_date
-  // so set start_date to empty string 
   const sanditizedTmnt: tmntType = {
-    ...initTmnt,
-    start_date: '',
+    ...initTmnt,    
   }  
   sanditizedTmnt.tmnt_name = sanitize(tmnt.tmnt_name)
-  if (isValid(new Date(tmnt.start_date))) {
-    sanditizedTmnt.start_date = tmnt.start_date    
-  } 
-  if (isValid(new Date(tmnt.end_date))) {
-    sanditizedTmnt.end_date = tmnt.end_date    
-  } 
+
+  if (typeof tmnt.start_date === 'string') {
+    if (validFullDateISOString(tmnt.start_date)) {    
+      sanditizedTmnt.start_date = new Date(tmnt.start_date)
+    } else {
+      sanditizedTmnt.start_date = null as any
+    }
+  } else {
+    if (isValid(tmnt.start_date)) {
+      sanditizedTmnt.start_date = tmnt.start_date
+    } else {
+      sanditizedTmnt.start_date = null as any
+    }
+  }
+
+  if (typeof tmnt.end_date === 'string') {
+    if (validFullDateISOString(tmnt.end_date)) {    
+      sanditizedTmnt.end_date = new Date(tmnt.end_date)
+    } else {
+      sanditizedTmnt.end_date = null as any
+    }
+  } else {
+    if (isValid(tmnt.end_date)) {
+      sanditizedTmnt.end_date = tmnt.end_date
+    } else {
+      sanditizedTmnt.end_date = null as any
+    }
+  }
+  
   if (isValidBtDbId(tmnt.bowl_id, 'bwl')) {    
     sanditizedTmnt.bowl_id = tmnt.bowl_id  
   } 

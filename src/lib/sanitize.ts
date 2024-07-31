@@ -55,8 +55,7 @@ export function sanitizeUrl(url: string): string {
       sanitizedUrl += parsedUrl.hash;
     }
     return sanitizedUrl;
-  } catch (error: any) {
-    console.error("Invalid URL:", error.message);
+  } catch (error) {    
     return "";
   }
 }

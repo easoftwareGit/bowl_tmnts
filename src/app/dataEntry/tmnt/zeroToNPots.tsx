@@ -138,7 +138,7 @@ const ZeroToNPots: React.FC<ChildProps> = ({
     let divErr = "";
     let feeErr = "";
     let potErrClassName = "";
-
+  
     const setError = (errMsg: string) => {
       if (isPotValid) {
         setAcdnErr({
@@ -175,9 +175,9 @@ const ZeroToNPots: React.FC<ChildProps> = ({
       const potsToCheck = pots.filter((pot) => pot.id !== "1");
       const duplicatePot = potsToCheck.find(
         (pot) =>
-          pot.pot_type === newPot.pot_type && pot.div_id === newPot.div_id
+          pot.pot_type === newPot.pot_type && pot.div_id === newPot.div_id            
       );
-      if (duplicatePot) {
+      if (duplicatePot) {        
         const duplicatePotErrMsg = `Pot: ${newPot.pot_type} - ${newPot.div_name} already exists`;
         potErr = duplicatePotErrMsg;
         setError(potErr);
@@ -219,12 +219,20 @@ const ZeroToNPots: React.FC<ChildProps> = ({
         sort_order: potId + 1,
       };
       setPotId(potId + 1);
-      const updatedPots = structuredClone(pots);
-      updatedPots[0] = {
+
+      const mappedPots = pots.map((pot) => ({ ...pot }));
+      mappedPots[0] = {
         ...initPot,
-      };
-      updatedPots.push(newPot);
-      setPots(updatedPots);
+      }
+      mappedPots.push(newPot);
+      setPots(mappedPots);
+
+      // const updatedPots = structuredClone(pots);
+      // updatedPots[0] = {
+      //   ...initPot,
+      // };
+      // updatedPots.push(newPot);
+      // setPots(updatedPots);
     }
   };
 

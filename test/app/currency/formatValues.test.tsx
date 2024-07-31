@@ -1,7 +1,6 @@
 import { formatValueSymbSep2Dec, formatValue2Dec } from "@/lib/currency/formatValue";
 import { IntlConfig } from "@/lib/currency/components/CurrencyInputProps";
 import { getLocaleConfig } from "@/lib/currency/components/utils";
-import exp from "constants";
 
 describe("formatValues.ts", () => {
   const ic: IntlConfig = {

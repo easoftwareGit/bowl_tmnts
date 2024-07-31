@@ -1,6 +1,6 @@
 import { nextPostSecret } from '@/lib/tools';
 import { isEmail, isPassword8to20, isValidBtDbId, validYear, validTime, isValidBtDbType, isOdd, isEven, validPostId, validSortOrder, maxSortOrder } from '../../../src/lib/validation';
-import { initBowl, initDiv, initEvent } from '@/db/initVals';
+import { initDiv, initEvent } from '@/db/initVals';
 
 describe('tests for validation functions', () => {
 

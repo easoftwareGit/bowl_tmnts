@@ -1,17 +1,18 @@
 import { divType, squadType, potType, brktType, elimType } from "@/lib/types/types";
 import { defaultBrktGames, defaultBrktPlayers, defaultElimGames, initElim } from "@/db/initVals";
 import { initPot, initBrkt } from "@/db/initVals";
-import { todayStr } from "@/lib/dateTools";
+import { startOfDayFromString, todayStr } from "@/lib/dateTools";
 
 export const mockDivs: divType[] = [
   {
     id: "div_578834e04e5e4885bbae79229d8b96e8",
-    event_id: "evt_9a58f0a486cb4e6c92ca3348702b1a62",
+    tmnt_id: "tmt_fe8ac53dad0f400abe6354210a8f4cd1",
     div_name: "Scratch",
     div_name_err: "",
     tab_title: "Scratch",
-    hdcp: 0,
-    hdcp_err: "",
+    hdcp_per: 0,
+    hdcp_per_str: "0.00",
+    hdcp_per_err: "",
     hdcp_from: 230,
     int_hdcp: false,
     hdcp_for: "Series",
@@ -21,12 +22,13 @@ export const mockDivs: divType[] = [
   },
   {
     id: "div_24b1cd5dee0542038a1244fc2978e862",
-    event_id: "evt_9a58f0a486cb4e6c92ca3348702b1a62",
+    tmnt_id: "tmt_fe8ac53dad0f400abe6354210a8f4cd1",
     div_name: "Hdcp",
     div_name_err: "",
     tab_title: "Hdcp",
-    hdcp: 100,
-    hdcp_err: "",
+    hdcp_per: 1,
+    hdcp_per_str: "100.00",
+    hdcp_per_err: "",
     hdcp_from: 230,
     hdcp_from_err: "",
     int_hdcp: true,
@@ -46,7 +48,12 @@ export const mockSquads: squadType[] = [
     squad_name_err: "",
     games: 3,
     games_err: "",
-    squad_date: todayStr,
+    lane_count: 20,
+    lane_count_err: "",
+    starting_lane: 1,
+    starting_lane_err: "",
+    squad_date: startOfDayFromString(todayStr) as Date, 
+    squad_date_str: todayStr,
     squad_date_err: "",
     squad_time: "10:00",
     squad_time_err: "",

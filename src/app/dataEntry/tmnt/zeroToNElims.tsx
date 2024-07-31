@@ -230,12 +230,20 @@ const ZeroToNElims: React.FC<ChildProps> = ({
         sort_order: elimId + 1,
       }
       setElimId(elimId + 1);
-      const updatedElims = structuredClone(elims);
-      updatedElims[0] = {
+
+      const mappedElims = elims.map((elim) => ({ ...elim }));
+      mappedElims[0] = {
         ...initElim
       }
-      updatedElims.push(newElim);
-      setElims(updatedElims);
+      mappedElims.push(newElim);
+      setElims(mappedElims);
+
+      // const updatedElims = structuredClone(elims);
+      // updatedElims[0] = {
+      //   ...initElim
+      // }
+      // updatedElims.push(newElim);
+      // setElims(updatedElims);
     }
   }
 

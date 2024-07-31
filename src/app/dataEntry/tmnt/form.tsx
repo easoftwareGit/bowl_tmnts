@@ -11,8 +11,8 @@ import OneToNEvents, { validateEvents } from "./oneToNEvents";
 import OneToNDivs, { validateDivs } from "./oneToNDivs";
 import OneToNSquads, { validateSquads } from "./oneToNSquads";
 import OneToNLanes from "./oneToNLanes";
-import { todayStr } from "@/lib/dateTools";
-import { isValid } from "date-fns";
+import { dateTo_UTC_yyyyMMdd, dateTo_yyyyMMdd, getYearMonthDays, startOfDayFromString, ymdType } from "@/lib/dateTools";
+import { compareAsc, isValid, startOfDay } from "date-fns";
 import ZeroToNPots, { validatePots } from "./zeroToNPots";
 import ZeroToNBrackets, { validateBrkts } from "./zeroToNBrkts";
 import ZeroToNElims, { validateElims } from "./zeroToNElims";
@@ -22,7 +22,7 @@ interface FormProps {
   tmntProps: tmntPropsType
 }
 
-export const TmntDataForm: React.FC<FormProps> = ({ tmntProps }) => {     
+const TmntDataForm: React.FC<FormProps> = ({ tmntProps }) => {     
   const {
     tmnt, setTmnt,
     events, setEvents,
@@ -45,6 +45,13 @@ export const TmntDataForm: React.FC<FormProps> = ({ tmntProps }) => {
   const bowlsStatus = useSelector(getBowlsStatus);
   const bowls = useSelector(selectAllBowls);
   const bowlsError = useSelector(getBowlsError);  
+
+  const initDateStrs = {
+    start_date_str: dateTo_yyyyMMdd(tmnt.start_date),
+    end_date_str: dateTo_yyyyMMdd(tmnt.end_date),
+  }
+
+  const [dateStrs, setDateStrs] = useState(initDateStrs);
 
   useEffect(() => {
     dispatch(fetchBowls());
@@ -69,92 +76,94 @@ export const TmntDataForm: React.FC<FormProps> = ({ tmntProps }) => {
   const handleInputChange = (e: ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
     const nameErr = name + "_err"; 
-    setTmnt({
-      ...tmnt,
-      [name]: value,
-      [nameErr]: "",
-    })
-    if (name === "start_date") {
-      if (value) {        
-        const startDate = new Date(value);
-        if (isValid(startDate)) {
-          // set end date if not set
-          let endDate: Date;
-          let endDateStr: string;
-          const endDateInput = document.getElementById("inputEndDate") as HTMLInputElement;
-          if (endDateInput && endDateInput.value === "") {
-            endDate = new Date(value);
-            endDateStr = endDate.toISOString().split("T")[0];
-            setTmnt({
-              ...tmnt,
-              start_date: value,
-              start_date_err: "",
-              end_date: value,
-              end_date_err: "",
-            })
-            endDateInput.value = endDateStr;
+    if (name === "tmnt_name" || name === "bowl_id") {
+      setTmnt({
+        ...tmnt,
+        [name]: value,
+        [nameErr]: "",
+      })
+    } else if ((name === "start_date") || (name === "end_date")) {      
+      if (!e.target.valueAsDate) return;
+      let startDate: Date;
+      let endDate: Date;
+      if (name === "start_date") {
+        setDateStrs({
+          ...dateStrs,
+          start_date_str: value,          
+        })
+        startDate = startOfDayFromString(value) as Date
+        endDate = tmnt.end_date
+        setTmnt({
+          ...tmnt,
+          start_date: startOfDayFromString(value) as Date,
+          start_date_err: "",
+        })
+      } else {
+        setDateStrs({
+          ...dateStrs,
+          end_date_str: value,          
+        })
+        startDate = tmnt.start_date
+        endDate = startOfDayFromString(value) as Date
+        setTmnt({
+          ...tmnt,
+          end_date: endDate,
+          end_date_err: "",
+        })
+      }
+      // make sure squad dates are within the start and end dates for the event          
+      setSquads(
+        squads.map((squad) => {
+          // if no squad date, use start date
+          if (!squad.squad_date || !isValid(squad.squad_date)) {
+            return {
+              ...squad,
+              squad_date: startDate
+            }
           } else {
-            endDate = new Date(tmnt.end_date);
-            if (endDate < startDate) {
-              setTmnt({
-                ...tmnt,
-                start_date: value,
-                start_date_err: "",
-                end_date: value,
-                end_date_err: "",
-              })              
+            // if squad date is before start date, use start date
+            if (compareAsc(startDate, squad.squad_date) < 0) {
+              return {
+                ...squad,
+                squad_date: startDate
+              }
+              // if squad date is after end date, use end date
+            } else if (compareAsc(endDate, squad.squad_date) > 0) {
+              return {
+                ...squad,
+                squad_date: endDate
+              }
             }
           }
-          // make sure squad dates are within the start and end dates for the event
-          let squadDateStr = "";
-          setSquads(
-            squads.map((squad) => {
-              squadDateStr = "";              
-              if (
-                !squad.squad_date.trim() ||
-                !isValid(new Date(squad.squad_date))
-              ) {
-                squadDateStr = value;
-              } else if (new Date(squad.squad_date) < startDate) {
-                squadDateStr = value;
-              } else if (new Date(squad.squad_date) < endDate) {
-                squadDateStr = endDateStr;
-              }
-              if (squadDateStr) {
-                return {
-                  ...squad,
-                  squad_date: squadDateStr,
-                };
-              } else {
-                return squad;
-              }
-            })
-          );
-        }
-      }
+          return squad
+        })
+      )      
     }
   };
 
   const handleBlur = (e: ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
 
-    if (!value.trim()) {
-      let updatedData: tmntType;
-      if (name === "start_date") { 
-        updatedData = {
-          ...tmnt,
-          start_date: todayStr,
-          start_date_err: "",
-        };
-        setTmnt(updatedData);
-      } else if (name === "end_date") {
-        const updatedDateStr = tmnt.start_date !== todayStr ? tmnt.start_date : todayStr;
-        updatedData = {
-          ...tmnt,
-          end_date: updatedDateStr,
-          end_date_err: "",
-        };
-        setTmnt(updatedData);
+    if (!value.trim()) {      
+      if (name === "start_date" || name === "end_date") {               
+        const ymd = getYearMonthDays(value);
+        if (ymd.year === 0 || ymd.month === 0 || ymd.days === 0) {
+          let updatedData: tmntType;
+          if (name === "start_date") {
+            updatedData = {
+              ...tmnt,
+              start_date: new Date(Date.UTC(ymd.year, ymd.month, ymd.days)),
+              start_date_err: "",
+            };
+          } else {
+            updatedData = {
+              ...tmnt,
+              end_date: new Date(Date.UTC(ymd.year, ymd.month, ymd.days)),
+              end_date_err: "",
+            };
+          }
+          setTmnt(updatedData);
+        }
       }
     }
   };
@@ -184,7 +193,7 @@ export const TmntDataForm: React.FC<FormProps> = ({ tmntProps }) => {
       istmntInfoValid = false;
     }    
     if (!startErr && !endErr) {
-      if (new Date(tmnt.end_date) < new Date(tmnt.start_date)) {
+      if (compareAsc(tmnt.start_date, tmnt.end_date) > 0) {
         endErr = "End date cannot be before start date";
         istmntInfoValid = false;
       }
@@ -216,7 +225,6 @@ export const TmntDataForm: React.FC<FormProps> = ({ tmntProps }) => {
     if (!validateSquads(squads, setSquads, events, setSquadAcdnErr, tmnt.start_date, tmnt.end_date)) {
       isTmntValid = false;
     }
-
     if (!validatePots(pots, setPots, setPotAcdnErr)) {
       isTmntValid = false;
     }
@@ -230,6 +238,7 @@ export const TmntDataForm: React.FC<FormProps> = ({ tmntProps }) => {
   };
 
   const handleDebug = (e: React.MouseEvent<HTMLElement>) => {
+
     // const eventsAreValid = validateEvents(events, setEvents, setEventAcdnErr);
     // console.log("Events valid: ", eventsAreValid);
     // const divsArevalid = validateDivs(divs, setDivs, setDivAcdnErr);
@@ -318,6 +327,7 @@ export const TmntDataForm: React.FC<FormProps> = ({ tmntProps }) => {
               <select
                 id="inputBowlName"
                 data-testid="inputBowlName"
+                name="bowl_id"
                 className={`form-select ${tmnt.bowl_id_err && "is-invalid"}`}
                 onChange={handleBowlSelectChange}
                 value={tmnt.bowl_id === '' ? 'Choose...' : tmnt.bowl_id}
@@ -347,7 +357,9 @@ export const TmntDataForm: React.FC<FormProps> = ({ tmntProps }) => {
                 }`}
                 id="inputStartDate"
                 name="start_date"
-                value={tmnt.start_date}
+                data-testid="inputStartDate"
+                // value={dateTo_UTC_yyyyMMdd(tmnt.start_date)}
+                value={dateStrs.start_date_str}
                 onChange={handleInputChange}
                 onBlur={handleBlur}
               />
@@ -369,7 +381,9 @@ export const TmntDataForm: React.FC<FormProps> = ({ tmntProps }) => {
                 }`}
                 id="inputEndDate"
                 name="end_date"
-                value={tmnt.end_date}
+                data-testid="inputEndDate"
+                // value={dateTo_UTC_yyyyMMdd(tmnt.end_date)}
+                value={dateStrs.end_date_str}
                 onChange={handleInputChange}
                 onBlur={handleBlur}
               />
@@ -514,3 +528,5 @@ export const TmntDataForm: React.FC<FormProps> = ({ tmntProps }) => {
     </form>
   );
 };
+
+export default TmntDataForm;

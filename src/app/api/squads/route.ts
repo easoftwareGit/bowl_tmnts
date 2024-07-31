@@ -42,7 +42,7 @@ export async function POST(request: Request) {
       squad_time,      
       sort_order
     }
-
+    // convert date strings to date objects    
     const errCode = validateSquad(toCheck);
     if (errCode !== ErrorCode.None) {
       let errMsg: string;
@@ -81,7 +81,7 @@ export async function POST(request: Request) {
       games: number,        
       lane_count: number,      
       starting_lane: number,      
-      squad_date: string,      
+      squad_date: Date,      
       squad_time: string | null,       
       sort_order: number,
       id?: string
