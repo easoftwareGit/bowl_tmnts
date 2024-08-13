@@ -1,12 +1,23 @@
 import { IntlConfig } from "@/lib/currency/components/CurrencyInputProps";
 import { startOfToday, addMinutes, isValid, addSeconds, addDays, addMilliseconds } from "date-fns";
 
+import { startOfToday, addMinutes, isValid, addSeconds, addDays, addMilliseconds } from "date-fns";
+
 const ic: IntlConfig = {
   // locale: window.navigator.language,
   locale: 'en-US'
 };
 
 /**
+* formats a date into a string using yyyy-MM-dd
+* 
+* @param date 
+* @returns {*} string - date formatted as yyyy-MM-dd  2024-10-26
+*/
+export const dateTo_UTC_yyyyMMdd = (date: Date): string => {
+  if (!isValid(date)) return '';
+  return `${date.getUTCFullYear()}-${(date.getUTCMonth() + 1).toString().padStart(2, '0')}-${date.getUTCDate().toString().padStart(2, '0')}`
+}
 * formats a date into a string using yyyy-MM-dd
 * 
 * @param date 
@@ -26,6 +37,9 @@ export const dateTo_UTC_yyyyMMdd = (date: Date): string => {
 export const dateTo_yyyyMMdd = (date: Date): string => {
   if (!isValid(date)) return '';
   return `${date.getFullYear()}-${(date.getMonth() + 1).toString().padStart(2, '0')}-${date.getDate().toString().padStart(2, '0')}`
+export const dateTo_yyyyMMdd = (date: Date): string => {
+  if (!isValid(date)) return '';
+  return `${date.getFullYear()}-${(date.getMonth() + 1).toString().padStart(2, '0')}-${date.getDate().toString().padStart(2, '0')}`
 }
 
 /**
@@ -36,9 +50,67 @@ export const dateTo_yyyyMMdd = (date: Date): string => {
 */
 export const dateTo_UTC_MMddyyyy = (date: Date): string => {
   if (!isValid(date)) return '';
+  if (!isValid(date)) return '';
   return `${(date.getUTCMonth() + 1).toString().padStart(2, '0')}/${date.getUTCDate().toString().padStart(2, '0')}/${date.getUTCFullYear()}`
 }
 
+/**
+* formats a date into a string using yyyy-MM-dd
+* 
+* @param date 
+* @returns {*} string - date formatted as yyyy-MM-dd  10/26/2024
+*/
+export const dateTo_MMddyyyy = (date: Date): string => {
+  if (!isValid(date)) return '';
+  return `${(date.getMonth() + 1).toString().padStart(2, '0')}/${date.getDate().toString().padStart(2, '0')}/${date.getFullYear()}`
+}
+
+/**
+ * returns the end of a day from a date string
+ * 
+ * @param dateStr - string to convert to end of day
+ * @returns {Date | null}
+ */
+export const endOfDayFromString = (dateStr: string): Date | null => {
+  if (!isValid(new Date(dateStr))) return null;
+  const tsoMins = new Date().getTimezoneOffset()
+  return addMilliseconds(addDays(addMinutes(new Date(dateStr), tsoMins), 1), -1)
+}
+
+/**
+ * returns the day but with now as the time
+ * 
+ * @param dateStr - string to convert to day at now
+ * @returns {Date | null}
+ */
+export const nowOnDayFromString = (dateStr: string): Date | null => {
+  if (!isValid(new Date(dateStr))) return null;
+  const tsoMins = new Date().getTimezoneOffset()
+  const dayNow = addMinutes(new Date(dateStr), tsoMins) 
+  const newNow = new Date()
+  dayNow.setHours(newNow.getHours())
+  dayNow.setMinutes(newNow.getMinutes())
+  dayNow.setSeconds(newNow.getSeconds())      
+  return dayNow
+}
+
+/**
+ * returns the start of a day from a date string
+ * 
+ * @param dateStr - string to convert to start of day
+ * @returns {Date | null}
+ */
+export const startOfDayFromString = (dateStr: string): Date | null => {
+  if (!isValid(new Date(dateStr))) return null;
+  const tsoMins = new Date().getTimezoneOffset()
+  return addMinutes(new Date(dateStr), tsoMins) 
+}
+
+/**
+ * returns the start of today in yyyy-MM-dd format
+ * 
+ * @returns {string} - strat of today in yyyy-MM-dd format
+ */
 /**
 * formats a date into a string using yyyy-MM-dd
 * 

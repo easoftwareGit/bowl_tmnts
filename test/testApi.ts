@@ -7,6 +7,10 @@ export const testBaseApi = testbaseOrigin + process.env.TEST_BASE_API
 
 export const testBaseUsersApi = testBaseApi + '/users'
 
+export const testBaseBowlsApi = testBaseApi + '/bowls'
+
+export const testBaseUsersApi = testBaseApi + '/users'
+
 export const testBaseRegisterApi = testBaseApi + '/auth/register'
 export const testBaseNextAuthApi = testBaseApi + '/auth/[...nextauth]'
 

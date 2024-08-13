@@ -5,6 +5,8 @@ import { tmntType, YearObj } from "@/lib/types/types";
 import { initTmnt } from "@/db/initVals";
 import { startOfTodayUTC, todayStr } from "@/lib/dateTools";
 import { addDays, compareAsc } from "date-fns";
+import { startOfTodayUTC, todayStr } from "@/lib/dateTools";
+import { addDays, compareAsc } from "date-fns";
 
 const url = baseApi + "/tmnts";
 const tmntId = "tmt_fd99387c33d9c78aba290286576ddce5";
@@ -20,6 +22,7 @@ export const DbTmnts = () => {
     setResults(results);
     // force textare to scroll to bottom
     var textarea = document.getElementById("tmntTestResults");
+    var textarea = document.getElementById("tmntTestResults");
     if (textarea) {
       textarea.scrollTop = textarea.scrollHeight;
     }
@@ -33,6 +36,8 @@ export const DbTmnts = () => {
     bowl_id: "bwl_561540bd64974da9abdd97765fdb3659",
     start_date: startOfTodayUTC(),
     end_date: startOfTodayUTC(),
+    start_date: startOfTodayUTC(),
+    end_date: startOfTodayUTC(),
   };
 
   const tmntToUpdate: tmntType = {
@@ -43,11 +48,15 @@ export const DbTmnts = () => {
     bowl_id: "bwl_561540bd64974da9abdd97765fdb3659",
     start_date: new Date(Date.UTC(2022, 9, 23)),  // month is -1 
     end_date: new Date(Date.UTC(2022, 9, 23)),    // month is -1
+    start_date: new Date(Date.UTC(2022, 9, 23)),  // month is -1 
+    end_date: new Date(Date.UTC(2022, 9, 23)),    // month is -1
   };
 
   const tmntUpdatedTo: tmntType = {
     ...initTmnt,
     tmnt_name: "Test Tmnt",
+    start_date: new Date(Date.UTC(2022, 0, 1)), // month is -1
+    end_date: new Date(Date.UTC(2022, 0, 1)),   // month is -1
     start_date: new Date(Date.UTC(2022, 0, 1)), // month is -1
     end_date: new Date(Date.UTC(2022, 0, 1)),   // month is -1
     bowl_id: "bwl_8b4a5c35ad1247049532ff53a12def0a",
@@ -60,6 +69,8 @@ export const DbTmnts = () => {
     tmnt_name: "Gold Pin",
     user_id: "usr_5bcefb5d314fff1ff5da6521a2fa7bde",
     bowl_id: "bwl_561540bd64974da9abdd97765fdb3659",
+    start_date: new Date(Date.UTC(2024, 7, 19)), // month is -1
+    end_date: new Date(Date.UTC(2024, 7, 19)),   // month is -1
     start_date: new Date(Date.UTC(2024, 7, 19)), // month is -1
     end_date: new Date(Date.UTC(2024, 7, 19)),   // month is -1
   };
@@ -312,10 +323,12 @@ export const DbTmnts = () => {
             false
           );
         } else if (compareAsc(postedTmnt.start_date, tmntToPost.start_date) !== 0) {
+        } else if (compareAsc(postedTmnt.start_date, tmntToPost.start_date) !== 0) {
           testResults += addToResults(
             "Created Tmnt start_date !== tmntToPost.start_date",
             false
           );
+        } else if (compareAsc(postedTmnt.end_date, tmntToPost.end_date) !== 0) {
         } else if (compareAsc(postedTmnt.end_date, tmntToPost.end_date) !== 0) {
           testResults += addToResults(
             "Created Tmnt end_date !== tmntToPost.end_date",
@@ -346,6 +359,8 @@ export const DbTmnts = () => {
       }
 
       await invalidCreate("tmnt_name", "");
+      await invalidCreate("start_date", "<script>alert('hi')</script>");
+      await invalidCreate("start_date", addDays( tmntToPost.end_date, 1));
       await invalidCreate("start_date", "<script>alert('hi')</script>");
       await invalidCreate("start_date", addDays( tmntToPost.end_date, 1));
       await invalidCreate("end_date", "2022-11-31");
@@ -512,10 +527,12 @@ export const DbTmnts = () => {
             false
           );
         } else if (compareAsc(readTmnt.start_date, readTmnt.start_date) !== 0) {
+        } else if (compareAsc(readTmnt.start_date, readTmnt.start_date) !== 0) {
           testResults += addToResults(
             "Read 1 Tmnt start_date !== testTmnt.start_date",
             false
           );
+        } else if (compareAsc(readTmnt.end_date, testTmnt.end_date) !== 0) {
         } else if (compareAsc(readTmnt.end_date, testTmnt.end_date) !== 0) {
           testResults += addToResults(
             "Read 1 Tmnt end_date !== testTmnt.end_date",
@@ -586,6 +603,7 @@ export const DbTmnts = () => {
       }
     };
 
+    const invalidUpadte = async (propertyName: string, value: any) => {
     const invalidUpadte = async (propertyName: string, value: any) => {
       try {
         const invalidTmntJSON = JSON.stringify({
@@ -686,10 +704,12 @@ export const DbTmnts = () => {
           false
         );
       } else if (compareAsc(updatedTmnt.start_date, tmntUpdatedTo.start_date) !== 0) {
+      } else if (compareAsc(updatedTmnt.start_date, tmntUpdatedTo.start_date) !== 0) {
         testResults += addToResults(
           "Updated Tmnt start_date !== testTmntToUpdate.start_date",
           false
         );
+      } else if (compareAsc(updatedTmnt.end_date, tmntUpdatedTo.end_date) !== 0) {
       } else if (compareAsc(updatedTmnt.end_date, tmntUpdatedTo.end_date) !== 0) {
         testResults += addToResults(
           "Updated Tmnt end_date !== testTmntToUpdate.end_date",
@@ -714,9 +734,15 @@ export const DbTmnts = () => {
       await invalidUpadte("start_date", new Date(Date.UTC(2022, 8, 24))); // after end date, month - 1      
       await invalidUpadte("end_date", "abc");
       await invalidUpadte(
+      await invalidUpadte("tmnt_name", "*****");
+      await invalidUpadte("start_date", "2022-02-32");
+      await invalidUpadte("start_date", new Date(Date.UTC(2022, 8, 24))); // after end date, month - 1      
+      await invalidUpadte("end_date", "abc");
+      await invalidUpadte(
         "bowl_id",
         "usr_12345678901234567890123456789012"
       );
+      await invalidUpadte(
       await invalidUpadte(
         "user_id",
         "bwl_12345678901234567890123456789012"
@@ -756,6 +782,7 @@ export const DbTmnts = () => {
     ) => {
       try {
         let patchJSON: any;
+        // if start date or end date, must have both values
         // if start date or end date, must have both values
         if (propertyName === "start_date" || propertyName === "end_date") {
           patchJSON = JSON.stringify({
@@ -804,6 +831,93 @@ export const DbTmnts = () => {
       } catch (error: any) {
         testResults += addToResults(
           `doPatch Error: ${error.message}`,
+          false
+        );
+        return {
+          error: error.message,
+          status: 404,
+        };
+      } finally {
+        const reset = await resetTmntToUpdate(false);
+      }
+    };
+
+    const doPatchDates = async (
+      startDate: any,
+      endDate: any      
+    ) => {
+      try {
+        let patchJSON: any;
+        if (startDate && endDate) {
+          patchJSON = JSON.stringify({
+            start_date: startDate,
+            end_date: endDate,
+          });
+        } else if (startDate) {
+          patchJSON = JSON.stringify({
+            start_date: startDate,
+          });
+        } else if (endDate) {
+          patchJSON = JSON.stringify({
+            end_date: endDate,
+          });
+        } else {
+          testResults += addToResults(
+            `doPatch Error: no date values`,
+            false
+          );
+          return {
+            error: 'no date values',
+            status: 404,
+          };
+        }
+        const response = await axios({
+          method: "patch",
+          data: patchJSON,
+          withCredentials: true,
+          url: tmntIdUrl,
+        });
+        if (response.status === 200) {
+          if (startDate) {
+            const resDate = new Date(response.data.tmnt.start_date);
+            if (compareAsc(resDate, startDate) === 0) {
+              testResults += addToResults(
+                `Patched Tmnt: ${tmntToUpdate.tmnt_name} - start_date = "${startDate}"`
+              );
+            } else {
+              testResults += addToResults(
+                `DID NOT Patch Tmnt start_date`,
+                false
+              );
+            }
+          } 
+          if (endDate) {
+            const resDate = new Date(response.data.tmnt.end_date);
+            if (compareAsc(resDate, endDate) === 0) {
+              testResults += addToResults(
+                `Patched Tmnt: ${tmntToUpdate.tmnt_name} - end_date = "${endDate}"`
+              );
+            } else {
+              testResults += addToResults(
+                `DID NOT Patch Tmnt end_date`,
+                false
+              );
+            }
+          }
+          return {
+            data: response.data.tmnt,
+            status: response.status,
+          };
+        } else {
+          testResults += addToResults(`doPatch Error: dates`, false);
+          return {
+            error: `Error Patching dates`,
+            status: response.status,
+          };
+        }
+      } catch (error: any) {
+        testResults += addToResults(
+          `doPatchDates Error: ${error.message}`,
           false
         );
         return {
@@ -998,7 +1112,13 @@ export const DbTmnts = () => {
       await doPatchDates(new Date(Date.UTC(1999, 0, 1)), null as any);
       await doPatchDates(null as any, new Date(Date.UTC(2025, 0, 1)), );
 
+      // new Date(Date.UTC(2023, 2, 1)),  // month is -1
+      await doPatchDates(new Date(Date.UTC(2023, 1, 1)), new Date(Date.UTC(2023, 1, 1)));
+      await doPatchDates(new Date(Date.UTC(1999, 0, 1)), null as any);
+      await doPatchDates(null as any, new Date(Date.UTC(2025, 0, 1)), );
+
       await dontPatch("start_date", "2024-02-31");
+      await dontPatch("end_date", new Date(Date.UTC(1980, 2, 1)));
       await dontPatch("end_date", new Date(Date.UTC(1980, 2, 1)));
 
       await doPatch(
@@ -1039,6 +1159,7 @@ export const DbTmnts = () => {
   const tmntDelete = async (tmntId: string, testing: boolean = true) => {
     let testResults = results + "Delete Tmnt tests: \n";
     const tmntDelUrl = url + "/" + tmntId;
+    if (testing) {
     if (testing) {
       passed = true;
     }    
@@ -1149,7 +1270,9 @@ export const DbTmnts = () => {
         status: 404,
       };
     } finally {      
+    } finally {      
       if (testing) {
+        await reAddDeletedTmnt();
         await reAddDeletedTmnt();
         if (passed) {
           testResults += addToResults(`Delete Tmnt tests: PASSED`);
@@ -1418,6 +1541,15 @@ export const DbTmnts = () => {
       case "upcoming":
         await tmntUpcoming();
         break;
+      case "years":
+        await tmntYears();
+        break;
+      case "results":
+        await tmntResults();
+        break;
+      case "upcoming":
+        await tmntUpcoming();
+        break;
       default:
         break;
     }
@@ -1576,6 +1708,50 @@ export const DbTmnts = () => {
             name="tmnt"
             value="delete"
             checked={tmntCrud === "delete"}
+            onChange={handleCrudChange}
+          />
+        </div>
+      </div>
+      <div className="row g-3 mb-3">
+        <div className="col-sm-2">
+          <label htmlFor="tmntYears" className="form-check-label">
+            &nbsp;Years &nbsp;
+          </label>
+          <input
+            type="radio"
+            className="form-check-input"
+            id="tmntYears"
+            name="tmnt"
+            value="years"
+            checked={tmntCrud === "years"}
+            onChange={handleCrudChange}
+          />
+        </div>
+        <div className="col-sm-2">
+          <label htmlFor="tmntResults" className="form-check-label">
+            &nbsp;Results &nbsp;
+          </label>
+          <input
+            type="radio"
+            className="form-check-input"
+            id="tmntResults"
+            name="tmnt"
+            value="results"
+            checked={tmntCrud === "results"}
+            onChange={handleCrudChange}
+          />
+        </div>
+        <div className="col-sm-3">
+          <label htmlFor="tmntUpcoming" className="form-check-label">
+            &nbsp;Upcoming &nbsp;
+          </label>
+          <input
+            type="radio"
+            className="form-check-input"
+            id="tmntUpcoming"
+            name="tmnt"
+            value="upcoming"
+            checked={tmntCrud === "upcoming"}
             onChange={handleCrudChange}
           />
         </div>

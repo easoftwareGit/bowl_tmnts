@@ -10,6 +10,7 @@ import {
   brktType,
   potType,
   testDateType,
+  testDateType,
 } from "../lib/types/types";
 import { User, Bowl, Tmnt } from "@prisma/client";
 import { startOfDayFromString, startOfTodayUTC, todayStr } from "@/lib/dateTools";
@@ -63,7 +64,9 @@ export const initTmnt: tmntType = {
   bowl_id: "",
   bowl_id_err: "",
   start_date: startOfDayFromString(todayStr) as Date,  
+  start_date: startOfDayFromString(todayStr) as Date,  
   start_date_err: "",
+  end_date: startOfDayFromString(todayStr) as Date,  
   end_date: startOfDayFromString(todayStr) as Date,  
   end_date_err: "",
   bowls: {
@@ -148,6 +151,8 @@ export const initSquad: squadType = {
   starting_lane_err: "",
   lane_count: defaultLaneCount,
   lane_count_err: "",
+  squad_date: startOfDayFromString(todayStr) as Date,  
+  squad_date_str: todayStr,
   squad_date: startOfDayFromString(todayStr) as Date,  
   squad_date_str: todayStr,
   squad_date_err: "",
@@ -272,6 +277,12 @@ export const initElims: elimType[] = [
   },
 ];
 
+export const initTestDate: testDateType = {
+  id: 0,
+  sod: new Date(Date.UTC(2000, 0, 1)),
+  eod: new Date(Date.UTC(2000, 0, 1, 23, 59, 59, 999)),
+  gmt: new Date(Date.UTC(2000, 0, 1, 1, 2, 3, 0))        
+}
 export const initTestDate: testDateType = {
   id: 0,
   sod: new Date(Date.UTC(2000, 0, 1)),

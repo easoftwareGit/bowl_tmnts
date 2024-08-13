@@ -22,7 +22,9 @@ export const mockTmnt: tmntType = {
   bowl_id: 'bwl_561540bd64974da9abdd97765fdb3659',
   bowl_id_err: "",
   start_date: startOfDayFromString(todayStr) as Date,
+  start_date: startOfDayFromString(todayStr) as Date,
   start_date_err: "",
+  end_date: startOfDayFromString(todayStr) as Date,
   end_date: startOfDayFromString(todayStr) as Date,
   end_date_err: "",
   bowls: {

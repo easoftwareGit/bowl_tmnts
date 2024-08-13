@@ -1,4 +1,5 @@
 import { isValidBtDbId, maxTmntNameLength, ErrorCode, minDate, maxDate } from "@/lib/validation";
+import { isValidBtDbId, maxTmntNameLength, ErrorCode, minDate, maxDate } from "@/lib/validation";
 import { sanitize } from "@/lib/sanitize";
 import { startOfDay, isValid, isDate, compareAsc } from "date-fns";
 import { idTypes, tmntType } from "@/lib/types/types";
@@ -16,8 +17,12 @@ const gotTmntData = (tmnt: tmntType): ErrorCode => {
     if (!sanitize(tmnt.tmnt_name)
       || (!tmnt.start_date) 
       || (!tmnt.end_date)  
+<<<<<<< HEAD
       || !tmnt.bowl_id
       || !tmnt.user_id) {
+=======
+      || !tmnt.bowl_id) {
+>>>>>>> ecbb8764917da5b0e197e387964af4de39784be2
       return ErrorCode.MissingData
     }
     return ErrorCode.None    

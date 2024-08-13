@@ -11,6 +11,7 @@ import { Form7 } from "./form7";
 
 const blankTmnt = {
   ...initTmnt,    
+  ...initTmnt,    
 }
 
 interface FormProps {
