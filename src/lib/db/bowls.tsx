@@ -1,8 +1,13 @@
-import axios from "axios";
-import { prisma } from "@/lib/prisma";
-import { baseBowlsApi } from "../../db/apiPaths";
-import { testBaseBowlsApi } from "../../../test/testApi";
+"use server"
+// these functions need to be in a file with "use server" at the top
+// prima is a server only, using these functions without the "use server" 
+// directive in a client file will cause an error. 
+
+// import { prisma } from "@/lib/prisma"  // for production & developemnt
+import prisma from '../../../test/client'  // for testing
+
 import { isValidBtDbId } from "../validation";
+import { Bowl } from "@prisma/client";
 
 /**
  * get array of bowls
@@ -14,15 +19,9 @@ import { isValidBtDbId } from "../validation";
  *
  * @returns { data: Bowl[] } - array of bowls;
  */
-export const getBowls = async () => {  
-  // for testing.
-  // if testing: tmntYearUrl = testBaseBowlsApi;
-  // if not testing: tmntYearUrl = baseBowlsApi
-  const url = testBaseBowlsApi.startsWith("undefined")
-    ? baseBowlsApi
-    : testBaseBowlsApi;    
-  const response = await axios.get(url);
-  return response.data; // response.data is already JSON'ed
+
+export const getBowls = async (): Promise<Bowl[]> => {  
+  return prisma.bowl.findMany();
 };
 
 /**
@@ -31,7 +30,8 @@ export const getBowls = async () => {
  * @param {id} - bowl id
  * @return {Object|null} Object = bowl's data; mull = bowl not found
  */
-export async function findBowlById(id: string) {
+export async function findBowlById(id: string): Promise<Bowl | null> {
+
   try {
     // validate the id as an bowl id
     if (!isValidBtDbId(id, 'bwl')) {
@@ -44,7 +44,11 @@ export async function findBowlById(id: string) {
       },
     });    
     return (bowl) ? bowl : null;
-  } catch (error) {
-    throw Error('error finding bowl')
+  } catch (err) {
+    if (err instanceof Error) {
+      throw Error(err.message)
+    } else {
+      throw Error('error finding bowl')
+    }
   }
 }

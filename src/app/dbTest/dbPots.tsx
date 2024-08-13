@@ -1270,7 +1270,7 @@ export const DbPots = () => {
 
   const potDelete = async (potIdToDel: string, testing: boolean = true) => {
     let testResults = results + "Delete Pot tests: \n";
-    if (!testing) {
+    if (testing) {
       passed = true;
     }    
 
@@ -1363,9 +1363,9 @@ export const DbPots = () => {
         error: error.message,
         status: 404,
       };
-    } finally {
-      await reAddDeletedPot();
+    } finally {      
       if (testing) {
+        await reAddDeletedPot();
         if (passed) {
           testResults += addToResults(`Delete Pot tests: PASSED`, true);
         } else {

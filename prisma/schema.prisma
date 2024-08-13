@@ -44,8 +44,8 @@ model Bowl {
 model Tmnt {
   id         String   @id @default(dbgenerated("concat('tmt_', replace(cast(gen_random_uuid() as text), '-', ''))")) @db.Text
   tmnt_name  String
-  start_date String 
-  end_date   String 
+  start_date DateTime
+  end_date   DateTime
   events     Event[]
   divs       Div[]
   players    Player[]
@@ -69,7 +69,7 @@ model Event {
   other       Decimal  @db.Decimal(9, 2)
   expenses    Decimal  @db.Decimal(9, 2)
   added_money Decimal  @db.Decimal(9, 2)
-  sort_order  Int  
+  sort_order  Int
   tmnts       Tmnt     @relation(fields: [tmnt_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
   squads      Squad[]
   createdAt   DateTime @default(now())
@@ -79,31 +79,31 @@ model Event {
 }
 
 model Div {
-  id          String       @id @default(dbgenerated("concat('div_', replace(cast(gen_random_uuid() as text), '-', ''))")) @db.Text
-  tmnt_id     String       @db.Text
-  div_name    String
-  hdcp_per    Float
-  hdcp_from   Int          
-  int_hdcp    Boolean      @default(true)
-  hdcp_for    String       @default("Game")
-  sort_order  Int
-  tmnts       Tmnt         @relation(fields: [tmnt_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
-  entries     Entry[]
-  pots        Pot[]
-  brkts       Brkt[]
-  elims       Elim[]
-  createdAt   DateTime     @default(now())
-  updatedAt   DateTime     @updatedAt
+  id         String   @id @default(dbgenerated("concat('div_', replace(cast(gen_random_uuid() as text), '-', ''))")) @db.Text
+  tmnt_id    String   @db.Text
+  div_name   String
+  hdcp_per   Float
+  hdcp_from  Int
+  int_hdcp   Boolean  @default(true)
+  hdcp_for   String   @default("Game")
+  sort_order Int
+  tmnts      Tmnt     @relation(fields: [tmnt_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  entries    Entry[]
+  pots       Pot[]
+  brkts      Brkt[]
+  elims      Elim[]
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
 
   @@unique([tmnt_id, div_name])
 }
 
 model Squad {
-  id            String       @id @default(dbgenerated("concat('sqd_', replace(cast(gen_random_uuid() as text), '-', ''))")) @db.Text
-  event_id      String       @db.Text
+  id            String      @id @default(dbgenerated("concat('sqd_', replace(cast(gen_random_uuid() as text), '-', ''))")) @db.Text
+  event_id      String      @db.Text
   squad_name    String
-  squad_date    String     
-  squad_time    String?      @db.Text
+  squad_date    DateTime
+  squad_time    String?     @db.Text
   games         Int
   lane_count    Int
   starting_lane Int
@@ -113,9 +113,9 @@ model Squad {
   pots          Pot[]
   brkts         Brkt[]
   elims         Elim[]
-  events        Event        @relation(fields: [event_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
-  createdAt     DateTime     @default(now())
-  updatedAt     DateTime     @updatedAt
+  events        Event       @relation(fields: [event_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  createdAt     DateTime    @default(now())
+  updatedAt     DateTime    @updatedAt
 
   @@unique([event_id, squad_name])
 }
@@ -236,4 +236,13 @@ model Lane_asmt {
 
   @@unique([lane, position])
   @@unique([player_id, squad_id])
+}
+
+model testDate {
+  id        Int      @id @default(autoincrement())
+  sod       DateTime
+  eod       DateTime
+  gmt       DateTime
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 }

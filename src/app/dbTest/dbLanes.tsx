@@ -1229,7 +1229,7 @@ export const DbLanes = () => {
 
   const laneDelete = async (idToDel: string, testing: boolean = true) => {    
     let testResults = results + "Delete Lane tests: \n";
-    if (!testing) {
+    if (testing) {
       passed = true;
     }    
 
@@ -1307,9 +1307,9 @@ export const DbLanes = () => {
         error: error.message,
         status: 404,
       };
-    } finally {
-      await reAddDeletedLane();
+    } finally {      
       if (testing) {
+        await reAddDeletedLane();
         if (passed) {
           testResults += addToResults(`Delete Lane tests: PASSED`, true);
         } else {

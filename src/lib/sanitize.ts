@@ -1,8 +1,10 @@
 // base on code in https://www.npmjs.com/package/string-sanitizer
 
-// space, regular chars, digits, single quote and a dash
+import { maxUrlLength } from "./validation";
+
+// space, regular chars, digits, single quote, exclamation and a dash 
 // why do ()*+ not work?
-export const stringRegEx = /[^ a-zA-Z0-9'-.,]/g;
+export const stringRegEx = /[^ a-zA-Z0-9'+-.,]/g;
 
 /**
  * trims tailing and leading spaces,
@@ -17,13 +19,17 @@ export function sanitize(str: string): string {
     return "";
   }
   try {
-    let san = decodeURIComponent(str);
-    san = san
-      .replace(/<[^>]*>/g, "")
-      .replace(stringRegEx, "")
-      .replace(/\(/g, "")
-      .replace(/\)/g, "")
-      .replace(/\*/g, "");
+    let san
+    try {
+      san = decodeURIComponent(str);
+    } catch (error) {
+      san = str
+    }    
+    san = san.replace(/<[^>]*>/g, "")
+    san = san.replace(stringRegEx, "")
+    san = san.replace(/\(/g, "")
+    san = san.replace(/\)/g, "")
+    san = san.replace(/\*/g, "");
     if (san) {
       return san.trim();
     } else {
@@ -36,7 +42,8 @@ export function sanitize(str: string): string {
 
 export function sanitizeUrl(url: string): string {
   try {
-    if (url.length > 2048) {
+    // maxUrlLength is 2048
+    if (url.length > maxUrlLength) {
       throw new Error("URL exceeds maximum length");
     }
     let parsedUrl = new URL(url);
@@ -55,8 +62,7 @@ export function sanitizeUrl(url: string): string {
       sanitizedUrl += parsedUrl.hash;
     }
     return sanitizedUrl;
-  } catch (error: any) {
-    console.error("Invalid URL:", error.message);
+  } catch (error) {    
     return "";
   }
 }

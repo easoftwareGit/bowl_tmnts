@@ -17,3 +17,7 @@ export const getBrktOrElimName = (id: string, features: brktType[] | elimType[])
     ? found.div_name + ': ' + found.start + '-' + (found.start + found.games - 1)
     : '';
 }
+
+export const exportedForTesting = {
+  findDiv,  
+}

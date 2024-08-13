@@ -1,6 +1,7 @@
 import { createAsyncThunk, createSlice } from '@reduxjs/toolkit'
 import { loadStatusType } from '@/redux/statusTypes';
-import { getTmntYears } from '@/db/tmnts/years';
+import { getTmntYears } from '@/lib/db/tmnts';
+// import { getTmntYears } from '@/lib/db/tmntYears';
 import { YearObj } from '@/lib/types/types';
 
 export interface TmntYearsSliceState {
@@ -36,7 +37,7 @@ export const tmntYearsSlice = createSlice({
     })
     builder.addCase(fetchTmntYears.fulfilled, (state: TmntYearsSliceState, action) => {
       state.status = 'succeeded';      
-      state.data = action.payload.data;
+      state.data = action.payload;
       state.error = '';
     })
     builder.addCase(fetchTmntYears.rejected, (state: TmntYearsSliceState, action) => {

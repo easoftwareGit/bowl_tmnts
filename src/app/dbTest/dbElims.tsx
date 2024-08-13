@@ -437,12 +437,12 @@ export const DbElims = () => {
       if (response.status === 200) {
         if (showResults) {
           testResults += addToResults(
-            `Success: Read ${response.data.elims.length} Brkts`,
+            `Success: Read ${response.data.elims.length} Elims`,
             true
           );
         }
         const all: elimType[] = response.data.elims as unknown as elimType[];
-        // 4 elims in /prisma/seeds.ts
+        // 5 elims in /prisma/seeds.ts
         const seedCount = 5;
         if (all.length === seedCount) {
           testResults += addToResults(`Read all ${seedCount} elims`, true);
@@ -504,10 +504,10 @@ export const DbElims = () => {
           };
         } else {
           testResults += addToResults(
-            `Read 1 Brkt, non 404 response for invalid id: ${id}`
+            `Read 1 Elim, non 404 response for invalid id: ${id}`
           );
           return {
-            error: `Error Reading 1 Brkt, non 404 response for invalid id: ${id}`,
+            error: `Error Reading 1 Elim, non 404 response for invalid id: ${id}`,
             status: invalidResponse.status,
           };
         }
@@ -524,7 +524,7 @@ export const DbElims = () => {
             false
           );
           return {
-            error: `Error Reading 1 Brkt, non 404 response for invalid id: ${id}`,
+            error: `Error Reading 1 Elim, non 404 response for invalid id: ${id}`,
             status: error.response.status,
           };
         }
@@ -917,32 +917,32 @@ export const DbElims = () => {
         const updated: elimType = response.data.elim;
         if (updated.div_id !== elimUpdatedTo.div_id) {
           testResults += addToResults(
-            "Updated elim div_id !== potUpdatedTo.div_id",
+            "Updated elim div_id !== elimUpdatedTo.div_id",
             false
           );
         } else if (updated.squad_id !== elimUpdatedTo.squad_id) {
           testResults += addToResults(
-            "Updated elim squad_id !== potUpdatedTo.squad_id",
+            "Updated elim squad_id !== elimUpdatedTo.squad_id",
             false
           );
         } else if (updated.fee !== elimUpdatedTo.fee) {
           testResults += addToResults(
-            "Updated elim div_name !== potUpdatedTo.fee",
+            "Updated elim fee !== elimUpdatedTo.fee",
             false
           );
         } else if (updated.start !== elimUpdatedTo.start) {
           testResults += addToResults(
-            "Updated elim start !== potUpdatedTo.start",
+            "Updated elim start !== elimUpdatedTo.start",
             false
           );
         } else if (updated.games !== elimUpdatedTo.games) {
           testResults += addToResults(
-            "Updated elim games !== potUpdatedTo.games",
+            "Updated elim games !== elimUpdatedTo.games",
             false
           );
         } else if (updated.sort_order !== elimUpdatedTo.sort_order) {
           testResults += addToResults(
-            "Updated elim sort_order !== potUpdatedTo.sort_order",
+            "Updated elim sort_order !== elimUpdatedTo.sort_order",
             false
           );
         } else {
@@ -1291,7 +1291,7 @@ export const DbElims = () => {
 
   const elimDelete = async (elimIdToDel: string, testing: boolean = true) => {
     let testResults = results + "Delete Elim tests: \n";
-    if (!testing) {
+    if (testing) {
       passed = true;
     }    
 
@@ -1419,7 +1419,7 @@ export const DbElims = () => {
         return;
       }
 
-      testResults += addToResults(`Reset Brkts`);
+      testResults += addToResults(`Reset Elims`);
       return {
         divs: allElims,
         status: 200,

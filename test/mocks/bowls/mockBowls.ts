@@ -1,6 +1,6 @@
 import { Bowl } from "@prisma/client"
 
-export const mockBowls: Bowl[] = 
+export const mockPrismaBowls: Bowl[] = 
 [
   {
     id: "bwl_561540bd64974da9abdd97765fdb3659",

@@ -110,7 +110,8 @@ export const sanitizeUser = (user: userType): userType => {
   }
   if (user.password) {
     if (isPassword8to20(user.password)) {
-      sanitizedUser.password = sanitize(user.password)
+      // DO NOT SANITIZE
+      sanitizedUser.password = user.password
     }    
   }
   return sanitizedUser
@@ -125,7 +126,7 @@ export const sanitizeUser = (user: userType): userType => {
  * @returns - {ErrorCode.MissingData, ErrorCode.InvalidData, ErrorCode.None, ErrorCode.OtherError} 
  */
 export function validateUser(user: userType, checkPhone: boolean, checkPass: boolean): ErrorCode { 
-
+  
   try {
     const errCode = gotUserData(user, checkPhone, checkPass)
     if (errCode !== ErrorCode.None) {

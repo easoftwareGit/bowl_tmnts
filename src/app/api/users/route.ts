@@ -29,7 +29,8 @@ export async function POST(request: Request) {
       phone,
       password,
     }
-    const errCode = validateUser(toCheck);
+    
+    const errCode = validateUser(toCheck, true, true);
     if (errCode !== ErrorCode.None) {
       let errMsg: string;
       switch (errCode) {
@@ -49,7 +50,7 @@ export async function POST(request: Request) {
       )
     }
     let postId = '';
-    if (id) { 
+    if (id) {       
       postId = validPostId(id, 'usr');
       if (!postId) {
         return NextResponse.json(
@@ -97,9 +98,21 @@ export async function POST(request: Request) {
     });
     return NextResponse.json({ user }, { status: 201 });        
   } catch (err: any) {
+    let errStatus: number;
+    switch (err.code) {
+      case 'P2002': // Unique constraint failed on the fields: (`email`)
+        errStatus = 409;
+        break;
+      case "P2025": // record not found
+        errStatus = 404;
+        break;
+      default:
+        errStatus = 500;
+        break;
+    }
     return NextResponse.json(
       { error: "Error creating user" },
-      { status: 500 }
-    );    
+      { status: errStatus }
+    );
   }
 }

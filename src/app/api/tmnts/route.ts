@@ -24,14 +24,6 @@ export async function GET(request: NextRequest) {
     );        
   }
 }
-
-// {    
-//   "tmnt_name": "Silver Pin",
-//   "start_date": "2023-12-31",
-//   "end_date": "2023-12-31",
-//   "user_id": "usr_5bcefb5d314fff1ff5da6521a2fa7bde",
-//   "bowl_id": "bwl_561540bd64974da9abdd97765fdb3659"
-// }
   
 export async function POST(request: Request) {  
 
@@ -78,8 +70,8 @@ export async function POST(request: Request) {
     const toPost = sanitizeTmnt(toCheck);
     type tmntDataType = {
       tmnt_name: string
-      start_date: string
-      end_date: string
+      start_date: Date
+      end_date: Date
       user_id: string
       bowl_id: string
       id?: string
@@ -98,25 +90,11 @@ export async function POST(request: Request) {
     const tmnt = await prisma.tmnt.create({
       data: tmntData
     })
-
-    // const san_tmnt_name = sanitize(tmnt_name);
-    // const startDate = startOfDay(new Date(start_date)) 
-    // const endDate = startOfDay(new Date(end_date))
-    // const tmnt = await prisma.tmnt.create({
-    //   data: {
-    //     tmnt_name: san_tmnt_name,
-    //     start_date: startDate,
-    //     end_date: endDate,
-    //     user_id: user_id,
-    //     bowl_id: bowl_id,
-    //   }
-    // })
-
     return NextResponse.json({ tmnt }, { status: 201 });
   } catch (error: any) {
     let errStatus: number
     switch (error.code) {
-      case 'P2003':
+      case 'P2003': 
         errStatus = 422
         break;    
       default:

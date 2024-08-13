@@ -152,7 +152,7 @@ export async function PATCH(
       starting_lane: currentSquad.starting_lane,
       lane_count: currentSquad.lane_count,
       squad_date: currentSquad.squad_date,
-      squad_time: currentSquad.squad_time,
+      squad_time: currentSquad.squad_time!,
       sort_order: currentSquad.sort_order,
     };
 
@@ -199,13 +199,14 @@ export async function PATCH(
     }
 
     const toBePatched = sanitizeSquad(toCheck);
+    let gotSquadTime = undefined;
     const toPatch = {      
       event_id: "", 
       squad_name: "",
       games: null as number | null,
       starting_lane: null as number | null,
       lane_count: null as number | null,
-      squad_date: "",
+      squad_date: null as Date | null,
       squad_time: null as string | null,
       sort_order: null as number | null
     };
@@ -229,6 +230,7 @@ export async function PATCH(
     }
     if (jsonProps.includes("squad_time")) {
       toPatch.squad_time = toBePatched.squad_time;
+      gotSquadTime = toBePatched.squad_time;
     }
     if (jsonProps.includes("sort_order")) {
       toPatch.sort_order = toBePatched.sort_order;
@@ -244,7 +246,7 @@ export async function PATCH(
         starting_lane: toPatch.starting_lane || undefined,
         lane_count: toPatch.lane_count || undefined,
         squad_date: toPatch.squad_date || undefined,
-        squad_time: toPatch.squad_time || undefined,
+        squad_time: toPatch.squad_time || gotSquadTime,
         sort_order: toPatch.sort_order || undefined,
       },
     });

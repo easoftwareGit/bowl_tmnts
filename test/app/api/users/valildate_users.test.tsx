@@ -11,7 +11,7 @@ import {
 import { userType } from "@/lib/types/types";
 import { mockUser } from "../../../mocks/tmnts/mockTmnt";
 import { ErrorCode, validPostId } from "@/lib/validation";
-import { nextPostSecret } from "@/lib/tools";
+import { postSecret } from "@/lib/tools";
 
 const { gotUserData, validUserData } = exportedForTesting;
 
@@ -225,6 +225,21 @@ describe("user table data validation", () => {
     })
     it('should return false when no special char', () => { 
       expect(validUserPassword("Test1234")).toBe(false);
+    })
+    it('should return false when password is empty', () => { 
+      expect(validUserPassword("")).toBe(false);
+    })
+    it('should return false when password is too short', () => { 
+      expect(validUserPassword("Test")).toBe(false);
+    })
+    it('should return false when password is too long', () => {
+      expect(validUserPassword("Test123!Test123!Test123!")).toBe(false);
+    })
+    it('should return false when password is undefined', () => {
+      expect(validUserPassword(undefined as any)).toBe(false);
+    })
+    it('should return false when password is null', () => { 
+      expect(validUserPassword(null as any)).toBe(false);
     })
   })
 
@@ -464,19 +479,19 @@ describe("user table data validation", () => {
   describe("validate validPostId function", () => { 
     const testUserId = 'usr_a1b2c3d4e5f678901234567890abcdef'
     it('should return true when id starts with postSecret and follows with a valid BtDb id', () => {
-      const validId = nextPostSecret + testUserId;
+      const validId = postSecret + testUserId;
       expect(validPostId(validId, 'usr')).toBe(testUserId);
     });
     it('should return false when id starts with postSecret but does idType does not match idtype in postId', () => {
-      const invalidId = nextPostSecret + testUserId;
+      const invalidId = postSecret + testUserId;
       expect(validPostId(invalidId, 'bwl')).toBe('');
     });
     it('should return false when id starts with postSecret but does idType is invalid', () => {
-      const invalidId = nextPostSecret + testUserId;
+      const invalidId = postSecret + testUserId;
       expect(validPostId(invalidId, '123' as any)).toBe('');
     });
     it('should return false when id starts with postSecret but does not follow with valid BtDb idType', () => {
-      const invalidId = nextPostSecret + 'abc_a1b2c3d4e5f678901234567890abcdef';
+      const invalidId = postSecret + 'abc_a1b2c3d4e5f678901234567890abcdef';
       expect(validPostId(invalidId, 'usr')).toBe('');
     });
     it('should return false when id does not start with postSecret', () => {

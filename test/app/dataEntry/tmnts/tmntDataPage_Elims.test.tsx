@@ -1,5 +1,5 @@
 import React from "react";
-import { render, screen } from "../../../test-utils";
+import { render, screen, waitFor } from "../../../test-utils";
 import userEvent from "@testing-library/user-event";
 import RootLayout from "../../../../src/app/layout";
 import TmntDataPage from "@/app/dataEntry/tmnt/page";
@@ -60,6 +60,9 @@ describe("TmntDataPage - Eliminators Component", () => {
     it('render multiple division radio buttons', async () => { 
       const user = userEvent.setup();
       render(<RootLayout><TmntDataPage fullTmntData={mockFullTmnt} /></RootLayout>);
+      const loadingMessage = screen.getByText(/loading/i);        
+      await waitFor(() => expect(loadingMessage).not.toBeInTheDocument());    
+
       const acdns = await screen.findAllByRole("button", { name: /eliminators/i });
       await user.click(acdns[0]);
       const scratchs = screen.getAllByRole("radio", { name: /scratch/i }) as HTMLInputElement[];      
@@ -74,6 +77,9 @@ describe("TmntDataPage - Eliminators Component", () => {
     it("check 1st div radio radio button", async () => {
       const user = userEvent.setup();
       render(<RootLayout><TmntDataPage fullTmntData={mockFullTmnt} /></RootLayout>);
+      const loadingMessage = screen.getByText(/loading/i);        
+      await waitFor(() => expect(loadingMessage).not.toBeInTheDocument());    
+
       const acdns = await screen.findAllByRole("button", { name: /eliminators/i });
       await user.click(acdns[0]);
       const scratchs = screen.getAllByRole("radio", { name: /scratch/i }) as HTMLInputElement[];      
@@ -89,6 +95,9 @@ describe("TmntDataPage - Eliminators Component", () => {
     it("check 2nd div radio radio button", async () => {
       const user = userEvent.setup();
       render(<RootLayout><TmntDataPage fullTmntData={mockFullTmnt} /></RootLayout>);
+      const loadingMessage = screen.getByText(/loading/i);        
+      await waitFor(() => expect(loadingMessage).not.toBeInTheDocument());    
+
       const acdns = await screen.findAllByRole("button", { name: /eliminators/i });
       await user.click(acdns[0]);
       const scratchs = screen.getAllByRole("radio", { name: /scratch/i }) as HTMLInputElement[];      
@@ -104,6 +113,9 @@ describe("TmntDataPage - Eliminators Component", () => {
     it("cycle through radio buttons", async () => {
       const user = userEvent.setup();
       render(<RootLayout><TmntDataPage fullTmntData={mockFullTmnt} /></RootLayout>);
+      const loadingMessage = screen.getByText(/loading/i);        
+      await waitFor(() => expect(loadingMessage).not.toBeInTheDocument());    
+
       const acdns = await screen.findAllByRole("button", { name: /eliminators/i });
       await user.click(acdns[0]);
       const scratchs = screen.getAllByRole("radio", { name: /scratch/i }) as HTMLInputElement[];      
@@ -149,8 +161,8 @@ describe("TmntDataPage - Eliminators Component", () => {
       expect(div1s).toHaveLength(3);      
       // fees[0] - events, fees[1] - pots, fees[2] - brkts, fees[3] - elims
       expect(fees).toHaveLength(4)
-      // start[0] - brkts, start[1] - elims
-      expect(start).toHaveLength(2);
+      // start[0] - squads,start[1] - brkts, start[2] - elims
+      expect(start).toHaveLength(3);
       await user.clear(fees[3]);
       await user.type(fees[3], "20[Tab]");
       expect(fees[3]).toHaveValue("$20.00");
@@ -176,8 +188,8 @@ describe("TmntDataPage - Eliminators Component", () => {
       expect(div1s).toHaveLength(3);      
       // fees[0] - events, fees[1] - pots, fees[2] - brkts, fees[3] - elims
       expect(fees).toHaveLength(4)
-      // start[0] - brkts, start[1] - elims
-      expect(start).toHaveLength(2);
+      // start[0] - squads,start[1] - brkts, start[2] - elims
+      expect(start).toHaveLength(3);
       await user.clear(fees[3]);
       await user.type(fees[3], "20");
       await user.click(addBtn);
@@ -224,8 +236,8 @@ describe("TmntDataPage - Eliminators Component", () => {
       expect(div1s).toHaveLength(3);      
       // fees[0] - events, fees[1] - pots, fees[2] - brkts, fees[3] - elims
       expect(fees).toHaveLength(4)
-      // start[0] - brkts, start[1] - elims
-      expect(start).toHaveLength(2);
+      // start[0] - squads,start[1] - brkts, start[2] - elims
+      expect(start).toHaveLength(3);
       expect(fees[3]).toHaveTextContent("");
       await user.click(div1s[2]);
       await user.click(addBtn);
@@ -239,7 +251,10 @@ describe("TmntDataPage - Eliminators Component", () => {
       mockFullTmnt.elims[0].fee = '1234567'
 
       const user = userEvent.setup();
-      render(<RootLayout><TmntDataPage fullTmntData={mockFullTmnt}/></RootLayout>);
+      render(<RootLayout><TmntDataPage fullTmntData={mockFullTmnt} /></RootLayout>);
+      const loadingMessage = screen.getByText(/loading/i);        
+      await waitFor(() => expect(loadingMessage).not.toBeInTheDocument());    
+      
       const acdns = await screen.findAllByRole("button", { name: /eliminators/i });
       await user.click(acdns[0]);
       const addBtn = await screen.findByRole("button", { name: /add eliminator/i });
@@ -250,8 +265,8 @@ describe("TmntDataPage - Eliminators Component", () => {
       expect(div1s).toHaveLength(3);      
       // fees[0] - events, fees[1] - pots, fees[2] - brkts, fees[3] - elims
       expect(fees).toHaveLength(4)
-      // start[0] - brkts, start[1] - elims
-      expect(start).toHaveLength(2);
+      // start[0] - squads,start[1] - brkts, start[2] - elims
+      expect(start).toHaveLength(3);
       await user.click(div1s[2]);
       expect(fees[3]).toHaveValue("$1,234,567.00");
 
@@ -266,7 +281,10 @@ describe("TmntDataPage - Eliminators Component", () => {
       mockFullTmnt.elims[0].fee = '1234567'
 
       const user = userEvent.setup();
-      render(<RootLayout><TmntDataPage fullTmntData={mockFullTmnt}/></RootLayout>);
+      render(<RootLayout><TmntDataPage fullTmntData={mockFullTmnt} /></RootLayout>);
+      const loadingMessage = screen.getByText(/loading/i);        
+      await waitFor(() => expect(loadingMessage).not.toBeInTheDocument());    
+      
       const acdns = await screen.findAllByRole("button", { name: /eliminators/i });
       await user.click(acdns[0]);
       const addBtn = await screen.findByRole("button", { name: /add eliminator/i });
@@ -277,8 +295,8 @@ describe("TmntDataPage - Eliminators Component", () => {
       expect(div1s).toHaveLength(3);      
       // fees[0] - events, fees[1] - pots, fees[2] - brkts, fees[3] - elims
       expect(fees).toHaveLength(4)
-      // start[0] - brkts, start[1] - elims
-      expect(start).toHaveLength(2);
+      // start[0] - squads,start[1] - brkts, start[2] - elims
+      expect(start).toHaveLength(3);
       await user.click(div1s[2]);
       expect(fees[3]).toHaveValue("$1,234,567.00");
 
@@ -318,27 +336,30 @@ describe("TmntDataPage - Eliminators Component", () => {
     it('create eliminator with start less than min start', async () => {
       const user = userEvent.setup();
       render(<RootLayout><TmntDataPage /></RootLayout>);
+      const loadingMessage = screen.getByText(/loading/i);        
+      await waitFor(() => expect(loadingMessage).not.toBeInTheDocument());    
+
       const acdns = await screen.findAllByRole("button", { name: /eliminators/i });
       await user.click(acdns[0]);
       const addBtn = await screen.findByRole("button", { name: /add eliminator/i });
-      const div1s = screen.getAllByRole("radio", { name: /division 1/i }) as HTMLInputElement[];
+      const divs = screen.getAllByRole("radio", { name: /division 1/i }) as HTMLInputElement[];
       const fees = screen.getAllByRole('textbox', { name: /fee/i }) as HTMLInputElement[];
       const start = screen.getAllByRole("spinbutton", { name: /start/i }) as HTMLInputElement[];
       // divs1[0] - pots, divs1[1] - brkts, divs1[2] - elims
-      expect(div1s).toHaveLength(3);
+      expect(divs).toHaveLength(3);
       // fees[0] - events, fees[1] - pots, fees[2] - brkts, fees[3] - elims
       expect(fees).toHaveLength(4)
-      // start[0] - brkts, start[1] - elims
-      expect(start).toHaveLength(2);
-      await user.click(start[1]);
-      await user.clear(start[1]);
-      await user.type(start[1], '0');
+      // start[0] - squads, start[1] - brkts, start[2] - elims
+      expect(start).toHaveLength(3);
+      await user.click(start[2]);
+      await user.clear(start[2]);
+      await user.type(start[2], '0');
 
       await user.click(fees[3]);
       await user.clear(fees[3]);
       await user.type(fees[3], '5');
 
-      await user.click(div1s[2]);
+      await user.click(divs[2]);
       await user.click(addBtn);
       const createTab = await screen.findByRole("tab", { name: /create eliminator/i }) as HTMLInputElement;
       const brktStartErr = await screen.findByTestId('dangerCreateElimStart');
@@ -349,27 +370,30 @@ describe("TmntDataPage - Eliminators Component", () => {
     it('create eliminator with start setting eleinator to end past last game', async () => {
       const user = userEvent.setup();
       render(<RootLayout><TmntDataPage /></RootLayout>);
+      const loadingMessage = screen.getByText(/loading/i);        
+      await waitFor(() => expect(loadingMessage).not.toBeInTheDocument());    
+
       const acdns = await screen.findAllByRole("button", { name: /eliminators/i });
       await user.click(acdns[0]);
       const addBtn = await screen.findByRole("button", { name: /add eliminator/i });
-      const div1s = screen.getAllByRole("radio", { name: /division 1/i }) as HTMLInputElement[];
+      const divs = screen.getAllByRole("radio", { name: /division 1/i }) as HTMLInputElement[];
       const fees = screen.getAllByRole('textbox', { name: /fee/i }) as HTMLInputElement[];
       const start = screen.getAllByRole("spinbutton", { name: /start/i }) as HTMLInputElement[];
       // divs1[0] - pots, divs1[1] - brkts, divs1[2] - elims
-      expect(div1s).toHaveLength(3);
+      expect(divs).toHaveLength(3);
       // fees[0] - events, fees[1] - pots, fees[2] - brkts, fees[3] - elims
       expect(fees).toHaveLength(4)
-      // start[0] - brkts, start[1] - elims
-      expect(start).toHaveLength(2);
-      await user.click(start[1]);
-      await user.clear(start[1]);
-      await user.type(start[1], '5');
+      // start[0] - squads,start[1] - brkts, start[2] - elims
+      expect(start).toHaveLength(3);
+      await user.click(start[2]);
+      await user.clear(start[2]);
+      await user.type(start[2], '5');
 
       await user.click(fees[3]);
       await user.clear(fees[3]);
       await user.type(fees[3], '5');
 
-      await user.click(div1s[2]);
+      await user.click(divs[2]);
       await user.click(addBtn);
       const createTab = await screen.findByRole("tab", { name: /create eliminator/i }) as HTMLInputElement;
       const brktStartErr = await screen.findByTestId('dangerCreateElimStart');
@@ -380,27 +404,30 @@ describe("TmntDataPage - Eliminators Component", () => {
     it('clear eliminator start error', async () => {
       const user = userEvent.setup();
       render(<RootLayout><TmntDataPage /></RootLayout>);
+      const loadingMessage = screen.getByText(/loading/i);        
+      await waitFor(() => expect(loadingMessage).not.toBeInTheDocument());    
+
       const acdns = await screen.findAllByRole("button", { name: /eliminators/i });
       await user.click(acdns[0]);
       const addBtn = await screen.findByRole("button", { name: /add eliminator/i });
-      const div1s = screen.getAllByRole("radio", { name: /division 1/i }) as HTMLInputElement[];
+      const divs = screen.getAllByRole("radio", { name: /division 1/i }) as HTMLInputElement[];
       const fees = screen.getAllByRole('textbox', { name: /fee/i }) as HTMLInputElement[];
       const start = screen.getAllByRole("spinbutton", { name: /start/i }) as HTMLInputElement[];
       // divs1[0] - pots, divs1[1] - brkts, divs1[2] - elims
-      expect(div1s).toHaveLength(3);
+      expect(divs).toHaveLength(3);
       // fees[0] - events, fees[1] - pots, fees[2] - brkts, fees[3] - elims
       expect(fees).toHaveLength(4)
-      // start[0] - brkts, start[1] - elims
-      expect(start).toHaveLength(2);
-      await user.click(start[1]);
-      await user.clear(start[1]);
-      await user.type(start[1], '5');
+      // start[0] - squads,start[1] - brkts, start[2] - elims
+      expect(start).toHaveLength(3);
+      await user.click(start[2]);
+      await user.clear(start[2]);
+      await user.type(start[2], '5');
 
       await user.click(fees[3]);
       await user.clear(fees[3]);
       await user.type(fees[3], '5');
 
-      await user.click(div1s[2]);
+      await user.click(divs[2]);
       await user.click(addBtn);
       const createTab = await screen.findByRole("tab", { name: /create eliminator/i }) as HTMLInputElement;
       const brktStartErr = await screen.findByTestId('dangerCreateElimStart');
@@ -408,10 +435,10 @@ describe("TmntDataPage - Eliminators Component", () => {
       expect(acdns[0]).toHaveTextContent("Eliminators: Error in Create Eliminator - Eliminator ends after last game");
       expect(createTab).toHaveClass('objError')
 
-      await user.click(start[1]);
+      await user.click(start[2]);
       // clear or type will clear the error
-      await user.clear(start[1]);
-      await user.type(start[1], '4');
+      await user.clear(start[2]);
+      await user.type(start[2], '4');
       expect(brktStartErr).toHaveTextContent("");
       expect(acdns[0]).not.toHaveTextContent(": Error in Create Eliminator - Start cannot be more than");
       expect(createTab).not.toHaveClass('objError')
@@ -450,8 +477,8 @@ describe("TmntDataPage - Eliminators Component", () => {
       expect(div1s).toHaveLength(3);
       // fees[0] - events, fees[1] - pots, fees[2] - brkts, fees[3] - elims
       expect(fees).toHaveLength(4)
-      // start[0] - brkts, start[1] - elims
-      expect(start).toHaveLength(2);
+      // start[0] - squads,start[1] - brkts, start[2] - elims
+      expect(start).toHaveLength(3);
       await user.click(games)
       await user.clear(games)
       await user.type(games, '0');
@@ -482,8 +509,8 @@ describe("TmntDataPage - Eliminators Component", () => {
       expect(div1s).toHaveLength(3);
       // fees[0] - events, fees[1] - pots, fees[2] - brkts, fees[3] - elims
       expect(fees).toHaveLength(4)
-      // start[0] - brkts, start[1] - elims
-      expect(start).toHaveLength(2);
+      // start[0] - squads,start[1] - brkts, start[2] - elims
+      expect(start).toHaveLength(3);
       await user.click(games)
       await user.clear(games)
       await user.type(games, '100');
@@ -514,8 +541,8 @@ describe("TmntDataPage - Eliminators Component", () => {
       expect(div1s).toHaveLength(3);
       // fees[0] - events, fees[1] - pots, fees[2] - brkts, fees[3] - elims
       expect(fees).toHaveLength(4)
-      // start[0] - brkts, start[1] - elims
-      expect(start).toHaveLength(2);
+      // start[0] - squads,start[1] - brkts, start[2] - elims
+      expect(start).toHaveLength(3);
       await user.click(games)
       await user.clear(games)
       await user.type(games, '10');
@@ -546,8 +573,8 @@ describe("TmntDataPage - Eliminators Component", () => {
       expect(div1s).toHaveLength(3);
       // fees[0] - events, fees[1] - pots, fees[2] - brkts, fees[3] - elims
       expect(fees).toHaveLength(4)
-      // start[0] - brkts, start[1] - elims
-      expect(start).toHaveLength(2);
+      // start[0] - squads,start[1] - brkts, start[2] - elims
+      expect(start).toHaveLength(3);
       await user.click(games)
       await user.clear(games)
       await user.type(games, '100');
@@ -593,7 +620,10 @@ describe("TmntDataPage - Eliminators Component", () => {
       mockFullTmnt.elims[1].fee = '0'
 
       const user = userEvent.setup();
-      render(<RootLayout><TmntDataPage fullTmntData={mockFullTmnt}/></RootLayout>);
+      render(<RootLayout><TmntDataPage fullTmntData={mockFullTmnt} /></RootLayout>);
+      const loadingMessage = screen.getByText(/loading/i);        
+      await waitFor(() => expect(loadingMessage).not.toBeInTheDocument());    
+      
       const saveBtn = await screen.findByRole('button', { name: /save tournament/i });
       const acdns = await screen.findAllByRole("button", { name: /eliminator/i });
       await user.click(acdns[0]);
@@ -636,7 +666,10 @@ describe("TmntDataPage - Eliminators Component", () => {
       mockFullTmnt.elims[1].fee = '1234567'
 
       const user = userEvent.setup();
-      render(<RootLayout><TmntDataPage fullTmntData={mockFullTmnt}/></RootLayout>);
+      render(<RootLayout><TmntDataPage fullTmntData={mockFullTmnt} /></RootLayout>);
+      const loadingMessage = screen.getByText(/loading/i);        
+      await waitFor(() => expect(loadingMessage).not.toBeInTheDocument());    
+      
       const saveBtn = await screen.findByRole('button', { name: /save tournament/i });
       const acdns = await screen.findAllByRole("button", { name: /eliminator/i });
       await user.click(acdns[0]);
@@ -685,7 +718,10 @@ describe("TmntDataPage - Eliminators Component", () => {
       mockFullTmnt.elims[1].fee = '1234567'      
 
       const user = userEvent.setup();
-      render(<RootLayout><TmntDataPage fullTmntData={mockFullTmnt}/></RootLayout>);
+      render(<RootLayout><TmntDataPage fullTmntData={mockFullTmnt} /></RootLayout>);
+      const loadingMessage = screen.getByText(/loading/i);        
+      await waitFor(() => expect(loadingMessage).not.toBeInTheDocument());    
+      
       const saveBtn = await screen.findByRole('button', { name: /save tournament/i });
       const acdns = await screen.findAllByRole("button", { name: /eliminators/i });
       await user.click(acdns[0]);
@@ -697,8 +733,8 @@ describe("TmntDataPage - Eliminators Component", () => {
       expect(scratches).toHaveLength(3);
       // fees[0] - events, fees[1] - pots, fees[2] - brkts, fees[3,4,5,6,7] - elims
       expect(fees).toHaveLength(8)
-      // start[0] - brkts, start[1.2.3.4.5] - elims
-      expect(start).toHaveLength(6);
+      // start[0] - squads, start[1] - brkts, start[2,3,4,5,6] - elims
+      expect(start).toHaveLength(7);
 
       await user.clear(fees[3]);
       await user.type(fees[3], "10[Tab]");
@@ -738,7 +774,10 @@ describe("TmntDataPage - Eliminators Component", () => {
     
     it('delete eliminator confirmation', async () => {
       const user = userEvent.setup();
-      render(<RootLayout><TmntDataPage fullTmntData={mockFullTmnt}/></RootLayout>);
+      render(<RootLayout><TmntDataPage fullTmntData={mockFullTmnt} /></RootLayout>);
+      const loadingMessage = screen.getByText(/loading/i);        
+      await waitFor(() => expect(loadingMessage).not.toBeInTheDocument());    
+      
       const acdns = await screen.findAllByRole("button", { name: /eliminators/i });
       await user.click(acdns[0]);
       const scratchGame1Tab = screen.getByRole("tab", { name: /scratch: 1-3/i }) as HTMLInputElement;

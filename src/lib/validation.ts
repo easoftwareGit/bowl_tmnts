@@ -1,4 +1,5 @@
-import { nextPostSecret } from "./tools";
+import { postSecret } from "./tools";
+import { testPostSecret } from "../../test/testApi";
 import { idTypes } from "./types/types";
 
 export const maxFirstNameLength = 15;
@@ -10,7 +11,7 @@ export const maxPasswordLength = 20;
 export const maxBowlNameLemgth = 30;
 export const maxCityLength = 25;
 export const maxStateLength = 5
-export const maxUrlLength = 40;
+export const maxUrlLength = 2048;
 
 export const maxTmntNameLength = 30;
 export const maxEventLength = 20;
@@ -37,13 +38,15 @@ export const maxSortOrder = 1000000;
 
 export const minYear = 1900;
 export const maxYear = 2200;
+export const minDate = new Date(Date.UTC(minYear, 0, 1, 0, 0, 0, 0))
+export const maxDate = new Date(Date.UTC(maxYear, 11, 31, 23, 59, 59, 999));
 
 export const minLane = 1;
 
 export enum ErrorCode {
   None = 0,
   MissingData = -1,
-  InvalidData = -2,
+  InvalidData = -2,    
   OtherError = -99,
 }
 
@@ -124,9 +127,14 @@ export function isValidBtDbId(id: string, idType: idTypes): boolean {
  * @return {string} - the valid user id if: str starts with postSecret and ends with a valid user BtDb id;
  *                  - otherwise returns an empty string
  */
-export function validPostId(id: string, idType: idTypes): string {   
-  if (id?.startsWith(nextPostSecret as string)) {
-    const postId = id.replace(nextPostSecret as string, '');
+export function validPostId(id: string, idType: idTypes): string {  
+  
+  // const secret = (typeof postSecret === 'undefined')
+  //   ? testPostSecret
+  //   : postSecret
+  
+  if (id?.startsWith(postSecret as string)) {
+    const postId = id.replace(postSecret as string, '');
     if (isValidBtDbId(postId, idType)) {
       return postId
     }
@@ -135,7 +143,6 @@ export function validPostId(id: string, idType: idTypes): string {
     return ''
   }
 }
-
 
 /**
  * checks if a year is valid = four digits and between 1900 and 2100 inclusive

@@ -1,10 +1,10 @@
 import { createAsyncThunk, createSlice } from "@reduxjs/toolkit";
 import { loadStatusType } from "@/redux/statusTypes";
-import { getTmnts } from "@/db/tmnts/tmnts";
-import { tmntType } from "@/lib/types/types";
+import { getTmnts } from "@/lib/db/tmnts";
+import { tmntType, tmntListType } from "@/lib/types/types";
 
 export interface TmntSliceState {
-  tmnts: tmntType[];
+  tmnts: tmntListType[];
   status: loadStatusType;  
   error: string | undefined;
 }
@@ -45,7 +45,7 @@ export const tmntsSlice = createSlice({
     });
     builder.addCase(fetchTmnts.fulfilled, (state: TmntSliceState, action) => {
       state.status = "succeeded";      
-      state.tmnts = action.payload.tmnts;
+      state.tmnts = action.payload;
       state.error = "";
     });
     builder.addCase(fetchTmnts.rejected, (state: TmntSliceState, action) => {

@@ -1,6 +1,6 @@
 import React, { useEffect } from "react";
 import axios from "axios";
-import { baseApi, nextPostSecret } from "@/lib/tools";
+import { baseApi, postSecret } from "@/lib/tools";
 import { eventType } from "@/lib/types/types";
 import { initEvent } from "@/db/initVals";
 import exp from "constants";
@@ -212,7 +212,7 @@ export const DbEvents = () => {
       const reAddEvent = {
         ...eventToDel,
       }
-      reAddEvent.id = nextPostSecret + reAddEvent.id;
+      reAddEvent.id = postSecret + reAddEvent.id;
       const eventJSON = JSON.stringify(reAddEvent);
       response = await axios({
         method: "post",
@@ -1220,7 +1220,7 @@ export const DbEvents = () => {
 
   const eventDelete = async (eventIdToDel: string, testing: boolean = true) => {
     let testResults = results + 'Delete Event tests: \n';
-    if (!testing) {
+    if (testing) {
       passed = true;
     }    
 
@@ -1316,9 +1316,9 @@ export const DbEvents = () => {
         error: error.message,
         status: 404,
       };
-    } finally {
-      await reAddDeletedEvent()
+    } finally {      
       if (testing) {
+        await reAddDeletedEvent()
         if (passed) {
           testResults += addToResults(`Delete Event tests: PASSED`, true);
         } else {

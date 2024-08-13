@@ -3,9 +3,6 @@ import { TypedUseSelectorHook, useSelector } from 'react-redux';
 import tmntsReducer from './features/tmnts/tmntsSlice';
 import tmntYearsReducer from './features/tmnts/yearsSlice';
 import bowlsReducer from './features/bowls/bowlsSlice';
-import featsSlice from './features/feats/featsSlice';
-import divFeatsSlice from './features/feats/divFeatsSlice';
-import seDivFeatsSlice from './features/feats/seDivFeatsSlice';
 
 // create the store, include reduces in object
 export const store = configureStore({
@@ -13,9 +10,6 @@ export const store = configureStore({
     tmnts: tmntsReducer,
     tmntYears: tmntYearsReducer,
     bowls: bowlsReducer,
-    feats: featsSlice,
-    divFeats: divFeatsSlice,
-    seDivFeats: seDivFeatsSlice,
   }
 });
 

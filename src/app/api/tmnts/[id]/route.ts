@@ -170,17 +170,30 @@ export async function PATCH(
 
     const toBePatched = sanitizeTmnt(toCheck);
     const toPatch = {
-      tmnt_name: toBePatched.tmnt_name,
-      start_date: toBePatched.start_date,
-      end_date: toBePatched.end_date,
-      bowl_id: toBePatched.bowl_id,
-      user_id: toBePatched.user_id,
+      tmnt_name: "",
+      start_date: null as Date | null,
+      end_date: null as Date | null,
+      bowl_id: "",
+      user_id: "",
     };
     let gotEmptyStartDate = undefined;
     let gotEmptyEndDate = undefined;
-    if (!json.start_date && !json.end_date) {
+    if (jsonProps.includes("tmnt_name")) {
+      toPatch.tmnt_name = toBePatched.tmnt_name;
+    }
+    if (jsonProps.includes("start_date")) {
+      toPatch.start_date = toBePatched.start_date;
       gotEmptyStartDate = '';
+    }
+    if (jsonProps.includes("end_date")) {
+      toPatch.end_date = toBePatched.end_date;
       gotEmptyEndDate = '';
+    }
+    if (jsonProps.includes("bowl_id")) {
+      toPatch.bowl_id = toBePatched.bowl_id;
+    }
+    if (jsonProps.includes("user_id")) {
+      toPatch.user_id = toBePatched.user_id;
     }
 
     const tmnt = await prisma.tmnt.update({

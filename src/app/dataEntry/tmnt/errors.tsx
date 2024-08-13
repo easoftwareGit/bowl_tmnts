@@ -1,3 +1,4 @@
+import { sanitize } from "@/lib/sanitize";
 import { eventType, divType, squadType, AcdnErrType, elimType, brktType } from "../../../lib/types/types";
 export const objErrClassName = 'objError';
 export const acdnErrClassName = 'acdnError';
@@ -13,13 +14,16 @@ export const getAcdnErrMsg = (objName: string, objErrMsg: string): string => {
  * @returns {*} boolean: true if a duplicate name
  */
 export const isDuplicateEventName = (arrOfEvents: eventType[], event: eventType): boolean => {
+  let eventName = sanitize(event.event_name)
+  if (eventName.length === 0) return false
+  eventName = eventName.toLowerCase()
   let i = 0;
   while (i < arrOfEvents.length) {
     if (arrOfEvents[i].sort_order > event.sort_order) {
       return false;
     }
     if (arrOfEvents[i].id !== event.id &&
-        arrOfEvents[i].event_name.trim().toLowerCase() === event.event_name.trim().toLowerCase()) {
+        arrOfEvents[i].event_name.trim().toLowerCase() === eventName) {
       return true;
     }
     i++;
@@ -28,13 +32,16 @@ export const isDuplicateEventName = (arrOfEvents: eventType[], event: eventType)
 }
 
 export const isDuplicateDivName = (arrOfDivs: divType[], div: divType): boolean => {
+  let divName = sanitize(div.div_name)
+  if (divName.length === 0) return false
+  divName = divName.toLowerCase()
   let i = 0;
   while (i < arrOfDivs.length) {
     if (arrOfDivs[i].sort_order > div.sort_order) {
       return false;
     }
     if (arrOfDivs[i].id !== div.id &&
-        arrOfDivs[i].div_name.trim().toLowerCase() === div.div_name.trim().toLowerCase()) {
+        arrOfDivs[i].div_name.trim().toLowerCase() === divName) {
       return true;
     }
     i++;
@@ -43,13 +50,16 @@ export const isDuplicateDivName = (arrOfDivs: divType[], div: divType): boolean 
 }
 
 export const isDuplicateSquadName = (arrOfSquads: squadType[], squad: squadType): boolean => {
+  let squadName = sanitize(squad.squad_name)
+  if (squadName.length === 0) return false
+  squadName = squadName.toLowerCase()
   let i = 0;
   while (i < arrOfSquads.length) {
     if (arrOfSquads[i].sort_order > squad.sort_order) {
       return false;
     }        
     if (arrOfSquads[i].id !== squad.id &&
-        arrOfSquads[i].squad_name.trim().toLowerCase() === squad.squad_name.trim().toLowerCase()) {
+        arrOfSquads[i].squad_name.trim().toLowerCase() === squadName) {
       return true;
     }
     i++;
@@ -91,7 +101,7 @@ export const isDuplicateDateTime = (
     if (arrOfSquads[i].sort_order >= squad.sort_order) {
       return false;
     }
-    if (arrOfSquads[i].squad_date === squad.squad_date && arrOfSquads[i].squad_time === squad.squad_time) {
+    if (arrOfSquads[i].squad_date_str === squad.squad_date_str && arrOfSquads[i].squad_time === squad.squad_time) {
       return true
     }
     i++

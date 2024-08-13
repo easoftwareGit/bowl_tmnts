@@ -7,8 +7,6 @@ import { mockSquads } from "../../../mocks/tmnts/singlesAndDoubles/mockSquads";
 import { localConfig } from "@/lib/currency/const";
 import { formatValueSymbSep2Dec } from "@/lib/currency/formatValue";
 import { initEvent } from "@/db/initVals";
-import { initModalObj } from "@/components/modal/modalObjType";
-import { delConfTitle } from "@/components/modal/confirmModal";
 
 const mockSetEvents = jest.fn();
 const mockSetSquads = jest.fn();

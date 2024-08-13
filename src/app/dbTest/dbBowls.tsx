@@ -1,6 +1,6 @@
 import React, { useEffect } from "react";
 import axios from "axios";
-import { baseApi, nextPostSecret } from "@/lib/tools";
+import { baseApi, postSecret } from "@/lib/tools";
 import { bowlType } from "@/lib/types/types";
 import { initBowl } from "@/db/initVals";
 
@@ -161,7 +161,7 @@ export const DbBowls = () => {
       const reAddBowl = {
         ...bowlToDel,
       };
-      reAddBowl.id = nextPostSecret + reAddBowl.id;
+      reAddBowl.id = postSecret + reAddBowl.id;
       const bowlJSON = JSON.stringify(reAddBowl);
       response = await axios({
         method: "post",
@@ -733,7 +733,7 @@ export const DbBowls = () => {
 
     try {
       await doPatch("bowl_name", "Test Bowl", "Test Bowl");
-      await doPatch("bowl_name", "<script>alert(1)</script>", 'alert1');
+      await doPatch("bowl_name", "<script>alert(1)</script>", "alert1");
       await dontPatch("bowl_name", "<script></script>");
 
       await doPatch("city", "  Somewhere *", "Somewhere");
@@ -768,7 +768,7 @@ export const DbBowls = () => {
 
   const bowlDelete = async (bowlIdToDel: string, testing: boolean = true) => {
     let testResults = results + "Delete Bowl tests: \n";
-    if (!testing) {
+    if (testing) {
       passed = true;
     }
     
@@ -871,9 +871,9 @@ export const DbBowls = () => {
         error: error.message,
         status: 404,
       };
-    } finally {
-      await reAddDeletedBowl();
+    } finally {      
       if (testing) {
+        await reAddDeletedBowl();
         if (passed) {
           testResults += addToResults(`Delete Bowl tests: PASSED`, true);
         } else {

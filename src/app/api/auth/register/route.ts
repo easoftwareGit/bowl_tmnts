@@ -18,8 +18,13 @@ export async function POST(req: Request) {
       phone,
       password,
     }
-    const sanitizedUser: userType = sanitizeUser(postUser);          
-    const errCode = validateUser(sanitizedUser, true);
+    
+    let checkPhone = false
+    if (phone) {
+      checkPhone = true
+    }
+    const sanitizedUser: userType = sanitizeUser(postUser);  
+    const errCode = validateUser(sanitizedUser, checkPhone, true);
     if (errCode !== ErrorCode.None) {
       let errMsg: string;
       switch (errCode) {

@@ -8,7 +8,7 @@ import {
   exportedForTesting,   
 } from "@/app/api/bowls/validate";
 import { initBowl } from "@/db/initVals";
-import { nextPostSecret } from "@/lib/tools";
+import { postSecret } from "@/lib/tools";
 import { bowlType } from "@/lib/types/types";
 import { ErrorCode, validPostId } from "@/lib/validation";
 
@@ -849,19 +849,19 @@ describe("bowl table data validation", () => {
   describe("validPostId function", () => { 
     const testBowlId = 'bwl_a1b2c3d4e5f678901234567890abcdef'
     it('should return testBowlId when id starts with postSecret and follows with a valid BtDb id', () => {
-      const validId = nextPostSecret + testBowlId;
+      const validId = postSecret + testBowlId;
       expect(validPostId(validId, 'bwl')).toBe(testBowlId);
     });
     it('should return false when id starts with postSecret but does idType does not match idtype in postId', () => {
-      const invalidId = nextPostSecret + testBowlId;
+      const invalidId = postSecret + testBowlId;
       expect(validPostId(invalidId, 'usr')).toBe('');
     });
     it('should return false when id starts with postSecret but does idType is invalid', () => {
-      const invalidId = nextPostSecret + testBowlId;
+      const invalidId = postSecret + testBowlId;
       expect(validPostId(invalidId, '123' as any)).toBe('');
     });
     it('should return false when id starts with postSecret but does not follow with valid BtDb idType', () => {
-      const invalidId = nextPostSecret + 'abc_a1b2c3d4e5f678901234567890abcdef';
+      const invalidId = postSecret + 'abc_a1b2c3d4e5f678901234567890abcdef';
       expect(validPostId(invalidId, 'bwl')).toBe('');
     });
     it('should return false when id starts with postSecret but does not follow with a valid BtDb id', () => {

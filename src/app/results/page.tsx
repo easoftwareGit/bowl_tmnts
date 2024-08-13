@@ -4,20 +4,21 @@ import { useSelector, useDispatch } from "react-redux";
 import { AppDispatch, RootState } from "@/redux/store";
 import { fetchTmnts } from "@/redux/features/tmnts/tmntsSlice";
 import { fetchTmntYears } from "@/redux/features/tmnts/yearsSlice";
-import { tmntType, YearObj } from "../../lib/types/types";
+import { tmntType, YearObj, tmntListType } from "../../lib/types/types";
 import TmntsList from "@/components/tmnts/tmntsList";
+import { todayYearStr } from "@/lib/dateTools";
 
 export default function TmntResultsPage() {
   const dispatch = useDispatch<AppDispatch>();
 
-  const [tmntYear, setTmntYear] = useState(new Date().getFullYear().toString());  
+  const [tmntYear, setTmntYear] = useState(todayYearStr);  
 
   useEffect(() => {
     dispatch(fetchTmnts(tmntYear));
   }, [tmntYear, dispatch]);
 
   const stateTmnts = useSelector((state: RootState) => state.tmnts); 
-  const tmntsArr: tmntType[] = stateTmnts.tmnts;
+  const tmntsArr: tmntListType[] = stateTmnts.tmnts;
 
   useEffect(() => {
     dispatch(fetchTmntYears());    

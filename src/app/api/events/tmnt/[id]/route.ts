@@ -20,6 +20,9 @@ export async function GET(
     const gotEvents = await prisma.event.findMany({
       where: {
         tmnt_id: id
+      },
+      orderBy: {
+        sort_order: 'asc'
       }
     })    
     // no matching rows is ok

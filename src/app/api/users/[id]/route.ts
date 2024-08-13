@@ -88,7 +88,10 @@ export async function PUT(
   } catch (error: any) {
     let errStatus: number;
     switch (error.code) {
-      case "P2025":
+      case 'P2002': // Unique constraint failed on the fields: (`email`)
+        errStatus = 409;
+        break;
+      case "P2025": // record not found
         errStatus = 404;
         break;
       default:
@@ -213,10 +216,13 @@ export async function PATCH(
   } catch (error: any) {
     let errStatus: number;
     switch (error.code) {
-      case "P2003":
+      case 'P2002': // Unique constraint failed on the fields: (`email`)
+        errStatus = 409;
+        break;
+      case "P2003": // parent has child rows
         errStatus = 422;
         break;
-      case "P2025":
+      case "P2025": // record not found
         errStatus = 404;
         break;
       default:

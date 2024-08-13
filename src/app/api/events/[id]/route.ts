@@ -5,6 +5,7 @@ import { sanitizeEvent, validateEvent } from "@/app/api/events/validate";
 import { eventType } from "@/lib/types/types";
 import { initEvent } from "@/db/initVals";
 import { findEventById } from "@/lib/db/events";
+import { findTmntById } from "@/lib/db/tmnts";
 
 // routes /api/events/:id
 
@@ -92,8 +93,15 @@ export async function PUT(
       }
       return NextResponse.json({ error: errMsg }, { status: 422 });
     }
+    
+    // find parent. findTmntById sanitizes tmnt_id before using it
+    const parent = await findTmntById(toCheck.tmnt_id);
+    if (!parent) {
+      return NextResponse.json({ error: "not found" }, { status: 404 });
+    }
 
     const toPut = sanitizeEvent(toCheck);
+
     // NO lpox in data object
     const putEvent = await prisma.event.update({
       where: {
@@ -159,7 +167,8 @@ export async function PATCH(
     if (!currentEvent) {
       return NextResponse.json({ error: "not found" }, { status: 404 });
     }
-
+    
+    // currentEvent money values are deimals, so convert to strings
     const toCheck: eventType = {
       ...initEvent,
       tmnt_id: currentEvent.tmnt_id,
@@ -178,6 +187,9 @@ export async function PATCH(
 
     if (jsonProps.includes("event_name")) {
       toCheck.event_name = json.event_name;
+    }
+    if(jsonProps.includes("tmnt_id")) {
+      toCheck.tmnt_id = json.tmnt_id;
     }
     if (jsonProps.includes("team_size")) {
       toCheck.team_size = json.team_size;
@@ -204,6 +216,9 @@ export async function PATCH(
     if (jsonProps.includes("expenses")) {
       toCheck.expenses = json.expenses;
     }
+    if (jsonProps.includes("lpox")) {
+      toCheck.lpox = json.lpox;
+    }
     if (jsonProps.includes("sort_order")) {
       toCheck.sort_order = json.sort_order;
     }
@@ -222,6 +237,14 @@ export async function PATCH(
       return NextResponse.json({ error: errMsg }, { status: 422 });
     }
 
+    if (jsonProps.includes("tmnt_id")) {
+      // find parent. findTmntById sanitizes tmnt_id before using it
+      const parent = await findTmntById(json.tmnt_id);
+      if (!parent) {
+        return NextResponse.json({ error: "not found" }, { status: 404 });
+      }
+    }
+
     const toBePatched = sanitizeEvent(toCheck);
     const toPatch = {
       ...initEvent,
@@ -229,6 +252,9 @@ export async function PATCH(
     };
     if (jsonProps.includes("event_name")) {
       toPatch.event_name = toBePatched.event_name;
+    }
+    if(jsonProps.includes("tmnt_id")) {
+      toPatch.tmnt_id = toBePatched.tmnt_id;
     }
     if (jsonProps.includes("team_size")) {
       toPatch.team_size = toBePatched.team_size;
@@ -258,6 +284,9 @@ export async function PATCH(
     }
     if (jsonProps.includes("expenses")) {
       toPatch.expenses = toBePatched.expenses;
+    }
+    if (jsonProps.includes("lpox")) {
+      toPatch.lpox = toBePatched.lpox;
     }
     if (jsonProps.includes("sort_order")) {
       toPatch.sort_order = toBePatched.sort_order;

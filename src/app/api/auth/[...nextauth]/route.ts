@@ -43,7 +43,7 @@ export const authOptions: NextAuthOptions = {
         // const user = { id: "usr_5sbcefb5d314fff1ff5da6521a2fa7bde", email: "adam@email.com", name: 'Adam Smith' }
         // return users
 
-        console.log('01 credentials', credentials)
+        // console.log('01 credentials', credentials)
 
         // if no credentials, return null tells authJs credentials not correct
         if (!credentials?.email || !credentials.password) {
@@ -85,11 +85,11 @@ export const authOptions: NextAuthOptions = {
     }),
     GoogleProvider({
       profile(profile: GoogleProfile) {
-        console.log('google profile: ', profile)
+        // console.log('google profile: ', profile)
         return {
           ...profile,
           role: profile.role ?? 'USER',
-          id: '', 
+          id: profile.sub, 
         }
       },
       clientId: GOOGLE_CLIENT_ID,
@@ -101,7 +101,7 @@ export const authOptions: NextAuthOptions = {
     // signIn is for GoogleProvider    
     async session({ session, token, user }) {
       // session if used in client components
-      console.log("Session Callback", { session, token, user });
+      // console.log("Session Callback", { session, token, user });
 
       if (session?.user) session.user.role = token.role;
       return {
@@ -116,7 +116,7 @@ export const authOptions: NextAuthOptions = {
     },
     async jwt({ token, user, account }) {
 
-      console.log("JWT Callback", { token, user, account });
+      // console.log("JWT Callback", { token, user, account });
 
       if (user) token.role = user.role;
 
@@ -124,7 +124,7 @@ export const authOptions: NextAuthOptions = {
         if (account?.provider === "credentials") {     
           const u = user as User;
 
-          console.log('credentials u: ', u)
+          // console.log('credentials u: ', u)
 
           return {
             ...token,
@@ -138,7 +138,7 @@ export const authOptions: NextAuthOptions = {
           // using else now becsue only oauth is google
           // extract first and last name from name
 
-          console.log('oAuth Google User: ', user)
+          // console.log('oAuth Google User: ', user)
 
           let firstName
           let lastName
@@ -187,7 +187,7 @@ export const authOptions: NextAuthOptions = {
         // need to extract first name and last name from profile
         const googleInfo = profile as unknown as GoogleProfile;
 
-        console.log("GoogleInfo", googleInfo);
+        // console.log("GoogleInfo", googleInfo);
 
         let fName = googleInfo.given_name;
         if (!fName || fName === "") {
@@ -220,7 +220,7 @@ export const authOptions: NextAuthOptions = {
         const googleUser = await findUserByEmail(googleInfo.email)        
         if (googleUser && googleUser.id) {
           user.id = googleUser?.id          
-          console.log('user', user)
+          // console.log('user', user)
         }
 
         // user was authenticated and upserted

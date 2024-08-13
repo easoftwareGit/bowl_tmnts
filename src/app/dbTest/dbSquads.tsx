@@ -3,12 +3,13 @@ import axios from "axios";
 import { baseApi, nextPostSecret } from "@/lib/tools";
 import { squadType } from "@/lib/types/types";
 import { initSquad } from "@/db/initVals";
+import { compareAsc } from "date-fns";
 
 const url = baseApi + "/squads";
 const squadId = "sqd_7116ce5f80164830830a7157eb093396";
 const squadIdUrl = url + "/" + squadId;
 const multiSquadsEventId = "evt_06055deb80674bd592a357a4716d8ef2";
-const noSquadsEventId = "evt_9a58f0a486cb4e6c92ca3348702b1a62";
+const noSquadsEventId = "evt_adfcff4846474a25ad2936aca121bd37";
 let passed = true;
 let allResults = "";
 
@@ -33,7 +34,7 @@ export const DbSquads = () => {
     games: 6,
     starting_lane: 1,
     lane_count: 16,
-    squad_date: "2022-02-02",
+    squad_date: new Date(Date.UTC(2022, 1, 2)), // month is -1
     sort_order: 2,
   };
 
@@ -42,8 +43,8 @@ export const DbSquads = () => {
     id: "sqd_7116ce5f80164830830a7157eb093396",
     event_id: "evt_cb97b73cb538418ab993fc867f860510",
     squad_name: "Squad 1",
-    squad_date: "2022-10-23",
-    squad_time: null,
+    squad_date: new Date(Date.UTC(2022, 9, 23)), // month is -1
+    squad_time: "",
     games: 4,
     starting_lane: 29,
     lane_count: 12,
@@ -58,7 +59,7 @@ export const DbSquads = () => {
     games: 5,
     starting_lane: 1,
     lane_count: 10,
-    squad_date: "2022-03-03",
+    squad_date: new Date(Date.UTC(2022, 2, 3)), // month is -1
     squad_time: "12:07 PM",
     sort_order: 4,
   };
@@ -71,7 +72,7 @@ export const DbSquads = () => {
     games: 6,
     starting_lane: 5,
     lane_count: 20,
-    squad_date: "2022-02-02",
+    squad_date: new Date(Date.UTC(2022, 1, 2)), // month is -1
     squad_time: "11:00 AM",
     sort_order: 1,
   };
@@ -81,7 +82,7 @@ export const DbSquads = () => {
     id: "sqd_3397da1adc014cf58c44e07c19914f72",
     event_id: "evt_9a58f0a486cb4e6c92ca3348702b1a62",
     squad_name: "Squad 1",
-    squad_date: '2023-09-16',
+    squad_date: new Date(Date.UTC(2023, 8, 16)), // month is -1
     squad_time: "01:00 PM",
     games: 6,
     lane_count: 24,
@@ -411,7 +412,9 @@ export const DbSquads = () => {
             "Created squad lane_count !== squadToPost.lane_count",
             false
           );
-        } else if (postedSquad.squad_date !== squadToPost.squad_date) {
+        } else if (
+          compareAsc(postedSquad.squad_date, squadToPost.squad_date) !== 0
+        ) {
           testResults += addToResults(
             "Created squad squad_date !== squadToPost.squad_date",
             false
@@ -445,7 +448,7 @@ export const DbSquads = () => {
       await squadInvalidCreate("games", 0);
       await squadInvalidCreate("lane_count", -1);
       await squadInvalidCreate("starting_lane", 1234);
-      await squadInvalidCreate("squad_date", "2022-13-32");
+      await squadInvalidCreate("squad_date", "2222-13-30T12:34:56.789Z");
       await squadInvalidCreate("squad_time", "13:00 PM");
       await squadInvalidCreate("sort_order", "abc");
 
@@ -585,7 +588,7 @@ export const DbSquads = () => {
       ...initSquad,
       event_id: "evt_cb97b73cb538418ab993fc867f860510",
       squad_name: "Squad 1",
-      squad_date: '2022-10-23',
+      squad_date: new Date(Date.UTC(2022, 9, 23)), // month is -1
       squad_time: null,
       games: 6,
       lane_count: 12,
@@ -629,9 +632,11 @@ export const DbSquads = () => {
             "Read 1 Squad starting_lane !== testSquad.starting_lane",
             false
           );
-        } else if (readSquad.starting_lane !== testSquad.starting_lane) {
+        } else if (
+          compareAsc(readSquad.squad_date, testSquad.squad_date) !== 0
+        ) {
           testResults += addToResults(
-            "Read 1 Squad starting_lane !== testSquad.starting_lane",
+            "Read 1 Squad squad_date !== testSquad.squad_date",
             false
           );
         } else if (readSquad.squad_time !== testSquad.squad_time) {
@@ -665,7 +670,7 @@ export const DbSquads = () => {
 
       return response.data;
     } catch (error: any) {
-      testResults += addToResults(`Read 1 Error: ${error.message}`, false);      
+      testResults += addToResults(`Read 1 Error: ${error.message}`, false);
       return {
         error: error.message,
         status: 404,
@@ -883,7 +888,9 @@ export const DbSquads = () => {
             "Updated squad lane_count !== squadUpdatedTo.lane_count",
             false
           );
-        } else if (updatedSquad.squad_date !== squadUpdatedTo.squad_date) {
+        } else if (
+          compareAsc(updatedSquad.squad_date, squadUpdatedTo.squad_date) !== 0
+        ) {
           testResults += addToResults(
             "Updated squad squad_date !== squadUpdatedTo.squad_date",
             false
@@ -1104,32 +1111,43 @@ export const DbSquads = () => {
           url: squadIdUrl,
         });
         if (response.status === 200) {
-          if (response.data.squad[propertyName] === matchValue) {
-            testResults += addToResults(
-              `Patched Squad: ${squadToUpdate.squad_name} - just ${propertyName}`
-            );
+          if (propertyName === "squad_date") {
+            const resDate = new Date(response.data.squad.squad_date);
+            if (compareAsc(resDate, matchValue) === 0) {
+              testResults += addToResults(
+                `Patched Squad: ${squadToUpdate.squad_name} - just ${propertyName}`
+              );
+            } else {
+              testResults += addToResults(
+                `DID NOT Patch Squad ${propertyName}`,
+                false
+              );
+            }
           } else {
-            testResults += addToResults(
-              `DID NOT Patch Squad ${propertyName}`,
-              false
-            );
+            if (response.data.squad[propertyName] === matchValue) {
+              testResults += addToResults(
+                `Patched Squad: ${squadToUpdate.squad_name} - just ${propertyName} - value: "${value}"`,
+              );
+            } else {
+              testResults += addToResults(
+                `DID NOT Patch Squad ${propertyName} - value: "${value}"`,
+                false
+              );
+            }
           }
           return {
             data: response.data.squad,
             status: response.status,
           };
         } else {
-          testResults += addToResults(`doPatch Error: ${propertyName}`, false);
+          testResults += addToResults(`doPatch Error: ${propertyName} - value: "${value}"`, false);
           return {
             error: `Error Patching ${propertyName}`,
             status: response.status,
           };
         }
       } catch (error: any) {
-        testResults += addToResults(
-          `doPatch Error: ${error.message}`,
-          false
-        );
+        testResults += addToResults(`doPatch Error: ${error.message}`, false);
         return {
           error: error.message,
           status: 404,
@@ -1141,7 +1159,7 @@ export const DbSquads = () => {
 
     const dontPatch = async (propertyName: string, value: any) => {
       try {
-        const dontPatchJSON = JSON.stringify({          
+        const dontPatchJSON = JSON.stringify({
           [propertyName]: value,
         });
         const response = await axios({
@@ -1228,11 +1246,11 @@ export const DbSquads = () => {
       try {
         const duplicateId = "sqd_796c768572574019a6fa79b3b1c8fa57";
         const duplicateIdUrl = url + "/" + duplicateId;
-        
+
         // use event id that has two squads
         const dupJSON = JSON.stringify({
           ...squadToUpdate,
-          event_id: 'evt_06055deb80674bd592a357a4716d8ef2', 
+          event_id: "evt_06055deb80674bd592a357a4716d8ef2",
           [propertyName]: value,
         });
         const response = await axios({
@@ -1324,7 +1342,11 @@ export const DbSquads = () => {
     };
 
     try {
-      await doPatch("event_id", 'evt_adfcff4846474a25ad2936aca121bd37', 'evt_adfcff4846474a25ad2936aca121bd37');
+      await doPatch(
+        "event_id",
+        "evt_adfcff4846474a25ad2936aca121bd37",
+        "evt_adfcff4846474a25ad2936aca121bd37"
+      );
       await dontPatch("event_id", "evt_12345678901234567890123456789012");
 
       await doPatch("squad_name", "Testing Squad * ", "Testing Squad");
@@ -1340,10 +1362,16 @@ export const DbSquads = () => {
       await doPatch("lane_count", 14, 14);
       await dontPatch("lane_count", "abc");
 
-      await doPatch("squad_date", "2022-04-04", "2022-04-04");
+      await doPatch(
+        "squad_date",
+        new Date(Date.UTC(2022, 3, 4)),
+        new Date(Date.UTC(2022, 3, 4))
+      ); // month is -1
       await dontPatch("squad_date", "2022-22-22");
 
       await doPatch("squad_time", "05:00 PM", "05:00 PM");
+      await doPatch("squad_time", "", "");
+      await doPatch("squad_time", null, null);
       await dontPatch("squad_time", "15:00 PM");
 
       await doPatch("sort_order", 5, 5);
@@ -1376,10 +1404,10 @@ export const DbSquads = () => {
 
   const squadDelete = async (idToDel: string, testing: boolean = true) => {
     let testResults = results + "Delete Squad tests: \n";
-    if (!testing) {
+    if (testing) {
       passed = true;
     }
-        
+
     const invalidDelete = async (invalidId: string) => {
       try {
         const invalidDelUrl = url + "/" + invalidId;
@@ -1486,8 +1514,8 @@ export const DbSquads = () => {
         status: 404,
       };
     } finally {
-      await reAddDeletedSquad();
       if (testing) {
+        await reAddDeletedSquad();
         if (passed) {
           testResults += addToResults(`Delete Squad tests: PASSED`, true);
         } else {

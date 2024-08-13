@@ -2,7 +2,7 @@
 import React, { useState, ChangeEvent, useRef } from "react";
 import { sanitize } from "@/lib/sanitize";
 import { format, startOfToday, endOfToday, formatISO, isValid, startOfDay, addDays, interval } from "date-fns";
-import { todayStr, dateTo_UTC_yyyyMMdd, twelveHourto24Hour, getTimeString, dateTo_UTC_MMddyyyy } from "@/lib/dateTools";
+import { todayStr, dateTo_yyyyMMdd, twelveHourto24Hour, getTimeString, dateTo_UTC_MMddyyyy } from "@/lib/dateTools";
 import CurrencyInput, { formatValue } from "@/lib/currency";
 import { getLocaleConfig } from "@/lib/currency/components/utils";
 import { IntlConfig } from "@/lib/currency/components/CurrencyInputProps";
@@ -85,7 +85,7 @@ export const SampleForm: React.FC = () => {
           const endDateInput = document.getElementById("inputEndDate") as HTMLInputElement;
           if (endDateInput && endDateInput.value === "") { 
             endDate = new Date(value)
-            endDateStr = dateTo_UTC_yyyyMMdd(endDate)
+            endDateStr = dateTo_yyyyMMdd(endDate)
             setFormData({
               ...formData,
               start_date: value,
@@ -266,8 +266,19 @@ export const SampleForm: React.FC = () => {
       </div>
       <div className="row g-3 mb-3">
         <div className="col-md-3">
-          <label htmlFor="inputStartGames" className="form-label">
-            Start Game(s)
+          <label htmlFor="inputTodayStr" className="form-label">
+            todayStr
+          </label>
+          <input
+            type="text"
+            className="form-control"
+            id="inputTodayStr"
+            name="start_games"
+            value={todayStr} 
+            readOnly
+          />
+          {/* <label htmlFor="inputStartGames" className="form-label">
+            todayStr
           </label>
           <IMaskInput
             ref={ref}
@@ -276,7 +287,7 @@ export const SampleForm: React.FC = () => {
             mask={/\d(\d)?(,(\d(\d)?)?)*$/}
             className="form-control"            
             placeholder="#,#"
-          />
+          /> */}
         </div>
         <div className="col-md-3">
           <label htmlFor="inputAnyString" className="form-label">

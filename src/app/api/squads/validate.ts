@@ -11,11 +11,14 @@ import {
   isEven,
   maxLaneCount,
   validSortOrder,
+  maxDate,
+  minDate,
 } from "@/lib/validation";
 import { sanitize } from "@/lib/sanitize";
-import { isValid, startOfDay } from "date-fns";
+import { compareAsc, isValid } from "date-fns";
 import { squadType, idTypes } from "@/lib/types/types";
 import { initSquad } from "@/db/initVals";
+import { validFullDateISOString } from "@/lib/dateTools";
 
 /**
  * checks if squad object has missing data - DOES NOT SANITIZE OR VALIDATE
@@ -64,10 +67,17 @@ export const validLaneCount = (laneCount: number): boolean => {
     (laneCount >= 2 && laneCount <= maxStartLane + 1) &&
     isEven(laneCount);
 }
-export const validSquadDate = (squadDateStr: string): boolean => { 
-  if (!squadDateStr) return false
-  const squadDate = startOfDay(new Date(squadDateStr))
-  return isValid(squadDate)
+export const validSquadDate = (squadDate: Date): boolean => { 
+  if (!squadDate) return false  
+  if (typeof squadDate === 'string') {
+    if (validFullDateISOString(squadDate)) {
+      squadDate = new Date(squadDate)
+    } else {
+      return false
+    }    
+  }
+  if (!isValid(squadDate)) return false
+  return (compareAsc(squadDate, minDate) >= 0 && compareAsc(squadDate, maxDate) <= 0)
 }
 export const validSquadTime = (squadTimeStr: string | null): boolean => { 
   if (typeof squadTimeStr === 'undefined') return false  

@@ -1,9 +1,10 @@
 import React, { useEffect } from "react";
 import axios from "axios";
-import { baseApi, nextPostSecret } from "@/lib/tools";
-import { tmntType } from "@/lib/types/types";
+import { baseApi, postSecret } from "@/lib/tools";
+import { tmntType, YearObj } from "@/lib/types/types";
 import { initTmnt } from "@/db/initVals";
-import { todayStr } from "@/lib/dateTools";
+import { startOfTodayUTC, todayStr } from "@/lib/dateTools";
+import { addDays, compareAsc } from "date-fns";
 
 const url = baseApi + "/tmnts";
 const tmntId = "tmt_fd99387c33d9c78aba290286576ddce5";
@@ -18,7 +19,7 @@ export const DbTmnts = () => {
   useEffect(() => {
     setResults(results);
     // force textare to scroll to bottom
-    var textarea = document.getElementById("tmntResults");
+    var textarea = document.getElementById("tmntTestResults");
     if (textarea) {
       textarea.scrollTop = textarea.scrollHeight;
     }
@@ -30,8 +31,8 @@ export const DbTmnts = () => {
     tmnt_name: "Test Tournement",
     user_id: "usr_5bcefb5d314fff1ff5da6521a2fa7bde",
     bowl_id: "bwl_561540bd64974da9abdd97765fdb3659",
-    start_date: todayStr,
-    end_date: todayStr,
+    start_date: startOfTodayUTC(),
+    end_date: startOfTodayUTC(),
   };
 
   const tmntToUpdate: tmntType = {
@@ -40,15 +41,15 @@ export const DbTmnts = () => {
     tmnt_name: "Gold Pin",
     user_id: "usr_5bcefb5d314fff1ff5da6521a2fa7bde",
     bowl_id: "bwl_561540bd64974da9abdd97765fdb3659",
-    start_date: "2022-10-23",
-    end_date: "2022-10-23",
+    start_date: new Date(Date.UTC(2022, 9, 23)),  // month is -1 
+    end_date: new Date(Date.UTC(2022, 9, 23)),    // month is -1
   };
 
   const tmntUpdatedTo: tmntType = {
     ...initTmnt,
     tmnt_name: "Test Tmnt",
-    start_date: "2022-01-01",
-    end_date: "2022-01-01",
+    start_date: new Date(Date.UTC(2022, 0, 1)), // month is -1
+    end_date: new Date(Date.UTC(2022, 0, 1)),   // month is -1
     bowl_id: "bwl_8b4a5c35ad1247049532ff53a12def0a",
     user_id: "usr_a24894ed10c5dd835d5cbbfea7ac6dca",
   };
@@ -59,8 +60,8 @@ export const DbTmnts = () => {
     tmnt_name: "Gold Pin",
     user_id: "usr_5bcefb5d314fff1ff5da6521a2fa7bde",
     bowl_id: "bwl_561540bd64974da9abdd97765fdb3659",
-    start_date: "2024-08-19",
-    end_date: "2024-08-19",
+    start_date: new Date(Date.UTC(2024, 7, 19)), // month is -1
+    end_date: new Date(Date.UTC(2024, 7, 19)),   // month is -1
   };
 
   const addToResults = (newText: string, pass: boolean = true): string => {
@@ -178,7 +179,7 @@ export const DbTmnts = () => {
       const reAdd = {
         ...tmntToDel,
       };
-      reAdd.id = nextPostSecret + reAdd.id;
+      reAdd.id = postSecret + reAdd.id;
       const reAddJSON = JSON.stringify(reAdd);
       response = await axios({
         method: "post",
@@ -310,12 +311,12 @@ export const DbTmnts = () => {
             "Created Tmnt tmnt_name !== tmntToPost.tmnt_name",
             false
           );
-        } else if (postedTmnt.start_date !== tmntToPost.start_date) {
+        } else if (compareAsc(postedTmnt.start_date, tmntToPost.start_date) !== 0) {
           testResults += addToResults(
             "Created Tmnt start_date !== tmntToPost.start_date",
             false
           );
-        } else if (postedTmnt.end_date !== tmntToPost.end_date) {
+        } else if (compareAsc(postedTmnt.end_date, tmntToPost.end_date) !== 0) {
           testResults += addToResults(
             "Created Tmnt end_date !== tmntToPost.end_date",
             false
@@ -345,7 +346,8 @@ export const DbTmnts = () => {
       }
 
       await invalidCreate("tmnt_name", "");
-      await invalidCreate("start_date", "2022-02-30");
+      await invalidCreate("start_date", "<script>alert('hi')</script>");
+      await invalidCreate("start_date", addDays( tmntToPost.end_date, 1));
       await invalidCreate("end_date", "2022-11-31");
       await invalidCreate("bowl_id", "1234");
       await invalidCreate("user_id", "abc_def");
@@ -509,12 +511,12 @@ export const DbTmnts = () => {
             "Read 1 Tmnt tmnt_name !== testTmnt.tmnt_name",
             false
           );
-        } else if (readTmnt.start_date !== testTmnt.start_date) {
+        } else if (compareAsc(readTmnt.start_date, readTmnt.start_date) !== 0) {
           testResults += addToResults(
             "Read 1 Tmnt start_date !== testTmnt.start_date",
             false
           );
-        } else if (readTmnt.end_date !== testTmnt.end_date) {
+        } else if (compareAsc(readTmnt.end_date, testTmnt.end_date) !== 0) {
           testResults += addToResults(
             "Read 1 Tmnt end_date !== testTmnt.end_date",
             false
@@ -584,7 +586,7 @@ export const DbTmnts = () => {
       }
     };
 
-    const invalidCreate = async (propertyName: string, value: any) => {
+    const invalidUpadte = async (propertyName: string, value: any) => {
       try {
         const invalidTmntJSON = JSON.stringify({
           ...tmntToUpdate,
@@ -683,12 +685,12 @@ export const DbTmnts = () => {
           "Updated Tmnt tmnt_name !== testTmntToUpdate.tmnt_name",
           false
         );
-      } else if (updatedTmnt.start_date !== tmntUpdatedTo.start_date) {
+      } else if (compareAsc(updatedTmnt.start_date, tmntUpdatedTo.start_date) !== 0) {
         testResults += addToResults(
           "Updated Tmnt start_date !== testTmntToUpdate.start_date",
           false
         );
-      } else if (updatedTmnt.end_date !== tmntUpdatedTo.end_date) {
+      } else if (compareAsc(updatedTmnt.end_date, tmntUpdatedTo.end_date) !== 0) {
         testResults += addToResults(
           "Updated Tmnt end_date !== testTmntToUpdate.end_date",
           false
@@ -707,14 +709,15 @@ export const DbTmnts = () => {
         testResults += addToResults(`Updated Tmnt: ${updatedTmnt.tmnt_name}`);
       }
       // 2) invalid tmnt object
-      await invalidCreate("tmnt_name", "*****");
-      await invalidCreate("start_date", "2022-02-32");
-      await invalidCreate("end_date", "2023-12-32");
-      await invalidCreate(
+      await invalidUpadte("tmnt_name", "*****");
+      await invalidUpadte("start_date", "2022-02-32");
+      await invalidUpadte("start_date", new Date(Date.UTC(2022, 8, 24))); // after end date, month - 1      
+      await invalidUpadte("end_date", "abc");
+      await invalidUpadte(
         "bowl_id",
         "usr_12345678901234567890123456789012"
       );
-      await invalidCreate(
+      await invalidUpadte(
         "user_id",
         "bwl_12345678901234567890123456789012"
       );
@@ -753,7 +756,7 @@ export const DbTmnts = () => {
     ) => {
       try {
         let patchJSON: any;
-        // if start date or end date, must have both values or not either one
+        // if start date or end date, must have both values
         if (propertyName === "start_date" || propertyName === "end_date") {
           patchJSON = JSON.stringify({
             start_date: value,
@@ -801,6 +804,93 @@ export const DbTmnts = () => {
       } catch (error: any) {
         testResults += addToResults(
           `doPatch Error: ${error.message}`,
+          false
+        );
+        return {
+          error: error.message,
+          status: 404,
+        };
+      } finally {
+        const reset = await resetTmntToUpdate(false);
+      }
+    };
+
+    const doPatchDates = async (
+      startDate: any,
+      endDate: any      
+    ) => {
+      try {
+        let patchJSON: any;
+        if (startDate && endDate) {
+          patchJSON = JSON.stringify({
+            start_date: startDate,
+            end_date: endDate,
+          });
+        } else if (startDate) {
+          patchJSON = JSON.stringify({
+            start_date: startDate,
+          });
+        } else if (endDate) {
+          patchJSON = JSON.stringify({
+            end_date: endDate,
+          });
+        } else {
+          testResults += addToResults(
+            `doPatch Error: no date values`,
+            false
+          );
+          return {
+            error: 'no date values',
+            status: 404,
+          };
+        }
+        const response = await axios({
+          method: "patch",
+          data: patchJSON,
+          withCredentials: true,
+          url: tmntIdUrl,
+        });
+        if (response.status === 200) {
+          if (startDate) {
+            const resDate = new Date(response.data.tmnt.start_date);
+            if (compareAsc(resDate, startDate) === 0) {
+              testResults += addToResults(
+                `Patched Tmnt: ${tmntToUpdate.tmnt_name} - start_date = "${startDate}"`
+              );
+            } else {
+              testResults += addToResults(
+                `DID NOT Patch Tmnt start_date`,
+                false
+              );
+            }
+          } 
+          if (endDate) {
+            const resDate = new Date(response.data.tmnt.end_date);
+            if (compareAsc(resDate, endDate) === 0) {
+              testResults += addToResults(
+                `Patched Tmnt: ${tmntToUpdate.tmnt_name} - end_date = "${endDate}"`
+              );
+            } else {
+              testResults += addToResults(
+                `DID NOT Patch Tmnt end_date`,
+                false
+              );
+            }
+          }
+          return {
+            data: response.data.tmnt,
+            status: response.status,
+          };
+        } else {
+          testResults += addToResults(`doPatch Error: dates`, false);
+          return {
+            error: `Error Patching dates`,
+            status: response.status,
+          };
+        }
+      } catch (error: any) {
+        testResults += addToResults(
+          `doPatchDates Error: ${error.message}`,
           false
         );
         return {
@@ -903,13 +993,13 @@ export const DbTmnts = () => {
       await doPatch("tmnt_name", "<script>alert(1)</script>", "alert1");
       await dontPatch("tmnt_name", "<script></script>");
 
-      await doPatch("start_date", "2024-01-13", "2024-01-13");
+      // new Date(Date.UTC(2023, 2, 1)),  // month is -1
+      await doPatchDates(new Date(Date.UTC(2023, 1, 1)), new Date(Date.UTC(2023, 1, 1)));
+      await doPatchDates(new Date(Date.UTC(1999, 0, 1)), null as any);
+      await doPatchDates(null as any, new Date(Date.UTC(2025, 0, 1)), );
+
       await dontPatch("start_date", "2024-02-31");
-
-      await doPatch("end_date", "2024-01-14", "2024-01-14");
-      await dontPatch("end_date", "2024-03-33");
-
-      await doPatch("start_date", "", "");
+      await dontPatch("end_date", new Date(Date.UTC(1980, 2, 1)));
 
       await doPatch(
         "bowl_id",
@@ -949,7 +1039,7 @@ export const DbTmnts = () => {
   const tmntDelete = async (tmntId: string, testing: boolean = true) => {
     let testResults = results + "Delete Tmnt tests: \n";
     const tmntDelUrl = url + "/" + tmntId;
-    if (!testing) {
+    if (testing) {
       passed = true;
     }    
 
@@ -1058,9 +1148,9 @@ export const DbTmnts = () => {
         error: error.message,
         status: 404,
       };
-    } finally {
-      await reAddDeletedTmnt();
+    } finally {      
       if (testing) {
+        await reAddDeletedTmnt();
         if (passed) {
           testResults += addToResults(`Delete Tmnt tests: PASSED`);
         } else {
@@ -1070,6 +1160,179 @@ export const DbTmnts = () => {
       }
     }
   };
+
+  const tmntYears = async () => {
+    let testResults = results + "Read Tmnts Years: \n";
+    passed = true;
+
+    const tmntYearsUrl = url + "/years/2023";
+    try {
+      const response = await axios({
+        method: "get",
+        withCredentials: true,
+        url: tmntYearsUrl,
+      });
+      if (response.status === 200) {
+        testResults += addToResults(
+          `Success: ${response.data.years.length} Tmnt Year`,
+          true
+        );
+
+        const years: YearObj[] = response.data.years as unknown as YearObj[];
+        // 2 tmnts years before 2024 in /prisma/seeds.ts
+        const seedYears = 2;
+        if (years.length === seedYears) {
+          testResults += addToResults(`got ${seedYears} tmnt yaers`, true);         
+          // years.forEach((y) => {
+          //   y.year = Number(y.year);
+          // })
+          if (years[0].year === '2023' && years[1].year === '2022') {
+            testResults += addToResults(`got correct tmnt years`, true);
+          } else {
+            testResults += addToResults(`got incorrect tmnt years`, false);
+          }
+        } else {
+          testResults += addToResults(
+            `Error: got ${years.length} tmnts years, expected ${seedYears}`,
+            false
+          );
+        }        
+        return years;
+      } else {
+        testResults += addToResults(
+          `Error getting tmnt years, response status: ${response.status}`,
+          false
+        );
+        return {
+          error: "Did not get tmnt years",
+          status: response.status,
+        };
+      }
+    } catch (error: any) {
+      testResults += addToResults(`Tmnt Years Error: ${error.message}`, false);
+      return {
+        error: error.message,
+        status: 404,
+      };
+    } finally {
+      if (passed) {
+        testResults += addToResults(`Tmnt Years: PASSED`);
+      } else {
+        testResults += addToResults(`Tmnt Years: FAILED`, false);
+      }
+      setResults(testResults);
+    }
+  }
+
+  const tmntResults = async () => {
+    let testResults = results + "Tmnts Results: \n";
+    passed = true;
+
+    try {
+      const urlResults = url + "/results";
+      const response = await axios({
+        method: "get",
+        withCredentials: true,
+        url: urlResults,
+      });
+      if (response.status === 200) {
+        testResults += addToResults(
+          `Success: ${response.data.tmnts.length} Tmnt Results`,
+          true
+        );
+
+        const tmnts: tmntType[] = response.data.tmnts as unknown as tmntType[];
+        const seedResults = 9;
+        if (tmnts.length === seedResults) {
+          testResults += addToResults(`got ${seedResults} tmnt results`, true);
+        } else {
+          testResults += addToResults(
+            `Error: got ${tmnts.length} tmnts results, expected ${seedResults}`,
+            false
+          );
+        }        
+        return tmnts;
+      } else {
+        testResults += addToResults(
+          `Error getting tmnt results, response status: ${response.status}`,
+          false
+        );
+        return {
+          error: "Did not get tmnt results",
+          status: response.status,
+        };
+        
+      }
+    } catch (error: any) {
+      testResults += addToResults(`Tmnt Results Error: ${error.message}`, false);
+      return {
+        error: error.message,
+        status: 404,
+      };
+    } finally {
+      if (passed) {
+        testResults += addToResults(`Tmnt Results: PASSED`);
+      } else {
+        testResults += addToResults(`Tmnt Results: FAILED`, false);
+      }
+      setResults(testResults);
+    }
+  }
+
+  const tmntUpcoming = async () => {
+    let testResults = results + "Tmnts Upcoming: \n";
+    passed = true;
+
+    try {
+      const urlResults = url + "/upcoming";
+      const response = await axios({
+        method: "get",
+        withCredentials: true,
+        url: urlResults,
+      });
+      if (response.status === 200) {
+        testResults += addToResults(
+          `Success: ${response.data.tmnts.length} Tmnt Upcoming`,
+          true
+        );
+
+        const tmnts: tmntType[] = response.data.tmnts as unknown as tmntType[];
+        const seedResults = 1;
+        if (tmnts.length === seedResults) {
+          testResults += addToResults(`got ${seedResults} tmnt upcoming`, true);
+        } else {
+          testResults += addToResults(
+            `Error: got ${tmnts.length} tmnts upcoming, expected ${seedResults}`,
+            false
+          );
+        }        
+        return tmnts;
+      } else {
+        testResults += addToResults(
+          `Error getting tmnt upcoming, response status: ${response.status}`,
+          false
+        );
+        return {
+          error: "Did not get tmnt upcoming",
+          status: response.status,
+        };
+        
+      }
+    } catch (error: any) {
+      testResults += addToResults(`Tmnt Upcoming Error: ${error.message}`, false);
+      return {
+        error: error.message,
+        status: 404,
+      };
+    } finally {
+      if (passed) {
+        testResults += addToResults(`Tmnt Upcoming: PASSED`);
+      } else {
+        testResults += addToResults(`Tmnt Upcoming: FAILED`, false);
+      }
+      setResults(testResults);
+    }
+  }
 
   const resetAll = async () => {
     let testResults: string = "";
@@ -1145,6 +1408,15 @@ export const DbTmnts = () => {
         break;
       case "delete":
         await tmntDelete(tmntToDel.id);
+        break;
+      case "years":
+        await tmntYears();
+        break;
+      case "results":
+        await tmntResults();
+        break;
+      case "upcoming":
+        await tmntUpcoming();
         break;
       default:
         break;
@@ -1309,10 +1581,54 @@ export const DbTmnts = () => {
         </div>
       </div>
       <div className="row g-3 mb-3">
+        <div className="col-sm-2">
+          <label htmlFor="tmntYears" className="form-check-label">
+            &nbsp;Years &nbsp;
+          </label>
+          <input
+            type="radio"
+            className="form-check-input"
+            id="tmntYears"
+            name="tmnt"
+            value="years"
+            checked={tmntCrud === "years"}
+            onChange={handleCrudChange}
+          />
+        </div>
+        <div className="col-sm-2">
+          <label htmlFor="tmntResults" className="form-check-label">
+            &nbsp;Results &nbsp;
+          </label>
+          <input
+            type="radio"
+            className="form-check-input"
+            id="tmntResults"
+            name="tmnt"
+            value="results"
+            checked={tmntCrud === "results"}
+            onChange={handleCrudChange}
+          />
+        </div>
+        <div className="col-sm-3">
+          <label htmlFor="tmntUpcoming" className="form-check-label">
+            &nbsp;Upcoming &nbsp;
+          </label>
+          <input
+            type="radio"
+            className="form-check-input"
+            id="tmntUpcoming"
+            name="tmnt"
+            value="upcoming"
+            checked={tmntCrud === "upcoming"}
+            onChange={handleCrudChange}
+          />
+        </div>
+      </div>
+      <div className="row g-3 mb-3">
         <div className="col-sm-12">
           <textarea
-            id="tmntResults"
-            name="tmntResults"
+            id="tmntTestResults"
+            name="tmntTestResults"
             rows={10}
             value={results}
             readOnly={true}

@@ -7,7 +7,6 @@ import { localConfig } from "@/lib/currency/const";
 import { formatValueSymbSep2Dec } from "@/lib/currency/formatValue";
 import { initPot } from "@/db/initVals";
 import { getPotName } from "@/lib/getName";
-import { mock } from "node:test";
 
 const mockSetPots = jest.fn();
 const mockSetAcdnErr = jest.fn();

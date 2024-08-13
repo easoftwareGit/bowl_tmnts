@@ -6,7 +6,6 @@ import { mockBrkts, mockDivs, mockSquads } from "../../../mocks/tmnts/twoDivs/mo
 import { localConfig } from "@/lib/currency/const";
 import { formatValueSymbSep2Dec } from "@/lib/currency/formatValue";
 import { defaultBrktGames, defaultBrktPlayers, initBrkt } from "@/db/initVals";
-import exp from "constants";
 import { getBrktOrElimName } from "@/lib/getName";
 
 const mockSetBrkts = jest.fn();

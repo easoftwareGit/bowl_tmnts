@@ -1,5 +1,5 @@
 import React from "react";
-import { render, screen } from "../../../test-utils";
+import { render, screen, waitFor } from "../../../test-utils";
 import userEvent from "@testing-library/user-event";
 import RootLayout from "../../../../src/app/layout";
 import TmntDataPage from "@/app/dataEntry/tmnt/page";
@@ -141,6 +141,9 @@ describe("TmntDataPage - Pots Component", () => {
     it("render multiple division radio buttons", async () => {
       const user = userEvent.setup();
       render(<RootLayout><TmntDataPage fullTmntData={mockFullTmnt} /></RootLayout>);
+      const loadingMessage = screen.getByText(/loading/i);        
+      await waitFor(() => expect(loadingMessage).not.toBeInTheDocument());    
+
       const acdns = await screen.findAllByRole("button", { name: /pots/i });
       await user.click(acdns[0]);
       const scratchs = screen.getAllByRole("radio", { name: /scratch/i }) as HTMLInputElement[];      
@@ -155,6 +158,9 @@ describe("TmntDataPage - Pots Component", () => {
     it("check 1st div radio radio button", async () => {
       const user = userEvent.setup();
       render(<RootLayout><TmntDataPage fullTmntData={mockFullTmnt} /></RootLayout>);
+      const loadingMessage = screen.getByText(/loading/i);        
+      await waitFor(() => expect(loadingMessage).not.toBeInTheDocument());    
+
       const acdns = await screen.findAllByRole("button", { name: /pots/i });
       await user.click(acdns[0]);
       const scratchs = screen.getAllByRole("radio", { name: /scratch/i }) as HTMLInputElement[];      
@@ -170,6 +176,9 @@ describe("TmntDataPage - Pots Component", () => {
     it("check 2nd div radio radio button", async () => {
       const user = userEvent.setup();
       render(<RootLayout><TmntDataPage fullTmntData={mockFullTmnt} /></RootLayout>);
+      const loadingMessage = screen.getByText(/loading/i);        
+      await waitFor(() => expect(loadingMessage).not.toBeInTheDocument());    
+
       const acdns = await screen.findAllByRole("button", { name: /pots/i });
       await user.click(acdns[0]);
       const scratchs = screen.getAllByRole("radio", { name: /scratch/i }) as HTMLInputElement[];      
@@ -185,6 +194,9 @@ describe("TmntDataPage - Pots Component", () => {
     it("cycle through radio buttons", async () => {
       const user = userEvent.setup();
       render(<RootLayout><TmntDataPage fullTmntData={mockFullTmnt} /></RootLayout>);
+      const loadingMessage = screen.getByText(/loading/i);        
+      await waitFor(() => expect(loadingMessage).not.toBeInTheDocument());    
+
       const acdns = await screen.findAllByRole("button", { name: /pots/i });
       await user.click(acdns[0]);
       const scratchs = screen.getAllByRole("radio", { name: /scratch/i }) as HTMLInputElement[];      
@@ -431,6 +443,9 @@ describe("TmntDataPage - Pots Component", () => {
     it('render multiple errors', async () => { 
       const user = userEvent.setup();
       render(<RootLayout><TmntDataPage fullTmntData={mockFullTmnt} /></RootLayout>);
+      const loadingMessage = screen.getByText(/loading/i);        
+      await waitFor(() => expect(loadingMessage).not.toBeInTheDocument());    
+
       const saveBtn = await screen.findByRole('button', { name: /save tournament/i });      
       const acdns = await screen.findAllByRole("button", { name: /pots/i });
       await user.click(acdns[0]);
@@ -490,6 +505,9 @@ describe("TmntDataPage - Pots Component", () => {
     it('render the and click the delete button', async () => {
       const user = userEvent.setup();
       render(<RootLayout><TmntDataPage fullTmntData={mockFullTmnt} /></RootLayout>);
+      const loadingMessage = screen.getByText(/loading/i);        
+      await waitFor(() => expect(loadingMessage).not.toBeInTheDocument());    
+
       const saveBtn = await screen.findByRole('button', { name: /save tournament/i });      
       const acdns = await screen.findAllByRole("button", { name: /pots/i });
       await user.click(acdns[0]);

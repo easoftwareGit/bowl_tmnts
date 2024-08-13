@@ -188,7 +188,7 @@ const ZeroToNBrackets: React.FC<ChildProps> = ({
       // DO NOT check brkt with ID 1
       const brktsToCheck = brkts.filter((brkt) => brkt.id !== "1");
       const duplicateBrkt = brktsToCheck.find(
-        (brkt) => brkt.start === newBrkt.start && brkt.div_id === newBrkt.div_id
+        (brkt) => brkt.start === newBrkt.start && brkt.div_id === newBrkt.div_id          
       );
       if (duplicateBrkt) {
         startErr = duplicateBrktErrMsg;
@@ -231,12 +231,20 @@ const ZeroToNBrackets: React.FC<ChildProps> = ({
         sort_order: brktId + 1,
       };
       setBrktId(brktId + 1);
-      const updatedBrkts = structuredClone(brkts);
-      updatedBrkts[0] = {
+
+      const mappedBrkts = brkts.map((brkt) => ({ ...brkt }));
+      mappedBrkts[0] = {
         ...initBrkt,
-      };
-      updatedBrkts.push(newBrkt);
-      setBrkts(updatedBrkts);
+      }
+      mappedBrkts.push(newBrkt);
+      setBrkts(mappedBrkts);
+
+      // const updatedBrkts = structuredClone(brkts);
+      // updatedBrkts[0] = {
+      //   ...initBrkt,
+      // };
+      // updatedBrkts.push(newBrkt);
+      // setBrkts(updatedBrkts);
     }
   };
 
