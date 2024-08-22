@@ -3,10 +3,9 @@ import { baseTmntsApi } from "@/db/apiPaths";
 import { testBaseTmntsApi } from "../../../testApi";
 import { tmntType, YearObj } from "@/lib/types/types";
 import { initTmnt } from "@/db/initVals";
-import { Tmnt } from "@prisma/client";
 import { postSecret } from "@/lib/tools";
 import { isValidBtDbId } from "@/lib/validation";
-import { compareAsc, startOfToday } from "date-fns";
+import { compareAsc } from "date-fns";
 import { startOfTodayUTC } from "@/lib/dateTools";
 
 // before running this test, run the following commands in the terminal:
@@ -28,7 +27,7 @@ const url = testBaseTmntsApi.startsWith("undefined")
   ? baseTmntsApi
   : testBaseTmntsApi;   
 
-describe('Tmnts - API: /api/tmnt', () => { 
+describe('Tmnts - API: /api/tmnts', () => { 
 
   const testTmnt: tmntType = {
     ...initTmnt,
@@ -40,8 +39,15 @@ describe('Tmnts - API: /api/tmnt', () => {
     end_date: new Date(Date.UTC(2022, 9, 23)),    // month is -1
   }
 
-  const notfoundId = "tmt_01234567890123456789012345678901";
-  const nonTmntId = "usr_01234567890123456789012345678901";
+  const blankTmnt = {
+    id: "tmt_fd99387c33d9c78aba290286576ddce5",
+    user_id: "usr_5bcefb5d314fff1ff5da6521a2fa7bde",
+  }
+
+  const notFoundId = "tmt_01234567890123456789012345678901";
+  const notFoundBowlId = "bwl_01234567890123456789012345678901";  
+  const notFoundUserId = "usr_01234567890123456789012345678901";  
+  const nonTmntId = "evt_01234567890123456789012345678901";
   
   const tmnt2Id = "tmt_56d916ece6b50e6293300248c6792316";
   const bowl2Id = 'bwl_8b4a5c35ad1247049532ff53a12def0a';
@@ -75,9 +81,10 @@ describe('Tmnts - API: /api/tmnt', () => {
       // 10 rows in prisma/seed.ts
       expect(response.data.tmnts).toHaveLength(10);
     })
+
   })
 
-  describe('GET tmnt lists', () => {
+  describe('GET tmnt lists by year - API: /api/tmnts/years/:year', () => {
 
     beforeAll(async () => {
       // if row left over from post test, then delete it
@@ -145,6 +152,7 @@ describe('Tmnts - API: /api/tmnt', () => {
       // 1 rows for upcoming in prisma/seed.ts
       expect(response.data.tmnts).toHaveLength(1);
     })
+
   })
 
   describe('POST', () => {
@@ -211,6 +219,45 @@ describe('Tmnts - API: /api/tmnt', () => {
       expect(compareAsc(postedTmnt.start_date, tmntToPost.start_date)).toBe(0);
       expect(compareAsc(postedTmnt.end_date, tmntToPost.end_date)).toBe(0);
       expect(isValidBtDbId(postedTmnt.id, 'tmt')).toBeTruthy();
+    })
+    it('should create a new tmnt with provided tmnt_id', async () => { 
+      const supIdTmnt = {
+        ...tmntToPost,
+        id: postSecret + notFoundId, // use valid ID 
+      }
+      const tmntJSON = JSON.stringify(supIdTmnt);
+      const response = await axios({
+        method: "post",
+        data: tmntJSON,
+        withCredentials: true,
+        url: url,
+      })
+      expect(response.status).toBe(201);
+      const postedTmnt = response.data.tmnt;
+      createdTmntId = postedTmnt.id;
+      expect(postedTmnt.id).toBe(notFoundId);
+    })
+    it('should not create a new tmnt with bowl_id that does not exist', async () => { 
+      const invalidTmnt = {
+        ...tmntToPost,
+        bowl_id: notFoundBowlId,
+      }
+      const tmntJSON = JSON.stringify(invalidTmnt);
+      try {
+        const response = await axios({
+          method: "post",
+          data: tmntJSON,
+          withCredentials: true,
+          url: url,
+        })
+        expect(response.status).toBe(404);
+      } catch (err) {
+        if (err instanceof AxiosError) {
+          expect(err.response?.status).toBe(404);
+        } else {
+          expect(true).toBeFalsy();
+        }
+      }
     })
     it('should NOT create a new tmnt with missing tmnt_name', async () => {
       const invalidTmnt = {
@@ -410,6 +457,138 @@ describe('Tmnts - API: /api/tmnt', () => {
         }
       }
     })
+    it('should NOT create a new tmnt with invalid bowl_id', async () => { 
+      const invalidTmnt = {
+        ...tmntToPost,
+        bowl_id: 'invalid',        
+      }
+      const tmntJSON = JSON.stringify(invalidTmnt);
+      try {
+        const response = await axios({
+          method: "post",
+          data: tmntJSON,
+          withCredentials: true,
+          url: url,
+        })
+        expect(response.status).toBe(422);
+      } catch (err) {
+        if (err instanceof AxiosError) {
+          expect(err.response?.status).toBe(422);
+        } else {
+          expect(true).toBeFalsy();
+        }
+      }
+    })
+    it('should NOT create a new tmnt with valid id, but not a bowl_id', async () => {
+      const invalidTmnt = {
+        ...tmntToPost,
+        bowl_id: nonTmntId,
+      }
+      const tmntJSON = JSON.stringify(invalidTmnt);
+      try {
+        const response = await axios({
+          method: "post",
+          data: tmntJSON,
+          withCredentials: true,
+          url: url,
+        })
+        expect(response.status).toBe(422);
+      } catch (err) {
+        if (err instanceof AxiosError) {
+          expect(err.response?.status).toBe(422);
+        } else {
+          expect(true).toBeFalsy();
+        }
+      }
+    })
+    it('should NOT create a new tmnt with valid bowl_id, but bowl_id not found', async () => { 
+      const invalidTmnt = {
+        ...tmntToPost,
+        bowl_id: notFoundBowlId,
+      }
+      const tmntJSON = JSON.stringify(invalidTmnt);
+      try {
+        const response = await axios({
+          method: "post",
+          data: tmntJSON,
+          withCredentials: true,
+          url: url,
+        })
+        expect(response.status).toBe(404);
+      } catch (err) {
+        if (err instanceof AxiosError) {
+          expect(err.response?.status).toBe(404);
+        } else {
+          expect(true).toBeFalsy();
+        }
+      }
+    })
+    it('should NOT create a new tmnt with invalid user_id', async () => { 
+      const invalidTmnt = {
+        ...tmntToPost,
+        user_id: 'invalid',
+      }
+      const tmntJSON = JSON.stringify(invalidTmnt);
+      try {
+        const response = await axios({
+          method: "post",
+          data: tmntJSON,
+          withCredentials: true,
+          url: url,
+        })
+        expect(response.status).toBe(422);
+      } catch (err) {
+        if (err instanceof AxiosError) {
+          expect(err.response?.status).toBe(422);
+        } else {
+          expect(true).toBeFalsy();
+        }
+      }
+    })
+    it('should NOT create a new tmnt with valid id, but not a user_id', async () => {
+      const invalidTmnt = {
+        ...tmntToPost,
+        user_id: nonTmntId,
+      }
+      const tmntJSON = JSON.stringify(invalidTmnt);
+      try {
+        const response = await axios({
+          method: "post",
+          data: tmntJSON,
+          withCredentials: true,
+          url: url,
+        })
+        expect(response.status).toBe(422);
+      } catch (err) {
+        if (err instanceof AxiosError) {
+          expect(err.response?.status).toBe(422);
+        } else {
+          expect(true).toBeFalsy();
+        }
+      }
+    })
+    it('should NOT create a new tmnt with valid user_id, but user_id not found', async () => { 
+      const invalidTmnt = {
+        ...tmntToPost,
+        user_id: notFoundUserId,
+      }
+      const tmntJSON = JSON.stringify(invalidTmnt);
+      try {
+        const response = await axios({
+          method: "post",
+          data: tmntJSON,
+          withCredentials: true,
+          url: url,
+        })
+        expect(response.status).toBe(404);
+      } catch (err) {
+        if (err instanceof AxiosError) {
+          expect(err.response?.status).toBe(404);
+        } else {
+          expect(true).toBeFalsy();
+        }
+      }
+    })      
     it('should create a new tmnt with sanitized data', async () => {
       const toSanitizeTmnt = {
         ...tmntToPost,
@@ -430,7 +609,7 @@ describe('Tmnts - API: /api/tmnt', () => {
       expect(compareAsc(postedTmnt.end_date, tmntToPost.end_date)).toBe(0);
       expect(isValidBtDbId(postedTmnt.id, 'tmt')).toBeTruthy();
     })
-
+    
   })
 
   describe('GET by ID - API: API: /api/tmnts/:id', () => {
@@ -470,7 +649,7 @@ describe('Tmnts - API: /api/tmnt', () => {
     })
     it('should NOT get a tmnt by ID when ID is not found', async () => {
       try {
-        const response = await axios.get(url + "/" + notfoundId);
+        const response = await axios.get(url + "/" + notFoundId);
         expect(response.status).toBe(404);
       } catch (err) {
         if (err instanceof AxiosError) {
@@ -480,6 +659,7 @@ describe('Tmnts - API: /api/tmnt', () => {
         }
       }
     })
+
   })
 
   describe('PUT by ID - API: API: /api/tmnts/:id', () => {
@@ -488,7 +668,7 @@ describe('Tmnts - API: /api/tmnt', () => {
       ...testTmnt,
       tmnt_name: "Test Tournament",
       bowl_id: bowl2Id,
-      user_id: user1Id,
+      user_id: user2Id,
       start_date: new Date(Date.UTC(2022, 10, 1)),  // month is -1
       end_date: new Date(Date.UTC(2022, 10, 1)),    // month is -1
     }
@@ -497,8 +677,8 @@ describe('Tmnts - API: /api/tmnt', () => {
       ...initTmnt,
       id: '',
       tmnt_name: "Sample Tournament",
-      user_id: user1Id,
       bowl_id: bowl3Id,
+      user_id: user1Id,
       start_date: new Date(Date.UTC(2022, 7, 1)),  // month is -1
       end_date: new Date(Date.UTC(2022, 7, 1)),    // month is -1
     }
@@ -527,7 +707,7 @@ describe('Tmnts - API: /api/tmnt', () => {
         if (err instanceof AxiosError) console.log(err.message);
       }
     })
-  
+
     it('should update a tmnt by ID', async () => {
       const tmntJSON = JSON.stringify(putTmnt);
       const putResponse = await axios({
@@ -540,11 +720,11 @@ describe('Tmnts - API: /api/tmnt', () => {
       expect(putResponse.status).toBe(200);
       expect(tmnt.tmnt_name).toBe(putTmnt.tmnt_name);
       expect(tmnt.bowl_id).toBe(putTmnt.bowl_id);
-      expect(tmnt.user_id).toBe(putTmnt.user_id);
+      // for user_id, compare to testTmnt.user_id
+      expect(tmnt.user_id).toBe(testTmnt.user_id);
       expect(compareAsc(tmnt.start_date, putTmnt.start_date)).toBe(0);
       expect(compareAsc(tmnt.end_date, putTmnt.end_date)).toBe(0);
     })
-
     it('should NOT update a tmnt with when ID is invalid', async () => {
       try {
         const tmntJSON = JSON.stringify(putTmnt);
@@ -588,7 +768,7 @@ describe('Tmnts - API: /api/tmnt', () => {
           method: "put",
           data: tmntJSON,
           withCredentials: true,
-          url: url + "/" + notfoundId,
+          url: url + "/" + notFoundId,
         })
         expect(putResponse.status).toBe(404);
       } catch (err) {
@@ -776,7 +956,51 @@ describe('Tmnts - API: /api/tmnt', () => {
         }
       }
     })
-    it('should NOT update a tmnt by ID when user_id is valid, but not a bowl ID', async () => {
+    it('should NOT update a tmnt by ID when bowl_id is valid, but not a bowl ID', async () => {
+      const invalidTmnt = {
+        ...putTmnt,
+        bowl_id: notFoundId, // valid tmnt ID, but not a user ID
+      }
+      const tmntJSON = JSON.stringify(invalidTmnt);
+      try {
+        const putResponse = await axios({
+          method: "put",
+          data: tmntJSON,
+          withCredentials: true,
+          url: url + "/" + testTmnt.id,
+        })
+        expect(putResponse.status).toBe(422);
+      } catch (err) {
+        if (err instanceof AxiosError) {
+          expect(err.response?.status).toBe(422);
+        } else {
+          expect(true).toBeFalsy();
+        }
+      }
+    })
+    it('should NOT update a tmnt by ID when bowl_id is not found', async () => {
+      const invalidTmnt = {
+        ...putTmnt,
+        bowl_id: notFoundBowlId, 
+      }
+      const tmntJSON = JSON.stringify(invalidTmnt);
+      try {
+        const putResponse = await axios({
+          method: "put",
+          data: tmntJSON,
+          withCredentials: true,
+          url: url + "/" + testTmnt.id,
+        })
+        expect(putResponse.status).toBe(404);
+      } catch (err) {
+        if (err instanceof AxiosError) {
+          expect(err.response?.status).toBe(404);
+        } else {
+          expect(true).toBeFalsy();
+        } 
+      }
+    })
+    it('should NOT update a tmnt by ID when user_id is invalid', async () => {
       const invalidTmnt = {
         ...putTmnt,
         user_id: 'test',
@@ -795,35 +1019,13 @@ describe('Tmnts - API: /api/tmnt', () => {
           expect(err.response?.status).toBe(422);
         } else {
           expect(true).toBeFalsy();
-        }
+        } 
       }
     })
     it('should NOT update a tmnt by ID when user_id is valid, but not a user ID', async () => {
       const invalidTmnt = {
         ...putTmnt,
-        user_id: notfoundId, // valid tmnt ID, but not a user ID
-      }
-      const tmntJSON = JSON.stringify(invalidTmnt);
-      try {
-        const putResponse = await axios({
-          method: "put",
-          data: tmntJSON,
-          withCredentials: true,
-          url: url + "/" + testTmnt.id,
-        })
-        expect(putResponse.status).toBe(422);
-      } catch (err) {
-        if (err instanceof AxiosError) {
-          expect(err.response?.status).toBe(422);
-        } else {
-          expect(true).toBeFalsy();
-        }
-      }
-    })
-    it('should NOT update a tmnt by ID when bowl_id is valid, but not a bowl ID', async () => {
-      const invalidTmnt = {
-        ...putTmnt,
-        bowl_id: notfoundId, // valid tmnt ID, but not a bowl ID
+        user_id: notFoundId, // valid tmnt ID, but not a user ID
       }
       const tmntJSON = JSON.stringify(invalidTmnt);
       try {
@@ -886,7 +1088,7 @@ describe('Tmnts - API: /api/tmnt', () => {
         }
       }
     })
-    it('should NOT update a tmnt by ID with sanitized data', async () => {
+    it('should update a tmnt by ID with sanitized data', async () => {
       const toSanitizeTmnt = {
         ...putTmnt,
         tmnt_name: "    <script>" + sampleTmnt.tmnt_name + "</script>   ",
@@ -902,18 +1104,12 @@ describe('Tmnts - API: /api/tmnt', () => {
       const puttedTmnt = response.data.tmnt;
       expect(puttedTmnt.tmnt_name).toBe(sampleTmnt.tmnt_name);
     })
+
   })
 
   describe('PATCH by ID - API: API: /api/tmnts/:id', () => {
 
-    let tmnt2: Tmnt;
-
     beforeAll(async () => {
-      // get tmnt 2
-      const response = await axios.get(url);
-      const tmnts = response.data.tmnts;
-      tmnt2 = tmnts.find((t: Tmnt) => t.id === tmnt2Id);
-
       // make sure test tmnt is reset in database
       const tmntJSON = JSON.stringify(testTmnt);
       const putResponse = await axios({
@@ -938,17 +1134,17 @@ describe('Tmnts - API: /api/tmnt', () => {
       }
     })
 
-    it('should update a tmnt tmnt_name by ID', async () => {
+    it('should patch a tmnt tmnt_name by ID', async () => {
       const patchTmnt = {
-        ...testTmnt,
-        tmnt_name: 'updated tmnt name',
+        ...blankTmnt,
+        tmnt_name: 'patched tmnt name',
       }
       const tmntJSON = JSON.stringify(patchTmnt);
       const patchResponse = await axios({
         method: "patch",
         data: tmntJSON,
         withCredentials: true,
-        url: url + "/" + testTmnt.id,
+        url: url + "/" + blankTmnt.id,
       })
       expect(patchResponse.status).toBe(200);
       const patchedTmnt = patchResponse.data.tmnt;
@@ -956,7 +1152,7 @@ describe('Tmnts - API: /api/tmnt', () => {
     })
     it('should patch a tmnt bowl_id by ID', async () => {
       const patchTmnt = {
-        ...testTmnt,
+        ...blankTmnt,
         bowl_id: bowl2Id,
       }
       const tmntJSON = JSON.stringify(patchTmnt);
@@ -964,7 +1160,7 @@ describe('Tmnts - API: /api/tmnt', () => {
         method: "patch",
         data: tmntJSON,
         withCredentials: true,
-        url: url + "/" + testTmnt.id,
+        url: url + "/" + blankTmnt.id,
       })
       expect(patchResponse.status).toBe(200);
       const patchedTmnt = patchResponse.data.tmnt;
@@ -972,7 +1168,7 @@ describe('Tmnts - API: /api/tmnt', () => {
     })
     it('should patch a tmnt start_date by ID', async () => {
       const patchTmnt = {
-        ...testTmnt,
+        ...blankTmnt,
         start_date: new Date(Date.UTC(2022, 9, 22)),  // month is -1
       }
       const tmntJSON = JSON.stringify(patchTmnt);
@@ -980,7 +1176,7 @@ describe('Tmnts - API: /api/tmnt', () => {
         method: "patch",
         data: tmntJSON,
         withCredentials: true,
-        url: url + "/" + testTmnt.id,
+        url: url + "/" + blankTmnt.id,
       })
       expect(patchResponse.status).toBe(200);
       const patchedTmnt = patchResponse.data.tmnt;
@@ -988,7 +1184,7 @@ describe('Tmnts - API: /api/tmnt', () => {
     })
     it('should patch a tmnt end_date by ID', async () => {
       const patchTmnt = {
-        ...testTmnt,
+        ...blankTmnt,
         end_date: new Date(Date.UTC(2022, 9, 24)),  // month is -1
       }
       const tmntJSON = JSON.stringify(patchTmnt);
@@ -996,15 +1192,15 @@ describe('Tmnts - API: /api/tmnt', () => {
         method: "patch",
         data: tmntJSON,
         withCredentials: true,
-        url: url + "/" + testTmnt.id,
+        url: url + "/" + blankTmnt.id,
       })
       expect(patchResponse.status).toBe(200);
       const patchedTmnt = patchResponse.data.tmnt;
       expect(compareAsc(patchedTmnt.end_date, patchTmnt.end_date)).toBe(0);
     })
-    it('should patch a tmnt user_id by ID', async () => {
+    it('should NOT patch a tmnt user_id by ID', async () => {
       const patchTmnt = {
-        ...testTmnt,
+        ...blankTmnt,
         user_id: user2Id,
       }
       const tmntJSON = JSON.stringify(patchTmnt);
@@ -1012,17 +1208,18 @@ describe('Tmnts - API: /api/tmnt', () => {
         method: "patch",
         data: tmntJSON,
         withCredentials: true,
-        url: url + "/" + testTmnt.id,
+        url: url + "/" + blankTmnt.id,
       })
       expect(patchResponse.status).toBe(200);
       const patchedTmnt = patchResponse.data.tmnt;
-      expect(patchedTmnt.user_id).toBe(patchTmnt.user_id);
+      // for user_id, compare to blankTmnt.user_id
+      expect(patchedTmnt.user_id).toBe(blankTmnt.user_id);
     })
     it('should NOT patch a tmnt when ID is invalid', async () => {
       try {
         const patchTmnt = {
-          ...testTmnt,
-          tmnt_name: 'updated tmnt name',
+          ...blankTmnt,
+          tmnt_name: 'patched tmnt name',
         }
         const tmntJSON = JSON.stringify(patchTmnt);
         const patchResponse = await axios({
@@ -1043,15 +1240,15 @@ describe('Tmnts - API: /api/tmnt', () => {
     it('should NOT patch a tmnt when ID is not found', async () => {
       try {
         const patchTmnt = {
-          ...testTmnt,
-          tmnt_name: 'updated tmnt name',
+          ...blankTmnt,
+          tmnt_name: 'patched tmnt name',
         }
         const tmntJSON = JSON.stringify(patchTmnt);
         const patchResponse = await axios({
           method: "patch",
           data: tmntJSON,
           withCredentials: true,
-          url: url + "/" + notfoundId,
+          url: url + "/" + notFoundId,
         })
         expect(patchResponse.status).toBe(404);
       } catch (err) {
@@ -1065,8 +1262,8 @@ describe('Tmnts - API: /api/tmnt', () => {
     it('should NOT patch a tmnt when ID is valid, but not a tmnt ID', async () => {
       try {
         const patchTmnt = {
-          ...testTmnt,
-          tmnt_name: 'updated tmnt name',
+          ...blankTmnt,
+          tmnt_name: 'patched tmnt name',
         }
         const tmntJSON = JSON.stringify(patchTmnt);
         const patchResponse = await axios({
@@ -1087,7 +1284,7 @@ describe('Tmnts - API: /api/tmnt', () => {
     it('should NOT patch a tmnt by ID when tmnt_name is missing', async () => {
       try {
         const patchTmnt = {
-          ...testTmnt,
+          ...blankTmnt,
           tmnt_name: '',
         }
         const tmntJSON = JSON.stringify(patchTmnt);
@@ -1095,7 +1292,7 @@ describe('Tmnts - API: /api/tmnt', () => {
           method: "patch",
           data: tmntJSON,
           withCredentials: true,
-          url: url + "/" + testTmnt.id,
+          url: url + "/" + blankTmnt.id,
         })
         expect(patchResponse.status).toBe(422);
       } catch (err) {
@@ -1109,7 +1306,7 @@ describe('Tmnts - API: /api/tmnt', () => {
     it('should NOT patch a tmnt by ID when user_id is missing', async () => {
       try {
         const patchTmnt = {
-          ...testTmnt,
+          ...blankTmnt,
           user_id: '',
         }
         const tmntJSON = JSON.stringify(patchTmnt);
@@ -1117,7 +1314,7 @@ describe('Tmnts - API: /api/tmnt', () => {
           method: "patch",
           data: tmntJSON,
           withCredentials: true,
-          url: url + "/" + testTmnt.id,
+          url: url + "/" + blankTmnt.id,
         })
         expect(patchResponse.status).toBe(422);
       } catch (err) {
@@ -1131,7 +1328,7 @@ describe('Tmnts - API: /api/tmnt', () => {
     it('should NOT patch a tmnt by ID when bowl_id is missing', async () => {
       try {
         const patchTmnt = {
-          ...testTmnt,
+          ...blankTmnt,
           bowl_id: '',
         }
         const tmntJSON = JSON.stringify(patchTmnt);
@@ -1139,7 +1336,7 @@ describe('Tmnts - API: /api/tmnt', () => {
           method: "patch",
           data: tmntJSON,
           withCredentials: true,
-          url: url + "/" + testTmnt.id,
+          url: url + "/" + blankTmnt.id,
         })
         expect(patchResponse.status).toBe(422);
       } catch (err) {
@@ -1153,7 +1350,7 @@ describe('Tmnts - API: /api/tmnt', () => {
     it('should NOT patch a tmnt by ID when start_date is missing', async () => {
       try {
         const patchTmnt = {
-          ...testTmnt,
+          ...blankTmnt,
           start_date: null as any,
         }
         const tmntJSON = JSON.stringify(patchTmnt);
@@ -1161,7 +1358,7 @@ describe('Tmnts - API: /api/tmnt', () => {
           method: "patch",
           data: tmntJSON,
           withCredentials: true,
-          url: url + "/" + testTmnt.id,
+          url: url + "/" + blankTmnt.id,
         })
         expect(patchResponse.status).toBe(422);
       } catch (err) {
@@ -1175,7 +1372,7 @@ describe('Tmnts - API: /api/tmnt', () => {
     it('should NOT patch a tmnt by ID when end_date is missing', async () => {
       try {
         const patchTmnt = {
-          ...testTmnt,
+          ...blankTmnt,
           end_date: null as any,
         }
         const tmntJSON = JSON.stringify(patchTmnt);
@@ -1183,7 +1380,7 @@ describe('Tmnts - API: /api/tmnt', () => {
           method: "patch",
           data: tmntJSON,
           withCredentials: true,
-          url: url + "/" + testTmnt.id,
+          url: url + "/" + blankTmnt.id,
         })
         expect(patchResponse.status).toBe(422);
       } catch (err) {
@@ -1197,7 +1394,7 @@ describe('Tmnts - API: /api/tmnt', () => {
     it('should NOT patch a tmnt by ID when tmnt_name is too long', async () => {
       try {
         const patchTmnt = {
-          ...testTmnt,
+          ...blankTmnt,
           tmnt_name: 'a'.repeat(101),
         }
         const tmntJSON = JSON.stringify(patchTmnt);
@@ -1205,7 +1402,7 @@ describe('Tmnts - API: /api/tmnt', () => {
           method: "patch",
           data: tmntJSON,
           withCredentials: true,
-          url: url + "/" + testTmnt.id,
+          url: url + "/" + blankTmnt.id,
         })
         expect(patchResponse.status).toBe(422);
       } catch (err) {
@@ -1219,7 +1416,7 @@ describe('Tmnts - API: /api/tmnt', () => {
     it('should NOT patch a tmnt by ID when start_date is after end_date', async () => {
       try {
         const patchTmnt = {
-          ...testTmnt,
+          ...blankTmnt,
           start_date: new Date(Date.UTC(2022, 9, 24)),  // month is -1
         }
         const tmntJSON = JSON.stringify(patchTmnt);
@@ -1227,7 +1424,7 @@ describe('Tmnts - API: /api/tmnt', () => {
           method: "patch",
           data: tmntJSON,
           withCredentials: true,
-          url: url + "/" + testTmnt.id,
+          url: url + "/" + blankTmnt.id,
         })
         expect(patchResponse.status).toBe(422);
       } catch (err) {
@@ -1241,7 +1438,7 @@ describe('Tmnts - API: /api/tmnt', () => {
     it('should NOT patch a tmnt by ID when start_date is too far in the past', async () => {
       try {
         const patchTmnt = {
-          ...testTmnt,
+          ...blankTmnt,
           start_date: new Date(Date.UTC(1800, 9, 24)),  // month is -1
         }
         const tmntJSON = JSON.stringify(patchTmnt);
@@ -1249,7 +1446,7 @@ describe('Tmnts - API: /api/tmnt', () => {
           method: "patch",
           data: tmntJSON,
           withCredentials: true,
-          url: url + "/" + testTmnt.id,
+          url: url + "/" + blankTmnt.id,
         })
         expect(patchResponse.status).toBe(422);
       } catch (err) {
@@ -1263,7 +1460,7 @@ describe('Tmnts - API: /api/tmnt', () => {
     it('should NOT patch a tmnt by ID when end_date is too far in the future', async () => {
       try {
         const patchTmnt = {
-          ...testTmnt,
+          ...blankTmnt,
           end_date: new Date(Date.UTC(2300, 9, 24)),  // month is -1
         }
         const tmntJSON = JSON.stringify(patchTmnt);
@@ -1271,7 +1468,7 @@ describe('Tmnts - API: /api/tmnt', () => {
           method: "patch",
           data: tmntJSON,
           withCredentials: true,
-          url: url + "/" + testTmnt.id,
+          url: url + "/" + blankTmnt.id,
         })
         expect(patchResponse.status).toBe(422);
       } catch (err) {
@@ -1282,18 +1479,84 @@ describe('Tmnts - API: /api/tmnt', () => {
         }
       }
     })
-    it('should NOT patch a tmnt by ID when bowl_id is valid, bit not a bowl ID', async () => {
+    it('should NOT patch a tmnt by ID when bowl_id is invalid', async () => {
       try {
         const patchTmnt = {
-          ...testTmnt,
-          bowl_id: notfoundId, // tmnt id
+          ...blankTmnt,
+          bowl_id: 'invalid',
         }
         const tmntJSON = JSON.stringify(patchTmnt);
         const patchResponse = await axios({
           method: "patch",
           data: tmntJSON,
           withCredentials: true,
-          url: url + "/" + testTmnt.id,
+          url: url + "/" + blankTmnt.id,
+        })
+        expect(patchResponse.status).toBe(422);
+      } catch (err) {
+        if (err instanceof AxiosError) {
+          expect(err.response?.status).toBe(422);
+        } else {
+          expect(true).toBeFalsy();
+        }
+      }
+    })
+    it('should NOT patch a tmnt by ID when bowl_id is valid, but not a bowl ID', async () => {
+      try {
+        const patchTmnt = {
+          ...blankTmnt,
+          bowl_id: notFoundId, // tmnt id
+        }
+        const tmntJSON = JSON.stringify(patchTmnt);
+        const patchResponse = await axios({
+          method: "patch",
+          data: tmntJSON,
+          withCredentials: true,
+          url: url + "/" + blankTmnt.id,
+        })
+        expect(patchResponse.status).toBe(422);
+      } catch (err) {
+        if (err instanceof AxiosError) {
+          expect(err.response?.status).toBe(422);
+        } else {
+          expect(true).toBeFalsy();
+        }
+      }
+    })
+    it('should not patch a tmnt by ID when bowl_id is not found', async () => {
+      try {
+        const patchTmnt = {
+          ...blankTmnt,
+          bowl_id: notFoundBowlId, // tmnt id
+        } 
+        const tmntJSON = JSON.stringify(patchTmnt);
+        const patchResponse = await axios({
+          method: "patch",
+          data: tmntJSON,
+          withCredentials: true,
+          url: url + "/" + blankTmnt.id,
+        })
+        expect(patchResponse.status).toBe(404);
+      } catch (err) {
+        if (err instanceof AxiosError) {
+          expect(err.response?.status).toBe(404);
+        } else {
+          expect(true).toBeFalsy();
+        }
+      }
+    })
+    it('should NOT patch a tmnt by ID when user_id is invalid', async () => { 
+      try {
+        const patchTmnt = {
+          ...blankTmnt,
+          user_id: 'invalid',
+        }
+        const tmntJSON = JSON.stringify(patchTmnt);
+        const patchResponse = await axios({
+          method: "patch",
+          data: tmntJSON,
+          withCredentials: true,
+          url: url + "/" + blankTmnt.id,
         })
         expect(patchResponse.status).toBe(422);
       } catch (err) {
@@ -1307,15 +1570,15 @@ describe('Tmnts - API: /api/tmnt', () => {
     it('should NOT patch a tmnt by ID when user_id is valid, bit not a user ID', async () => {
       try {
         const patchTmnt = {
-          ...testTmnt,
-          user_id: notfoundId, // tmnt id
+          ...blankTmnt,
+          user_id: notFoundId, // tmnt id
         }
         const tmntJSON = JSON.stringify(patchTmnt);
         const patchResponse = await axios({
           method: "patch",
           data: tmntJSON,
           withCredentials: true,
-          url: url + "/" + testTmnt.id,
+          url: url + "/" + blankTmnt.id,
         })
         expect(patchResponse.status).toBe(422);
       } catch (err) {
@@ -1328,7 +1591,7 @@ describe('Tmnts - API: /api/tmnt', () => {
     })
     it('should patch a tmnt by ID whith a sanitized tmnt_name', async () => {
       const patchTmnt = {
-        ...testTmnt,
+        ...blankTmnt,
         tmnt_name: "    <script>Patched Tmnt Name</script>   ",
       }
       const tmntJSON = JSON.stringify(patchTmnt);
@@ -1336,12 +1599,13 @@ describe('Tmnts - API: /api/tmnt', () => {
         method: "patch",
         data: tmntJSON,
         withCredentials: true,
-        url: url + "/" + testTmnt.id,
+        url: url + "/" + blankTmnt.id,
       })
       expect(patchResponse.status).toBe(200);
       const patchedTmnt = patchResponse.data.tmnt;
       expect(patchedTmnt.tmnt_name).toBe("Patched Tmnt Name");
     })
+
   })
 
   describe('DELETE by ID - API: API: /api/tmnts/:id', () => { 
@@ -1399,7 +1663,7 @@ describe('Tmnts - API: /api/tmnt', () => {
         }
       }
     })
-    it('should NOT delete a tmnt by ID when OD is invalid', async () => {
+    it('should NOT delete a tmnt by ID when ID is invalid', async () => {
       try {
         const delResponse = await axios({
           method: "delete",
@@ -1420,7 +1684,7 @@ describe('Tmnts - API: /api/tmnt', () => {
         const delResponse = await axios({
           method: "delete",
           withCredentials: true,
-          url: url + "/" + notfoundId,
+          url: url + "/" + notFoundId,
         })  
         expect(delResponse.status).toBe(404);
       } catch (err) {

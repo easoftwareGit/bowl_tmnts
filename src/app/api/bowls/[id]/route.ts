@@ -49,7 +49,8 @@ export async function PUT(
       url,
     };
 
-    const errCode = validateBowl(toCheck);
+    const toPut = sanitizeBowl(toCheck);
+    const errCode = validateBowl(toPut);
     if (errCode !== ErrorCode.None) {
       let errMsg: string;
       switch (errCode) {
@@ -65,8 +66,7 @@ export async function PUT(
       }
       return NextResponse.json({ error: errMsg }, { status: 422 });
     }
-
-    const toPut = sanitizeBowl(toCheck);
+    
     const bowl = await prisma.bowl.update({
       where: {
         id: id,
@@ -82,7 +82,10 @@ export async function PUT(
   } catch (error: any) {
     let errStatus: number;
     switch (error.code) {
-      case "P2025":
+      case "P2003": // parent row not found
+        errStatus = 404;
+        break;
+      case "P2025": // record not found
         errStatus = 404;
         break;
       default:
@@ -134,7 +137,9 @@ export async function PATCH(
     if (jsonProps.includes("url")) {
       toCheck.url = json.url;
     }
-    const errCode = validateBowl(toCheck);
+
+    const toBePatched = sanitizeBowl(toCheck);
+    const errCode = validateBowl(toBePatched);
     if (errCode !== ErrorCode.None) {
       let errMsg: string;
       switch (errCode as ErrorCode) {
@@ -150,8 +155,7 @@ export async function PATCH(
       }
       return NextResponse.json({ error: errMsg }, { status: 422 });
     }
-
-    const toBePatched = sanitizeBowl(toCheck);        
+           
     const toPatch = {
       bowl_name: '',
       city: '',
@@ -186,10 +190,10 @@ export async function PATCH(
   } catch (error: any) {
     let errStatus: number;
     switch (error.code) {
-      case "P2003":
-        errStatus = 422;
+      case "P2003": // parent row not found
+        errStatus = 404;
         break;
-      case "P2025":
+      case "P2025": // record not found
         errStatus = 404;
         break;
       default:

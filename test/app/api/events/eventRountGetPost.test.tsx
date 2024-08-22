@@ -45,11 +45,12 @@ describe('Events - GETs and POST API: /api/events', () => {
     sort_order: 1,
   };
 
-  const notfoundId = "evt_01234567890123456789012345678901";
+  const notFoundId = "evt_01234567890123456789012345678901";
   const notfoundParentId = "tmt_01234567890123456789012345678901";
   const nonEventId = "usr_01234567890123456789012345678901";
 
   const event2Id = 'evt_dadfd0e9c11a4aacb87084f1609a0afd';
+  const tmnt1Id = 'tmt_fd99387c33d9c78aba290286576ddce5';
 
   describe('GET', () => { 
 
@@ -80,7 +81,7 @@ describe('Events - GETs and POST API: /api/events', () => {
 
   })
 
-  describe('GET event lists', () => {
+  describe('GET event lists API: /api/events/tmnt/:id', () => {
         
     beforeAll(async () => {
       // if row left over from post test, then delete it
@@ -100,7 +101,7 @@ describe('Events - GETs and POST API: /api/events', () => {
       }
     })
 
-    it('should get all events for a tournament API: /api/events/tmnt', async () => { 
+    it('should get all events for a tournament', async () => { 
       // const values taken from prisma/seed.ts
       const miltiEventTmntId = 'tmt_fe8ac53dad0f400abe6354210a8f4cd1';
       const tmntEvent1Id = 'evt_9a58f0a486cb4e6c92ca3348702b1a62';
@@ -202,6 +203,23 @@ describe('Events - GETs and POST API: /api/events', () => {
       expect(postedEvent.sort_order).toEqual(eventToPost.sort_order);      
       expect(isValidBtDbId(postedEvent.id, 'evt')).toBeTruthy();
     })
+    it('should create a new event with the provided eventID', async () => { 
+      const supIdEvent = {
+        ...eventToPost,
+        id: postSecret + notFoundId, // use a valid ID
+      }
+      const eventJSON = JSON.stringify(supIdEvent);
+      const response = await axios({
+        method: "post",
+        data: eventJSON,
+        withCredentials: true,
+        url: url,
+      });
+      expect(response.status).toBe(201);
+      const postedEvent = response.data.event;
+      createdEventId = postedEvent.id;
+      expect(postedEvent.id).toEqual(notFoundId);      
+    })
     it('should NOT create a new event when ID is invalid', async () => { 
       try {
         const userJSON = JSON.stringify(eventToPost);
@@ -220,7 +238,7 @@ describe('Events - GETs and POST API: /api/events', () => {
         }
       }
     })
-    it('should NOT update a user by ID when ID is valid, but not a user ID', async () => {
+    it('should NOT create a new event when ID is valid, but not an event ID', async () => {
       try {
         const userJSON = JSON.stringify(eventToPost);
         const response = await axios({
@@ -238,25 +256,7 @@ describe('Events - GETs and POST API: /api/events', () => {
         }
       }
     })
-    it('should NOT update a user by ID when ID is not found', async () => {
-      try {
-        const userJSON = JSON.stringify(eventToPost);
-        const response = await axios({
-          method: "put",
-          data: userJSON,
-          withCredentials: true,
-          url: url + "/" + notfoundId
-        });
-        expect(response.status).toBe(404);
-      } catch (err) {
-        if (err instanceof AxiosError) {
-          expect(err.response?.status).toBe(404);
-        } else {
-          expect(true).toBeFalsy();
-        }
-      }
-    })
-    it('should NOT create a new event when missing tmnt id', async () => { 
+    it('should NOT create a new event when tmnt id is blank', async () => { 
       const invalidEvent = {
         ...eventToPost,
         tmnt_id: "",
@@ -278,7 +278,7 @@ describe('Events - GETs and POST API: /api/events', () => {
         }
       }
     })
-    it('should NOT create a new event when missing event name', async () => { 
+    it('should NOT create a new event when event name is blank', async () => { 
       const invalidEvent = {
         ...eventToPost,
         event_name: "",
@@ -300,7 +300,7 @@ describe('Events - GETs and POST API: /api/events', () => {
         }
       }
     })
-    it('should NOT create a new event when missing team size', async () => { 
+    it('should NOT create a new event when team size is null', async () => { 
       const invalidEvent = {
         ...eventToPost,
         team_size: null as any,
@@ -322,7 +322,7 @@ describe('Events - GETs and POST API: /api/events', () => {
         }
       }
     })
-    it('should NOT create a new event when missing games', async () => { 
+    it('should NOT create a new event when games is null', async () => { 
       const invalidEvent = {
         ...eventToPost,
         games: null as any,
@@ -344,7 +344,7 @@ describe('Events - GETs and POST API: /api/events', () => {
         }
       }
     })
-    it('should NOT create a new event when missing added money', async () => { 
+    it('should NOT create a new event when added money is blank', async () => { 
       const invalidEvent = {
         ...eventToPost,
         added_money: '',
@@ -366,7 +366,7 @@ describe('Events - GETs and POST API: /api/events', () => {
         }
       }
     })
-    it('should NOT create a new event when missing entry fee', async () => { 
+    it('should NOT create a new event when entry fee is blank', async () => { 
       const invalidEvent = {
         ...eventToPost,
         entry_fee: '',
@@ -388,7 +388,7 @@ describe('Events - GETs and POST API: /api/events', () => {
         }
       }
     })
-    it('should NOT create a new event when missing lineage', async () => { 
+    it('should NOT create a new event when lineage is blank', async () => { 
       const invalidEvent = {
         ...eventToPost,
         lineage: '',
@@ -410,7 +410,7 @@ describe('Events - GETs and POST API: /api/events', () => {
         }
       }
     })
-    it('should NOT create a new event when missing prize fund', async () => { 
+    it('should NOT create a new event when prize fund is blank', async () => { 
       const invalidEvent = {
         ...eventToPost,
         prize_fund: '',
@@ -432,7 +432,7 @@ describe('Events - GETs and POST API: /api/events', () => {
         }
       }
     })
-    it('should NOT create a new event when missing other', async () => { 
+    it('should NOT create a new event when other is blank', async () => { 
       const invalidEvent = {
         ...eventToPost,
         other: '',
@@ -454,7 +454,7 @@ describe('Events - GETs and POST API: /api/events', () => {
         }
       }
     })
-    it('should NOT create a new event when missing expenses', async () => { 
+    it('should NOT create a new event when expenses is blank', async () => { 
       const invalidEvent = {
         ...eventToPost,
         expenses: '',
@@ -476,7 +476,7 @@ describe('Events - GETs and POST API: /api/events', () => {
         }
       }
     })
-    it('should NOT create a new event when missing lpox', async () => { 
+    it('should NOT create a new event when lpox is blank', async () => { 
       const invalidEvent = {
         ...eventToPost,
         lpox: '',
@@ -498,7 +498,7 @@ describe('Events - GETs and POST API: /api/events', () => {
         }
       }
     })
-    it('should NOT create a new event when missing sort order', async () => { 
+    it('should NOT create a new event when sort order is null', async () => { 
       const invalidEvent = {
         ...eventToPost,
         sort_order: null as any,
@@ -608,7 +608,7 @@ describe('Events - GETs and POST API: /api/events', () => {
         }
       }
     })
-    it('should NOT create a new event when team size is too small', async () => { 
+    it('should NOT create a new event when team size is too small', async () => {
       const invalidEvent = {
         ...eventToPost,
         team_size: 0,
@@ -630,7 +630,7 @@ describe('Events - GETs and POST API: /api/events', () => {
         }
       }
     })
-    it('should NOT create a new event when team size is too large', async () => { 
+    it('should NOT create a new event when team size is too large', async () => {
       const invalidEvent = {
         ...eventToPost,
         team_size: 1000,
@@ -652,7 +652,7 @@ describe('Events - GETs and POST API: /api/events', () => {
         }
       }
     })
-    it('should NOT create a new event when team size is not an integer', async () => { 
+    it('should NOT create a new event when team size is not an integer', async () => {
       const invalidEvent = {
         ...eventToPost,
         team_size: 1.5,
@@ -674,7 +674,29 @@ describe('Events - GETs and POST API: /api/events', () => {
         }
       }
     })
-    it('should NOT create a new event when games is too small', async () => { 
+    it('should NOT create a new event when team size is not a number', async () => {
+      const invalidEvent = {
+        ...eventToPost,
+        team_size: 'abc',
+      }
+      const eventJSON = JSON.stringify(invalidEvent);
+      try {
+        const response = await axios({
+          method: "post",
+          data: eventJSON,
+          withCredentials: true,
+          url: url,
+        });
+        expect(response.status).toBe(422);
+      } catch (err) {
+        if (err instanceof AxiosError) {
+          expect(err.response?.status).toBe(422);
+        } else {
+          expect(true).toBeFalsy();
+        }
+      }
+    })
+    it('should NOT create a new event when games is too small', async () => {
       const invalidEvent = {
         ...eventToPost,
         games: 0,
@@ -696,7 +718,7 @@ describe('Events - GETs and POST API: /api/events', () => {
         }
       }
     })
-    it('should NOT create a new event when games is too large', async () => { 
+    it('should NOT create a new event when games is too large', async () => {
       const invalidEvent = {
         ...eventToPost,
         games: 1000,
@@ -718,7 +740,7 @@ describe('Events - GETs and POST API: /api/events', () => {
         }
       }
     })
-    it('should NOT create a new event when games is not an integer', async () => { 
+    it('should NOT create a new event when games is not an integer', async () => {
       const invalidEvent = {
         ...eventToPost,
         games: 1.5,
@@ -740,7 +762,29 @@ describe('Events - GETs and POST API: /api/events', () => {
         }
       }
     })
-    it('should NOT create a new event when added money is not a number', async () => { 
+    it('should NOT create a new event when games is not a number', async () => {
+      const invalidEvent = {
+        ...eventToPost,
+        games: 'abc',
+      }
+      const eventJSON = JSON.stringify(invalidEvent);
+      try {
+        const response = await axios({
+          method: "post",
+          data: eventJSON,
+          withCredentials: true,
+          url: url,
+        });
+        expect(response.status).toBe(422);
+      } catch (err) {
+        if (err instanceof AxiosError) {
+          expect(err.response?.status).toBe(422);
+        } else {
+          expect(true).toBeFalsy();
+        }
+      }
+    })
+    it('should NOT create a new event when added money is not a number', async () => {
       const invalidEvent = {
         ...eventToPost,
         added_money: 'abc',
@@ -762,7 +806,7 @@ describe('Events - GETs and POST API: /api/events', () => {
         }
       }
     })
-    it('should NOT create a new event when added money is negative', async () => { 
+    it('should NOT create a new event when added money is negative', async () => {
       const invalidEvent = {
         ...eventToPost,
         added_money: '-1',
@@ -784,7 +828,7 @@ describe('Events - GETs and POST API: /api/events', () => {
         }
       }
     })
-    it('should NOT create a new event when added money is too large', async () => { 
+    it('should NOT create a new event when added money is too large', async () => {
       const invalidEvent = {
         ...eventToPost,
         added_money: '1234567',
@@ -806,7 +850,7 @@ describe('Events - GETs and POST API: /api/events', () => {
         }
       }
     })
-    it('should NOT create a new event when entry fee is not a number', async () => { 
+    it('should NOT create a new event when entry fee is not a number', async () => {
       const invalidEvent = {
         ...eventToPost,
         entry_fee: 'abc',
@@ -828,7 +872,7 @@ describe('Events - GETs and POST API: /api/events', () => {
         }
       }
     })
-    it('should NOT create a new event when entry fee is negative', async () => { 
+    it('should NOT create a new event when entry fee is negative', async () => {
       const invalidEvent = {
         ...eventToPost,
         entry_fee: '-1',
@@ -850,11 +894,11 @@ describe('Events - GETs and POST API: /api/events', () => {
         }
       }
     })
-    it('should NOT create a new event when entry fee is too large', async () => { 
+    it('should NOT create a new event when entry fee is too large', async () => {
       const invalidEvent = {
         ...eventToPost,
         entry_fee: '1234567',
-      } 
+      }
       const eventJSON = JSON.stringify(invalidEvent);
       try {
         const response = await axios({
@@ -872,7 +916,7 @@ describe('Events - GETs and POST API: /api/events', () => {
         }
       }
     })
-    it('should NOT create a new event when lineage is not a number', async () => { 
+    it('should NOT create a new event when lineage is not a number', async () => {
       const invalidEvent = {
         ...eventToPost,
         lineage: 'abc',
@@ -894,7 +938,7 @@ describe('Events - GETs and POST API: /api/events', () => {
         }
       }
     })
-    it('should NOT create a new event when lineage is negative', async () => { 
+    it('should NOT create a new event when lineage is negative', async () => {
       const invalidEvent = {
         ...eventToPost,
         lineage: '-1',
@@ -916,7 +960,7 @@ describe('Events - GETs and POST API: /api/events', () => {
         }
       }
     })
-    it('should NOT create a new event when lineage is too large', async () => { 
+    it('should NOT create a new event when lineage is too large', async () => {
       const invalidEvent = {
         ...eventToPost,
         lineage: '1234567',
@@ -938,7 +982,7 @@ describe('Events - GETs and POST API: /api/events', () => {
         }
       }
     })
-    it('should NOT create a new event when prize_fund is not a number', async () => { 
+    it('should NOT create a new event when prize_fund is not a number', async () => {
       const invalidEvent = {
         ...eventToPost,
         prize_fund: 'abc',
@@ -960,7 +1004,7 @@ describe('Events - GETs and POST API: /api/events', () => {
         }
       }
     })
-    it('should NOT create a new event when prize_fund is negative', async () => { 
+    it('should NOT create a new event when prize_fund is negative', async () => {
       const invalidEvent = {
         ...eventToPost,
         prize_fund: '-1',
@@ -982,7 +1026,7 @@ describe('Events - GETs and POST API: /api/events', () => {
         }
       }
     })
-    it('should NOT create a new event when prize_fund is too large', async () => { 
+    it('should NOT create a new event when prize_fund is too large', async () => {
       const invalidEvent = {
         ...eventToPost,
         prize_fund: '1234567',
@@ -1004,7 +1048,7 @@ describe('Events - GETs and POST API: /api/events', () => {
         }
       }
     })
-    it('should NOT create a new event when other is not a number', async () => { 
+    it('should NOT create a new event when other is not a number', async () => {
       const invalidEvent = {
         ...eventToPost,
         other: 'abc',
@@ -1026,7 +1070,7 @@ describe('Events - GETs and POST API: /api/events', () => {
         }
       }
     })
-    it('should NOT create a new event when other is negative', async () => { 
+    it('should NOT create a new event when other is negative', async () => {
       const invalidEvent = {
         ...eventToPost,
         other: '-1',
@@ -1048,7 +1092,7 @@ describe('Events - GETs and POST API: /api/events', () => {
         }
       }
     })
-    it('should NOT create a new event when other is too large', async () => { 
+    it('should NOT create a new event when other is too large', async () => {
       const invalidEvent = {
         ...eventToPost,
         other: '1234567',
@@ -1070,7 +1114,7 @@ describe('Events - GETs and POST API: /api/events', () => {
         }
       }
     })
-    it('should NOT create a new event when expenses is not a number', async () => { 
+    it('should NOT create a new event when expenses is not a number', async () => {
       const invalidEvent = {
         ...eventToPost,
         expenses: 'abc',
@@ -1092,7 +1136,7 @@ describe('Events - GETs and POST API: /api/events', () => {
         }
       }
     })
-    it('should NOT create a new event when expenses is negative', async () => { 
+    it('should NOT create a new event when expenses is negative', async () => {
       const invalidEvent = {
         ...eventToPost,
         expenses: '-1',
@@ -1114,7 +1158,7 @@ describe('Events - GETs and POST API: /api/events', () => {
         }
       }
     })
-    it('should NOT create a new event when expenses is too large', async () => { 
+    it('should NOT create a new event when expenses is too large', async () => {
       const invalidEvent = {
         ...eventToPost,
         expenses: '1234567',
@@ -1133,10 +1177,10 @@ describe('Events - GETs and POST API: /api/events', () => {
           expect(err.response?.status).toBe(422);
         } else {
           expect(true).toBeFalsy();
-        } 
+        }
       }
     })
-    it('should NOT create a new event when lpox is not a number', async () => { 
+    it('should NOT create a new event when lpox is not a number', async () => {
       const invalidEvent = {
         ...eventToPost,
         lpox: 'abc',
@@ -1158,7 +1202,7 @@ describe('Events - GETs and POST API: /api/events', () => {
         }
       }
     })
-    it('should NOT create a new event when lpox is negative', async () => { 
+    it('should NOT create a new event when lpox is negative', async () => {
       const invalidEvent = {
         ...eventToPost,
         lpox: '-1',
@@ -1180,10 +1224,76 @@ describe('Events - GETs and POST API: /api/events', () => {
         }
       }
     })
-    it('should NOT create a new event when lpox is too large', async () => { 
-      const invalidEvent = { 
+    it('should NOT create a new event when lpox is too large', async () => {
+      const invalidEvent = {
         ...eventToPost,
         lpox: '1234567',
+      }
+      const eventJSON = JSON.stringify(invalidEvent);
+      try {
+        const response = await axios({
+          method: "post",
+          data: eventJSON,
+          withCredentials: true,
+          url: url,
+        });
+        expect(response.status).toBe(422);
+      } catch (err) {
+        if (err instanceof AxiosError) {
+          expect(err.response?.status).toBe(422);
+        } else {
+          expect(true).toBeFalsy();
+        }
+      }
+    })
+    it('should NOT create a new event when sort_order is not a number', async () => {
+      const invalidEvent = {
+        ...eventToPost,
+        sort_order: 'abc',
+      }
+      const eventJSON = JSON.stringify(invalidEvent);
+      try {
+        const response = await axios({
+          method: "post",
+          data: eventJSON,
+          withCredentials: true,
+          url: url,
+        });
+        expect(response.status).toBe(422);
+      } catch (err) {
+        if (err instanceof AxiosError) {
+          expect(err.response?.status).toBe(422);
+        } else {
+          expect(true).toBeFalsy();
+        }
+      }
+    })
+    it('should NOT create a new event when sort_order is too small', async () => {
+      const invalidEvent = {
+        ...eventToPost,
+        sort_order: 0,
+      }
+      const eventJSON = JSON.stringify(invalidEvent);
+      try {
+        const response = await axios({
+          method: "post",
+          data: eventJSON,
+          withCredentials: true,
+          url: url,
+        });
+        expect(response.status).toBe(422);
+      } catch (err) {
+        if (err instanceof AxiosError) {
+          expect(err.response?.status).toBe(422);
+        } else {
+          expect(true).toBeFalsy();
+        }
+      }
+    })
+    it('should NOT create a new event when sort_order is too large', async () => {
+      const invalidEvent = {
+        ...eventToPost,
+        sort_order: 1234567,
       }
       const eventJSON = JSON.stringify(invalidEvent);
       try {
@@ -1222,10 +1332,10 @@ describe('Events - GETs and POST API: /api/events', () => {
         } else {
           expect(true).toBeFalsy();
         }
-      }      
+      }
     })
     it('should NOT create a new event when entry_fee !== lpox', async () => {
-      const invalidEvent = {  
+      const invalidEvent = {
         ...eventToPost,
         lpox: '100',
       }
@@ -1241,6 +1351,32 @@ describe('Events - GETs and POST API: /api/events', () => {
       } catch (err) {
         if (err instanceof AxiosError) {
           expect(err.response?.status).toBe(422);
+        } else {
+          expect(true).toBeFalsy();
+        }
+      }
+    })
+    it('should NOT create a new event when tmnt_id + event_name are not unique', async () => { 
+      // row with tmntId, eventToPost.event_Name already exists
+      const dubName = 'Singles';      
+      const invalidEvent = {
+        ...eventToPost,
+        tmnt_id: tmnt1Id,   
+        event_name: dubName,
+        sort_order: 2,
+      }
+      const eventJSON = JSON.stringify(invalidEvent);
+      try {
+        const response = await axios({
+          method: "post",
+          data: eventJSON,
+          withCredentials: true,
+          url: url,
+        });
+        expect(response.status).toBe(404);
+      } catch (err) {
+        if (err instanceof AxiosError) {
+          expect(err.response?.status).toBe(404);
         } else {
           expect(true).toBeFalsy();
         }
@@ -1271,9 +1407,10 @@ describe('Events - GETs and POST API: /api/events', () => {
       expect(postedEvent.other).toEqual(eventToPost.other);
       expect(postedEvent.expenses).toEqual(eventToPost.expenses);
       expect(postedEvent.added_money).toEqual(eventToPost.added_money);
-      expect(postedEvent.sort_order).toEqual(eventToPost.sort_order);      
+      expect(postedEvent.sort_order).toEqual(eventToPost.sort_order);
       expect(isValidBtDbId(postedEvent.id, 'evt')).toBeTruthy();
     })  
+    
   })
 
   describe('GET by ID - API: API: /api/events/:id', () => { 
@@ -1294,7 +1431,7 @@ describe('Events - GETs and POST API: /api/events', () => {
       expect(event.added_money).toEqual(testEvent.added_money);
       expect(event.sort_order).toEqual(testEvent.sort_order);
     })
-    it('should NOT get an event by ID when ID is invalid', async () => { 
+    it('should NOT get an event by ID when ID is invalid', async () => {
       try {
         const response = await axios.get(url + '/invalid');
         expect(true).toBeFalsy();
@@ -1306,7 +1443,7 @@ describe('Events - GETs and POST API: /api/events', () => {
         }
       }
     })
-    it('should NOT get an event by ID when ID is valid, but not an event ID', async () => { 
+    it('should NOT get an event by ID when ID is valid, but not an event ID', async () => {
       try {
         const response = await axios.get(url + '/' + nonEventId);
         expect(true).toBeFalsy();
@@ -1318,9 +1455,9 @@ describe('Events - GETs and POST API: /api/events', () => {
         }
       }
     })
-    it('should NOT get an event by ID when ID is not found', async () => { 
+    it('should NOT get an event by ID when ID is not found', async () => {
       try {
-        const response = await axios.get(url + '/' + notfoundId);
+        const response = await axios.get(url + '/' + notFoundId);
         expect(response.status).toBe(404);
       } catch (err) {
         if (err instanceof AxiosError) {
@@ -1332,6 +1469,7 @@ describe('Events - GETs and POST API: /api/events', () => {
         }
       }
     })
+    
   })
 
 })

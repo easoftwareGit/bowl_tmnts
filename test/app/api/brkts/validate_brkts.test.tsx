@@ -12,7 +12,7 @@ import {
 import { defaultBrktGames, defaultBrktPlayers, initBrkt } from "@/db/initVals";
 import { brktType } from "@/lib/types/types";
 import { ErrorCode, maxGames, maxSortOrder, validPostId } from "@/lib/validation";
-import { nextPostSecret } from "@/lib/tools";
+import { postSecret } from "@/lib/tools";
 
 const { gotBrktData, validBrktData } = exportedForTesting;
 
@@ -371,19 +371,16 @@ describe("tests for bracket validation", () => {
       expect(sanitizedBrkt.sort_order).toEqual(testBrkt.sort_order)
     })
     it('should return sanitized brkt when bracket is not sanitzed', () => { 
+      // no numerical fields
       const testBrkt = {
         ...initBrkt,
         div_id: '<script>alert(1)</script>',
         squad_id: "usr_12345678901234567890123456789012",
-        start: -1,
-        games: 0,
-        players: 10,
         fee: '1234567890',
         first: 'abc',
         second: '<script>alert(1)</script>',
         admin: '-1',
         fsa: '******',
-        sort_order: -1
       }
       const sanitizedBrkt = sanitizeBrkt(testBrkt);
       expect(sanitizedBrkt.div_id).toEqual('')
@@ -397,6 +394,62 @@ describe("tests for bracket validation", () => {
       expect(sanitizedBrkt.admin).toEqual('')
       expect(sanitizedBrkt.fsa).toEqual('')
       expect(sanitizedBrkt.sort_order).toEqual(1)
+    })
+    it('should return sanitized brkt when numerical field are null', () => { 
+      const testBrkt = {
+        ...initBrkt,
+        start: null as any,
+        games: null as any,
+        players: null as any,
+        sort_order: null as any
+      }
+      const sanitizedBrkt = sanitizeBrkt(testBrkt);
+      expect(sanitizedBrkt.start).toBeNull()
+      expect(sanitizedBrkt.games).toBeNull()
+      expect(sanitizedBrkt.players).toBeNull()
+      expect(sanitizedBrkt.sort_order).toBeNull()
+    })
+    it('should return sanitized brkt when numerical field are not numbers', () => { 
+      const testBrkt = {
+        ...initBrkt,
+        start: 'abc' as any,
+        games: ['abc', 'def'] as any,
+        players: new Date() as any,
+        sort_order: {text: 'abc'} as any
+      }
+      const sanitizedBrkt = sanitizeBrkt(testBrkt);
+      expect(sanitizedBrkt.start).toBeNull()
+      expect(sanitizedBrkt.games).toBeNull()
+      expect(sanitizedBrkt.players).toBeNull()
+      expect(sanitizedBrkt.sort_order).toBeNull()
+    })
+    it('should return sanitized brkt when numerical field are too low', () => { 
+      const testBrkt = {
+        ...initBrkt,
+        start: 0,
+        games: 0,
+        players: 0,
+        sort_order: 0
+      }
+      const sanitizedBrkt = sanitizeBrkt(testBrkt);
+      expect(sanitizedBrkt.start).toEqual(0)
+      expect(sanitizedBrkt.games).toEqual(0)
+      expect(sanitizedBrkt.players).toEqual(0)
+      expect(sanitizedBrkt.sort_order).toEqual(0)
+    })
+    it('should return sanitized brkt when numerical field are too high', () => { 
+      const testBrkt = {
+        ...initBrkt,
+        start: 100,
+        games: 10,
+        players: 10,
+        sort_order: 1234567
+      }
+      const sanitizedBrkt = sanitizeBrkt(testBrkt);
+      expect(sanitizedBrkt.start).toEqual(100)
+      expect(sanitizedBrkt.games).toEqual(10)
+      expect(sanitizedBrkt.players).toEqual(10)
+      expect(sanitizedBrkt.sort_order).toEqual(1234567)
     })
     it('should return sanitized null when passed null', () => {
       expect(sanitizeBrkt(null as any)).toBe(null);
@@ -588,23 +641,23 @@ describe("tests for bracket validation", () => {
   describe('validPostId function', () => { 
     const testBrktId = "brk_cb97b73cb538418ab993fc867f860510"
     it('should return testBrktId when id starts with post Secret and follows with a valid bracket id', () => {
-      const validId = nextPostSecret + testBrktId;
+      const validId = postSecret + testBrktId;
       expect(validPostId(validId, 'brk')).toBe(testBrktId);
     })
     it('should return "" when id starts with postSecret but does idType does not match idtype in postId', () => { 
-      const invalidId = nextPostSecret + testBrktId;
+      const invalidId = postSecret + testBrktId;
       expect(validPostId(invalidId, 'usr')).toBe('');
     });
     it('should return "" when id starts with postSecret but does idType is invalid', () => { 
-      const invalidId = nextPostSecret + testBrktId;
+      const invalidId = postSecret + testBrktId;
       expect(validPostId(invalidId, '123' as any)).toBe('');
     });
     it('should return "" when id starts with postSecret but does not follow with valid BtDb idType', () => { 
-      const invalidId = nextPostSecret + 'abc_a1b2c3d4e5f678901234567890abcdef';
+      const invalidId = postSecret + 'abc_a1b2c3d4e5f678901234567890abcdef';
       expect(validPostId(invalidId, 'brk')).toBe('');
     });
     it('should return "" when id starts with postSecret but does not follow with a valid BtDb id', () => { 
-      const invalidId = nextPostSecret + 'brk_invalidid';
+      const invalidId = postSecret + 'brk_invalidid';
       expect(validPostId(invalidId, 'brk')).toBe('');
     });
     it('should return "" when id does not start with postSecret', () => { 

@@ -201,11 +201,18 @@ describe('sanitize inputs', () => {
 
   describe('tests for the sanitizeUrl function', () => { 
     
+    it('should return the sanitized URL when given a valid URL without an ending slash', () => { 
+      const result = sanitizeUrl('https://example.com');
+      expect(result).toBe('https://example.com');
+    })
+    it('should return the sanitized URL when given a valid URL ends in a slash', () => { 
+      const result = sanitizeUrl('https://example.com/');
+      expect(result).toBe('https://example.com');
+    })
     it('should return the sanitized URL when given a valid HTTP URL', () => {
       const result = sanitizeUrl('http://example.com/path?query=123#hash');
       expect(result).toBe('http://example.com/path?query=123#hash');
-    });
-    
+    });  
     it('should return an empty string when the URL protocol is unsupported', () => {
       const result = sanitizeUrl('ftp://example.com/path');
       expect(result).toBe('');

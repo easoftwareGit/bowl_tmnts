@@ -12,7 +12,8 @@ import {
 import { initEvent } from "@/db/initVals";
 import { eventType } from "@/lib/types/types";
 import { ErrorCode, maxEventLength, maxSortOrder, validPostId } from "@/lib/validation";
-import { nextPostSecret } from "@/lib/tools";
+import { postSecret } from "@/lib/tools";
+import { startOfDayFromString, todayStr } from "@/lib/dateTools";
 
 const { gotEventData, validEventData } = exportedForTesting;
 
@@ -652,34 +653,77 @@ describe("tests for event validation", () => {
       expect(sanitizedEvent.expenses).toEqual("5");
       expect(sanitizedEvent.sort_order).toEqual(1);
     });
-    it("should return a sanitized event ehrn event is NOT already sanitized", () => {
+    it("should return a sanitized event text and money values when event is NOT already sanitized", () => {
+      // no numerical fields in this test
       const testEvent = {
         ...validEvent,
         tmnt_id: "abc_123",
         event_name: "  Test Name*   ",
-        team_size: 10,
-        games: 165,
         added_money: "500.00",
         entry_fee: "100.000",
         lineage: "18",
         prize_fund: "75.0",
         other: "2.0",
         expenses: "5.00",
-        sort_order: -1,
       };
       const sanitizedEvent = sanitizeEvent(testEvent);
-      expect(sanitizedEvent.tmnt_id).toEqual("1");
+      expect(sanitizedEvent.tmnt_id).toEqual("1");  // not valid, but sanitized
       expect(sanitizedEvent.event_name).toEqual("Test Name");
-      expect(sanitizedEvent.team_size).toEqual(1);
-      expect(sanitizedEvent.games).toEqual(3);
       expect(sanitizedEvent.added_money).toEqual("500");
       expect(sanitizedEvent.entry_fee).toEqual("100");
       expect(sanitizedEvent.lineage).toEqual("18");
       expect(sanitizedEvent.prize_fund).toEqual("75");
       expect(sanitizedEvent.other).toEqual("2");
       expect(sanitizedEvent.expenses).toEqual("5");
-      expect(sanitizedEvent.sort_order).toEqual(1);
     });
+    it("should return a sanitized event with when event has null for numerical fields", () => {
+      const testEvent = {
+        ...validEvent,
+        team_size: null as any,
+        games: null as any,
+        sort_order: null as any,
+      };
+      const sanitizedEvent = sanitizeEvent(testEvent);
+      expect(sanitizedEvent.team_size).toBeNull();
+      expect(sanitizedEvent.games).toBeNull();
+      expect(sanitizedEvent.sort_order).toBeNull();
+    });
+    it("should return a sanitized event with when event has values for numerical fields are too low", () => {
+      const testEvent = {
+        ...validEvent,
+        team_size: 0,
+        games: 0,
+        sort_order: 0,
+      };
+      const sanitizedEvent = sanitizeEvent(testEvent);
+      expect(sanitizedEvent.team_size).toBe(0);
+      expect(sanitizedEvent.games).toBe(0);
+      expect(sanitizedEvent.sort_order).toBe(0);
+    });    
+    it("should return a sanitized event with when event has values for numerical fields are not numbers", () => {
+      const testEvent = {
+        ...validEvent,
+        team_size: 'abc' as any,
+        games: ['abc', 'def'] as any,
+        sort_order: startOfDayFromString(todayStr) as Date as any,
+      };
+      const sanitizedEvent = sanitizeEvent(testEvent);
+      expect(sanitizedEvent.team_size).toBe(null);
+      expect(sanitizedEvent.games).toBe(null);
+      expect(sanitizedEvent.sort_order).toBe(null);      
+    });        
+    it("should return a sanitized event with when event has values for numerical fields are too high", () => {
+      const testEvent = {
+        ...validEvent,
+        team_size: 10,
+        games: 100,
+        sort_order: 1234567, 
+      };
+      const sanitizedEvent = sanitizeEvent(testEvent);
+      expect(sanitizedEvent.team_size).toBe(10);
+      expect(sanitizedEvent.games).toBe(100);
+      expect(sanitizedEvent.sort_order).toBe(1234567);      
+    });    
     it("should return null when passed null event", () => {
       const result = sanitizeEvent(null as any);
       expect(result).toBe(null);
@@ -691,6 +735,7 @@ describe("tests for event validation", () => {
   });
 
   describe("validateEvent function", () => {
+
     describe("validateEvent function - valid data", () => {
       it("should return ErrorCode.None when passed valid event", () => {
         const result = validateEvent(validEvent);
@@ -1075,19 +1120,19 @@ describe("tests for event validation", () => {
   describe("validPostId function", () => {
     const testEventId = "evt_cb97b73cb538418ab993fc867f860510";
     it("should return testEventId when id starts with post Secret and follows with a valid event id", () => {
-      const validId = nextPostSecret + testEventId;
+      const validId = postSecret + testEventId;
       expect(validPostId(validId, "evt")).toBe(testEventId);
     });
     it('should return "" when id starts with postSecret but does idType does not match idtype in postId', () => {
-      const invalidId = nextPostSecret + testEventId;
+      const invalidId = postSecret + testEventId;
       expect(validPostId(invalidId, "usr")).toBe("");
     });
     it('should return "" when id starts with postSecret but does idType is invalid', () => {
-      const invalidId = nextPostSecret + testEventId;
+      const invalidId = postSecret + testEventId;
       expect(validPostId(invalidId, "123" as any)).toBe("");
     });
     it('should return "" when id starts with postSecret but does not follow with valid BtDb idType', () => {
-      const invalidId = nextPostSecret + "abc_a1b2c3d4e5f678901234567890abcdef";
+      const invalidId = postSecret + "abc_a1b2c3d4e5f678901234567890abcdef";
       expect(validPostId(invalidId, "evt")).toBe("");
     });
     it('should return "" when id starts with postSecret but does not follow with a valid BtDb id', () => {

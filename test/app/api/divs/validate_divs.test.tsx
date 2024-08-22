@@ -9,8 +9,8 @@ import {
   exportedForTesting,
   validHdcpFor
 } from "@/app/api/divs/validate";
-import { defaultHdcpPer, initDiv } from "@/db/initVals";
-import { nextPostSecret } from "@/lib/tools";
+import { defaultHdcpFrom, defaultHdcpPer, initDiv } from "@/db/initVals";
+import { postSecret } from "@/lib/tools";
 import { divType } from "@/lib/types/types";
 import { ErrorCode, maxEventLength, maxSortOrder, validPostId } from "@/lib/validation";
 
@@ -388,24 +388,69 @@ describe('tests for div validation', () => {
       expect(sanitizedDiv.sort_order).toEqual(1)
     })
     it('should return a sanitized event when event is NOT alread sanitized', () => {
+      // no numerical fields in this test
       const testDiv = {
         ...validScratchDiv,
         tmnt_id: 'abc_123',
         div_name: '  Test* ',
-        hdcp_per: 200,
-        hdcp_from: 301,
         int_hdcp: null as any,
         hdcp_for: 'everyone' as any,
-        sort_order: -1,
       }
       const sanitizedDiv = sanitizeDiv(testDiv)
       expect(sanitizedDiv.tmnt_id).toEqual('1') // not valid, but sanitized
       expect(sanitizedDiv.div_name).toEqual('Test')
-      expect(sanitizedDiv.hdcp_per).toEqual(defaultHdcpPer)
-      expect(sanitizedDiv.hdcp_from).toEqual(230)
       expect(sanitizedDiv.int_hdcp).toEqual(true)
       expect(sanitizedDiv.hdcp_for).toEqual('Game')
-      expect(sanitizedDiv.sort_order).toEqual(1)
+    })
+    it('should return a sanitized event when numerical values are null', () => {
+      const testDiv = {
+        ...validScratchDiv,
+        hdcp_per: null as any,
+        hdcp_from: null as any,
+        sort_order: null as any,
+      }
+      const sanitizedDiv = sanitizeDiv(testDiv)
+      expect(sanitizedDiv.hdcp_per).toBeNull()
+      expect(sanitizedDiv.hdcp_from).toBeNull()
+      expect(sanitizedDiv.sort_order).toBeNull()
+    })
+    it('should return a sanitized event when numerical values are not numbers', () => {
+      const testDiv = {
+        ...validScratchDiv,
+        hdcp_per: 'abc' as any,
+        hdcp_from: ['abc', 'def'] as any,
+        sort_order: new Date() as any,
+      }
+      const sanitizedDiv = sanitizeDiv(testDiv)
+      expect(sanitizedDiv.hdcp_per).toBeNull()
+      expect(sanitizedDiv.hdcp_from).toBeNull()
+      expect(sanitizedDiv.sort_order).toBeNull()
+    })
+    it('should return a sanitized event when numerical values are too low', () => {
+      const testDiv = {
+        ...validScratchDiv,
+        hdcp_per: -0.5,
+        hdcp_from: -1,
+        sort_order: 0,
+      }
+      const sanitizedDiv = sanitizeDiv(testDiv)
+      // not valid, but sanitized
+      expect(sanitizedDiv.hdcp_per).toEqual(-0.5)
+      expect(sanitizedDiv.hdcp_from).toEqual(-1)
+      expect(sanitizedDiv.sort_order).toEqual(0)
+    })
+    it('should return a sanitized event when numerical values are to high', () => {
+      const testDiv = {
+        ...validScratchDiv,
+        hdcp_per: 2.5,
+        hdcp_from: 301,
+        sort_order: 1234567,
+      }
+      const sanitizedDiv = sanitizeDiv(testDiv)
+      // not valid, but sanitized
+      expect(sanitizedDiv.hdcp_per).toEqual(2.5)
+      expect(sanitizedDiv.hdcp_from).toEqual(301)
+      expect(sanitizedDiv.sort_order).toEqual(1234567)
     })
     it('should return null when passed null', () => { 
       expect(sanitizeDiv(null as any)).toBe(null)
@@ -565,27 +610,27 @@ describe('tests for div validation', () => {
         }        
         expect(validateDiv(invalidTestDiv)).toBe(ErrorCode.InvalidData);
       })
-      // it('should return ErrorCode.MissingData when int_hdcp is not a boolean', () => { 
-      //   const invalidTestDiv: divType = {
-      //     ...validScratchDiv,          
-      //     int_hdcp: 'true' as any,
-      //   }        
-      //   expect(validateDiv(invalidTestDiv)).toBe(ErrorCode.MissingData);
-      // })
-      // it('should return ErrorCode.MissingData when hdcp_for is not valid', () => { 
-      //   const invalidTestDiv: divType = {
-      //     ...validScratchDiv,          
-      //     hdcp_for: 'test' as any,
-      //   }        
-      //   expect(validateDiv(invalidTestDiv)).toBe(ErrorCode.MissingData);
-      // })
-      // it('should return ErrorCode.MissingData when sort_order is not a number', () => { 
-      //   const invalidTestDiv: divType = {
-      //     ...validScratchDiv,          
-      //     sort_order: 'abc' as any,
-      //   }        
-      //   expect(validateDiv(invalidTestDiv)).toBe(ErrorCode.MissingData);
-      // })
+      it('should return ErrorCode.MissingData when int_hdcp is not a boolean', () => { 
+        const invalidTestDiv: divType = {
+          ...validScratchDiv,          
+          int_hdcp: 'true' as any,
+        }        
+        expect(validateDiv(invalidTestDiv)).toBe(ErrorCode.MissingData);
+      })
+      it('should return ErrorCode.MissingData when hdcp_for is not valid', () => { 
+        const invalidTestDiv: divType = {
+          ...validScratchDiv,          
+          hdcp_for: 'test' as any,
+        }        
+        expect(validateDiv(invalidTestDiv)).toBe(ErrorCode.MissingData);
+      })
+      it('should return ErrorCode.MissingData when sort_order is not a number', () => { 
+        const invalidTestDiv: divType = {
+          ...validScratchDiv,          
+          sort_order: 'abc' as any,
+        }        
+        expect(validateDiv(invalidTestDiv)).toBe(ErrorCode.MissingData);
+      })
       it('should return ErrorCode.InvalidData when sort_order is less than 0', () => { 
         const invalidTestDiv: divType = {
           ...validScratchDiv,          
@@ -606,19 +651,19 @@ describe('tests for div validation', () => {
   describe('validPostId function', () => { 
     const testDivId = "div_cb97b73cb538418ab993fc867f860510"
     it('should return testDivId when id starts with post Secret and follows with a valid div id', () => { 
-      const validId = nextPostSecret + testDivId;
+      const validId = postSecret + testDivId;
       expect(validPostId(validId, 'div')).toBe(testDivId)
     })
     it('should return "" when id starts with postSecret but does idType does not match idtype in postId', () => {
-      const invalidId = nextPostSecret + testDivId;
+      const invalidId = postSecret + testDivId;
       expect(validPostId(invalidId, 'usr')).toBe('');
     });
     it('should return "" when id starts with postSecret but does idType is invalid', () => {
-      const invalidId = nextPostSecret + testDivId;
+      const invalidId = postSecret + testDivId;
       expect(validPostId(invalidId, '123' as any)).toBe('');
     });
     it('should return "" when id starts with postSecret but does not follow with valid BtDb idType', () => {
-      const invalidId = nextPostSecret + 'abc_a1b2c3d4e5f678901234567890abcdef';
+      const invalidId = postSecret + 'abc_a1b2c3d4e5f678901234567890abcdef';
       expect(validPostId(invalidId, 'div')).toBe('');
     });
     it('should return "" when id starts with postSecret but does not follow with a valid BtDb id', () => {

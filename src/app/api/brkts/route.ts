@@ -61,7 +61,8 @@ export async function POST(request: Request) {
       sort_order,
     };
 
-    const errCode = validateBrkt(toCheck);
+    const toPost = sanitizeBrkt(toCheck);
+    const errCode = validateBrkt(toPost);
     if (errCode !== ErrorCode.None) {
       let errMsg: string;
       switch (errCode) {
@@ -85,8 +86,7 @@ export async function POST(request: Request) {
         return NextResponse.json({ error: "invalid data" }, { status: 422 });
       }
     }
-
-    const toPost = sanitizeBrkt(toCheck);
+    
     // NO fsa in eventDataType
     type brktDataType = {
       div_id: string;

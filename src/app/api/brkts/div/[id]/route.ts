@@ -18,6 +18,9 @@ export async function GET(
       where: {
         div_id: id,
       },
+      orderBy:{
+        sort_order: 'asc',
+      }, 
     });
     // add in fsa
     const brkts = gotBrkts.map((gotBrkt) => ({

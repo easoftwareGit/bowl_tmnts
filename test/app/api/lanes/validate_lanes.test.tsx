@@ -7,7 +7,7 @@ import {
 } from "@/app/api/lanes/validate";
 import { initLane } from "@/db/initVals";
 import { ErrorCode, maxEventLength, maxLaneCount, maxSortOrder, validPostId } from "@/lib/validation";
-import { nextPostSecret } from "@/lib/tools";
+import { postSecret } from "@/lib/tools";
 
 const { gotLaneData, validLaneData } = exportedForTesting;
 
@@ -119,14 +119,53 @@ describe("tests for lane validation", () => {
       expect(sanitizedLane).toEqual(testLane)
     })
     it('should return a sanitized laneType when lanetype is NOT already sanitized', () => {
+      // no numerical fields
       const testLane = {
-        ...validLane,
-        lane_number: 204,
+        ...validLane,        
         squad_id: 'abc_123'
       }
-      const sanitizedLane = sanitizeLane(testLane)
-      expect(sanitizedLane.lane_number).toEqual(1)
+      const sanitizedLane = sanitizeLane(testLane)      
       expect(sanitizedLane.squad_id).toEqual('1')
+    })    
+    it('should return a sanitized laneType when numerical fields are null', () => {
+      const testLane = {
+        ...validLane,
+        lane_number: null as any,        
+      }
+      const sanitizedLane = sanitizeLane(testLane)
+      expect(sanitizedLane.lane_number).toBeNull()
+    })    
+    it('should return a sanitized laneType when numerical fields are null', () => {
+      const testLane = {
+        ...validLane,
+        lane_number: null as any,        
+      }
+      const sanitizedLane = sanitizeLane(testLane)
+      expect(sanitizedLane.lane_number).toBeNull()
+    })    
+    it('should return a sanitized laneType when numerical fields are not numbers', () => {
+      const testLane = {
+        ...validLane,
+        lane_number: 'abc' as any,        
+      }
+      const sanitizedLane = sanitizeLane(testLane)
+      expect(sanitizedLane.lane_number).toBeNull()
+    })    
+    it('should return a sanitized laneType when numerical fields are too low', () => {
+      const testLane = {
+        ...validLane,
+        lane_number: 0,
+      }
+      const sanitizedLane = sanitizeLane(testLane)
+      expect(sanitizedLane.lane_number).toEqual(0)
+    })    
+    it('should return a sanitized laneType when numerical fields are too high', () => {
+      const testLane = {
+        ...validLane,
+        lane_number: 201,
+      }
+      const sanitizedLane = sanitizeLane(testLane)
+      expect(sanitizedLane.lane_number).toEqual(201)
     })    
     it('should return null when pass a null lane', () => {
       expect(sanitizeLane(null as any)).toBe(null)
@@ -183,19 +222,19 @@ describe("tests for lane validation", () => {
   describe('validPostId function', () => { 
     const testId = "lan_7b5b9d9e6b6e4c5b9f6b7d9e7f9b6c5d"
     it('should return testId when id starts with post Secret and follows with a valid lane id', () => { 
-      const validId = nextPostSecret + testId;
+      const validId = postSecret + testId;
       expect(validPostId(validId, 'lan')).toBe(testId)
     })
     it('should return "" when id starts with postSecret but does idType does not match idtype in postId', () => {
-      const invalidId = nextPostSecret + testId;
+      const invalidId = postSecret + testId;
       expect(validPostId(invalidId, 'usr')).toBe('');
     });
     it('should return "" when id starts with postSecret but does idType is invalid', () => {
-      const invalidId = nextPostSecret + testId;
+      const invalidId = postSecret + testId;
       expect(validPostId(invalidId, '123' as any)).toBe('');
     });
     it('should return "" when id starts with postSecret but does not follow with valid BtDb idType', () => {
-      const invalidId = nextPostSecret + 'abc_a1b2c3d4e5f678901234567890abcdef';
+      const invalidId = postSecret + 'abc_a1b2c3d4e5f678901234567890abcdef';
       expect(validPostId(invalidId, 'lan')).toBe('');
     });
     it('should return "" when id starts with postSecret but does not follow with a valid BtDb id', () => {

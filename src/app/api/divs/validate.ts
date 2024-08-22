@@ -12,6 +12,7 @@ import { sanitize } from "@/lib/sanitize";
 import { HdcpForTypes, idTypes } from "@/lib/types/types";
 import { divType } from "@/lib/types/types";
 import { initDiv } from "@/db/initVals";
+import { isNumber } from "@/lib/validation";
 
 const isHdcpForType = (value: any): value is HdcpForTypes => {
   return value === "Game" || value === "Series";
@@ -121,15 +122,20 @@ const validDivData = (div: divType): ErrorCode => {
  */
 export const sanitizeDiv = (div: divType): divType => {
   if (!div) return null as any;
-  const sanitizedDiv = { ...initDiv }
+  const sanitizedDiv = {
+    ...initDiv,
+    hdcp_per: null as any,
+    hdcp_from: null as any,
+    sort_order: null as any
+  }
   if (validDivFkId(div.tmnt_id, 'tmt')) {
     sanitizedDiv.tmnt_id = div.tmnt_id
   }
   sanitizedDiv.div_name = sanitize(div.div_name)
-  if (validHdcpPer(div.hdcp_per)) {
+  if ((div.hdcp_per === null) || isNumber(div.hdcp_per)) {
     sanitizedDiv.hdcp_per = div.hdcp_per
   }
-  if (validHdcpFrom(div.hdcp_from)) {
+  if ((div.hdcp_from === null) || isNumber(div.hdcp_from)) {
     sanitizedDiv.hdcp_from = div.hdcp_from
   }
   if (validIntHdcp(div.int_hdcp)) {
@@ -138,7 +144,7 @@ export const sanitizeDiv = (div: divType): divType => {
   if (validHdcpFor(div.hdcp_for)) {
     sanitizedDiv.hdcp_for = div.hdcp_for
   }
-  if (validSortOrder(div.sort_order)) {
+  if ((div.sort_order === null) || isNumber(div.sort_order)) {
     sanitizedDiv.sort_order = div.sort_order
   }
   return sanitizedDiv

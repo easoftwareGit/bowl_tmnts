@@ -131,14 +131,14 @@ async function bowlUpsert() {
         bowl_name: "Earl Anthony's Dublin Bowl",
         city: "Dublin",
         state: "CA",
-        url: "https://www.earlanthonysdublinbowl.com/",
+        url: "https://www.earlanthonysdublinbowl.com",
       },
       create: {
         id: "bwl_561540bd64974da9abdd97765fdb3659",
         bowl_name: "Earl Anthony's Dublin Bowl",
         city: "Dublin",
         state: "CA",
-        url: "https://www.earlanthonysdublinbowl.com/",
+        url: "https://www.earlanthonysdublinbowl.com",
       },
     });
     bowl = await prisma.bowl.upsert({
@@ -149,14 +149,14 @@ async function bowlUpsert() {
         bowl_name: "Yosemite Lanes",
         city: "Modesto",
         state: "CA",
-        url: "http://yosemitelanes.com/",
+        url: "http://yosemitelanes.com",
       },
       create: {
         id: "bwl_8b4a5c35ad1247049532ff53a12def0a",
         bowl_name: "Yosemite Lanes",
         city: "Modesto",
         state: "CA",
-        url: "http://yosemitelanes.com/",
+        url: "http://yosemitelanes.com",
       },
     });
     bowl = await prisma.bowl.upsert({
@@ -167,14 +167,14 @@ async function bowlUpsert() {
         bowl_name: "Coconut Bowl",
         city: "Sparks",
         state: "NV",
-        url: "https://wildisland.com/bowl/",
+        url: "https://wildisland.com/bowl",
       },
       create: {
         id: "bwl_ff4cd62b03f24017beea81c1d6e047e7",
         bowl_name: "Coconut Bowl",
         city: "Sparks",
         state: "NV",
-        url: "https://wildisland.com/bowl/",
+        url: "https://wildisland.com/bowl",
       },
     });
     bowl = await prisma.bowl.upsert({
@@ -185,14 +185,14 @@ async function bowlUpsert() {
         bowl_name: "Diablo Lanes",
         city: "Concord",
         state: "CA",
-        url: "http://diablolanes.com/",
+        url: "http://diablolanes.com",
       },
       create: {
         id: "bwl_91c6f24db58349e8856fe1d919e54b9e",
         bowl_name: "Diablo Lanes",
         city: "Concord",
         state: "CA",
-        url: "http://diablolanes.com/",
+        url: "http://diablolanes.com",
       },
     });
     console.log("Upserted bowls:", 4);
@@ -393,16 +393,16 @@ async function tmntUpsert() {
         user_id: "usr_5bcefb5d314fff1ff5da6521a2fa7bde",
         tmnt_name: "Gold Pin",
         bowl_id: "bwl_561540bd64974da9abdd97765fdb3659",
-        start_date: new Date(Date.UTC(2024, 7, 19)),  // month is -1
-        end_date: new Date(Date.UTC(2024, 7, 19)),    // month is -1
+        start_date: new Date(Date.UTC(2025, 7, 19)),  // month is -1
+        end_date: new Date(Date.UTC(2025, 7, 19)),    // month is -1
       },
       create: {
         id: "tmt_e134ac14c5234d708d26037ae812ac33",
         user_id: "usr_5bcefb5d314fff1ff5da6521a2fa7bde",
         tmnt_name: "Gold Pin",
         bowl_id: "bwl_561540bd64974da9abdd97765fdb3659",
-        start_date: new Date(Date.UTC(2024, 7, 19)),  // month is -1
-        end_date: new Date(Date.UTC(2024, 7, 19)),    // month is -1
+        start_date: new Date(Date.UTC(2025, 7, 19)),  // month is -1
+        end_date: new Date(Date.UTC(2025, 7, 19)),    // month is -1
       },
     });
     console.log("Upserted tmnts:", 10);
@@ -953,7 +953,7 @@ async function squadUpsert() {
         games: 6,
         lane_count: 24,
         starting_lane: 1,
-        sort_order: 1,
+        sort_order: 2,
       },
       create: {
         id: "sqd_796c768572574019a6fa79b3b1c8fa57",
@@ -962,9 +962,9 @@ async function squadUpsert() {
         squad_date: new Date(Date.UTC(2022, 7, 21)),  // month is -1 
         squad_time: '02:00 PM',
         games: 6,
-        lane_count: 24,
+        lane_count: 24, 
         starting_lane: 1,
-        sort_order: 1,
+        sort_order: 2,
       },
     });    
     squad = await prisma.squad.upsert({
@@ -1613,6 +1613,7 @@ async function laneUpsert() {
     return -1;
   }
 }
+
 async function potsUpsert() {
   try {
     let pot = await prisma.pot.upsert({
@@ -1980,8 +1981,8 @@ async function elimUpsert() {
       },
     });
 
-    console.log("Upserted eliminators:", 4);
-    return 4;
+    console.log("Upserted eliminators:", 5);
+    return 5;
   } catch (error) {
     console.log(error);
     return -1;

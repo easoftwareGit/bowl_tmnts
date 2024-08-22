@@ -49,7 +49,8 @@ export async function PUT(
       password,
     };
 
-    const errCode = validateUser(toCheck, true, true);
+    const toPut = sanitizeUser(toCheck);    
+    const errCode = validateUser(toPut, true, true);
     if (errCode !== ErrorCode.None) {
       let errMsg: string;
       switch (errCode) {
@@ -65,8 +66,6 @@ export async function PUT(
       }
       return NextResponse.json({ error: errMsg }, { status: 422 });
     }
-
-    const toPut = sanitizeUser(toCheck);
 
     const saltRoundsStr: any = process.env.SALT_ROUNDS;
     const saltRounds = parseInt(saltRoundsStr);
@@ -153,7 +152,8 @@ export async function PATCH(
       checkPass = true
     }
     
-    const errCode = validateUser(toCheck, checkPhone, checkPass);    
+    const toBePatched = sanitizeUser(toCheck);
+    const errCode = validateUser(toBePatched, checkPhone, checkPass);    
     if (errCode !== ErrorCode.None) {
       let errMsg: string;
       switch (errCode as ErrorCode) {
@@ -175,8 +175,7 @@ export async function PATCH(
       const saltRoundsStr: any = process.env.SALT_ROUNDS;
       const saltRounds = parseInt(saltRoundsStr);
       hashedPassword = await hash(toCheck.password, saltRounds);
-    }
-    const toBePatched = sanitizeUser(toCheck);
+    }    
     const toPatch = {
       first_name: "",
       last_name: "",

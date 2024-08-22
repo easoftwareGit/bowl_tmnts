@@ -9,6 +9,7 @@ import {
   maxStartLane,
   isOdd,
   isEven,
+  isNumber,
   maxLaneCount,
   validSortOrder,
   maxDate,
@@ -51,20 +52,17 @@ export const validSquadName = (squadName: string): boolean => {
   return (sanitized.length > 0 && sanitized.length <= maxEventLength)
 }
 export const validGames = (games: number): boolean => {
-  if (!games) return false;
-  return Number.isInteger(games) &&
-    (games >= minGames && games <= maxGames);
+  if (typeof games !== 'number' || !Number.isInteger(games)) return false
+  return (games >= minGames && games <= maxGames);
 }
 export const validStartingLane = (startingLane: number): boolean => {
-  if (!startingLane) return false;
-  return Number.isInteger(startingLane) &&
-    (startingLane >= minLane && startingLane <= maxStartLane) &&
+  if (typeof startingLane !== 'number' || !Number.isInteger(startingLane)) return false
+  return (startingLane >= minLane && startingLane <= maxStartLane) &&
     isOdd(startingLane);
 }
 export const validLaneCount = (laneCount: number): boolean => { 
-  if (!laneCount) return false
-  return Number.isInteger(laneCount) &&
-    (laneCount >= 2 && laneCount <= maxStartLane + 1) &&
+  if (typeof laneCount !== 'number' || !Number.isInteger(laneCount)) return false
+  return (laneCount >= 2 && laneCount <= maxStartLane + 1) &&
     isEven(laneCount);
 }
 export const validSquadDate = (squadDate: Date): boolean => { 
@@ -155,16 +153,24 @@ const validSquadData = (squad: squadType): ErrorCode => {
  */
 export const sanitizeSquad = (squad: squadType): squadType => { 
   if (!squad) return null as any
-  const sanitizedSquad = { ...initSquad }
+  const sanitizedSquad = {
+    ...initSquad,
+    games: null as any,
+    lane_count: null as any,
+    starting_lane: null as any,
+    sort_order: null as any,
+  }
   sanitizedSquad.squad_name = sanitize(squad.squad_name)
   if (validEventFkId(squad.event_id, 'evt')) {
     sanitizedSquad.event_id = squad.event_id
   }
-  if (validGames(squad.games)) {
+  if ((squad.games === null) || isNumber(squad.games)) {
     sanitizedSquad.games = squad.games
   }
-  if (validLaneConfig(squad.starting_lane, squad.lane_count)) {
-    sanitizedSquad.starting_lane = squad.starting_lane  
+  if ((squad.starting_lane === null) || isNumber(squad.starting_lane)) {
+    sanitizedSquad.starting_lane = squad.starting_lane
+  }
+  if ((squad.lane_count === null) || isNumber(squad.lane_count)) {
     sanitizedSquad.lane_count = squad.lane_count
   }
   if (validSquadDate(squad.squad_date)) {
@@ -173,7 +179,7 @@ export const sanitizeSquad = (squad: squadType): squadType => {
   if (validSquadTime(squad.squad_time)) {
     sanitizedSquad.squad_time = squad.squad_time
   }
-  if (validSortOrder(squad.sort_order)) {
+  if ((squad.sort_order === null) || isNumber(squad.sort_order)) {
     sanitizedSquad.sort_order = squad.sort_order
   }  
   return sanitizedSquad    

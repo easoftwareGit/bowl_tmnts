@@ -18,6 +18,9 @@ export async function GET(
       where: {
         squad_id: id,
       },
+      orderBy:{
+        sort_order: 'asc',
+      }, 
     });
 
     // no matching rows is ok

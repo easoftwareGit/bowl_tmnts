@@ -10,11 +10,6 @@ const startDate2 = new Date(Date.UTC(2020, 0, 31, 0, 0, 0, 0)) // 2020-01-30, mo
 const endDate1 = new Date(Date.UTC(2020, 0, 30, 0, 0, 0, 0)) // 2020-01-30, month - 1
 const endDate2 = new Date(Date.UTC(2020, 0, 31, 0, 0, 0, 0)) // 2020-01-30, month - 1
 
-const startDate1 = new Date(Date.UTC(2020, 0, 30, 0, 0, 0, 0)) // 2020-01-30, month - 1
-const startDate2 = new Date(Date.UTC(2020, 0, 31, 0, 0, 0, 0)) // 2020-01-30, month - 1
-const endDate1 = new Date(Date.UTC(2020, 0, 30, 0, 0, 0, 0)) // 2020-01-30, month - 1
-const endDate2 = new Date(Date.UTC(2020, 0, 31, 0, 0, 0, 0)) // 2020-01-30, month - 1
-
 describe('tmnt table data validation', () => { 
 
   describe('gotTmntData function - checks for missing data', () => { 
@@ -36,16 +31,14 @@ describe('tmnt table data validation', () => {
     it('should return missing data error code when no start_date', () => { 
       testTmnt = {
         ...mockTmnt,
-        start_date: null as any
-        start_date: null as any
+        start_date: null as any        
       }
       expect(gotTmntData(testTmnt)).toBe(ErrorCode.MissingData)
     })
     it('should return missing data error code when no end_date', () => { 
       testTmnt = {
         ...mockTmnt,
-        end_date: null as any
-        end_date: null as any
+        end_date: null as any        
       }
       expect(gotTmntData(testTmnt)).toBe(ErrorCode.MissingData)
     })
@@ -108,9 +101,6 @@ describe('tmnt table data validation', () => {
   })
 
   describe('validTmntDates function', () => { 
-    const tooPastDate = new Date(Date.UTC(1899, 11, 31, 0, 0, 0, 0)) // 1899-12-31
-    const tooFutureDate = new Date(Date.UTC(2201, 1, 1, 0, 0, 0, 0)) // 2200-02-01
-
     const tooPastDate = new Date(Date.UTC(1899, 11, 31, 0, 0, 0, 0)) // 1899-12-31
     const tooFutureDate = new Date(Date.UTC(2201, 1, 1, 0, 0, 0, 0)) // 2200-02-01
 
@@ -232,40 +222,34 @@ describe('tmnt table data validation', () => {
     it('should return invalid data error code when non date start_date', () => { 
       testTmnt = {
         ...mockTmnt,
-        start_date: 'abc' as any
-        start_date: 'abc' as any
+        start_date: 'abc' as any        
       }
       expect(validTmntData(testTmnt)).toBe(ErrorCode.InvalidData)
     })
     it('should return invalid data error code when invalid start_date', () => { 
       testTmnt = {
         ...mockTmnt,
-        start_date: '2020-01-32' as any
-        start_date: '2020-01-32' as any
+        start_date: '2020-01-32' as any        
       }
       expect(validTmntData(testTmnt)).toBe(ErrorCode.InvalidData)
     })
     it('should return invalid data error code when non date end_date', () => { 
       testTmnt = {
         ...mockTmnt,
-        end_date: 'abc' as any
-        end_date: 'abc' as any
+        end_date: 'abc' as any        
       }
       expect(validTmntData(testTmnt)).toBe(ErrorCode.InvalidData)
     })
     it('should return invalid data error code when invalid end_date', () => { 
       testTmnt = {
         ...mockTmnt,
-        end_date: '2020-02-32' as any
-        end_date: '2020-02-32' as any
+        end_date: '2020-02-32' as any        
       }
       expect(validTmntData(testTmnt)).toBe(ErrorCode.InvalidData)
     })
     it('should return invalid data error code when start_date is after end_date', () => { 
       testTmnt = {
         ...mockTmnt,
-        start_date: startDate2,
-        end_date: endDate1
         start_date: startDate2,
         end_date: endDate1
       }
@@ -337,8 +321,7 @@ describe('tmnt table data validation', () => {
       const dateStr = startDate1.toISOString();
       const testTmnt: tmntType = {
         ...mockTmnt,
-        start_date: dateStr as any,
-        start_date: startDate1,
+        start_date: dateStr as any,        
       }
       const sanitized = sanitizeTmnt(testTmnt)
       expect(sanitized.start_date).toEqual(startDate1)
@@ -365,8 +348,7 @@ describe('tmnt table data validation', () => {
     it('should return an empty start date for html code in start date', () => { 
       const testTmnt: tmntType = {
         ...mockTmnt,
-        start_date: "<script>alert('hello')</script>" as any,
-        start_date: '2020-01-32' as any,
+        start_date: "<script>alert('hello')</script>" as any,        
         end_date: '2020-01-32' as any,
       }
       const sanitized = sanitizeTmnt(testTmnt)
@@ -384,8 +366,7 @@ describe('tmnt table data validation', () => {
     it('should return an empty start date for a non date start date', () => { 
       const testTmnt: tmntType = {
         ...mockTmnt,
-        start_date: 'abc' as any,
-        start_date: 'abc' as any,
+        start_date: 'abc' as any,        
       }
       const sanitized = sanitizeTmnt(testTmnt)
       expect(sanitized.start_date).toEqual(null)
@@ -394,8 +375,7 @@ describe('tmnt table data validation', () => {
     it('should return an empty start date for an empty start date', () => { 
       const testTmnt: tmntType = {
         ...mockTmnt,
-        start_date: null as any,
-        start_date: null as any,
+        start_date: null as any,        
       }
       const sanitized = sanitizeTmnt(testTmnt)
       expect(sanitized.start_date).toBeNull()
@@ -416,8 +396,6 @@ describe('tmnt table data validation', () => {
         ...mockTmnt,
         start_date: startDate1, // need both start and end so end is valid
         end_date: dateStr as any,
-        start_date: startDate1, // need both start and end so end is valid
-        end_date: endDate1
       }
       const sanitized = sanitizeTmnt(testTmnt)
       expect(sanitized.end_date).toEqual(endDate1)
@@ -445,8 +423,7 @@ describe('tmnt table data validation', () => {
     it('should return an empty end date for an html code in end date', () => { 
       const testTmnt: tmntType = {
         ...mockTmnt,
-        start_date: "<script>alert('hello')</script>" as any,
-        start_date: '2020-02-30' as any,
+        start_date: "<script>alert('hello')</script>" as any,        
         end_date: '2020-02-30' as any,
       }
       const sanitized = sanitizeTmnt(testTmnt)
@@ -464,8 +441,7 @@ describe('tmnt table data validation', () => {
     it('should return an empty end date for a non date end date', () => { 
       const testTmnt: tmntType = {
         ...mockTmnt,
-        end_date: 'abc' as any,
-        end_date: 'abc' as any,
+        end_date: 'abc' as any,        
       }
       const sanitized = sanitizeTmnt(testTmnt)
       expect(sanitized.end_date).toEqual(null)
@@ -474,8 +450,7 @@ describe('tmnt table data validation', () => {
     it('should return an empty end date for an empty end date', () => { 
       const testTmnt: tmntType = {
         ...mockTmnt,
-        end_date: null as any,
-        end_date: null as any,
+        end_date: null as any,        
       }
       const sanitized = sanitizeTmnt(testTmnt)
       expect(sanitized.end_date).toBeNull()
@@ -575,38 +550,32 @@ describe('tmnt table data validation', () => {
         tmnt_name: '***',
       }
       expect(validateTmnt(testTmnt)).toBe(ErrorCode.MissingData)
-    })
-    it('should return ErrorCode.MissingData when start_date is missing', () => {
+    })    
     it('should return ErrorCode.MissingData when start_date is missing', () => {
       const testTmnt: tmntType = {
         ...mockTmnt,
-        start_date: null as any,
-        start_date: null as any,
+        start_date: null as any,      
       }
       expect(validateTmnt(testTmnt)).toBe(ErrorCode.MissingData)
     })
     it('should return ErrorCode.InvalidData when start_date is invalid', () => {
       const testTmnt: tmntType = {
         ...mockTmnt,
-        start_date: '02/32/2020' as any,
-        start_date: '02/32/2020' as any,
+        start_date: '02/32/2020' as any,        
       }
       expect(validateTmnt(testTmnt)).toBe(ErrorCode.InvalidData)
-    })
-    it('should return ErrorCode.MissingData when end_date is missing', () => {
+    })    
     it('should return ErrorCode.MissingData when end_date is missing', () => {
       const testTmnt: tmntType = {
         ...mockTmnt,
-        end_date: null as any,
-        end_date: null as any,
+        end_date: null as any,        
       }
       expect(validateTmnt(testTmnt)).toBe(ErrorCode.MissingData)
     })
     it('should return ErrorCode.InvalidData when end_date is invalid', () => {
       const testTmnt: tmntType = {
         ...mockTmnt,
-        end_date: '02/32/2020' as any,
-        end_date: '02/32/2020' as any,
+        end_date: '02/32/2020' as any,        
       }
       expect(validateTmnt(testTmnt)).toBe(ErrorCode.InvalidData)
     })

@@ -77,7 +77,8 @@ export async function PUT(
       sort_order,
     };
 
-    const errCode = validateEvent(toCheck);
+    const toPut = sanitizeEvent(toCheck);
+    const errCode = validateEvent(toPut);
     if (errCode !== ErrorCode.None) {
       let errMsg: string;
       switch (errCode) {
@@ -94,21 +95,13 @@ export async function PUT(
       return NextResponse.json({ error: errMsg }, { status: 422 });
     }
     
-    // find parent. findTmntById sanitizes tmnt_id before using it
-    const parent = await findTmntById(toCheck.tmnt_id);
-    if (!parent) {
-      return NextResponse.json({ error: "not found" }, { status: 404 });
-    }
-
-    const toPut = sanitizeEvent(toCheck);
-
     // NO lpox in data object
     const putEvent = await prisma.event.update({
       where: {
         id: id,
       },
       data: {
-        tmnt_id: toPut.tmnt_id,
+        // tmnt_id: toPut.tmnt_id, // dont update tmnt_id
         event_name: toPut.event_name,
         team_size: toPut.team_size,
         games: toPut.games,
@@ -133,7 +126,7 @@ export async function PUT(
       case "P2002": // unique constraint
         errStatus = 422;
         break;
-      case "P2003": // foreign key constraint
+      case "P2003": // parent not found
         errStatus = 422;
         break;
       case "P2025": // record not found
@@ -223,7 +216,8 @@ export async function PATCH(
       toCheck.sort_order = json.sort_order;
     }
 
-    const errCode = validateEvent(toCheck);
+    const toBePatched = sanitizeEvent(toCheck);
+    const errCode = validateEvent(toBePatched);
     if (errCode !== ErrorCode.None) {
       let errMsg: string;
       switch (errCode) {
@@ -244,8 +238,7 @@ export async function PATCH(
         return NextResponse.json({ error: "not found" }, { status: 404 });
       }
     }
-
-    const toBePatched = sanitizeEvent(toCheck);
+    
     const toPatch = {
       ...initEvent,
       tmnt_id: "",
@@ -300,7 +293,7 @@ export async function PATCH(
       },
       // remove data if not sent
       data: {
-        tmnt_id: toPatch.tmnt_id || undefined,
+        // tmnt_id: toPatch.tmnt_id || undefined, // dont patch tmnt id
         event_name: toPatch.event_name || undefined,
         team_size: toPatch.team_size || undefined,
         games: toPatch.games || undefined,

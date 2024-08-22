@@ -90,7 +90,7 @@ export async function PUT(
         id: id,
       },
       data: {
-        tmnt_id: toPut.tmnt_id,
+        // tmnt_id: toPut.tmnt_id, do not update tmnt_id
         div_name: toPut.div_name,
         hdcp_per: toPut.hdcp_per,
         hdcp_from: toPut.hdcp_from,
@@ -148,7 +148,7 @@ export async function PATCH(
     }
     const toCheck: divType = {
       ...initDiv,
-      tmnt_id: currentDiv.tmnt_id,
+      tmnt_id: currentDiv.tmnt_id, 
       div_name: currentDiv.div_name,
       hdcp_per: currentDiv.hdcp_per,
       hdcp_from: currentDiv.hdcp_from,
@@ -159,6 +159,9 @@ export async function PATCH(
 
     if (jsonProps.includes("div_name")) {
       toCheck.div_name = json.div_name;
+    }
+    if (jsonProps.includes("tmnt_id")) {
+      toCheck.tmnt_id = json.tmnt_id;
     }
     if (jsonProps.includes("hdcp_per")) {
       toCheck.hdcp_per = json.hdcp_per;
@@ -226,7 +229,7 @@ export async function PATCH(
       },
       // remove data if not sent
       data: {
-        tmnt_id: toPatch.tmnt_id || undefined,
+        // tmnt_id: toPatch.tmnt_id || undefined, // do not patch tmnt_id
         div_name: toPatch.div_name || undefined,
         hdcp_per: toPatch.hdcp_per || undefined,
         hdcp_from: toPatch.hdcp_from || undefined,

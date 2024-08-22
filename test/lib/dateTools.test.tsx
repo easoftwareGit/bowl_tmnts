@@ -6,7 +6,7 @@ import {
   getHoursFromTime, 
   getMinutesFromTime,
   dateTo_yyyyMMdd,
-  dateTo_MMddyyyy,  
+  dateTo_MMddyyyy,    
   startOfDayFromString,
   endOfDayFromString,
   nowOnDayFromString,

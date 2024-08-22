@@ -77,7 +77,7 @@ export async function PUT(
       },
       data: {
         lane_number: toPut.lane_number,
-        squad_id: toPut.squad_id,
+        // squad_id: toPut.squad_id, // do not update squad_id
       },
     });
     return NextResponse.json({ lane }, { status: 200 });
@@ -170,7 +170,7 @@ export async function PATCH(
       },
       data: {
         lane_number: toPatch.lane_number || undefined,
-        squad_id: toPatch.squad_id || undefined,
+        // squad_id: toPatch.squad_id || undefined, // do not patch squad_id
       },
     });
 

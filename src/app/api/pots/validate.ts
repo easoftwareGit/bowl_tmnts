@@ -1,4 +1,4 @@
-import { isValidBtDbId, ErrorCode, maxMoney, validSortOrder } from "@/lib/validation";
+import { isValidBtDbId, ErrorCode, maxMoney, validSortOrder, isNumber } from "@/lib/validation";
 import { sanitize, sanitizeCurrency } from "@/lib/sanitize";
 import { validMoney } from "@/lib/currency/validate";
 import { potType, PotCategories, idTypes } from "@/lib/types/types";
@@ -91,7 +91,10 @@ const validPotData = (pot: potType): ErrorCode => {
  */
 export const sanitizePot = (pot: potType): potType => {
   if (!pot) return null as any;
-  const sanitizedPot = { ...initPot };    
+  const sanitizedPot = {
+    ...initPot,
+    sort_order: null as any,
+  };    
   if (validPotFkId(pot.div_id, "div")) {
     sanitizedPot.div_id = pot.div_id
   };
@@ -105,7 +108,7 @@ export const sanitizePot = (pot: potType): potType => {
   if (validPotMoney(pot.fee)) {
     sanitizedPot.fee = sanitizeCurrency(pot.fee);
   }
-  if (validSortOrder(pot.sort_order)) {
+  if ((pot.sort_order === null) || isNumber(pot.sort_order)) {
     sanitizedPot.sort_order = pot.sort_order
   }
   return sanitizedPot

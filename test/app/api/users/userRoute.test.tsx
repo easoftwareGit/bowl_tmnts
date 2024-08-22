@@ -38,7 +38,7 @@ describe('Users - API: /api/users', () => {
     phone: "+18005551212",
     role: 'ADMIN',
   }                     
-  const notfoundId = "usr_01234567890123456789012345678901";
+  const notFoundId = "usr_01234567890123456789012345678901";
   const nonUserId = "tmt_01234567890123456789012345678901";
   
   const user2Id = "usr_516a113083983234fc316e31fb695b85";
@@ -395,7 +395,7 @@ describe('Users - API: /api/users', () => {
     })
     it('should NOT get a user by ID when ID is not found', async () => {
       try {
-        const response = await axios.get(url + "/" + notfoundId);
+        const response = await axios.get(url + "/" + notFoundId);
         expect(response.status).toBe(404);
       } catch (err) {
         if (err instanceof AxiosError) {
@@ -523,7 +523,7 @@ describe('Users - API: /api/users', () => {
           method: "put",
           data: userJSON,
           withCredentials: true,
-          url: url + "/" + notfoundId
+          url: url + "/" + notFoundId
         });
         expect(response.status).toBe(404);
       } catch (err) {
@@ -893,7 +893,7 @@ describe('Users - API: /api/users', () => {
           method: "patch",
           data: userJSON,
           withCredentials: true,
-          url: url + "/" + notfoundId,
+          url: url + "/" + notFoundId,
         })
         expect(response.status).toBe(404);
       } catch (err) {
@@ -1253,7 +1253,7 @@ describe('Users - API: /api/users', () => {
         const delResponse = await axios({
           method: "delete",
           withCredentials: true,
-          url: url + "/" + notfoundId
+          url: url + "/" + notFoundId
         });
         expect(delResponse.status).toBe(404);
       } catch (err) {

@@ -10,7 +10,7 @@ import {
 import { initElim } from "@/db/initVals";
 import { elimType } from "@/lib/types/types";
 import { ErrorCode, minGames, maxGames, validPostId } from "@/lib/validation";
-import { nextPostSecret } from "@/lib/tools";
+import { postSecret } from "@/lib/tools";
 
 const { gotElimData, validElimData } = exportedForTesting;
 
@@ -163,24 +163,68 @@ describe("tests for eliminator validation", () => {
       expect(sanitizedElim.fee).toEqual(testElim.fee)
       expect(sanitizedElim.sort_order).toEqual(testElim.sort_order)
     })
-    it('should return sanitized elim when bracket is not sanitzed', () => { 
+    it('should return sanitized elim when elim is not sanitzed', () => { 
+      // no numerical fields
       const testElim = {
         ...initElim,
         div_id: '<script>alert(1)</script>',
         squad_id: "usr_12345678901234567890123456789012",
-        start: -1,
-        games: 0,
         fee: '1234567890',
-        sort_order: -1
       }
       const sanitizedBrkt = sanitizeElim(testElim);
       expect(sanitizedBrkt.div_id).toEqual('')
       expect(sanitizedBrkt.squad_id).toEqual('')
-      expect(sanitizedBrkt.start).toEqual(1)
-      expect(sanitizedBrkt.games).toEqual(3)      
       expect(sanitizedBrkt.fee).toEqual('')
-      expect(sanitizedBrkt.sort_order).toEqual(1)
     })
+    it('should return sanitized elim when numerical values are null', () => { 
+      const testElim = {
+        ...initElim,
+        start: null as any,
+        games: null as any,
+        sort_order: null as any,
+      }
+      const sanitizedBrkt = sanitizeElim(testElim);
+      expect(sanitizedBrkt.start).toBeNull()
+      expect(sanitizedBrkt.games).toBeNull()      
+      expect(sanitizedBrkt.sort_order).toBeNull()
+    })
+    it('should return sanitized elim when numerical values are not numbers', () => { 
+      const testElim = {
+        ...initElim,
+        start: 'abc' as any,
+        games: ['abc', 'def'] as any,
+        sort_order: new Date() as any,
+      }
+      const sanitizedBrkt = sanitizeElim(testElim);
+      expect(sanitizedBrkt.start).toBeNull()
+      expect(sanitizedBrkt.games).toBeNull()      
+      expect(sanitizedBrkt.sort_order).toBeNull()
+    })
+    it('should return sanitized elim when numerical values are too low', () => { 
+      const testElim = {
+        ...initElim,
+        start: 0,
+        games: 0,
+        sort_order: 0
+      }
+      const sanitizedBrkt = sanitizeElim(testElim);
+      expect(sanitizedBrkt.start).toEqual(0)
+      expect(sanitizedBrkt.games).toEqual(0)      
+      expect(sanitizedBrkt.sort_order).toEqual(0)
+    })
+    it('should return sanitized elim when numerical values are too high', () => { 
+      const testElim = {
+        ...initElim,
+        start: 100,
+        games: 100,
+        sort_order: 1234567
+      }
+      const sanitizedBrkt = sanitizeElim(testElim);
+      expect(sanitizedBrkt.start).toEqual(100)
+      expect(sanitizedBrkt.games).toEqual(100)      
+      expect(sanitizedBrkt.sort_order).toEqual(1234567)
+    })
+
     it('should return sanitized null when passed null', () => {
       expect(sanitizeElim(null as any)).toBe(null);
     })
@@ -301,24 +345,24 @@ describe("tests for eliminator validation", () => {
 
   describe('validPostId function', () => { 
     const testElimId = "elm_cb97b73cb538418ab993fc867f860510"
-    it('should return testElimId when id starts with post Secret and follows with a valid bracket id', () => {
-      const validId = nextPostSecret + testElimId;
+    it('should return testElimId when id starts with post Secret and follows with a valid elim id', () => {
+      const validId = postSecret + testElimId;
       expect(validPostId(validId, 'elm')).toBe(testElimId);
     })
     it('should return "" when id starts with postSecret but does idType does not match idtype in postId', () => { 
-      const invalidId = nextPostSecret + testElimId;
+      const invalidId = postSecret + testElimId;
       expect(validPostId(invalidId, 'usr')).toBe('');
     });
     it('should return "" when id starts with postSecret but does idType is invalid', () => { 
-      const invalidId = nextPostSecret + testElimId;
+      const invalidId = postSecret + testElimId;
       expect(validPostId(invalidId, '123' as any)).toBe('');
     });
     it('should return "" when id starts with postSecret but does not follow with valid BtDb idType', () => { 
-      const invalidId = nextPostSecret + 'abc_a1b2c3d4e5f678901234567890abcdef';
+      const invalidId = postSecret + 'abc_a1b2c3d4e5f678901234567890abcdef';
       expect(validPostId(invalidId, 'elm')).toBe('');
     });
     it('should return "" when id starts with postSecret but does not follow with a valid BtDb id', () => { 
-      const invalidId = nextPostSecret + 'elm_invalidid';
+      const invalidId = postSecret + 'elm_invalidid';
       expect(validPostId(invalidId, 'elm')).toBe('');
     });
     it('should return "" when id does not start with postSecret', () => { 

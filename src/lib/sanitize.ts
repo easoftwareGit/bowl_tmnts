@@ -61,6 +61,9 @@ export function sanitizeUrl(url: string): string {
     if (parsedUrl.hash) {
       sanitizedUrl += parsedUrl.hash;
     }
+    if (sanitizedUrl.endsWith("/")) {
+      sanitizedUrl = sanitizedUrl.slice(0, -1);
+    }
     return sanitizedUrl;
   } catch (error) {    
     return "";

@@ -76,8 +76,8 @@ export async function PUT(
         id: id,
       },
       data: {
-        div_id: toPut.div_id,
-        squad_id: toPut.squad_id,
+        // div_id: toPut.div_id, // do not update div_id
+        // squad_id: toPut.squad_id, // do not update squad_id
         pot_type: toPut.pot_type,
         fee: toPut.fee,        
         sort_order: toPut.sort_order,
@@ -198,8 +198,8 @@ export async function PATCH(
       },
       // remove data if not sent
       data: {
-        div_id: toPatch.div_id || undefined,
-        squad_id: toPatch.squad_id || undefined,
+        // div_id: toPatch.div_id || undefined, // do not patch div_id
+        // squad_id: toPatch.squad_id || undefined, // do not patch squad_id
         pot_type: toPatch.pot_type || undefined,
         fee: toPatch.fee || undefined,
         sort_order: toPatch.sort_order || undefined,

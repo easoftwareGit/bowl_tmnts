@@ -13,7 +13,7 @@ import {
 } from "@/app/api/squads/validate";
 import { initSquad } from "@/db/initVals";
 import { ErrorCode, maxEventLength, maxSortOrder, validPostId } from "@/lib/validation";
-import { nextPostSecret } from "@/lib/tools";
+import { postSecret } from "@/lib/tools";
 import { startOfTodayUTC, todayStr } from "@/lib/dateTools";
 import { compareAsc } from "date-fns";
 
@@ -419,27 +419,77 @@ describe('tests for squad validation', () => {
       expect(sanitizedSquad).toEqual(testSquad)
     })
     it('should return a sanitized squad when squad is NOT already sanitized', () => {
+      // do not incluide numerical fields
       const testSquad = {
         ...validSquad,
         event_id: 'abc_123',
         squad_name: '  Test Squad**  ',
-        games: 123,
-        starting_lane: 2,
-        lane_count: 201,
         squad_date: new Date(Date.UTC(2022, 13, 32, 0, 0, 0, 0)),  // month - 1 
         squad_time: '24:00',
-        sort_order: -1
       }
       const sanitizedSquad = sanitizeSquad(testSquad)
       expect(sanitizedSquad.event_id).toEqual('1')
       expect(sanitizedSquad.squad_name).toEqual('Test Squad')
-      expect(sanitizedSquad.games).toEqual(3)
-      expect(sanitizedSquad.starting_lane).toEqual(1)
-      expect(sanitizedSquad.lane_count).toEqual(2)
       expect(compareAsc(sanitizedSquad.squad_date, new Date(Date.UTC(2022, 13, 32, 0, 0, 0, 0)))).toEqual(0)
       expect(sanitizedSquad.squad_time).toEqual('')
-      expect(sanitizedSquad.sort_order).toEqual(1)
     })
+    it('should return a sanitized squad when numerical values are null', () => {
+      const testSquad = {
+        ...validSquad,
+        games: null as any,
+        starting_lane: null as any,
+        lane_count: null as any,
+        sort_order: null as any
+      }
+      const sanitizedSquad = sanitizeSquad(testSquad)
+      expect(sanitizedSquad.games).toBeNull
+      expect(sanitizedSquad.starting_lane).toBeNull()
+      expect(sanitizedSquad.lane_count).toBeNull()
+      expect(sanitizedSquad.sort_order).toBeNull()
+    })
+    it('should return a sanitized squad when numerical values are not numbers', () => {
+      const testSquad = {
+        ...validSquad,
+        games: 'abc' as any,
+        starting_lane: ['abc', '123'] as any,
+        lane_count: new Date() as any,
+        sort_order: {text: 'abc'} as any
+      }
+      const sanitizedSquad = sanitizeSquad(testSquad)
+      expect(sanitizedSquad.games).toBeNull
+      expect(sanitizedSquad.starting_lane).toBeNull()
+      expect(sanitizedSquad.lane_count).toBeNull()
+      expect(sanitizedSquad.sort_order).toBeNull()
+    })
+    it('should return a sanitized squad when numerical values are too low', () => {
+      const testSquad = {
+        ...validSquad,
+        games: 0,
+        starting_lane: 0,
+        lane_count: 0,
+        sort_order: 0
+      }
+      const sanitizedSquad = sanitizeSquad(testSquad)
+      expect(sanitizedSquad.games).toEqual(0)
+      expect(sanitizedSquad.starting_lane).toEqual(0)
+      expect(sanitizedSquad.lane_count).toEqual(0)
+      expect(sanitizedSquad.sort_order).toEqual(0)
+    })
+    it('should return a sanitized squad when numerical values are too high', () => {
+      const testSquad = {
+        ...validSquad,
+        games: 123,
+        starting_lane: 201,
+        lane_count: 201,
+        sort_order: 1234567
+      }
+      const sanitizedSquad = sanitizeSquad(testSquad)
+      expect(sanitizedSquad.games).toEqual(123)
+      expect(sanitizedSquad.starting_lane).toEqual(201)
+      expect(sanitizedSquad.lane_count).toEqual(201)
+      expect(sanitizedSquad.sort_order).toEqual(1234567)
+    })
+
     it('should return null when passed a null squad', () => {
       const sanitizedSquad = sanitizeSquad(null as any)
       expect(sanitizedSquad).toEqual(null)
@@ -602,19 +652,19 @@ describe('tests for squad validation', () => {
   describe('validPostId function', () => { 
     const testId = "sqd_7116ce5f80164830830a7157eb093396"
     it('should return testId when id starts with post Secret and follows with a valid squad id', () => { 
-      const validId = nextPostSecret + testId;
+      const validId = postSecret + testId;
       expect(validPostId(validId, 'sqd')).toBe(testId)
     })
     it('should return "" when id starts with postSecret but does idType does not match idtype in postId', () => {
-      const invalidId = nextPostSecret + testId;
+      const invalidId = postSecret + testId;
       expect(validPostId(invalidId, 'usr')).toBe('');
     });
     it('should return "" when id starts with postSecret but does idType is invalid', () => {
-      const invalidId = nextPostSecret + testId;
+      const invalidId = postSecret + testId;
       expect(validPostId(invalidId, '123' as any)).toBe('');
     });
     it('should return "" when id starts with postSecret but does not follow with valid BtDb idType', () => {
-      const invalidId = nextPostSecret + 'abc_a1b2c3d4e5f678901234567890abcdef';
+      const invalidId = postSecret + 'abc_a1b2c3d4e5f678901234567890abcdef';
       expect(validPostId(invalidId, 'sqd')).toBe('');
     });
     it('should return "" when id starts with postSecret but does not follow with a valid BtDb id', () => {

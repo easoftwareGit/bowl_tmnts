@@ -1,7 +1,6 @@
 import { IntlConfig } from "@/lib/currency/components/CurrencyInputProps";
 import { startOfToday, addMinutes, isValid, addSeconds, addDays, addMilliseconds } from "date-fns";
-
-import { startOfToday, addMinutes, isValid, addSeconds, addDays, addMilliseconds } from "date-fns";
+import { validTime } from "./validation";
 
 const ic: IntlConfig = {
   // locale: window.navigator.language,
@@ -18,15 +17,6 @@ export const dateTo_UTC_yyyyMMdd = (date: Date): string => {
   if (!isValid(date)) return '';
   return `${date.getUTCFullYear()}-${(date.getUTCMonth() + 1).toString().padStart(2, '0')}-${date.getUTCDate().toString().padStart(2, '0')}`
 }
-* formats a date into a string using yyyy-MM-dd
-* 
-* @param date 
-* @returns {*} string - date formatted as yyyy-MM-dd  2024-10-26
-*/
-export const dateTo_UTC_yyyyMMdd = (date: Date): string => {
-  if (!isValid(date)) return '';
-  return `${date.getUTCFullYear()}-${(date.getUTCMonth() + 1).toString().padStart(2, '0')}-${date.getUTCDate().toString().padStart(2, '0')}`
-}
 
 /**
 * formats a date into a string using yyyy-MM-dd
@@ -34,9 +24,6 @@ export const dateTo_UTC_yyyyMMdd = (date: Date): string => {
 * @param date 
 * @returns {*} string - date formatted as yyyy-MM-dd  2024-10-26
 */
-export const dateTo_yyyyMMdd = (date: Date): string => {
-  if (!isValid(date)) return '';
-  return `${date.getFullYear()}-${(date.getMonth() + 1).toString().padStart(2, '0')}-${date.getDate().toString().padStart(2, '0')}`
 export const dateTo_yyyyMMdd = (date: Date): string => {
   if (!isValid(date)) return '';
   return `${date.getFullYear()}-${(date.getMonth() + 1).toString().padStart(2, '0')}-${date.getDate().toString().padStart(2, '0')}`
@@ -54,63 +41,6 @@ export const dateTo_UTC_MMddyyyy = (date: Date): string => {
   return `${(date.getUTCMonth() + 1).toString().padStart(2, '0')}/${date.getUTCDate().toString().padStart(2, '0')}/${date.getUTCFullYear()}`
 }
 
-/**
-* formats a date into a string using yyyy-MM-dd
-* 
-* @param date 
-* @returns {*} string - date formatted as yyyy-MM-dd  10/26/2024
-*/
-export const dateTo_MMddyyyy = (date: Date): string => {
-  if (!isValid(date)) return '';
-  return `${(date.getMonth() + 1).toString().padStart(2, '0')}/${date.getDate().toString().padStart(2, '0')}/${date.getFullYear()}`
-}
-
-/**
- * returns the end of a day from a date string
- * 
- * @param dateStr - string to convert to end of day
- * @returns {Date | null}
- */
-export const endOfDayFromString = (dateStr: string): Date | null => {
-  if (!isValid(new Date(dateStr))) return null;
-  const tsoMins = new Date().getTimezoneOffset()
-  return addMilliseconds(addDays(addMinutes(new Date(dateStr), tsoMins), 1), -1)
-}
-
-/**
- * returns the day but with now as the time
- * 
- * @param dateStr - string to convert to day at now
- * @returns {Date | null}
- */
-export const nowOnDayFromString = (dateStr: string): Date | null => {
-  if (!isValid(new Date(dateStr))) return null;
-  const tsoMins = new Date().getTimezoneOffset()
-  const dayNow = addMinutes(new Date(dateStr), tsoMins) 
-  const newNow = new Date()
-  dayNow.setHours(newNow.getHours())
-  dayNow.setMinutes(newNow.getMinutes())
-  dayNow.setSeconds(newNow.getSeconds())      
-  return dayNow
-}
-
-/**
- * returns the start of a day from a date string
- * 
- * @param dateStr - string to convert to start of day
- * @returns {Date | null}
- */
-export const startOfDayFromString = (dateStr: string): Date | null => {
-  if (!isValid(new Date(dateStr))) return null;
-  const tsoMins = new Date().getTimezoneOffset()
-  return addMinutes(new Date(dateStr), tsoMins) 
-}
-
-/**
- * returns the start of today in yyyy-MM-dd format
- * 
- * @returns {string} - strat of today in yyyy-MM-dd format
- */
 /**
 * formats a date into a string using yyyy-MM-dd
 * 
@@ -287,20 +217,25 @@ export const twelveHourto24Hour = (time: string): string => {
   }
 }
 
-export const validTime = (time: string): boolean => {
-  // 12 hour: HH:MM AM/PM or 24 hour: HH:MM
-  if (!time || !(time.length === 5 || time.length === 8)) return false;
-  const regex =
-    time.length === 5
-      ? /^(1[0-9]|0?[1-9]|2[0-3]):[0-5][0-9]$/
-      : /^(0[1-9]|1[0-2]):[0-5][0-9]\s(?:AM|PM|am|pm)$/;
-  return regex.test(time);
-}
+/**
+ * 
+ * @param {string} time - time string to validate
+ * @returns {boolean} - true if time is a valid time
+ */
+// export const validTime = (time: string): boolean => {
+//   // 12 hour: HH:MM AM/PM or 24 hour: HH:MM
+//   if (!time || !(time.length === 5 || time.length === 8)) return false;
+//   const regex =
+//     time.length === 5
+//       ? /^(1[0-9]|0?[0-9]|2[0-3]):[0-5][0-9]$/
+//       : /^(0[0-9]|1[0-2]):[0-5][0-9]\s(?:AM|PM|am|pm)$/;
+//   return regex.test(time);
+// }
 
 /**
  * gets the hours from a 24 hour time string HH:MM
  * 
- * @param time valid 24 hour time => HH:MM
+ * @param {string} time valid 24 hour time => HH:MM
  * @return {*} number - 0 to 23 for the hour 
  */
 export const getHoursFromTime = (time: string): number => {

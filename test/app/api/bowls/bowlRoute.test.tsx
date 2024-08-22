@@ -34,10 +34,11 @@ describe('Bowls - API: /api/bowls', () => {
     bowl_name: "Earl Anthony's Dublin Bowl",
     city: "Dublin",
     state: "CA",
-    url: "https://www.earlanthonysdublinbowl.com/",
+    url: "https://www.earlanthonysdublinbowl.com",
   }
 
-  const notfoundId = "bwl_01234567890123456789012345678901";
+  const notFoundId = "bwl_01234567890123456789012345678901";
+  const notfoundUserId = "usr_01234567890123456789012345678901";
   const nonBowlId = "tmt_01234567890123456789012345678901";
 
   const bowl2Id = "bwl_8b4a5c35ad1247049532ff53a12def0a"
@@ -69,6 +70,7 @@ describe('Bowls - API: /api/bowls', () => {
       // 4 rows in prisma/seed.ts 
       expect(response.data.bowls).toHaveLength(4);
     })
+
   })
 
   describe('POST', () => { 
@@ -79,7 +81,7 @@ describe('Bowls - API: /api/bowls', () => {
       bowl_name: testBowlName,
       city: "Somehwere",
       state: "CA",
-      url: "https://www.google.com/",
+      url: "https://www.google.com",
     }
 
     let createdBowlId = ""
@@ -133,7 +135,24 @@ describe('Bowls - API: /api/bowls', () => {
       expect(postedBowl.url).toBe(bowlToPost.url);
       expect(isValidBtDbId(postedBowl.id, 'bwl')).toBeTruthy();
     })
-    it('should not create a new bowl with missing bowl name', async () => { 
+    it('should create a new bowl with provided bowl_id', async () => {
+      const supIdBowl = {
+        ...bowlToPost,
+        id: postSecret + notFoundId,
+      }
+      const bowlJSON = JSON.stringify(supIdBowl);
+      const response = await axios({
+        method: "post",
+        data: bowlJSON,
+        withCredentials: true,
+        url: url
+      });
+      expect(response.status).toBe(201);
+      const postedBowl = response.data.bowl;
+      createdBowlId = postedBowl.id;
+      expect(postedBowl.id).toEqual(notFoundId);
+    })
+    it('should not create a new bowl with missing bowl name', async () => {
       const invalidBowl = {
         ...bowlToPost,
         bowl_name: "",
@@ -152,10 +171,10 @@ describe('Bowls - API: /api/bowls', () => {
           expect(err.response?.status).toBe(422);
         } else {
           expect(true).toBeFalsy();
-        }        
+        }
       }
     })
-    it('should not create a new bowl with missing city', async () => { 
+    it('should not create a new bowl with missing city', async () => {
       const invalidBowl = {
         ...bowlToPost,
         city: "",
@@ -174,10 +193,10 @@ describe('Bowls - API: /api/bowls', () => {
           expect(err.response?.status).toBe(422);
         } else {
           expect(true).toBeFalsy();
-        }        
+        }
       }
     })
-    it('should not create a new bowl with missing state', async () => { 
+    it('should not create a new bowl with missing state', async () => {
       const invalidBowl = {
         ...bowlToPost,
         state: "",
@@ -196,10 +215,10 @@ describe('Bowls - API: /api/bowls', () => {
           expect(err.response?.status).toBe(422);
         } else {
           expect(true).toBeFalsy();
-        }        
+        }
       }
     })
-    it('should not create a new bowl with missing url', async () => { 
+    it('should not create a new bowl with missing url', async () => {
       const invalidBowl = {
         ...bowlToPost,
         url: "",
@@ -218,22 +237,22 @@ describe('Bowls - API: /api/bowls', () => {
           expect(err.response?.status).toBe(422);
         } else {
           expect(true).toBeFalsy();
-        }        
+        }
       }
     })
-    it('should create a new bowl with sanitized data', async () => { 
+    it('should create a new bowl with sanitized data', async () => {
       const toSanitizeBowl = {
         ...bowlToPost,
         bowl_name: "  <script>" + bowlToPost.bowl_name + "</script>  ",
         city: "%3Cdiv%3E" + bowlToPost.city + "%3C/div%3E%20%3Cp%3E!%3C/p%3E",
-        state: "***" + bowlToPost.state + " **** ",        
+        state: "***" + bowlToPost.state + " **** ",
       }
       const bowlJSON = JSON.stringify(toSanitizeBowl);
       const response = await axios({
         method: "post",
         data: bowlJSON,
         withCredentials: true,
-        url: url   
+        url: url
       });
       const postedBowl = response.data.bowl;
       createdBowlId = postedBowl.id;
@@ -244,6 +263,7 @@ describe('Bowls - API: /api/bowls', () => {
       expect(postedBowl.url).toBe(bowlToPost.url);
       expect(isValidBtDbId(postedBowl.id, 'bwl')).toBeTruthy();
     })
+
   })
 
   describe('GET by ID - API: API: /api/bowls/:id', () => { 
@@ -272,7 +292,7 @@ describe('Bowls - API: /api/bowls', () => {
     })
     it('should not get a bowl by ID when ID is valid, but not a bowl ID', async () => { 
       try {
-        const response = await axios.get(url + nonBowlId);
+        const response = await axios.get(url + '/' +nonBowlId);
         expect(response.status).toBe(404);
       } catch (err) {
         if (err instanceof AxiosError) {
@@ -284,7 +304,7 @@ describe('Bowls - API: /api/bowls', () => {
     })
     it('should not get a bowl by ID when ID is not found', async () => { 
       try {
-        const response = await axios.get(url + "/" + notfoundId);
+        const response = await axios.get(url + "/" + notFoundId);
         expect(response.status).toBe(404);
       } catch (err) {
         if (err instanceof AxiosError) {
@@ -304,7 +324,7 @@ describe('Bowls - API: /api/bowls', () => {
       bowl_name: "Updated Bowl Name",
       city: "Updated City",
       state: "US",
-      url: "https://www.updated.com/",
+      url: "https://www.updated.com",
     }
 
     const sampleBowl = {
@@ -316,14 +336,7 @@ describe('Bowls - API: /api/bowls', () => {
       url: "https://www.test.com",
     }
 
-    let bowl2: Bowl;
-
     beforeAll(async () => {
-      // get bowl 2
-      const response = await axios.get(url);
-      const bowls = response.data.bowls;
-      bowl2 = bowls.find((b: Bowl) => b.id === bowl2Id);
-
       // make sure test bowl is reset in database
       const bowlJSON = JSON.stringify(testBowl);
       const putResponse = await axios({
@@ -407,7 +420,7 @@ describe('Bowls - API: /api/bowls', () => {
           method: "put",
           data: bowlJSON,
           withCredentials: true,
-          url: url + "/" + notfoundId,
+          url: url + "/" + notFoundId,
         })
         expect(response.status).toBe(404);
       } catch (err) {
@@ -553,16 +566,9 @@ describe('Bowls - API: /api/bowls', () => {
 
   })
 
-  describe('PATCH by ID - API: API: /api/bowls/:id', () => { 
-
-    let bowl2: Bowl;
+  describe('PATCH by ID - API: API: /api/bowls/:id', () => {     
 
     beforeAll(async () => {
-      // get bowl 2
-      const response = await axios.get(url);
-      const bowls = response.data.bowls;
-      bowl2 = bowls.find((b: Bowl) => b.id === bowl2Id);
-
       // make sure test bowl is reset in database
       const bowlJSON = JSON.stringify(testBowl);
       const putResponse = await axios({
@@ -587,7 +593,7 @@ describe('Bowls - API: /api/bowls', () => {
       }
     })
 
-    it('should patch a bowl name in a bowl by ID', async () => { 
+    it('should patch a bowl name in a bowl by ID', async () => {
       const bowlJSON = JSON.stringify({
         ...testBowl,
         bowl_name: "new name",
@@ -602,7 +608,7 @@ describe('Bowls - API: /api/bowls', () => {
       expect(response.status).toBe(200);
       expect(patchedBowl.bowl_name).toBe("new name");
     })
-    it('should patch a bowl city in a bowl by ID', async () => { 
+    it('should patch a bowl city in a bowl by ID', async () => {
       const bowlJSON = JSON.stringify({
         ...testBowl,
         city: "new city",
@@ -617,7 +623,7 @@ describe('Bowls - API: /api/bowls', () => {
       expect(response.status).toBe(200);
       expect(patchedBowl.city).toBe("new city");
     })
-    it('should patch a bowl state in a bowl by ID', async () => { 
+    it('should patch a bowl state in a bowl by ID', async () => {
       const bowlJSON = JSON.stringify({
         ...testBowl,
         state: "NS",
@@ -632,7 +638,7 @@ describe('Bowls - API: /api/bowls', () => {
       expect(response.status).toBe(200);
       expect(patchedBowl.state).toBe("NS");
     })
-    it('should patch a bowl url in a bowl by ID', async () => { 
+    it('should patch a bowl url in a bowl by ID', async () => {
       const bowlJSON = JSON.stringify({
         ...testBowl,
         url: "http://newurl.com",
@@ -645,9 +651,9 @@ describe('Bowls - API: /api/bowls', () => {
       })
       const patchedBowl = response.data.bowl;
       expect(response.status).toBe(200);
-      expect(patchedBowl.url).toBe("http://newurl.com/");
+      expect(patchedBowl.url).toBe("http://newurl.com");
     })
-    it('should not patch a bowl by ID when ID is invalid', async () => { 
+    it('should not patch a bowl by ID when ID is invalid', async () => {
       try {
         const bowlJSON = JSON.stringify({
           ...testBowl,
@@ -689,7 +695,7 @@ describe('Bowls - API: /api/bowls', () => {
         }
       }
     })
-    it('should not patch a bowl by ID when ID is valid, but not a bowl ID', async () => { 
+    it('should not patch a bowl by ID when ID is valid, but not a bowl ID', async () => {
       try {
         const bowlJSON = JSON.stringify({
           ...testBowl,
@@ -710,7 +716,7 @@ describe('Bowls - API: /api/bowls', () => {
         }
       }
     })
-    it('should not patch a bowl by ID when bowl name is missing', async () => { 
+    it('should not patch a bowl by ID when bowl name is missing', async () => {
       try {
         const bowlJSON = JSON.stringify({
           ...testBowl,
@@ -731,7 +737,7 @@ describe('Bowls - API: /api/bowls', () => {
         }
       }
     })
-    it('should not patch a bowl by ID when city is missing', async () => { 
+    it('should not patch a bowl by ID when city is missing', async () => {
       try {
         const bowlJSON = JSON.stringify({
           ...testBowl,
@@ -750,11 +756,11 @@ describe('Bowls - API: /api/bowls', () => {
         } else {
           expect(true).toBeFalsy();
         }
-      } 
+      }
     })
-    it('should not patch a bowl by ID when state is missing', async () => { 
+    it('should not patch a bowl by ID when state is missing', async () => {
       try {
-        const bowlJSON = JSON.stringify({ 
+        const bowlJSON = JSON.stringify({
           ...testBowl,
           state: "",
         })
@@ -771,11 +777,11 @@ describe('Bowls - API: /api/bowls', () => {
         } else {
           expect(true).toBeFalsy();
         }
-      } 
+      }
     })
-    it('should not patch a bowl by ID when url is missing', async () => { 
+    it('should not patch a bowl by ID when url is missing', async () => {
       try {
-        const bowlJSON = JSON.stringify({ 
+        const bowlJSON = JSON.stringify({
           ...testBowl,
           url: "",
         })
@@ -792,11 +798,11 @@ describe('Bowls - API: /api/bowls', () => {
         } else {
           expect(true).toBeFalsy();
         }
-      } 
+      }
     })
-    it('should not patch a bowl by ID when bowl name is too long', async () => { 
+    it('should not patch a bowl by ID when bowl name is too long', async () => {
       try {
-        const bowlJSON = JSON.stringify({ 
+        const bowlJSON = JSON.stringify({
           ...testBowl,
           bowl_name: "a".repeat(51),
         })
@@ -813,11 +819,11 @@ describe('Bowls - API: /api/bowls', () => {
         } else {
           expect(true).toBeFalsy();
         }
-      } 
+      }
     })
-    it('should not patch a bowl by ID when city is too long', async () => { 
+    it('should not patch a bowl by ID when city is too long', async () => {
       try {
-        const bowlJSON = JSON.stringify({ 
+        const bowlJSON = JSON.stringify({
           ...testBowl,
           city: "a".repeat(51),
         })
@@ -834,11 +840,11 @@ describe('Bowls - API: /api/bowls', () => {
         } else {
           expect(true).toBeFalsy();
         }
-      } 
+      }
     })
-    it('should not patch a bowl by ID when state is too long', async () => {  
+    it('should not patch a bowl by ID when state is too long', async () => {
       try {
-        const bowlJSON = JSON.stringify({ 
+        const bowlJSON = JSON.stringify({
           ...testBowl,
           state: "a".repeat(51),
         })
@@ -855,11 +861,11 @@ describe('Bowls - API: /api/bowls', () => {
         } else {
           expect(true).toBeFalsy();
         }
-      } 
+      }
     })
-    it('should not patch a bowl by ID when url is too long', async () => { 
+    it('should not patch a bowl by ID when url is too long', async () => {
       try {
-        const bowlJSON = JSON.stringify({ 
+        const bowlJSON = JSON.stringify({
           ...testBowl,
           url: "a".repeat(2500),
         })
@@ -938,6 +944,7 @@ describe('Bowls - API: /api/bowls', () => {
       expect(response.status).toBe(200);
       expect(patchedBowl.url).toBe("http://example.com/%3Cscript%3Ealert('XSS')%3C/script%3E");
     })
+    
   })
 
   describe('DELETE by ID - API: API: /api/bowls/:id', () => { 
@@ -971,15 +978,15 @@ describe('Bowls - API: /api/bowls', () => {
           data: bowlJSON,
           withCredentials: true,
           url: url,
-        });  
+        });
         console.log('response.status: ', response.status)
       } catch (err) {
         if (err instanceof Error) console.log(err.message);
       }
     })
 
-    it('should delete a bowl by ID', async () => { 
-      try { 
+    it('should delete a bowl by ID', async () => {
+      try {
         const response = await axios({
           method: "delete",
           withCredentials: true,
@@ -995,7 +1002,7 @@ describe('Bowls - API: /api/bowls', () => {
         }
       }
     })
-    it('should not delete a bowl by ID when ID is invalid', async () => { 
+    it('should not delete a bowl by ID when ID is invalid', async () => {
       try {
         const response = await axios({
           method: "delete",
@@ -1011,7 +1018,7 @@ describe('Bowls - API: /api/bowls', () => {
         }
       }
     })
-    it('should not delete a bowl by ID when ID is valid, but not a bowl ID', async () => { 
+    it('should not delete a bowl by ID when ID is valid, but not a bowl ID', async () => {
       try {
         const response = await axios({
           method: "delete",
@@ -1027,12 +1034,12 @@ describe('Bowls - API: /api/bowls', () => {
         }
       }
     })
-    it('should not delete a bowl by ID when ID is not found', async () => { 
+    it('should not delete a bowl by ID when ID is not found', async () => {
       try {
         const response = await axios({
           method: "delete",
           withCredentials: true,
-          url: url + "/" + notfoundId,
+          url: url + "/" + notFoundId,
         })
         expect(response.status).toBe(404);
       } catch (err) {
@@ -1043,7 +1050,7 @@ describe('Bowls - API: /api/bowls', () => {
         }
       }
     })
-    it('should not delete a bowl by ID when bowl has child rows', async () => { 
+    it('should not delete a bowl by ID when bowl has child rows', async () => {
       try {
         const response = await axios({
           method: "delete",
@@ -1059,6 +1066,7 @@ describe('Bowls - API: /api/bowls', () => {
         }
       }
     })
+    
   })
 
 })

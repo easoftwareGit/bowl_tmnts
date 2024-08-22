@@ -30,7 +30,8 @@ export async function POST(request: Request) {
       password,
     }
     
-    const errCode = validateUser(toCheck, true, true);
+    const toPost = sanitizeUser(toCheck);
+    const errCode = validateUser(toPost, true, true);
     if (errCode !== ErrorCode.None) {
       let errMsg: string;
       switch (errCode) {
@@ -67,8 +68,6 @@ export async function POST(request: Request) {
         { status: 409 }
       );
     }
-
-    const toPost = sanitizeUser(toCheck);
     
     const saltRoundsStr: any = process.env.SALT_ROUNDS;
     const saltRounds = parseInt(saltRoundsStr);

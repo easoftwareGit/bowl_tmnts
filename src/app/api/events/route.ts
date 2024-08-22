@@ -4,7 +4,6 @@ import { validateEvent, sanitizeEvent } from "@/app/api/events/validate";
 import { ErrorCode, validPostId } from "@/lib/validation";
 import { eventType } from "@/lib/types/types";
 import { initEvent } from "@/db/initVals";
-import { findTmntById } from "@/lib/db/tmnts";
 
 // routes /api/events
 
@@ -54,7 +53,8 @@ export async function POST(request: Request) {
       sort_order,
     }
 
-    const errCode = validateEvent(toCheck);
+    const toPost = sanitizeEvent(toCheck);
+    const errCode = validateEvent(toPost);
     if (errCode !== ErrorCode.None) {
       let errMsg: string;
       switch (errCode) {
@@ -84,14 +84,7 @@ export async function POST(request: Request) {
         );
       }
     }    
-    
-    // find parent. findTmntById sanitizes tmnt_id before using it
-    const parent = await findTmntById(toCheck.tmnt_id);
-    if (!parent) {
-      return NextResponse.json({ error: "not found" }, { status: 404 });
-    }
-
-    const toPost = sanitizeEvent(toCheck);
+        
     // NO lpox in eventDataType
     type eventDataType = {
       tmnt_id: string,
@@ -136,10 +129,10 @@ export async function POST(request: Request) {
     let errStatus: number
     switch (err.code) {
       case 'P2002': // Unique constraint
-        errStatus = 422 
+        errStatus = 404 
         break;
-      case 'P2003': // Foreign key constraint
-        errStatus = 422
+      case 'P2003': // parent not found
+        errStatus = 404
         break;    
       default:
         errStatus = 500

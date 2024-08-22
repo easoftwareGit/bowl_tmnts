@@ -5,6 +5,7 @@ import {
   validSortOrder,
   minGames,
   maxGames,
+  isNumber,
 } from "@/lib/validation";
 import { sanitizeCurrency } from "@/lib/sanitize";
 import { validMoney } from "@/lib/currency/validate";
@@ -38,11 +39,11 @@ const gotElimData = (elim: elimType): ErrorCode => {
 };
 
 export const validStart = (start: number): boolean => {
-  if (!start) return false;
+  if (typeof start !== 'number') return false
   return Number.isInteger(start) && start >= minGames && start <= maxGames;
 };
 export const validGames = (games: number): boolean => {
-  if (!games) return false;
+  if (typeof games !== 'number') return false
   return (
     Number.isInteger(games) &&
     games >= minGames &&
@@ -109,24 +110,29 @@ const validElimData = (elim: elimType): ErrorCode => {
  */
 export const sanitizeElim = (elim: elimType): elimType => {
   if (!elim) return null as any;
-  const sanitizedElim = { ...initElim };
+  const sanitizedElim = {
+    ...initElim,
+    start: null as any,
+    games: null as any,
+    sort_order: null as any,
+  };
   if (validElimFkId(elim.div_id, "div")) {
     sanitizedElim.div_id = elim.div_id;
   }
   if (validElimFkId(elim.squad_id, "sqd")) {
     sanitizedElim.squad_id = elim.squad_id;
   }
-  if (validStart(elim.start)) {
+  if ((elim.start === null) || isNumber(elim.start)) {
     sanitizedElim.start = elim.start;
   }
-  if (validGames(elim.games)) {
+  if ((elim.games === null) || isNumber(elim.games)) {
     sanitizedElim.games = elim.games;
   }
   // sanitizeCurrency removes trailing zeros
   if (validElimMoney(elim.fee)) {
     sanitizedElim.fee = sanitizeCurrency(elim.fee);
   }
-  if (validSortOrder(elim.sort_order)) {
+  if ((elim.sort_order === null) || isNumber(elim.sort_order)) {
     sanitizedElim.sort_order = elim.sort_order;
   }
   return sanitizedElim;

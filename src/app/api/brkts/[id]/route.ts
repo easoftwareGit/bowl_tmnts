@@ -74,7 +74,8 @@ export async function PUT(
       sort_order,
     };
 
-    const errCode = validateBrkt(toCheck);
+    const toPut = sanitizeBrkt(toCheck);
+    const errCode = validateBrkt(toPut);
     if (errCode !== ErrorCode.None) {
       let errMsg: string;
       switch (errCode) {
@@ -91,15 +92,14 @@ export async function PUT(
       return NextResponse.json({ error: errMsg }, { status: 422 });
     }
 
-    const toPut = sanitizeBrkt(toCheck);
     // NO fsa in data object
     const putBrkt = await prisma.brkt.update({
       where: {
         id: id,
       },
       data: {
-        div_id: toPut.div_id,
-        squad_id: toPut.squad_id,
+        // div_id: toPut.div_id, // do not update div_id
+        // squad_id: toPut.squad_id, // do not update squad_id
         fee: toPut.fee,
         start: toPut.start,
         games: toPut.games,
@@ -122,7 +122,7 @@ export async function PUT(
       case "P2002": // unique constraint
         errStatus = 422;
         break;
-      case "P2003": // foreign key constraint
+      case "P2003": // parent not found
         errStatus = 422;
         break;
       case "P2025": // record not found
@@ -204,7 +204,8 @@ export async function PATCH(
       toCheck.sort_order = json.sort_order;
     }
 
-    const errCode = validateBrkt(toCheck);
+    const toBePatched = sanitizeBrkt(toCheck);
+    const errCode = validateBrkt(toBePatched);
     if (errCode !== ErrorCode.None) {
       let errMsg: string;
       switch (errCode) {
@@ -217,8 +218,7 @@ export async function PATCH(
       }
       return NextResponse.json({ error: errMsg }, { status: 422 });
     }
-
-    const toBePatched = sanitizeBrkt(toCheck);
+    
     const toPatch = {
       ...initBrkt,
       div_id: "",
@@ -270,8 +270,8 @@ export async function PATCH(
       },
       // remove data if not sent
       data: {
-        div_id: toPatch.div_id || undefined,
-        squad_id: toPatch.squad_id || undefined,
+        // div_id: toPatch.div_id || undefined, // do not patch div_id
+        // squad_id: toPatch.squad_id || undefined, // do not patch squad_id
         fee: toPatch.fee || undefined,
         start: toPatch.start || undefined,
         games: toPatch.games || undefined,

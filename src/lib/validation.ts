@@ -1,5 +1,4 @@
 import { postSecret } from "./tools";
-import { testPostSecret } from "../../test/testApi";
 import { idTypes } from "./types/types";
 
 export const maxFirstNameLength = 15;
@@ -158,20 +157,19 @@ export const validYear = (year: string): boolean => {
 };
 
 /**
- * checks if a time is valid = HH:MM AM/PM for 12 hour, HH:MM for 24 hour
- *
- * @param time
- * @returns {*}  {boolean} - true if time is a valid time
+ * 
+ * @param {string} time - time string to validate
+ * @returns {boolean} - true if time is a valid time
  */
 export const validTime = (time: string): boolean => {
   // 12 hour: HH:MM AM/PM or 24 hour: HH:MM
   if (!time || !(time.length === 5 || time.length === 8)) return false;
   const regex =
     time.length === 5
-      ? /^([01]\d|2[0-3]):[0-5]\d/
-      : /(0[1-9]|1[0-2]):[0-5]\d (AM|PM)/;
+      ? /^(1[0-9]|0?[0-9]|2[0-3]):[0-5][0-9]$/
+      : /^(0[0-9]|1[0-2]):[0-5][0-9]\s(?:AM|PM|am|pm)$/;
   return regex.test(time);
-};
+}
 
 /**
  * checks if a numeber is odd
@@ -191,6 +189,16 @@ export const isOdd = (num: number): boolean => {
  */
 export const isEven = (num: number): boolean => {
   return !isOdd(num);
+}
+
+/**
+ * checks to see if value is a number
+ * 
+ * @param value - value to test
+ * @returns {boolean} - true if value is a number
+ */
+export const isNumber = (value: any): boolean => { 
+  return typeof value === 'number' && isFinite(value);
 }
 
 /**

@@ -1,13 +1,14 @@
-import { nextPostSecret } from "@/lib/tools";
+import { postSecret } from "@/lib/tools";
 import {
   isEmail,
   isPassword8to20,
   isValidBtDbId,
-  validYear,
+  validYear,  
   validTime,
   isValidBtDbType,
   isOdd,
   isEven,
+  isNumber,
   validPostId,
   validSortOrder,
   maxSortOrder,
@@ -203,23 +204,23 @@ describe("tests for validation functions", () => {
 
   describe("validPostId function", () => {
     const testUserId = "usr_1234567890abcdef1234567890abcdef";
-    const validPostUserId = nextPostSecret + testUserId;
-    it("should return postId when id starts with nextPostSecret and ends with valid BtDb id", () => {
+    const validPostUserId = postSecret + testUserId;
+    it("should return postId when id starts with postSecret and ends with valid BtDb id", () => {
       expect(validPostId(validPostUserId, "usr")).toBe(testUserId);
     });
     it("should return empty string when id is an empty string", () => {
       expect(validPostId("", "usr")).toBe("");
     });
-    it("should return empty string when id does not start with nextPostSecret", () => {
+    it("should return empty string when id does not start with postSecret", () => {
       const invalidId = "invalidSecret_abc_1234567890abcdef1234567890abcdef";
       expect(validPostId(invalidId, "usr")).toBe("");
     });
-    it("should return empty string when id starts with nextPostSecret but ends with invalid BtDb id", () => {
-      const invalidId = `${nextPostSecret}abc_invalidid`;
+    it("should return empty string when id starts with postSecret but ends with invalid BtDb id", () => {
+      const invalidId = `${postSecret}abc_invalidid`;
       expect(validPostId(invalidId, "usr")).toBe("");
     });
-    it("should return empty string when id starts with nextPostSecret but idType not in postId", () => {
-      const invalidId = `${nextPostSecret}abc_1234567890abcdef1234567890abcdef`;
+    it("should return empty string when id starts with postSecret but idType not in postId", () => {
+      const invalidId = `${postSecret}abc_1234567890abcdef1234567890abcdef`;
       expect(validPostId(invalidId, "usr")).toBe("");
     });
     it("should return empty string when id is blank", () => {
@@ -288,6 +289,11 @@ describe("tests for validation functions", () => {
       expect(validTime("00:00")).toBe(true);
       expect(validTime("23:59")).toBe(true);
     });
+    it("should return true for midnight", () => { 
+      expect(validTime("00:00")).toBe(true);
+      expect(validTime("24:00")).toBe(false);
+      expect(validTime("12:00 AM")).toBe(true);
+    })
     it("should return false for invalid time format (24:00)", () => {
       expect(validTime("24:00")).toBe(false);
     });
@@ -295,9 +301,9 @@ describe("tests for validation functions", () => {
       expect(validTime("13:30 AM")).toBe(false);
       expect(validTime("13:30 PM")).toBe(false);
     });
-    it("should return false for invalid time format (10:30 am/pm)", () => {
-      expect(validTime("10:30 am")).toBe(false);
-      expect(validTime("10:30 pm")).toBe(false);
+    it("should return true for lowercase time format (10:30 am/pm)", () => {
+      expect(validTime("10:30 am")).toBe(true);
+      expect(validTime("10:30 pm")).toBe(true);
     });
     it("should return false for invalid time format (08:60 AM)", () => {
       expect(validTime("08:60 AM")).toBe(false);
@@ -346,6 +352,70 @@ describe("tests for validation functions", () => {
     });
   });
 
+  describe('isNumber', () => {
+
+    // returns true for integer values
+    it('should return true when the value is an integer', () => {
+      const result = isNumber(42);
+      expect(result).toBe(true);
+    });
+  
+    // return true for 0
+    it('should return true for 0', () => {
+      const result = isNumber(0);
+      expect(result).toBe(true);
+    });
+  
+    // returns false for Infinity
+    it('should return false when the value is Infinity', () => {
+      const result = isNumber(Infinity);
+      expect(result).toBe(false);
+    });
+  
+    // returns false for -Infinity
+    it('should return false for -Infinity', () => {
+      const result = isNumber(-Infinity);
+      expect(result).toBe(false);
+    });
+  
+    // returns false for string values
+    it('should return false when the value is a string', () => {
+      const result = isNumber('42');
+      expect(result).toBe(false);
+    });
+  
+    // returns true for floating-point values
+    it('should return true for floating-point values', () => {
+      const result = isNumber(3.14);
+      expect(result).toBe(true);
+    });
+  
+    // returns false for boolean values
+    it('should return false for boolean values', () => {
+      const result = isNumber(true);
+      expect(result).toBe(false);
+    });
+  
+    // returns false for null values
+    it('should return false for null values', () => {
+      const result = isNumber(null);
+      expect(result).toBe(false);
+    });
+  
+    // returns false for undefined values
+    it('should return false for undefined values', () => {
+      const result = isNumber(undefined);
+      expect(result).toBe(false);
+    });
+  
+    // returns false for NaN
+    it('should return false for NaN', () => {
+      const result = isNumber(NaN);
+      expect(result).toBe(false);
+    });
+  
+  });
+ 
   describe("validSortOrder function", () => {
     it("should return true for valid sort order", () => {
       expect(validSortOrder(initEvent.sort_order)).toBe(true);

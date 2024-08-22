@@ -36,6 +36,7 @@ export async function POST(request: Request) {
       games,
       sort_order,
     } = await request.json();
+    
     const toCheck: elimType = {
       ...initElim,
       div_id,
@@ -46,7 +47,8 @@ export async function POST(request: Request) {
       sort_order,
     };
 
-    const errCode = validateElim(toCheck);
+    const toPost = sanitizeElim(toCheck);
+    const errCode = validateElim(toPost);
     if (errCode !== ErrorCode.None) {
       let errMsg: string;
       switch (errCode) {
@@ -70,8 +72,7 @@ export async function POST(request: Request) {
         return NextResponse.json({ error: "invalid data" }, { status: 422 });
       }
     }
-
-    const toPost = sanitizeElim(toCheck);
+    
     type elimDataType = {
       div_id: string;
       squad_id: string;
@@ -82,7 +83,7 @@ export async function POST(request: Request) {
       id?: string;
     };
     let elimData: elimDataType = {
-      div_id: toPost.div_id,
+      div_id: toPost.div_id, 
       squad_id: toPost.squad_id,
       fee: toPost.fee,
       start: toPost.start,

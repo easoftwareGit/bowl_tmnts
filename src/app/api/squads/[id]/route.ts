@@ -63,11 +63,6 @@ export async function PUT(
       sort_order,
     };
 
-    const currentSquad = await findSquadById(id);
-    if (!currentSquad) {
-      return NextResponse.json({ error: "not found" }, { status: 404 });
-    }
-
     const errCode = validateSquad(toCheck);
     if (errCode !== ErrorCode.None) {
       let errMsg: string;
@@ -91,7 +86,7 @@ export async function PUT(
         id: id,
       },
       data: {
-        event_id: toPut.event_id,
+        // event_id: toPut.event_id, // do not update event_id
         squad_name: toPut.squad_name,
         games: toPut.games,
         starting_lane: toPut.starting_lane,
@@ -240,7 +235,7 @@ export async function PATCH(
         id: id,
       },
       data: {
-        event_id: toPatch.event_id || undefined,
+        // event_id: toPatch.event_id || undefined, // do not patch event_id
         squad_name: toPatch.squad_name || undefined,
         games: toPatch.games || undefined,
         starting_lane: toPatch.starting_lane || undefined,

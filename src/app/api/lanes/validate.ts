@@ -2,7 +2,8 @@ import {
   isValidBtDbId,
   minLane,
   maxLaneCount,
-  ErrorCode,    
+  ErrorCode,
+  isNumber,    
 } from "@/lib/validation";
 import { idTypes, laneType } from "@/lib/types/types";
 import { initLane } from "@/db/initVals";
@@ -78,11 +79,14 @@ const validLaneData = (lane: laneType): ErrorCode => {
  */
 export const sanitizeLane = (lane: laneType): laneType => { 
   if (!lane) return null as any
-  const sanitizedLane = { ...initLane }  
+  const sanitizedLane = {
+    ...initLane,
+    lane_number: null as any
+  }  
   if (validEventFkId(lane.squad_id, 'sqd')) {
     sanitizedLane.squad_id = lane.squad_id
   }
-  if (validLaneNumber(lane.lane_number)) {
+  if ((lane.lane_number === null) || isNumber(lane.lane_number)) {
     sanitizedLane.lane_number = lane.lane_number
   }
   return sanitizedLane    

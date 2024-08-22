@@ -39,7 +39,8 @@ export async function POST(request: Request) {
       sort_order
     }
 
-    const errCode = validatePot(toCheck);
+    const toPost = sanitizePot(toCheck);
+    const errCode = validatePot(toPost);
     if (errCode !== ErrorCode.None) {
       let errMsg: string;
       switch (errCode) {
@@ -69,8 +70,7 @@ export async function POST(request: Request) {
         );
       }
     }
-
-    const toPost = sanitizePot(toCheck);
+    
     type potDataType = {
       div_id: string
       squad_id: string

@@ -11,3 +11,15 @@ export const baseTmntsApi = baseApi + '/tmnts/'
 export const baseTmntsYearsApi = baseApi + '/tmnts/years/'
 
 export const baseEventsApi = baseApi + '/events'
+
+export const baseDivsApi = baseApi + '/divs'
+
+export const baseSquadsApi = baseApi + '/squads'
+
+export const baseLanesApi = baseApi + '/laness'
+
+export const basePotsApi = baseApi + '/pots'
+
+export const baseBrktsApi = baseApi + '/brkts'
+
+export const baseElimsApi = baseApi + '/elims'

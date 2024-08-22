@@ -9,7 +9,7 @@ import {
 import { initPot } from "@/db/initVals";
 import { PotCategories, potType } from "@/lib/types/types";
 import { ErrorCode, validPostId } from "@/lib/validation";
-import { nextPostSecret } from "@/lib/tools";
+import { postSecret } from "@/lib/tools";
 
 const { gotPotData, validPotData } = exportedForTesting;
 
@@ -230,21 +230,53 @@ describe("tests for pot validation", () => {
       expect(sanitizedPot.sort_order).toEqual(testPot.sort_order)
     })
     it('should return sanitized pot when pot is not already sanitized', () => {
+      // no numerical fields
       const testPot = {
         ...initPot,
         div_id: "abc_123",
         squad_id: "usr_12345678901234567890123456789012",
         pot_type: "test" as any, 
-        fee: "1234567890",
-        sort_order: -1
+        fee: "1234567890",        
       }
       const sanitizedPot = sanitizePot(testPot)
       expect(sanitizedPot.div_id).toEqual('')
       expect(sanitizedPot.squad_id).toEqual('')
       expect(sanitizedPot.pot_type).toEqual('')
-      expect(sanitizedPot.fee).toEqual('')
-      expect(sanitizedPot.sort_order).toEqual(1)
+      expect(sanitizedPot.fee).toEqual('')      
     })
+    it('should return sanitized pot when pot numerical values are null', () => {
+      const testPot = {
+        ...initPot,
+        sort_order: null as any
+      }
+      const sanitizedPot = sanitizePot(testPot)
+      expect(sanitizedPot.sort_order).toBeNull()
+    })
+    it('should return sanitized pot when pot numerical values are nit numbers', () => {
+      const testPot = {
+        ...initPot,
+        sort_order: 'abc' as any
+      }
+      const sanitizedPot = sanitizePot(testPot)
+      expect(sanitizedPot.sort_order).toBeNull()
+    })
+    it('should return sanitized pot when pot numerical values are to low', () => {
+      const testPot = {
+        ...initPot,
+        sort_order: 0
+      }
+      const sanitizedPot = sanitizePot(testPot)
+      expect(sanitizedPot.sort_order).toBe(0)
+    })
+    it('should return sanitized pot when pot numerical values are too high', () => {
+      const testPot = {
+        ...initPot,
+        sort_order: 1234567
+      }
+      const sanitizedPot = sanitizePot(testPot)
+      expect(sanitizedPot.sort_order).toBe(1234567)
+    })
+
     it("should return null when passed null event", () => {
       const result = sanitizePot(null as any);
       expect(result).toBe(null);
@@ -351,23 +383,23 @@ describe("tests for pot validation", () => {
   describe("validPostId function", () => {
     const testPotId = "pot_cb97b73cb538418ab993fc867f860510";
     it("should return testPotId when id starts with post Secret and follows with a valid pot id", () => {
-      const validId = nextPostSecret + testPotId;
+      const validId = postSecret + testPotId;
       expect(validPostId(validId, "pot")).toBe(testPotId);
     });
     it('should return "" when id starts with postSecret but does idType does not match idtype in postId', () => {
-      const invalidId = nextPostSecret + testPotId;
+      const invalidId = postSecret + testPotId;
       expect(validPostId(invalidId, "usr")).toBe("");
     });
     it('should return "" when id starts with postSecret but does idType is invalid', () => {
-      const invalidId = nextPostSecret + testPotId;
+      const invalidId = postSecret + testPotId;
       expect(validPostId(invalidId, "123" as any)).toBe("");
     });
     it('should return "" when id starts with postSecret but does not follow with valid BtDb idType', () => {
-      const invalidId = nextPostSecret + "abc_a1b2c3d4e5f678901234567890abcdef";
+      const invalidId = postSecret + "abc_a1b2c3d4e5f678901234567890abcdef";
       expect(validPostId(invalidId, "pot")).toBe("");
     });
     it('should return "" when id starts with postSecret but does not follow with a valid BtDb id', () => {
-      const invalidId = nextPostSecret + "evt_invalidid";
+      const invalidId = postSecret + "evt_invalidid";
       expect(validPostId(invalidId, "pot")).toBe("");
     });
     it('should return "" when id does not start with postSecret', () => {

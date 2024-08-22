@@ -30,12 +30,13 @@ export async function POST(request: NextRequest) {
 
     const toCheck: bowlType = {
       ...initBowl,
-      bowl_name,
+      bowl_name,      
       city,
       state,
       url
     }
-    const errCode = validateBowl(toCheck);
+    const toPost = sanitizeBowl(toCheck);
+    const errCode = validateBowl(toPost);
     if (errCode !== ErrorCode.None) {
       let errMsg: string;
       switch (errCode) {
@@ -67,8 +68,7 @@ export async function POST(request: NextRequest) {
         );
       }
     }    
-
-    const toPost = sanitizeBowl(toCheck);
+    
     type bowlDataType = {
       bowl_name: string
       city: string
@@ -93,8 +93,8 @@ export async function POST(request: NextRequest) {
   } catch (error: any) {
     let errStatus: number
     switch (error.code) {
-      case 'P2003':
-        errStatus = 422
+      case 'P2003': // parent row not found
+        errStatus = 404
         break;    
       default:
         errStatus = 500

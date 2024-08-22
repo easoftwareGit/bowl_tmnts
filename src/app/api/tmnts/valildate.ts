@@ -1,7 +1,6 @@
 import { isValidBtDbId, maxTmntNameLength, ErrorCode, minDate, maxDate } from "@/lib/validation";
-import { isValidBtDbId, maxTmntNameLength, ErrorCode, minDate, maxDate } from "@/lib/validation";
 import { sanitize } from "@/lib/sanitize";
-import { startOfDay, isValid, isDate, compareAsc } from "date-fns";
+import { isValid, compareAsc } from "date-fns";
 import { idTypes, tmntType } from "@/lib/types/types";
 import { initTmnt } from "@/db/initVals";
 import { validFullDateISOString } from "@/lib/dateTools";
@@ -17,12 +16,8 @@ const gotTmntData = (tmnt: tmntType): ErrorCode => {
     if (!sanitize(tmnt.tmnt_name)
       || (!tmnt.start_date) 
       || (!tmnt.end_date)  
-<<<<<<< HEAD
       || !tmnt.bowl_id
       || !tmnt.user_id) {
-=======
-      || !tmnt.bowl_id) {
->>>>>>> ecbb8764917da5b0e197e387964af4de39784be2
       return ErrorCode.MissingData
     }
     return ErrorCode.None    
@@ -130,36 +125,30 @@ const validTmntData = (tmnt: tmntType): ErrorCode => {
  */
 export const sanitizeTmnt = (tmnt: tmntType): tmntType => { 
   const sanditizedTmnt: tmntType = {
-    ...initTmnt,    
+    ...initTmnt,  
+    start_date: null as any,
+    end_date: null as any
   }  
   sanditizedTmnt.tmnt_name = sanitize(tmnt.tmnt_name)
 
   if (typeof tmnt.start_date === 'string') {
     if (validFullDateISOString(tmnt.start_date)) {    
       sanditizedTmnt.start_date = new Date(tmnt.start_date)
-    } else {
-      sanditizedTmnt.start_date = null as any
-    }
+    } 
   } else {
     if (isValid(tmnt.start_date)) {
       sanditizedTmnt.start_date = tmnt.start_date
-    } else {
-      sanditizedTmnt.start_date = null as any
-    }
+    } 
   }
 
   if (typeof tmnt.end_date === 'string') {
     if (validFullDateISOString(tmnt.end_date)) {    
       sanditizedTmnt.end_date = new Date(tmnt.end_date)
-    } else {
-      sanditizedTmnt.end_date = null as any
-    }
+    } 
   } else {
     if (isValid(tmnt.end_date)) {
       sanditizedTmnt.end_date = tmnt.end_date
-    } else {
-      sanditizedTmnt.end_date = null as any
-    }
+    } 
   }
   
   if (isValidBtDbId(tmnt.bowl_id, 'bwl')) {    

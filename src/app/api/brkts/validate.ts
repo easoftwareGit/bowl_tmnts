@@ -5,6 +5,7 @@ import {
   validSortOrder,
   minGames,
   maxGames,
+  isNumber,
 } from "@/lib/validation";
 import { sanitizeCurrency } from "@/lib/sanitize";
 import { validMoney } from "@/lib/currency/validate";
@@ -23,7 +24,6 @@ const gotBrktData = (brkt: brktType): ErrorCode => {
     if (
       !brkt.div_id ||
       !brkt.squad_id ||
-      !validMoney(brkt.fee, Number.MIN_SAFE_INTEGER, Number.MAX_SAFE_INTEGER) ||
       typeof brkt.start !== "number" ||
       typeof brkt.games !== "number" ||
       typeof brkt.players !== "number" ||
@@ -55,11 +55,11 @@ const gotBrktData = (brkt: brktType): ErrorCode => {
 };
 
 export const validStart = (start: number): boolean => {
-  if (!start) return false;
+  if (typeof start !== 'number') return false
   return Number.isInteger(start) && start >= minGames && start <= maxGames;
 };
 export const validGames = (games: number): boolean => {
-  if (!games) return false;
+  if (typeof games !== 'number') return false
   return (
     Number.isInteger(games) &&
     games >= defaultBrktGames &&
@@ -67,7 +67,7 @@ export const validGames = (games: number): boolean => {
   );
 };
 export const validPlayers = (players: number): boolean => {
-  if (!players) return false;
+  if (typeof players !== 'number') return false
   return (
     Number.isInteger(players) &&
     players >= defaultBrktPlayers &&
@@ -192,20 +192,26 @@ const validBrktData = (brkt: brktType): ErrorCode => {
  */
 export const sanitizeBrkt = (brkt: brktType): brktType => {
   if (!brkt) return null as any;
-  const sanitizedBrkt = { ...initBrkt };
+  const sanitizedBrkt = {
+    ...initBrkt,
+    start: null as any,
+    games: null as any,
+    players: null as any,
+    sort_order: null as any,
+  };
   if (validBrktFkId(brkt.div_id, "div")) {
     sanitizedBrkt.div_id = brkt.div_id;
   }
   if (validBrktFkId(brkt.squad_id, "sqd")) {
     sanitizedBrkt.squad_id = brkt.squad_id;
   }
-  if (validStart(brkt.start)) {
+  if ((brkt.start === null) || isNumber(brkt.start)) {
     sanitizedBrkt.start = brkt.start;
   }
-  if (validGames(brkt.games)) {
+  if ((brkt.games === null) || isNumber(brkt.games)) {
     sanitizedBrkt.games = brkt.games;
   }
-  if (validPlayers(brkt.players)) {
+  if ((brkt.players === null) || isNumber(brkt.players)) {
     sanitizedBrkt.players = brkt.players;
   }
   // sanitizeCurrency removes trailing zeros
@@ -224,7 +230,7 @@ export const sanitizeBrkt = (brkt: brktType): brktType => {
   if (validBrktMoney(brkt.fsa)) {
     sanitizedBrkt.fsa = sanitizeCurrency(brkt.fsa);
   }
-  if (validSortOrder(brkt.sort_order)) {
+  if ((brkt.sort_order === null) || isNumber(brkt.sort_order)) {
     sanitizedBrkt.sort_order = brkt.sort_order;
   }
   return sanitizedBrkt;

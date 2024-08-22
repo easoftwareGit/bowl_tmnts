@@ -19,6 +19,9 @@ export async function GET(
     const lanes = await prisma.lane.findMany({
       where: {
         squad_id: id
+      },
+      orderBy: {
+        lane_number: 'asc'
       }
     })    
     // no matching rows is ok

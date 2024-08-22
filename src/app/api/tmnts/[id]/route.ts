@@ -1,16 +1,11 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { ErrorCode, isValidBtDbId } from "@/lib/validation";
-import {
-  sanitizeTmnt,
-  validateTmnt,
-  validTmntDates,
-  validTmntFkId,
-  validTmntName,
-} from "@/app/api/tmnts/valildate";
+import { sanitizeTmnt, validateTmnt } from "@/app/api/tmnts/valildate";
 import { tmntType } from "@/lib/types/types";
 import { initTmnt } from "@/db/initVals";
 import { findTmntById } from "@/lib/db/tmnts";
+import { findBowlById } from "@/lib/db/bowls";
 
 // routes /api/tmnts/:id
 
@@ -59,7 +54,8 @@ export async function PUT(
       bowl_id,
     };
 
-    const errCode = validateTmnt(toCheck);
+    const toPut: tmntType = sanitizeTmnt(toCheck);
+    const errCode = validateTmnt(toPut);
     if (errCode !== ErrorCode.None) {
       let errMsg: string;
       switch (errCode) {
@@ -75,8 +71,7 @@ export async function PUT(
       }
       return NextResponse.json({ error: errMsg }, { status: 422 });
     }
-
-    const toPut: tmntType = sanitizeTmnt(toCheck);
+    
     const tmnt = await prisma.tmnt.update({
       where: {
         id: id,
@@ -85,7 +80,7 @@ export async function PUT(
         tmnt_name: toPut.tmnt_name,
         start_date: toPut.start_date,
         end_date: toPut.end_date,
-        user_id: toPut.user_id,
+        // user_id: toPut.user_id, // not allowed to update user_id
         bowl_id: toPut.bowl_id,
       },
     });
@@ -93,7 +88,10 @@ export async function PUT(
   } catch (error: any) {
     let errStatus: number;
     switch (error.code) {
-      case "P2025":
+      case "P2003":   // parent not found
+        errStatus = 404;
+        break;
+      case "P2025":   // record not found
         errStatus = 404;
         break;
       default:
@@ -144,14 +142,15 @@ export async function PATCH(
     if (jsonProps.includes("end_date")) {
       toCheck.end_date = json.end_date;
     }
-    if (jsonProps.includes("bowl_id")) {
+    if (jsonProps.includes("bowl_id")) {      
       toCheck.bowl_id = json.bowl_id;
     }
     if (jsonProps.includes("user_id")) {
       toCheck.user_id = json.user_id;
     }
 
-    const errCode = validateTmnt(toCheck);
+    const toBePatched = sanitizeTmnt(toCheck);
+    const errCode = validateTmnt(toBePatched);
     if (errCode !== ErrorCode.None) {
       let errMsg: string;
       switch (errCode as ErrorCode) {
@@ -166,9 +165,8 @@ export async function PATCH(
           break;
       }
       return NextResponse.json({ error: errMsg }, { status: 422 });
-    }
-
-    const toBePatched = sanitizeTmnt(toCheck);
+    } 
+    
     const toPatch = {
       tmnt_name: "",
       start_date: null as Date | null,
@@ -206,17 +204,17 @@ export async function PATCH(
         start_date: toPatch.start_date || gotEmptyStartDate,
         end_date: toPatch.end_date || gotEmptyEndDate,
         bowl_id: toPatch.bowl_id || undefined,
-        user_id: toPatch.user_id || undefined,
+        // user_id: toPatch.user_id || undefined, // do not patch user_id
       },
     });
     return NextResponse.json({ tmnt }, { status: 200 });
   } catch (error: any) {
     let errStatus: number;
     switch (error.code) {
-      case "P2003":
-        errStatus = 422;
+      case "P2003":   // parent not found
+        errStatus = 404;
         break;
-      case "P2025":
+      case "P2025":   // record not found
         errStatus = 404;
         break;
       default:
@@ -249,10 +247,10 @@ export async function DELETE(
   } catch (err: any) {
     let errStatus: number;
     switch (err.code) {
-      case "P2003":
+      case "P2003": // parent has child rows
         errStatus = 409;
         break;
-      case "P2025":
+      case "P2025": // record not found
         errStatus = 404;
         break;
       default:

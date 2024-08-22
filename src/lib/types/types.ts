@@ -15,7 +15,7 @@ export type userType = {
 
 export type bowlType = {
   id: string,
-  bowl_name: string,
+  bowl_name: string,  
   city: string,
   state: string,
   url: string

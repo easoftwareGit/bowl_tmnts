@@ -13,6 +13,7 @@ import { sanitize, sanitizeCurrency } from "@/lib/sanitize";
 import { validMoney } from "@/lib/currency/validate";
 import { eventType, idTypes } from "@/lib/types/types";
 import { initEvent } from "@/db/initVals";
+import { isNumber } from "@/lib/validation";
 
 /**
  * checks if event object has missing data - DOES NOT SANITIZE OR VALIDATE
@@ -51,11 +52,11 @@ export const validEventName = (eventName: string): boolean => {
   return sanitized.length > 0 && sanitized.length <= maxEventLength;
 };
 export const validTeamSize = (teamSize: number): boolean => {
-  if (!teamSize) return false;
+  if (typeof teamSize !== 'number') return false 
   return Number.isInteger(teamSize) && teamSize >= minTeamSize && teamSize <= maxTeamSize;
 };
 export const validGames = (games: number): boolean => {
-  if (!games) return false;
+  if (typeof games !== 'number') return false
   return Number.isInteger(games) && games >= minGames && games <= maxGames;
 };
 export const validEventMoney = (moneyStr: string): boolean => {
@@ -171,15 +172,21 @@ const validEventData = (event: eventType): ErrorCode => {
  */
 export const sanitizeEvent = (event: eventType): eventType => {
   if (!event) return null as any;
-  const sanitizedEvent = { ...initEvent };
+  const sanitizedEvent = {
+    ...initEvent,
+    event_name: '',
+    team_size: null as any,
+    games: null as any,
+    sort_order: null as any,
+  };
   sanitizedEvent.event_name = sanitize(event.event_name);
   if (validEventFkId(event.tmnt_id, "tmt")) {
     sanitizedEvent.tmnt_id = event.tmnt_id;
   }
-  if (validTeamSize(event.team_size)) {
+  if ((event.team_size === null) || isNumber(event.team_size)) {
     sanitizedEvent.team_size = event.team_size;
   }
-  if (validGames(event.games)) {
+  if ((event.games === null) || isNumber(event.games)) {
     sanitizedEvent.games = event.games;
   }
   // sanitizeCurrency removes trailing zeros
@@ -204,7 +211,7 @@ export const sanitizeEvent = (event: eventType): eventType => {
   if (validEventMoney(event.lpox)) {
     sanitizedEvent.lpox = sanitizeCurrency(event.lpox);
   }
-  if (validSortOrder(event.sort_order)) {
+  if ((event.sort_order === null) || isNumber(event.sort_order)) {
     sanitizedEvent.sort_order = event.sort_order;
   }
   return sanitizedEvent;

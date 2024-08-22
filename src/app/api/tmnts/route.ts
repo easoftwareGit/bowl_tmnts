@@ -37,7 +37,8 @@ export async function POST(request: Request) {
       user_id,
       bowl_id
     }
-    const errCode = validateTmnt(toCheck);
+    const toPost = sanitizeTmnt(toCheck);
+    const errCode = validateTmnt(toPost);
     if (errCode !== ErrorCode.None) {
       let errMsg: string;
       switch (errCode) {
@@ -66,8 +67,7 @@ export async function POST(request: Request) {
         );
       }
     }
-
-    const toPost = sanitizeTmnt(toCheck);
+    
     type tmntDataType = {
       tmnt_name: string
       start_date: Date
@@ -94,8 +94,8 @@ export async function POST(request: Request) {
   } catch (error: any) {
     let errStatus: number
     switch (error.code) {
-      case 'P2003': 
-        errStatus = 422
+      case 'P2003': //parent row not found
+        errStatus = 404
         break;    
       default:
         errStatus = 500
