@@ -1,7 +1,7 @@
 // import axios from "axios";
-import { prismaMock } from "../../singleton";
+import { prismaMock } from "../../../singleton";
 import { getBowls, findBowlById } from "@/lib/db/bowls";
-import { mockPrismaBowls } from "../mocks/bowls/mockBowls";
+import { mockPrismaBowls } from "../../mocks/bowls/mockBowls";
 
 // in @/lib/db/bowlsPrisma.tsx, make sure to use correct prisma client
 // import { prisma } from "@/lib/prisma"  // for production & developemnt

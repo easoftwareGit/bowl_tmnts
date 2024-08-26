@@ -1,5 +1,5 @@
 import { User } from "@prisma/client"
-import { initPrismaUser } from "@/db/initVals"
+import { initPrismaUser } from "@/lib/db/initVals"
 
 export const mockPrismaUsers: User[] = [
   { 

@@ -6,7 +6,7 @@ import {
   isNumber,    
 } from "@/lib/validation";
 import { idTypes, laneType } from "@/lib/types/types";
-import { initLane } from "@/db/initVals";
+import { initLane } from "@/lib/db/initVals";
 
 /**
  * checks if lane object has missing data - DOES NOT SANITIZE OR VALIDATE

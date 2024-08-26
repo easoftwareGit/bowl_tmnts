@@ -1,8 +1,8 @@
 import axios, { AxiosError } from "axios";
-import { baseUsersApi, baseRegisterApi, baseNextAuthApi } from "@/db/apiPaths";
+import { baseUsersApi, baseRegisterApi, baseNextAuthApi } from "@/lib/db/apiPaths";
 import { testBaseUsersApi, testBaseRegisterApi, testBaseNextAuthApi } from "../../../testApi";
 import { userType } from "@/lib/types/types";
-import { initUser } from "@/db/initVals";
+import { initUser } from "@/lib/db/initVals";
 import { isValidBtDbId } from "@/lib/validation";
 
 // before running this test, run the following commands in the terminal:

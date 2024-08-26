@@ -12,7 +12,7 @@ import {
 import { sanitize, sanitizeCurrency } from "@/lib/sanitize";
 import { validMoney } from "@/lib/currency/validate";
 import { eventType, idTypes } from "@/lib/types/types";
-import { initEvent } from "@/db/initVals";
+import { initEvent } from "@/lib/db/initVals";
 import { isNumber } from "@/lib/validation";
 
 /**

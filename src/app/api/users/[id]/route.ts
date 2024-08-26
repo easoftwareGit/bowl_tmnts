@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { userType } from "@/lib/types/types";
-import { initUser } from "@/db/initVals";
+import { initUser } from "@/lib/db/initVals";
 import { sanitizeUser, validateUser } from "../validate";
 import { ErrorCode, isValidBtDbId } from "@/lib/validation";
 import { hash } from "bcrypt";

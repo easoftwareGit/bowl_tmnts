@@ -5,7 +5,7 @@ import {
   validEventFkId,
   exportedForTesting,
 } from "@/app/api/lanes/validate";
-import { initLane } from "@/db/initVals";
+import { initLane } from "@/lib/db/initVals";
 import { ErrorCode, maxEventLength, maxLaneCount, maxSortOrder, validPostId } from "@/lib/validation";
 import { postSecret } from "@/lib/tools";
 

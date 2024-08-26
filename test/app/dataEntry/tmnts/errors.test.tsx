@@ -14,7 +14,7 @@ import {
   initElim,
   initEvent,
   initSquad,
-} from "@/db/initVals";
+} from "@/lib/db/initVals";
 import { mockDivs } from "../../../mocks/tmnts/twoDivs/mockDivs";
 import { mockSquads } from "../../../mocks/tmnts/singlesAndDoubles/mockSquads";
 import { startOfDayFromString, todayStr } from "@/lib/dateTools";

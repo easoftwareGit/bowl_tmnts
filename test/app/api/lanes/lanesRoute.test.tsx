@@ -1,8 +1,8 @@
 import axios, { AxiosError } from "axios";
-import { baseLanesApi } from "@/db/apiPaths";
+import { baseLanesApi } from "@/lib/db/apiPaths";
 import { testBaseLanesApi } from "../../../testApi";
 import { laneType } from "@/lib/types/types";
-import { initLane } from "@/db/initVals";
+import { initLane } from "@/lib/db/initVals";
 import { postSecret } from "@/lib/tools";
 import { isValidBtDbId } from "@/lib/validation";
 

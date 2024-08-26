@@ -3,7 +3,7 @@ import { prisma } from "@/lib/prisma";
 import { ErrorCode, isValidBtDbId } from "@/lib/validation";
 import { sanitizeBrkt, validateBrkt } from "../validate";
 import { brktType } from "@/lib/types/types";
-import { initBrkt } from "@/db/initVals";
+import { initBrkt } from "@/lib/db/initVals";
 import { findBrktById } from "@/lib/db/brkts";
 
 // routes /api/brkts/:id

@@ -1,12 +1,16 @@
-import { prismaMock } from "../../singleton";
+import { prismaMock } from "../../../singleton";
 import {
   getTmnts,
   getTmntYears,
   findTmntById,
   exportedForTesting,
+  postTmnt,
 } from "@/lib/db/tmnts";
-import { mockPrismaTmnts, mockPrismaTmntsList } from "../mocks/tmnts/mockTmnt";
+import { mockPrismaTmnts, mockPrismaTmntsList } from "../../mocks/tmnts/mockTmnt";
 import { endOfDayFromString, startOfDayFromString, todayStr } from "@/lib/dateTools";
+import { tmntType } from "@/lib/types/types";
+import { initTmnt } from "@/lib/db/initVals";
+import { compareAsc } from "date-fns";
 const { getTmntsForYear, getUpcomingTmnts } = exportedForTesting;
 
 describe('tmnts', () => {
@@ -211,4 +215,30 @@ describe('tmnts', () => {
     })
   })
   
+  describe('postTmnt()', () => {
+    it('should create new tmnt', async () => { 
+      prismaMock.tmnt.create.mockResolvedValue(mockPrismaTmnts[0]);
+      const tmntToPost: tmntType = {
+        ...initTmnt,
+        id: mockPrismaTmnts[0].id,
+        tmnt_name: mockPrismaTmnts[0].tmnt_name,
+        bowl_id: mockPrismaTmnts[0].bowl_id,
+        start_date: mockPrismaTmnts[0].start_date,
+        end_date: mockPrismaTmnts[0].end_date
+      }
+      const response = await postTmnt(tmntToPost);
+      expect(response.status).toBe(201);
+      const postedTmnt = response.tmnt;
+      expect(postedTmnt?.bowl_id).toBe(tmntToPost.bowl_id)
+      expect(postedTmnt?.tmnt_name).toBe(tmntToPost.tmnt_name)
+      expect(compareAsc(postedTmnt?.start_date as Date, tmntToPost.start_date)).toBe(0);
+      expect(compareAsc(postedTmnt?.end_date as Date, tmntToPost.end_date)).toBe(0);
+
+      
+      expect(prismaMock.tmnt.create).toHaveBeenCalledWith({
+        data: tmntToPost
+      });
+    })
+  })
+
 });

@@ -1,6 +1,6 @@
 // import { bowlType } from "@/lib/types/types";
 import { Bowl } from "@prisma/client"
-import { initPrismaBowl } from "@/db/initVals"
+import { initPrismaBowl } from "@/lib/db/initVals"
 
 export const mockBowls: Bowl[] = [
   {

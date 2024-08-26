@@ -10,7 +10,7 @@ import {
   initPots,
   initSquads,
   initTmnt,
-} from "@/db/initVals";
+} from "@/lib/db/initVals";
 import { startOfTodayUTC, dateTo_UTC_yyyyMMdd, todayStr } from '@/lib/dateTools';
 import { tmntPropsType } from '@/lib/types/types';
 import userEvent from '@testing-library/user-event';

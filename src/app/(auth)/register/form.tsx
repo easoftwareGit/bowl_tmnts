@@ -18,7 +18,7 @@ import {
 import { phone as phoneChecking } from "phone";
 import "./form.css";
 import { userType } from "@/lib/types/types";
-import { initUser } from "@/db/initVals";
+import { initUser } from "@/lib/db/initVals";
 import { sanitizeUser } from "@/app/api/users/validate";
 
 const blankValues = {

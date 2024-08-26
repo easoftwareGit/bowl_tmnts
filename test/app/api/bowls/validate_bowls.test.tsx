@@ -7,7 +7,7 @@ import {
   validUrl,  
   exportedForTesting,   
 } from "@/app/api/bowls/validate";
-import { initBowl } from "@/db/initVals";
+import { initBowl } from "@/lib/db/initVals";
 import { postSecret } from "@/lib/tools";
 import { bowlType } from "@/lib/types/types";
 import { ErrorCode, validPostId } from "@/lib/validation";

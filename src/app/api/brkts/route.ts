@@ -3,7 +3,7 @@ import { prisma } from "@/lib/prisma";
 import { validateBrkt, sanitizeBrkt } from "./validate";
 import { ErrorCode, validPostId } from "@/lib/validation";
 import { brktType } from "@/lib/types/types";
-import { initBrkt } from "@/db/initVals";
+import { initBrkt } from "@/lib/db/initVals";
 
 // routes /api/brkts
 

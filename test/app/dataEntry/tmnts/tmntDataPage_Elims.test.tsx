@@ -13,7 +13,7 @@ import {
   initLanes,
   initPots,
   initSquads,
-} from "@/db/initVals";
+} from "@/lib/db/initVals";
 import { fullTmntDataType } from "@/lib/types/types";
 
 describe("TmntDataPage - Eliminators Component", () => { 

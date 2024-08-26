@@ -11,7 +11,7 @@ import {
   validEventFkId,
   exportedForTesting
 } from "@/app/api/squads/validate";
-import { initSquad } from "@/db/initVals";
+import { initSquad } from "@/lib/db/initVals";
 import { ErrorCode, maxEventLength, maxSortOrder, validPostId } from "@/lib/validation";
 import { postSecret } from "@/lib/tools";
 import { startOfTodayUTC, todayStr } from "@/lib/dateTools";

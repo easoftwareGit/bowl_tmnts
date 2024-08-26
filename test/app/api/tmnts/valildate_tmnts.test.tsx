@@ -177,7 +177,7 @@ describe('tmnt table data validation', () => {
     it('should return false if foreign key id type does not match id type', () => { 
       expect(validTmntFkId(mockTmnt.bowl_id, 'usr')).toBe(false)
     })
-    it('should return false for an empty foreign key id', () => { 
+    it('should return false for a blank foreign key id', () => { 
       expect(validTmntFkId('', 'bwl')).toBe(false)
     })
     it('should return false for an null foreign key id', () => { 
@@ -336,7 +336,7 @@ describe('tmnt table data validation', () => {
       expect(sanitized.start_date).toEqual(startDate1)
       expect(sanitized.start_date).toEqual(startDate1)
     })
-    it('should return an empty start date for an invalid start date', () => { 
+    it('should return a null start date for an invalid start date', () => { 
       const testTmnt: tmntType = {
         ...mockTmnt,
         start_date: '2020-01-32' as any,
@@ -345,7 +345,7 @@ describe('tmnt table data validation', () => {
       const sanitized = sanitizeTmnt(testTmnt)
       expect(sanitized.start_date).toBeNull()
     })
-    it('should return an empty start date for html code in start date', () => { 
+    it('should return a null start date for html code in start date', () => { 
       const testTmnt: tmntType = {
         ...mockTmnt,
         start_date: "<script>alert('hello')</script>" as any,        
@@ -354,7 +354,7 @@ describe('tmnt table data validation', () => {
       const sanitized = sanitizeTmnt(testTmnt)
       expect(sanitized.start_date).toBeNull()
     })
-    it('should return an empty start date for html code in start date', () => { 
+    it('should return a null start date for html code in start date', () => { 
       const testTmnt: tmntType = {
         ...mockTmnt,
         start_date: "<script>alert('hello')</script>" as any,
@@ -363,7 +363,7 @@ describe('tmnt table data validation', () => {
       expect(sanitized.start_date).toBeNull()
       expect(sanitized.start_date).toBeNull()
     })
-    it('should return an empty start date for a non date start date', () => { 
+    it('should return a null start date for a non date start date', () => { 
       const testTmnt: tmntType = {
         ...mockTmnt,
         start_date: 'abc' as any,        
@@ -372,7 +372,7 @@ describe('tmnt table data validation', () => {
       expect(sanitized.start_date).toEqual(null)
       expect(sanitized.start_date).toEqual(null)
     })
-    it('should return an empty start date for an empty start date', () => { 
+    it('should return a null start date for a null start date', () => { 
       const testTmnt: tmntType = {
         ...mockTmnt,
         start_date: null as any,        
@@ -411,7 +411,7 @@ describe('tmnt table data validation', () => {
       expect(sanitized.start_date).toEqual(startDate1)
       expect(sanitized.start_date).toEqual(startDate1)
     })
-    it('should return an empty end date for an invalid end date', () => {
+    it('should return a null end date for an invalid end date', () => {
       const testTmnt: tmntType = {
         ...mockTmnt,
         start_date: '2020-02-30' as any,
@@ -420,7 +420,7 @@ describe('tmnt table data validation', () => {
       const sanitized = sanitizeTmnt(testTmnt)
       expect(sanitized.end_date).toBeNull()
     })
-    it('should return an empty end date for an html code in end date', () => { 
+    it('should return a null end date for an html code in end date', () => { 
       const testTmnt: tmntType = {
         ...mockTmnt,
         start_date: "<script>alert('hello')</script>" as any,        
@@ -429,7 +429,7 @@ describe('tmnt table data validation', () => {
       const sanitized = sanitizeTmnt(testTmnt)
       expect(sanitized.end_date).toBeNull()
     })
-    it('should return an empty end date for an html code in end date', () => { 
+    it('should return a null end date for an html code in end date', () => { 
       const testTmnt: tmntType = {
         ...mockTmnt,
         start_date: "<script>alert('hello')</script>" as any,
@@ -438,7 +438,7 @@ describe('tmnt table data validation', () => {
       expect(sanitized.start_date).toBeNull()
       expect(sanitized.start_date).toBeNull()
     })
-    it('should return an empty end date for a non date end date', () => { 
+    it('should return a null end date for a non date end date', () => { 
       const testTmnt: tmntType = {
         ...mockTmnt,
         end_date: 'abc' as any,        
@@ -447,7 +447,7 @@ describe('tmnt table data validation', () => {
       expect(sanitized.end_date).toEqual(null)
       expect(sanitized.end_date).toEqual(null)
     })
-    it('should return an empty end date for an empty end date', () => { 
+    it('should return a null end date for a null end date', () => { 
       const testTmnt: tmntType = {
         ...mockTmnt,
         end_date: null as any,        
@@ -456,6 +456,30 @@ describe('tmnt table data validation', () => {
       expect(sanitized.end_date).toBeNull()
       expect(sanitized.end_date).toBeNull()
     })
+    it('should return a blank id for a blank id', () => { 
+      const testTmnt: tmntType = {
+        ...mockTmnt,
+        id: '',
+      }
+      const sanitized = sanitizeTmnt(testTmnt)
+      expect(sanitized.id).toEqual('')
+    })
+    it('should return a valid id for a valid id', () => { 
+      const testTmnt: tmntType = {
+        ...mockTmnt,
+      }
+      const sanitized = sanitizeTmnt(testTmnt)
+      expect(sanitized.id).toEqual(mockTmnt.id)
+    })
+    it('should return a valid post id for a valid is starting with postSecret', () => { 
+      const tmntId = postSecret + mockTmnt.id
+      const testTmnt: tmntType = {
+        ...mockTmnt,
+        id: tmntId
+      }
+      const sanitized = sanitizeTmnt(testTmnt)
+      expect(sanitized.id).toEqual(tmntId)
+    })
     it('should return a valid bowl_id for a valid bowl_id', () => { 
       const testTmnt: tmntType = {
         ...mockTmnt,        
@@ -463,7 +487,7 @@ describe('tmnt table data validation', () => {
       const sanitized = sanitizeTmnt(testTmnt)
       expect(sanitized.bowl_id).toEqual(mockTmnt.bowl_id)
     })
-    it('should return an empty bowl_id for an invalid bowl_id', () => { 
+    it('should return a blank bowl_id for an invalid bowl_id', () => { 
       const testTmnt: tmntType = {
         ...mockTmnt,
         bowl_id: 'abc',
@@ -471,7 +495,7 @@ describe('tmnt table data validation', () => {
       const sanitized = sanitizeTmnt(testTmnt)
       expect(sanitized.bowl_id).toEqual('')
     })
-    it('should return an empty bowl_id for an empty bowl_id', () => { 
+    it('should return a blank bowl_id for a blank bowl_id', () => { 
       const testTmnt: tmntType = {
         ...mockTmnt,
         bowl_id: '',
@@ -479,7 +503,7 @@ describe('tmnt table data validation', () => {
       const sanitized = sanitizeTmnt(testTmnt)
       expect(sanitized.bowl_id).toEqual('')
     })
-    it('should return an empty bowl_id for an valid id, but wrong id type', () => { 
+    it('should return a blank bowl_id for an valid id, but wrong id type', () => { 
       const testTmnt: tmntType = {
         ...mockTmnt,
         bowl_id: mockTmnt.user_id,
@@ -487,7 +511,6 @@ describe('tmnt table data validation', () => {
       const sanitized = sanitizeTmnt(testTmnt)
       expect(sanitized.bowl_id).toEqual('')
     })
-
     it('should return a valid user_id for a valid user_id', () => { 
       const testTmnt: tmntType = {
         ...mockTmnt,        
@@ -495,7 +518,7 @@ describe('tmnt table data validation', () => {
       const sanitized = sanitizeTmnt(testTmnt)
       expect(sanitized.user_id).toEqual(mockTmnt.user_id)
     })
-    it('should return an empty user_id for an invalid user_id', () => { 
+    it('should return a blank user_id for an invalid user_id', () => { 
       const testTmnt: tmntType = {
         ...mockTmnt,
         user_id: 'abc',
@@ -503,7 +526,7 @@ describe('tmnt table data validation', () => {
       const sanitized = sanitizeTmnt(testTmnt)
       expect(sanitized.user_id).toEqual('')
     })
-    it('should return an empty user_id for an empty user_id', () => { 
+    it('should return a blank user_id for a blank user_id', () => { 
       const testTmnt: tmntType = {
         ...mockTmnt,
         user_id: '',
@@ -511,7 +534,7 @@ describe('tmnt table data validation', () => {
       const sanitized = sanitizeTmnt(testTmnt)
       expect(sanitized.user_id).toEqual('')
     })
-    it('should return an empty user_id for an valid id, but wrong id type', () => { 
+    it('should return a blank user_id for an valid id, but wrong id type', () => { 
       const testTmnt: tmntType = {
         ...mockTmnt,
         user_id: mockTmnt.bowl_id,

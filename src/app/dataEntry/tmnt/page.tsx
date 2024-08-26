@@ -1,5 +1,6 @@
 "use client";
 import { useState } from "react";
+import { useSession } from "next-auth/react"; 
 import TmntDataForm from "./form";
 import {
   initBrkts,
@@ -10,10 +11,10 @@ import {
   initPots,
   initSquads,
   initTmnt,
-} from "../../../db/initVals";
-import { startOfDayFromString, startOfTodayUTC, todayStr } from "@/lib/dateTools";
+} from "../../../lib/db/initVals";
 import { fullTmntDataType, tmntPropsType } from "../../../lib/types/types";
-import { endOfToday, startOfToday } from "date-fns";
+import { startOfToday } from "date-fns";
+import UserNavBar from "@/components/navBar/userNavBar";
 
 const blankTmnt = {
   ...initTmnt,
@@ -39,6 +40,10 @@ const blankFullTmnt: fullTmntDataType = {
 export const TmntDataPage: React.FC<FormProps> = ({
   fullTmntData = blankFullTmnt,
 }) => {
+
+  const { status, data } = useSession();
+  fullTmntData.tmnt.user_id = data?.user?.id || "";
+
   const [tmntData, setTmntData] = useState(fullTmntData.tmnt);
   const [events, setEvents] = useState(fullTmntData.events);
   const [divs, setDivs] = useState(fullTmntData.divs);
@@ -57,7 +62,7 @@ export const TmntDataPage: React.FC<FormProps> = ({
     setDivs,
     squads,
     setSquads,
-    lanes, 
+    lanes,
     setLanes,
     pots,
     setPots,
@@ -68,12 +73,15 @@ export const TmntDataPage: React.FC<FormProps> = ({
   };
 
   return (
-    <div className="d-flex flex-column justify-content-center align-items-center">
-      <div className="shadow p-3 m-3 rounded-3 container">
-        <h2 className="mb-3">Tournament Info</h2>
-        <TmntDataForm tmntProps={tmntFormProps} />
+    <>
+      <UserNavBar />
+      <div className="d-flex flex-column justify-content-center align-items-center">
+        <div className="shadow p-3 m-3 rounded-3 container">
+          <h2 className="mb-3">Tournament Info</h2>
+          <TmntDataForm tmntProps={tmntFormProps} />
+        </div>
       </div>
-    </div>
+    </>
   );
 };
 

@@ -1,8 +1,8 @@
 import axios, { AxiosError } from "axios";
-import { baseDivsApi } from "@/db/apiPaths";
+import { baseDivsApi } from "@/lib/db/apiPaths";
 import { testBaseDivsApi } from "../../../testApi";
 import { divType } from "@/lib/types/types";
-import { initDiv } from "@/db/initVals";
+import { initDiv } from "@/lib/db/initVals";
 import { postSecret } from "@/lib/tools";
 import { isValidBtDbId } from "@/lib/validation";
 

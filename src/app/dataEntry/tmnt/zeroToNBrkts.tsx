@@ -7,7 +7,7 @@ import EaCurrencyInput, {
   maxMoneyText,
   minFeeText,
 } from "@/components/currency/eaCurrencyInput";
-import { defaultBrktGames, defaultBrktPlayers, initBrkt } from "../../../db/initVals";
+import { defaultBrktGames, defaultBrktPlayers, initBrkt } from "../../../lib/db/initVals";
 import {  
   maxMoney,
   minFee,  

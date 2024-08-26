@@ -3,7 +3,7 @@ import { prisma } from "@/lib/prisma";
 import { ErrorCode, isValidBtDbId } from "@/lib/validation";
 import { sanitizeEvent, validateEvent } from "@/app/api/events/validate";
 import { eventType } from "@/lib/types/types";
-import { initEvent } from "@/db/initVals";
+import { initEvent } from "@/lib/db/initVals";
 import { findEventById } from "@/lib/db/events";
 import { findTmntById } from "@/lib/db/tmnts";
 

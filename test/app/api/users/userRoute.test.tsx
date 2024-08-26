@@ -1,8 +1,8 @@
 import axios, { AxiosError } from "axios";
-import { baseUsersApi } from "@/db/apiPaths";
+import { baseUsersApi } from "@/lib/db/apiPaths";
 import { testBaseUsersApi } from "../../../testApi";
 import { userType } from "@/lib/types/types";
-import { initUser } from "@/db/initVals";
+import { initUser } from "@/lib/db/initVals";
 import { User } from "@prisma/client";
 import { postSecret } from "@/lib/tools";
 import { isValidBtDbId } from "@/lib/validation";
@@ -67,8 +67,8 @@ describe('Users - API: /api/users', () => {
     it('should get all users', async () => {
       const response = await axios.get(url);
       expect(response.status).toBe(200);
-      // 5 rows in prisma/seed.ts 
-      expect(response.data.users).toHaveLength(5) 
+      // 6 rows in prisma/seed.ts 
+      expect(response.data.users).toHaveLength(6) 
     })
   })
 

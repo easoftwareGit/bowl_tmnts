@@ -4,7 +4,7 @@ import userEvent from "@testing-library/user-event";
 import OneToNSquads, { updatedLanes, validLanes }  from "../../../../src/app/dataEntry/tmnt/oneToNSquads";
 import { mockLanes, mockSquads } from "../../../mocks/tmnts/singlesAndDoubles/mockSquads";
 import { mockEvents } from "../../../mocks/tmnts/singlesAndDoubles/mockEvents";
-import { initSquad, initLanes } from "@/db/initVals";
+import { initSquad, initLanes } from "@/lib/db/initVals";
 import { laneType, squadType } from "@/lib/types/types";
 import { maxLaneCount, maxStartLane, minLaneCount, minStartLane } from "@/lib/validation";
 import { dateTo_UTC_yyyyMMdd } from "@/lib/dateTools";

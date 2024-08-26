@@ -10,7 +10,7 @@ import {
 import { sanitizeCurrency } from "@/lib/sanitize";
 import { validMoney } from "@/lib/currency/validate";
 import { elimType, idTypes } from "@/lib/types/types";
-import { initElim } from "@/db/initVals";
+import { initElim } from "@/lib/db/initVals";
 
 /**
  * checks if elim object has missing data - DOES NOT SANITIZE OR VALIDATE

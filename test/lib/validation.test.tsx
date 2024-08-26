@@ -13,7 +13,7 @@ import {
   validSortOrder,
   maxSortOrder,
 } from "@/lib/validation";
-import { initDiv, initEvent } from "@/db/initVals";
+import { initDiv, initEvent } from "@/lib/db/initVals";
 
 describe("tests for validation functions", () => {
   describe("isEmail function", () => {

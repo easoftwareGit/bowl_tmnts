@@ -11,7 +11,7 @@ export const testBaseNextAuthApi = testBaseApi + '/auth/[...nextauth]'
 
 export const testBaseBowlsApi = testBaseApi + '/bowls'
 
-export const testBaseTmntsApi = testBaseApi + '/tmnts/'
+export const testBaseTmntsApi = testBaseApi + '/tmnts'
 export const testBaseTmntsResultsApi = testBaseApi + '/tmnts/results/'
 export const testBaseTmntsUpcomingApi = testBaseApi + '/tmnts/upcoming'
 export const testBaseTmntsYearsApi = testBaseApi + '/tmnts/years/'

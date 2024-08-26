@@ -7,7 +7,7 @@ import { getBrktOrElimName } from '@/lib/getName';
 import EaCurrencyInput, { maxMoneyText, minFeeText } from '@/components/currency/eaCurrencyInput';
 import { acdnErrClassName, getAcdnErrMsg, noAcdnErr, objErrClassName } from './errors';
 import { maxGames, maxMoney, minFee, minGames } from '@/lib/validation';
-import { initElim } from '../../../db/initVals';
+import { initElim } from '../../../lib/db/initVals';
 
 interface ChildProps {
   elims: elimType[];

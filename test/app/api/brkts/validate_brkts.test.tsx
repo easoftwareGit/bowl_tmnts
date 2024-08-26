@@ -9,7 +9,7 @@ import {
   validBrktMoney,
   validFsa,
 } from "@/app/api/brkts/validate";
-import { defaultBrktGames, defaultBrktPlayers, initBrkt } from "@/db/initVals";
+import { defaultBrktGames, defaultBrktPlayers, initBrkt } from "@/lib/db/initVals";
 import { brktType } from "@/lib/types/types";
 import { ErrorCode, maxGames, maxSortOrder, validPostId } from "@/lib/validation";
 import { postSecret } from "@/lib/tools";

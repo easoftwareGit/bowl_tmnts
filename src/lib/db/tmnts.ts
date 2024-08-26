@@ -1,4 +1,5 @@
 "use server"
+
 // these functions need to be in a file with "use server" at the top
 // prima is a server only, using these functions without the "use server" 
 // directive in a client file will cause an error. 
@@ -158,47 +159,6 @@ export const getTmntYears = async (): Promise<YearObj[]> => {
   )
   return years as YearObj[];
 };
-
-// /**
-//  * get array of tmnts
-//  * 
-//  * @returns {data: tmntDataType[]} object with array of tmnts from database,
-//  * or empty array if no data or error  
-//  */
-// export const getTmntResults = async () => {  
-//   const url = baseTmntsApi + '/results'  
-//   try {
-//     const response = await axios.get(url)
-//     if (response.status === 200 && response.data) {
-//       return response.data; // response.data is already JSON'ed
-//     } else {      
-//       return [];
-//     }
-//   } catch (error) {
-//     return [];
-//   }
-// }
-
-// /**
-//  * get array of upcoming tmnts
-//  * 
-//  * @returns {data: tmntDataType[]} object with array of upcoming tmnts from database,
-//  * or empty array if no data or error
-//  */
-// export const getTmntUpcoming = async () => {  
-//   const url = baseTmntsApi + '/upcoming'  
-//   try {
-//     const response = await axios.get(url)
-//     if (response.status === 200 && response.data) {
-//       return response.data; // response.data is already JSON'ed
-//     } else {
-//       console.log('Tmnt Upcoming - Non error return, but not status 200');
-//       return [];
-//     }
-//   } catch (error) {
-//     return [];
-//   }
-// }
 
 /**
  * find tmnt in database by id

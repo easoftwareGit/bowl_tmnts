@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { bowlType } from "@/lib/types/types";
-import { initBowl } from "@/db/initVals";
+import { initBowl } from "@/lib/db/initVals";
 import { ErrorCode, isValidBtDbId } from "@/lib/validation";
 import { sanitizeBowl, validateBowl } from "../validate";
 import { findBowlById } from "@/lib/db/bowls";

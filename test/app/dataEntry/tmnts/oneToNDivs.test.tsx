@@ -3,7 +3,7 @@ import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import OneToNDivs from "../../../../src/app/dataEntry/tmnt/oneToNDivs";
 import { mockDivs, mockPots, mockBrkts, mockElims } from '../../../mocks/tmnts/twoDivs/mockDivs'
-import { defaultHdcpFrom, initDiv } from "@/db/initVals";
+import { defaultHdcpFrom, initDiv } from "@/lib/db/initVals";
 
 const mockSetDivs = jest.fn();
 const mockSetAcdnErr = jest.fn();

@@ -1,8 +1,8 @@
 import axios, { AxiosError } from "axios";
-import { baseSquadsApi } from "@/db/apiPaths";
+import { baseSquadsApi } from "@/lib/db/apiPaths";
 import { testBaseSquadsApi } from "../../../testApi";
 import { squadType } from "@/lib/types/types";
-import { initSquad } from "@/db/initVals";
+import { initSquad } from "@/lib/db/initVals";
 import { postSecret } from "@/lib/tools";
 import { isValidBtDbId } from "@/lib/validation";
 import { compareAsc } from "date-fns";

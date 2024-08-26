@@ -11,7 +11,7 @@ import {
 import { sanitize } from "@/lib/sanitize";
 import { HdcpForTypes, idTypes } from "@/lib/types/types";
 import { divType } from "@/lib/types/types";
-import { initDiv } from "@/db/initVals";
+import { initDiv } from "@/lib/db/initVals";
 import { isNumber } from "@/lib/validation";
 
 const isHdcpForType = (value: any): value is HdcpForTypes => {

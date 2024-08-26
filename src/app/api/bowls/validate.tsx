@@ -1,7 +1,7 @@
 import { ErrorCode, maxBowlNameLemgth, maxCityLength, maxStateLength, maxUrlLength, validSortOrder } from "@/lib/validation";
 import { sanitize, sanitizeUrl } from "@/lib/sanitize";
 import { bowlType } from "@/lib/types/types";
-import { initBowl } from "@/db/initVals";
+import { initBowl } from "@/lib/db/initVals";
 
 /**
  * checks for required data and returns error code if missing 

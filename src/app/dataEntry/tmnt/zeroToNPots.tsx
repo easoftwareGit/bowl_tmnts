@@ -7,7 +7,7 @@ import EaCurrencyInput, {
   maxMoneyText,
   minFeeText,
 } from "@/components/currency/eaCurrencyInput";
-import { initPot } from "../../../db/initVals";
+import { initPot } from "../../../lib/db/initVals";
 import {
   objErrClassName,
   acdnErrClassName,

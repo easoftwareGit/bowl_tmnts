@@ -1,6 +1,6 @@
-import { prismaMock } from "../../singleton";
+import { prismaMock } from "../../../singleton";
 import { findUserByEmail, findUserById } from "@/lib/db/users";
-import { mockPrismaUsers } from "../mocks/tmnts/twoDivs/mockUsers";
+import { mockPrismaUsers } from "../../mocks/tmnts/twoDivs/mockUsers";
 
 // in @/lib/db/usersPrisma.tsx, make sure to use correct prisma client
 // import { prisma } from "@/lib/prisma"  // for production & developemnt

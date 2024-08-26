@@ -1,8 +1,8 @@
 import axios, { AxiosError } from "axios";
-import { baseElimsApi } from "@/db/apiPaths";
+import { baseElimsApi } from "@/lib/db/apiPaths";
 import { testBaseElimsApi } from "../../../testApi";
 import { elimType } from "@/lib/types/types";
-import { initElim } from "@/db/initVals";
+import { initElim } from "@/lib/db/initVals";
 import { postSecret } from "@/lib/tools";
 import { isValidBtDbId } from "@/lib/validation";
 

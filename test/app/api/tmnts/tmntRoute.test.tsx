@@ -1,8 +1,8 @@
 import axios, { AxiosError } from "axios";
-import { baseTmntsApi } from "@/db/apiPaths";
+import { baseTmntsApi } from "@/lib/db/apiPaths";
 import { testBaseTmntsApi } from "../../../testApi";
 import { tmntType, YearObj } from "@/lib/types/types";
-import { initTmnt } from "@/db/initVals";
+import { initTmnt } from "@/lib/db/initVals";
 import { postSecret } from "@/lib/tools";
 import { isValidBtDbId } from "@/lib/validation";
 import { compareAsc } from "date-fns";
@@ -216,6 +216,8 @@ describe('Tmnts - API: /api/tmnts', () => {
       const postedTmnt = response.data.tmnt;
       createdTmntId = postedTmnt.id;
       expect(postedTmnt.tmnt_name).toBe(tmntToPost.tmnt_name);
+      expect(postedTmnt.user_id).toBe(tmntToPost.user_id);
+      expect(postedTmnt.bowl_id).toBe(tmntToPost.bowl_id);
       expect(compareAsc(postedTmnt.start_date, tmntToPost.start_date)).toBe(0);
       expect(compareAsc(postedTmnt.end_date, tmntToPost.end_date)).toBe(0);
       expect(isValidBtDbId(postedTmnt.id, 'tmt')).toBeTruthy();
@@ -615,11 +617,16 @@ describe('Tmnts - API: /api/tmnts', () => {
   describe('GET by ID - API: API: /api/tmnts/:id', () => {
 
     it('should get a tmnt by ID', async () => {
-      const response = await axios.get(url + "/" + testTmnt.id);
+
+      const urlToUse = url + "/" + testTmnt.id;
+
+      const response = await axios.get(urlToUse);
       const tmnt = response.data.tmnt;
       expect(response.status).toBe(200);
       expect(tmnt.id).toBe(testTmnt.id);
       expect(tmnt.tmnt_name).toBe(testTmnt.tmnt_name);
+      expect(tmnt.bowl_id).toBe(testTmnt.bowl_id);
+      expect(tmnt.user_id).toBe(testTmnt.user_id);
       expect(compareAsc(tmnt.start_date, testTmnt.start_date)).toBe(0);
       expect(compareAsc(tmnt.end_date, testTmnt.end_date)).toBe(0);
     })

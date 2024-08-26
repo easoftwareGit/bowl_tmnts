@@ -7,7 +7,7 @@ import {
   validElimMoney,
   exportedForTesting
 } from "@/app/api/elims/validate";
-import { initElim } from "@/db/initVals";
+import { initElim } from "@/lib/db/initVals";
 import { elimType } from "@/lib/types/types";
 import { ErrorCode, minGames, maxGames, validPostId } from "@/lib/validation";
 import { postSecret } from "@/lib/tools";

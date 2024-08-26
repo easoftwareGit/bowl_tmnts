@@ -1,8 +1,8 @@
 import axios, { AxiosError } from "axios";
-import { baseEventsApi } from "@/db/apiPaths";
+import { baseEventsApi } from "@/lib/db/apiPaths";
 import { testBaseEventsApi } from "../../../testApi";
 import { eventType } from "@/lib/types/types";
-import { initEvent } from "@/db/initVals";
+import { initEvent } from "@/lib/db/initVals";
 import { Event } from "@prisma/client";
 import { postSecret } from "@/lib/tools";
 import { isValidBtDbId } from "@/lib/validation";

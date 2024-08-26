@@ -9,7 +9,7 @@ import {
   entryFeeEqualsLpox,
   validEventFkId,
 } from "@/app/api/events/validate";
-import { initEvent } from "@/db/initVals";
+import { initEvent } from "@/lib/db/initVals";
 import { eventType } from "@/lib/types/types";
 import { ErrorCode, maxEventLength, maxSortOrder, validPostId } from "@/lib/validation";
 import { postSecret } from "@/lib/tools";

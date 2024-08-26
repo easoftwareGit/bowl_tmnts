@@ -5,7 +5,7 @@ import { ErrorCode, validPostId } from "@/lib/validation";
 import { findUserByEmail } from "@/lib/db/users";
 import { sanitizeUser, validateUser } from "./validate";
 import { userType } from "@/lib/types/types";
-import { initUser } from "@/db/initVals";
+import { initUser } from "@/lib/db/initVals";
 
 // routes /api/users
 

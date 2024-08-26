@@ -9,7 +9,7 @@ import {
   exportedForTesting,
   validHdcpFor
 } from "@/app/api/divs/validate";
-import { defaultHdcpFrom, defaultHdcpPer, initDiv } from "@/db/initVals";
+import { defaultHdcpFrom, defaultHdcpPer, initDiv } from "@/lib/db/initVals";
 import { postSecret } from "@/lib/tools";
 import { divType } from "@/lib/types/types";
 import { ErrorCode, maxEventLength, maxSortOrder, validPostId } from "@/lib/validation";

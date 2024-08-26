@@ -2,7 +2,7 @@ import { isValidBtDbId, ErrorCode, maxMoney, validSortOrder, isNumber } from "@/
 import { sanitize, sanitizeCurrency } from "@/lib/sanitize";
 import { validMoney } from "@/lib/currency/validate";
 import { potType, PotCategories, idTypes } from "@/lib/types/types";
-import { initPot } from "@/db/initVals";
+import { initPot } from "@/lib/db/initVals";
 
 /**
  * checks if pot object has missing data - DOES NOT SANITIZE OR VALIDATE

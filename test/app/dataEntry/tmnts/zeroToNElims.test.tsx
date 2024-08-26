@@ -5,7 +5,7 @@ import ZeroToNElims from "../../../../src/app/dataEntry/tmnt/zeroToNElims";
 import { mockElims, mockDivs, mockSquads } from "../../../mocks/tmnts/twoDivs/mockDivs";
 import { localConfig } from "@/lib/currency/const";
 import { formatValueSymbSep2Dec } from "@/lib/currency/formatValue";
-import { defaultElimGames, initElim } from "@/db/initVals";
+import { defaultElimGames, initElim } from "@/lib/db/initVals";
 import { getBrktOrElimName } from "@/lib/getName";
 
 const mockSetElims = jest.fn();

@@ -11,12 +11,13 @@ import OneToNEvents, { validateEvents } from "./oneToNEvents";
 import OneToNDivs, { validateDivs } from "./oneToNDivs";
 import OneToNSquads, { validateSquads } from "./oneToNSquads";
 import OneToNLanes from "./oneToNLanes";
-import { dateTo_UTC_yyyyMMdd, dateTo_yyyyMMdd, getYearMonthDays, startOfDayFromString, ymdType } from "@/lib/dateTools";
-import { compareAsc, isValid, startOfDay } from "date-fns";
+import { dateTo_yyyyMMdd, getYearMonthDays, startOfDayFromString } from "@/lib/dateTools";
+import { compareAsc, isValid } from "date-fns";
 import ZeroToNPots, { validatePots } from "./zeroToNPots";
 import ZeroToNBrackets, { validateBrkts } from "./zeroToNBrkts";
 import ZeroToNElims, { validateElims } from "./zeroToNElims";
 import "./form.css";
+import { postTmnt } from "@/lib/db/tmntsAxios";
 
 interface FormProps {
   tmntProps: tmntPropsType
@@ -279,10 +280,34 @@ const TmntDataForm: React.FC<FormProps> = ({ tmntProps }) => {
     // })
   };
 
+  const saveTmnt = async () => {    
+    // 1 post tmnt
+    const postedTmnt = await postTmnt(tmnt);
+    if (!postedTmnt) return false;
+    setTmnt(postedTmnt);
+    // update tmnt id in events
+    setEvents(
+      events.map((event) => {
+        event.tmnt_id = postedTmnt.id;
+        return event;
+      })
+    )
+    // update tmnt id in divs
+    setDivs(
+      divs.map((div) => {
+        div.tmnt_id = postedTmnt.id;
+        return div;
+      })
+    )
+    // const postedEvents = await postEvents(events);
+
+    return true;
+  };
+
   const handleSubmit = (e: React.FormEvent) => {
     // console.log("Submitted");
     e.preventDefault();
-    if (validateTmnt()) {
+    if (validateTmnt()) {      
       // console.log("Tournament valid");
     } else {
       // console.log("Tournament invalid");

@@ -3,7 +3,7 @@ import { prisma } from "@/lib/prisma";
 import { validatePot, sanitizePot } from "./validate";
 import { ErrorCode, validPostId } from "@/lib/validation";
 import { potType, PotCategories } from "@/lib/types/types";
-import { initPot } from "@/db/initVals";
+import { initPot } from "@/lib/db/initVals";
 
 // routes /api/pots
 export async function GET(request: NextRequest) {

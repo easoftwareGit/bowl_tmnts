@@ -4,7 +4,7 @@ import { hash } from "bcrypt";
 import { NextResponse } from "next/server";
 import { ErrorCode } from "@/lib/validation";
 import { userType } from "@/lib/types/types";
-import { initUser } from "@/db/initVals";
+import { initUser } from "@/lib/db/initVals";
 import { sanitizeUser, validateUser } from "../../users/validate";
 
 export async function POST(req: Request) {

@@ -3,7 +3,7 @@ import { prisma } from "@/lib/prisma";
 import { sanitizeSquad, validateSquad } from "./validate";
 import { ErrorCode, validPostId } from "@/lib/validation";
 import { squadType } from "@/lib/types/types";
-import { initSquad } from "@/db/initVals";
+import { initSquad } from "@/lib/db/initVals";
 
 // routes /api/squads
 

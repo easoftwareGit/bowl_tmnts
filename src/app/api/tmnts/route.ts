@@ -3,7 +3,7 @@ import { prisma } from "@/lib/prisma";
 import { ErrorCode, validPostId } from "@/lib/validation";
 import { tmntType } from "@/lib/types/types";
 import { sanitizeTmnt, validateTmnt } from "./valildate";
-import { initTmnt } from "@/db/initVals";
+import { initTmnt } from "@/lib/db/initVals";
 
 // routes /api/tmnts
 
@@ -31,12 +31,14 @@ export async function POST(request: Request) {
     const { id, tmnt_name, start_date, end_date, user_id, bowl_id } = await request.json()    
     const toCheck: tmntType = {
       ...initTmnt, 
+      id,
       tmnt_name,
       start_date,
       end_date,
       user_id,
       bowl_id
     }
+
     const toPost = sanitizeTmnt(toCheck);
     const errCode = validateTmnt(toPost);
     if (errCode !== ErrorCode.None) {

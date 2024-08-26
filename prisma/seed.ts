@@ -95,6 +95,26 @@ async function userUpsert() {
     });
     user = await prisma.user.upsert({
       where: {
+        id: "usr_c8fcd7146f9a4c5fb4c42f386304e7a6",
+      },
+      update: {
+        email: "easoftware@gmail.com",
+        password_hash: null as any,
+        first_name: "Eric",
+        last_name: "Adolphson",
+        phone: null as any,
+      },
+      create: {
+        id: "usr_c8fcd7146f9a4c5fb4c42f386304e7a6",
+        email: "easoftware@gmail.com",
+        password_hash: null as any,
+        first_name: "Eric",
+        last_name: "Adolphson",
+        phone: null as any,
+      },
+    });
+    user = await prisma.user.upsert({
+      where: {
         id: "usr_07de11929565179487c7a04759ff9866",
       },
       update: {
@@ -113,8 +133,8 @@ async function userUpsert() {
         phone: "+18005554321",
       },
     });
-    console.log("Upserted users:", 5);
-    return 5;
+    console.log("Upserted users:", 6);
+    return 6;
   } catch (error) {
     console.log(error);
     return -1;

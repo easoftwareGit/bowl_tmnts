@@ -1,8 +1,8 @@
-import { isValidBtDbId, maxTmntNameLength, ErrorCode, minDate, maxDate } from "@/lib/validation";
+import { isValidBtDbId, maxTmntNameLength, ErrorCode, minDate, maxDate, validPostId } from "@/lib/validation";
 import { sanitize } from "@/lib/sanitize";
 import { isValid, compareAsc } from "date-fns";
 import { idTypes, tmntType } from "@/lib/types/types";
-import { initTmnt } from "@/db/initVals";
+import { initTmnt } from "@/lib/db/initVals";
 import { validFullDateISOString } from "@/lib/dateTools";
 
 /**
@@ -126,6 +126,7 @@ const validTmntData = (tmnt: tmntType): ErrorCode => {
 export const sanitizeTmnt = (tmnt: tmntType): tmntType => { 
   const sanditizedTmnt: tmntType = {
     ...initTmnt,  
+    id: '',
     start_date: null as any,
     end_date: null as any
   }  
@@ -150,7 +151,9 @@ export const sanitizeTmnt = (tmnt: tmntType): tmntType => {
       sanditizedTmnt.end_date = tmnt.end_date
     } 
   }
-  
+  if (tmnt.id && (isValidBtDbId(tmnt.id, 'tmt') || validPostId(tmnt.id, 'tmt')) ) {
+    sanditizedTmnt.id = tmnt.id
+  }
   if (isValidBtDbId(tmnt.bowl_id, 'bwl')) {    
     sanditizedTmnt.bowl_id = tmnt.bowl_id  
   } 

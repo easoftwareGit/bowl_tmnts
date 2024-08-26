@@ -3,7 +3,7 @@ import { prisma } from "@/lib/prisma";
 import { validatePot, sanitizePot } from "../validate";
 import { ErrorCode, isValidBtDbId } from "@/lib/validation";
 import { potType, PotCategories } from "@/lib/types/types";
-import { initPot } from "@/db/initVals";
+import { initPot } from "@/lib/db/initVals";
 import { findPotById } from "@/lib/db/pots";
 
 // routes /api/pots/:id

@@ -3,9 +3,8 @@ import { prisma } from "@/lib/prisma";
 import { ErrorCode, isValidBtDbId } from "@/lib/validation";
 import { sanitizeTmnt, validateTmnt } from "@/app/api/tmnts/valildate";
 import { tmntType } from "@/lib/types/types";
-import { initTmnt } from "@/db/initVals";
+import { initTmnt } from "@/lib/db/initVals";
 import { findTmntById } from "@/lib/db/tmnts";
-import { findBowlById } from "@/lib/db/bowls";
 
 // routes /api/tmnts/:id
 

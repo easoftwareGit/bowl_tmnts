@@ -3,7 +3,7 @@ import { prisma } from "@/lib/prisma";
 import { validateDiv, sanitizeDiv } from "./validate";
 import { ErrorCode, validPostId } from "@/lib/validation";
 import { divType, HdcpForTypes } from "@/lib/types/types";
-import { initDiv } from "@/db/initVals";
+import { initDiv } from "@/lib/db/initVals";
 
 // routes /api/divs
 

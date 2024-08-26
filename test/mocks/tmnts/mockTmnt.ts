@@ -1,4 +1,4 @@
-import { initPrismaTmnt } from "@/db/initVals";
+import { initPrismaTmnt } from "@/lib/db/initVals";
 import { startOfDayFromString, startOfTodayUTC, todayStr } from "@/lib/dateTools";
 import { tmntListType, tmntType, userType } from "@/lib/types/types";
 import { Tmnt } from "@prisma/client";
@@ -21,11 +21,9 @@ export const mockTmnt: tmntType = {
   tmnt_name_err: "",
   bowl_id: 'bwl_561540bd64974da9abdd97765fdb3659',
   bowl_id_err: "",
-  start_date: startOfDayFromString(todayStr) as Date,
-  start_date: startOfDayFromString(todayStr) as Date,
+  start_date: startOfDayFromString(todayStr) as Date,  
   start_date_err: "",
-  end_date: startOfDayFromString(todayStr) as Date,
-  end_date: startOfDayFromString(todayStr) as Date,
+  end_date: startOfDayFromString(todayStr) as Date,  
   end_date_err: "",
   bowls: {
     bowl_name: "Earl Anthony's Dublin Bowl",

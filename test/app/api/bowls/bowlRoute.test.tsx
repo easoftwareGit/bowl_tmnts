@@ -1,8 +1,8 @@
 import axios, { AxiosError } from "axios";
-import { baseBowlsApi } from "@/db/apiPaths";
+import { baseBowlsApi } from "@/lib/db/apiPaths";
 import { testBaseBowlsApi } from "../../../testApi";
 import { bowlType } from "@/lib/types/types";
-import { initBowl } from "@/db/initVals";
+import { initBowl } from "@/lib/db/initVals";
 import { Bowl } from "@prisma/client";
 import { postSecret } from "@/lib/tools";
 import { isValidBtDbId } from "@/lib/validation";

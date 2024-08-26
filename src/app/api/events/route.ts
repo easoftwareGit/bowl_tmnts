@@ -3,7 +3,7 @@ import { prisma } from "@/lib/prisma";
 import { validateEvent, sanitizeEvent } from "@/app/api/events/validate";
 import { ErrorCode, validPostId } from "@/lib/validation";
 import { eventType } from "@/lib/types/types";
-import { initEvent } from "@/db/initVals";
+import { initEvent } from "@/lib/db/initVals";
 
 // routes /api/events
 

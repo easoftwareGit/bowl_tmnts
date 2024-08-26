@@ -6,7 +6,7 @@ import {
   validPotFkId,
   exportedForTesting
 } from "@/app/api/pots/validate";
-import { initPot } from "@/db/initVals";
+import { initPot } from "@/lib/db/initVals";
 import { PotCategories, potType } from "@/lib/types/types";
 import { ErrorCode, validPostId } from "@/lib/validation";
 import { postSecret } from "@/lib/tools";

@@ -1,7 +1,7 @@
 import { NextResponse, NextRequest } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { testDateType } from "@/lib/types/types";
-import { initTestDate } from "@/db/initVals";
+import { initTestDate } from "@/lib/db/initVals";
 
 // routes /api/testdate
 

@@ -1,6 +1,6 @@
 "use client"
 import React, { useState } from "react";
-import { initDivs, initTmnt } from "../../db/initVals";
+import { initDivs, initTmnt } from "../../lib/db/initVals";
 import { todayStr } from "@/lib/dateTools";
 import { mockEvents } from "../../../test/mocks/tmnts/singlesAndDoubles/mockEvents";
 import { tmntType, brktType, divType, elimType, potType, squadType, tmntPropsType, laneType, eventType } from "../../lib/types/types";

@@ -3,7 +3,7 @@ import { prisma } from "@/lib/prisma";
 import { ErrorCode, isValidBtDbId } from "@/lib/validation";
 import { validateLane, sanitizeLane } from "@/app/api/lanes/validate";
 import { laneType } from "@/lib/types/types";
-import { initLane } from "@/db/initVals";
+import { initLane } from "@/lib/db/initVals";
 import { findLaneById } from "@/lib/db/lanes";
 
 // routes /api/lanes/:id

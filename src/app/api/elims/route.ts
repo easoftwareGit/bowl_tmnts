@@ -3,7 +3,7 @@ import { prisma } from "@/lib/prisma";
 import { validateElim, sanitizeElim } from "./validate";
 import { ErrorCode, validPostId } from "@/lib/validation";
 import { elimType } from "@/lib/types/types";
-import { initElim } from "@/db/initVals";
+import { initElim } from "@/lib/db/initVals";
 
 // routes /api/elims
 

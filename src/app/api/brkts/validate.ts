@@ -10,7 +10,7 @@ import {
 import { sanitizeCurrency } from "@/lib/sanitize";
 import { validMoney } from "@/lib/currency/validate";
 import { brktType, idTypes } from "@/lib/types/types";
-import { defaultBrktGames, defaultBrktPlayers, initBrkt } from "@/db/initVals";
+import { defaultBrktGames, defaultBrktPlayers, initBrkt } from "@/lib/db/initVals";
 
 /**
  * checks if brkt object has missing data - DOES NOT SANITIZE OR VALIDATE

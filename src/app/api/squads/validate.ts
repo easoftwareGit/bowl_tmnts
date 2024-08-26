@@ -18,7 +18,7 @@ import {
 import { sanitize } from "@/lib/sanitize";
 import { compareAsc, isValid } from "date-fns";
 import { squadType, idTypes } from "@/lib/types/types";
-import { initSquad } from "@/db/initVals";
+import { initSquad } from "@/lib/db/initVals";
 import { validFullDateISOString } from "@/lib/dateTools";
 
 /**

@@ -10,7 +10,7 @@ import {
   brktType,
   potType,  
   testDateType,
-} from "../lib/types/types";
+} from "../types/types";
 import { User, Bowl, Tmnt } from "@prisma/client";
 import { startOfDayFromString, startOfTodayUTC, todayStr } from "@/lib/dateTools";
 

@@ -1,8 +1,8 @@
 import axios, { AxiosError } from "axios";
-import { basePotsApi } from "@/db/apiPaths";
+import { basePotsApi } from "@/lib/db/apiPaths";
 import { testBasePotsApi } from "../../../testApi";
 import { potType } from "@/lib/types/types";
-import { initPot } from "@/db/initVals";
+import { initPot } from "@/lib/db/initVals";
 import { postSecret } from "@/lib/tools";
 import { isValidBtDbId } from "@/lib/validation";
 

@@ -2,7 +2,7 @@ import { ErrorCode, maxFirstNameLength, maxLastNameLength, isEmail, isPassword8t
 import { sanitize } from "@/lib/sanitize";
 import { userType } from "@/lib/types/types";
 import { phone as phoneChecking } from "phone";
-import { initUser } from "@/db/initVals";
+import { initUser } from "@/lib/db/initVals";
 
 /**
  * checks for required data and returns error code if missing 

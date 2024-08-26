@@ -1,6 +1,6 @@
 import React, { useState, ChangeEvent } from "react";
 import { eventType, AcdnErrType, squadType, lpoxValidTypes } from "../../../lib/types/types";
-import { initEvent } from "../../../db/initVals";
+import { initEvent } from "../../../lib/db/initVals";
 import { Tabs, Tab } from "react-bootstrap";
 import ModalConfirm, { delConfTitle } from "@/components/modal/confirmModal";
 import ModalErrorMsg, { cannotDeleteTitle } from "@/components/modal/errorModal";
