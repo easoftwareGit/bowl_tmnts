@@ -5,7 +5,7 @@ import { initUser } from "@/lib/db/initVals";
 import { sanitizeUser, validateUser } from "../validate";
 import { ErrorCode, isValidBtDbId } from "@/lib/validation";
 import { hash } from "bcrypt";
-import { findUserById } from "@/lib/db/users";
+import { findUserById } from "@/lib/db/users/users";
 
 export async function GET(
   request: Request,

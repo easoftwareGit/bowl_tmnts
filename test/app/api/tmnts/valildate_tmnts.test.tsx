@@ -288,10 +288,38 @@ describe('tmnt table data validation', () => {
     it('should return a sanitized tmnt object - no sanitizing', () => {
       const testTmnt: tmntType = {
         ...mockTmnt,
+        id: '',
         tmnt_name: 'Test Name',
       }
       const sanitized = sanitizeTmnt(testTmnt)
+      expect(sanitized.id).toEqual('')
       expect(sanitized.tmnt_name).toEqual('Test Name')      
+    })
+    it('should return a sanitized tmnt object when event has an id', () => {
+      const testTmnt: tmntType = {
+        ...mockTmnt,
+        tmnt_name: 'Test Name',
+      }
+      const sanitized = sanitizeTmnt(testTmnt)
+      expect(sanitized.id).toEqual(mockTmnt.id)
+    })
+    it('should return a sanitized tmnt object when event has a post id', () => {
+      const testTmnt: tmntType = {
+        ...mockTmnt,
+        id: postSecret + mockTmnt.id,
+        tmnt_name: 'Test Name',
+      }
+      const sanitized = sanitizeTmnt(testTmnt)
+      expect(sanitized.id).toEqual(postSecret + mockTmnt.id)
+    })
+    it('should return a sanitized tmnt object when event has an invalid id', () => {
+      const testTmnt: tmntType = {
+        ...mockTmnt,
+        id: 'test',
+        tmnt_name: 'Test Name',
+      }
+      const sanitized = sanitizeTmnt(testTmnt)
+      expect(sanitized.id).toEqual('')
     })
     it('should return a sanitized tmnt name', () => {
       const testTmnt: tmntType = {

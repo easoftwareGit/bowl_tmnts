@@ -1,7 +1,7 @@
 import { NextResponse, NextRequest } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { validYear } from "@/lib/validation";
-import { endOfToday, endOfDay, startOfDay } from "date-fns";
+import { endOfToday, endOfDay } from "date-fns";
 
 // routes /api/tmnts/results/year
 

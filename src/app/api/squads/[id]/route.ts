@@ -4,7 +4,7 @@ import { ErrorCode, isValidBtDbId } from "@/lib/validation";
 import { sanitizeSquad, validateSquad } from "@/app/api/squads/validate";
 import { squadType } from "@/lib/types/types";
 import { initSquad } from "@/lib/db/initVals";
-import { findSquadById } from "@/lib/db/squads";
+import { findSquadById } from "@/lib/db/squads/squads";
 
 // routes /api/squads/:id
 

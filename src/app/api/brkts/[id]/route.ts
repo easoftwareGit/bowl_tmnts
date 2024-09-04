@@ -4,7 +4,7 @@ import { ErrorCode, isValidBtDbId } from "@/lib/validation";
 import { sanitizeBrkt, validateBrkt } from "../validate";
 import { brktType } from "@/lib/types/types";
 import { initBrkt } from "@/lib/db/initVals";
-import { findBrktById } from "@/lib/db/brkts";
+import { findBrktById } from "@/lib/db/brkts/brkts";
 
 // routes /api/brkts/:id
 

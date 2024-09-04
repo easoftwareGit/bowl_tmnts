@@ -1,6 +1,5 @@
 import { NextResponse, NextRequest } from "next/server";
 import { prisma } from "@/lib/prisma";
-import { startOfToday } from "date-fns";
 import { startOfDayFromString, todayStr } from "@/lib/dateTools";
 
 // routes /api/tmnts/upcoming

@@ -1623,8 +1623,8 @@ describe('Tmnts - API: /api/tmnts', () => {
       user_id: "usr_5bcefb5d314fff1ff5da6521a2fa7bde",
       tmnt_name: "Gold Pin",
       bowl_id: "bwl_561540bd64974da9abdd97765fdb3659",
-      start_date: new Date(Date.UTC(2024, 7, 19)),  // month is -1
-      end_date: new Date(Date.UTC(2024, 7, 19)),    // month is -1
+      start_date: new Date(Date.UTC(2025, 7, 19)),  // month is -1
+      end_date: new Date(Date.UTC(2025, 7, 19)),    // month is -1
     }
 
     let didDel = false

@@ -8,6 +8,7 @@ import { SampleForm } from "./form";
 import { Form5 } from "./form5";
 import { Form6 } from "./form6";
 import { Form7 } from "./form7";
+import { Form8 } from "./form8";
 
 const blankTmnt = {
   ...initTmnt,    
@@ -57,8 +58,9 @@ export const SamplePage: React.FC<FormProps> = ({ tmnt = blankTmnt }) => {
         {/* <Form3 events={events} setEvents={setEvents} pets={pets} setPets={setPets} /> */}
         {/* <Form4 tmntProps={tmntFormProps} /> */}
         {/* <Form5 tmntProps={tmntFormProps} /> */}
-        <Form6 />
+        {/* <Form6 /> */}
         {/* <Form7 /> */}
+        <Form8 />
       </div>
     </div>
   )

@@ -111,6 +111,13 @@ export const LoginForm = () => {
     setShowPassword(!showPassword);
   }
 
+  const handleLoginAsEric = () => {
+    setFormData({
+      email: 'eric@email.com',
+      password: 'Test123!',
+    });
+  }
+
   return (
     <form onSubmit={onSubmit}>
       <div className="form_container">
@@ -165,6 +172,9 @@ export const LoginForm = () => {
         <div className="d-grid">
           <button type="submit" id="btnSubmit" className="btn btn-primary mt-2">
             Login
+          </button>
+          <button id="btnLoginAsEric" className="btn btn-secondary mt-2" onClick={handleLoginAsEric}>
+            login as Eric Johnson
           </button>
         </div>
         <div className="d-flex justify-content-center align-middle mt-3">

@@ -25,6 +25,11 @@ export const initUser: userType = {
   role: 'USER'
 }
 
+export const blankUser = {
+  ...initUser,
+  id: "",
+}
+
 export const initPrismaUser: User = {
   id: "",  
   email: "",  
@@ -43,6 +48,11 @@ export const initBowl: bowlType = {
   city: "",
   state: "",
   url: "",
+}
+
+export const blankBowl = {
+  ...initBowl,
+  id: "",
 }
 
 export const initPrismaBowl: Bowl = {
@@ -73,6 +83,11 @@ export const initTmnt: tmntType = {
     url: "",
   },
 };
+
+export const blankTmnt = {
+  ...initTmnt,
+  id: "",
+}
 
 export const initPrismaTmnt: Tmnt = {
   id: "",
@@ -114,6 +129,14 @@ export const initEvent: eventType = {
   errClassName: "",
 };
 
+export const blankEvent: eventType = {
+  ...initEvent,
+  id: "",
+  tmnt_id: "",
+  event_name: "",
+  tab_title: "",  
+};
+
 export const defaultHdcpPer = 1.0;
 export const defaultHdcpFrom = 230;
 export const initDiv: divType = {
@@ -131,6 +154,14 @@ export const initDiv: divType = {
   hdcp_for: "Game",
   sort_order: 1,
   errClassName: "",
+};
+
+export const blankDiv: divType = {
+  ...initDiv,
+  id: "",
+  tmnt_id: "",
+  div_name: "",
+  tab_title: "",
 };
 
 export const defaultStartingLane = 1;
@@ -157,10 +188,24 @@ export const initSquad: squadType = {
   errClassName: "",
 };
 
+export const blankSquad: squadType = {
+  ...initSquad,
+  id: "",
+  event_id: "",
+  squad_name: "",
+  tab_title: "",
+};
+
 export const initLane: laneType = {
   id: "1",
   squad_id: "1",
   lane_number: 1,
+};
+
+export const blankLane: laneType = {
+  ...initLane,
+  id: "",
+  squad_id: "",
 };
 
 export const initPot: potType = {
@@ -176,6 +221,13 @@ export const initPot: potType = {
   sort_order: 1,
   errClassName: "",
 };
+
+export const blankPot: potType = {
+  ...initPot,
+  id: "",
+  div_id: "",
+  squad_id: "",
+}
 
 export const defaultBrktGames = 3;
 export const defaultBrktPlayers = 8;
@@ -206,6 +258,13 @@ export const initBrkt: brktType = {
   errClassName: "",
 };
 
+export const blankBrkt: brktType = {
+  ...initBrkt,
+  id: "",
+  div_id: "",
+  squad_id: "",
+}
+
 export const defaultElimGames = 3;
 export const initElim: elimType = {
   id: "1",
@@ -222,6 +281,13 @@ export const initElim: elimType = {
   sort_order: 1,
   errClassName: "",
 };
+
+export const blankElim: elimType = {
+  ...initElim,
+  id: "",
+  div_id: "",
+  squad_id: "",
+}
 
 export const initEvents: eventType[] = [
   {

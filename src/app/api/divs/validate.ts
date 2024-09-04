@@ -7,11 +7,12 @@ import {
   minHdcpFrom,
   maxHdcpFrom,
   validSortOrder,
+  validPostId,
 } from "@/lib/validation";
 import { sanitize } from "@/lib/sanitize";
 import { HdcpForTypes, idTypes } from "@/lib/types/types";
 import { divType } from "@/lib/types/types";
-import { initDiv } from "@/lib/db/initVals";
+import { blankDiv } from "@/lib/db/initVals";
 import { isNumber } from "@/lib/validation";
 
 const isHdcpForType = (value: any): value is HdcpForTypes => {
@@ -123,10 +124,13 @@ const validDivData = (div: divType): ErrorCode => {
 export const sanitizeDiv = (div: divType): divType => {
   if (!div) return null as any;
   const sanitizedDiv = {
-    ...initDiv,
+    ...blankDiv,
     hdcp_per: null as any,
     hdcp_from: null as any,
     sort_order: null as any
+  }
+  if (div.id === '' || isValidBtDbId(div.id, "div") || validPostId(div.id, "div")) {
+    sanitizedDiv.id = div.id;
   }
   if (validDivFkId(div.tmnt_id, 'tmt')) {
     sanitizedDiv.tmnt_id = div.tmnt_id

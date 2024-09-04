@@ -14,11 +14,12 @@ import {
   validSortOrder,
   maxDate,
   minDate,
+  validPostId,
 } from "@/lib/validation";
 import { sanitize } from "@/lib/sanitize";
 import { compareAsc, isValid } from "date-fns";
 import { squadType, idTypes } from "@/lib/types/types";
-import { initSquad } from "@/lib/db/initVals";
+import { blankSquad, initSquad } from "@/lib/db/initVals";
 import { validFullDateISOString } from "@/lib/dateTools";
 
 /**
@@ -154,11 +155,14 @@ const validSquadData = (squad: squadType): ErrorCode => {
 export const sanitizeSquad = (squad: squadType): squadType => { 
   if (!squad) return null as any
   const sanitizedSquad = {
-    ...initSquad,
+    ...blankSquad,
     games: null as any,
     lane_count: null as any,
     starting_lane: null as any,
     sort_order: null as any,
+  }
+  if (squad.id === '' || isValidBtDbId(squad.id, "sqd") || validPostId(squad.id, "sqd")) {
+    sanitizedSquad.id = squad.id;
   }
   sanitizedSquad.squad_name = sanitize(squad.squad_name)
   if (validEventFkId(squad.event_id, 'evt')) {

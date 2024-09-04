@@ -19,6 +19,8 @@ import { compareAsc } from "date-fns";
 
 const { gotSquadData, validSquadData } = exportedForTesting;
 
+const squadId = 'sqd_7116ce5f80164830830a7157eb093396';
+
 const validSquad = {
   ...initSquad,
   event_id: 'evt_cb97b73cb538418ab993fc867f860510',
@@ -414,9 +416,42 @@ describe('tests for squad validation', () => {
     it('should return a sanitized squad when squad is already sanitized', () => {
       const testSquad = {
         ...validSquad,
+        id: '',
       }
       const sanitizedSquad = sanitizeSquad(testSquad)
-      expect(sanitizedSquad).toEqual(testSquad)
+      expect(sanitizedSquad.id).toEqual('')
+      expect(sanitizedSquad.event_id).toEqual(testSquad.event_id)
+      expect(sanitizedSquad.squad_name).toEqual(testSquad.squad_name)
+      expect(sanitizedSquad.games).toEqual(testSquad.games)
+      expect(sanitizedSquad.starting_lane).toEqual(testSquad.starting_lane)
+      expect(sanitizedSquad.lane_count).toEqual(testSquad.lane_count)
+      expect(compareAsc(sanitizedSquad.squad_date, testSquad.squad_date)).toEqual(0)
+      expect(sanitizedSquad.squad_time).toEqual(testSquad.squad_time)
+      expect(sanitizedSquad.sort_order).toEqual(testSquad.sort_order)
+    })
+    it('should return a sanitized squad when squad has an id', () => {
+      const testSquad = {
+        ...validSquad,
+        id: squadId,
+      }
+      const sanitizedSquad = sanitizeSquad(testSquad)
+      expect(sanitizedSquad.id).toEqual(squadId)
+    })
+    it('should return a sanitized squad when squad has a post id', () => {
+      const testSquad = {
+        ...validSquad,
+        id: postSecret + squadId,
+      }
+      const sanitizedSquad = sanitizeSquad(testSquad)
+      expect(sanitizedSquad.id).toEqual(postSecret + squadId)
+    })
+    it('should return a sanitized squad when squad has an invalid id', () => {
+      const testSquad = {
+        ...validSquad,
+        id: 'test123',
+      }
+      const sanitizedSquad = sanitizeSquad(testSquad)
+      expect(sanitizedSquad.id).toEqual('')
     })
     it('should return a sanitized squad when squad is NOT already sanitized', () => {
       // do not incluide numerical fields
@@ -428,7 +463,7 @@ describe('tests for squad validation', () => {
         squad_time: '24:00',
       }
       const sanitizedSquad = sanitizeSquad(testSquad)
-      expect(sanitizedSquad.event_id).toEqual('1')
+      expect(sanitizedSquad.event_id).toEqual('')
       expect(sanitizedSquad.squad_name).toEqual('Test Squad')
       expect(compareAsc(sanitizedSquad.squad_date, new Date(Date.UTC(2022, 13, 32, 0, 0, 0, 0)))).toEqual(0)
       expect(sanitizedSquad.squad_time).toEqual('')

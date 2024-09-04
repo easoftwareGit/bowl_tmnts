@@ -6,11 +6,12 @@ import {
   minGames,
   maxGames,
   isNumber,
+  validPostId,
 } from "@/lib/validation";
 import { sanitizeCurrency } from "@/lib/sanitize";
 import { validMoney } from "@/lib/currency/validate";
 import { brktType, idTypes } from "@/lib/types/types";
-import { defaultBrktGames, defaultBrktPlayers, initBrkt } from "@/lib/db/initVals";
+import { blankBrkt, defaultBrktGames, defaultBrktPlayers } from "@/lib/db/initVals";
 
 /**
  * checks if brkt object has missing data - DOES NOT SANITIZE OR VALIDATE
@@ -193,12 +194,15 @@ const validBrktData = (brkt: brktType): ErrorCode => {
 export const sanitizeBrkt = (brkt: brktType): brktType => {
   if (!brkt) return null as any;
   const sanitizedBrkt = {
-    ...initBrkt,
+    ...blankBrkt,
     start: null as any,
     games: null as any,
     players: null as any,
     sort_order: null as any,
   };
+  if (brkt.id === '' || isValidBtDbId(brkt.id, "brk") || validPostId(brkt.id, "brk")) {
+    sanitizedBrkt.id = brkt.id;
+  }
   if (validBrktFkId(brkt.div_id, "div")) {
     sanitizedBrkt.div_id = brkt.div_id;
   }

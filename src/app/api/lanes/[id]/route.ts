@@ -4,7 +4,7 @@ import { ErrorCode, isValidBtDbId } from "@/lib/validation";
 import { validateLane, sanitizeLane } from "@/app/api/lanes/validate";
 import { laneType } from "@/lib/types/types";
 import { initLane } from "@/lib/db/initVals";
-import { findLaneById } from "@/lib/db/lanes";
+import { findLaneById } from "@/lib/db/lanes/lanes";
 
 // routes /api/lanes/:id
 

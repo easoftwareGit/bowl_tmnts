@@ -4,7 +4,7 @@ import { ErrorCode, isValidBtDbId } from "@/lib/validation";
 import { sanitizeTmnt, validateTmnt } from "@/app/api/tmnts/valildate";
 import { tmntType } from "@/lib/types/types";
 import { initTmnt } from "@/lib/db/initVals";
-import { findTmntById } from "@/lib/db/tmnts";
+import { findTmntById } from "@/lib/db/tmnts/tmnts";
 
 // routes /api/tmnts/:id
 

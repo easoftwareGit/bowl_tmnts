@@ -44,11 +44,13 @@ export function sanitizeUrl(url: string): string {
   try {
     // maxUrlLength is 2048
     if (url.length > maxUrlLength) {
-      throw new Error("URL exceeds maximum length");
+      // throw new Error("URL exceeds maximum length");
+      return '';
     }
     let parsedUrl = new URL(url);
     if (!["http:", "https:"].includes(parsedUrl.protocol)) {
-      throw new Error("Invalid protocol");
+      // throw new Error("Invalid protocol");
+      return '';
     }
     let sanitizedUrl = parsedUrl.protocol + "//" + parsedUrl.hostname;
     if (parsedUrl.port) {

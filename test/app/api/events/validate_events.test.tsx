@@ -14,8 +14,11 @@ import { eventType } from "@/lib/types/types";
 import { ErrorCode, maxEventLength, maxSortOrder, validPostId } from "@/lib/validation";
 import { postSecret } from "@/lib/tools";
 import { startOfDayFromString, todayStr } from "@/lib/dateTools";
+import { notFound } from "next/navigation";
 
 const { gotEventData, validEventData } = exportedForTesting;
+
+const eventId = 'evt_cb97b73cb538418ab993fc867f860510'
 
 const validEvent = {
   ...initEvent,
@@ -639,8 +642,10 @@ describe("tests for event validation", () => {
     it("should return a sanitized event when event is already sanitized", () => {
       const testEvent = {
         ...validEvent,
+        id: '',
       };
       const sanitizedEvent = sanitizeEvent(testEvent);
+      expect(sanitizedEvent.id).toEqual('');
       expect(sanitizedEvent.tmnt_id).toEqual("tmt_fd99387c33d9c78aba290286576ddce5"); // not valid, but sanitized
       expect(sanitizedEvent.event_name).toEqual("Event Name");
       expect(sanitizedEvent.team_size).toEqual(1);
@@ -667,7 +672,7 @@ describe("tests for event validation", () => {
         expenses: "5.00",
       };
       const sanitizedEvent = sanitizeEvent(testEvent);
-      expect(sanitizedEvent.tmnt_id).toEqual("1");  // not valid, but sanitized
+      expect(sanitizedEvent.tmnt_id).toEqual("");   
       expect(sanitizedEvent.event_name).toEqual("Test Name");
       expect(sanitizedEvent.added_money).toEqual("500");
       expect(sanitizedEvent.entry_fee).toEqual("100");
@@ -676,7 +681,31 @@ describe("tests for event validation", () => {
       expect(sanitizedEvent.other).toEqual("2");
       expect(sanitizedEvent.expenses).toEqual("5");
     });
-    it("should return a sanitized event with when event has null for numerical fields", () => {
+    it('should return a sanitized event when event has an id', () => { 
+      const testEvent = {
+        ...validEvent,
+        id: eventId,
+      };
+      const sanitizedEvent = sanitizeEvent(testEvent);
+      expect(sanitizedEvent.id).toEqual(eventId);
+    })
+    it('should return a sanitized event when event has a post id', () => { 
+      const testEvent = {
+        ...validEvent,
+        id: postSecret + eventId,
+      };
+      const sanitizedEvent = sanitizeEvent(testEvent);
+      expect(sanitizedEvent.id).toEqual(postSecret + eventId);
+    })
+    it('should return a sanitized event when event has an invalid id', () => { 
+      const testEvent = {
+        ...validEvent,
+        id: 'abc',
+      };
+      const sanitizedEvent = sanitizeEvent(testEvent);
+      expect(sanitizedEvent.id).toEqual('');
+    })
+    it("should return a sanitized event when event has null for numerical fields", () => {
       const testEvent = {
         ...validEvent,
         team_size: null as any,
@@ -688,7 +717,7 @@ describe("tests for event validation", () => {
       expect(sanitizedEvent.games).toBeNull();
       expect(sanitizedEvent.sort_order).toBeNull();
     });
-    it("should return a sanitized event with when event has values for numerical fields are too low", () => {
+    it("should return a sanitized event when event has values for numerical fields are too low", () => {
       const testEvent = {
         ...validEvent,
         team_size: 0,
@@ -700,7 +729,7 @@ describe("tests for event validation", () => {
       expect(sanitizedEvent.games).toBe(0);
       expect(sanitizedEvent.sort_order).toBe(0);
     });    
-    it("should return a sanitized event with when event has values for numerical fields are not numbers", () => {
+    it("should return a sanitized event when event has values for numerical fields are not numbers", () => {
       const testEvent = {
         ...validEvent,
         team_size: 'abc' as any,
@@ -712,7 +741,7 @@ describe("tests for event validation", () => {
       expect(sanitizedEvent.games).toBe(null);
       expect(sanitizedEvent.sort_order).toBe(null);      
     });        
-    it("should return a sanitized event with when event has values for numerical fields are too high", () => {
+    it("should return a sanitized event when event has values for numerical fields are too high", () => {
       const testEvent = {
         ...validEvent,
         team_size: 10,

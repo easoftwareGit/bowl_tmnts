@@ -10,6 +10,7 @@ import ModelConfirm from "@/components/modal/confirmModal"
 import { useState } from "react";
 
 import "./navlink.css";
+import UserPage from "@/app/user/page";
 
 export default function EaNavbar() {
 
@@ -50,6 +51,12 @@ export default function EaNavbar() {
                 {/* <Nav.Link as={Link} href="/dataEntry/tmnt" active={pathname === "/dataEntry/tmnt"}>Tmnt Data</Nav.Link> */}
                 <NavDropdown title={ data.user?.name } id="user-dropdown">
                   <NavDropdown.Item
+                    href="/user/tmnts"
+                    className="user-nav-item"
+                  >
+                    Tournaments
+                  </NavDropdown.Item>
+                  <NavDropdown.Item
                     href="/user"
                     className="user-nav-item"
                   >
@@ -63,7 +70,8 @@ export default function EaNavbar() {
                   >
                     Log out
                   </NavDropdown.Item>
-                </NavDropdown>
+                </NavDropdown>  
+                {/* <UserPage /> */}
               </>
             ) : (                
               <Nav.Link as={Link} href="/api/auth/signin" active={pathname === "/api/auth/signin"}>Log In</Nav.Link>

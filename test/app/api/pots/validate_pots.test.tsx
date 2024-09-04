@@ -13,6 +13,8 @@ import { postSecret } from "@/lib/tools";
 
 const { gotPotData, validPotData } = exportedForTesting;
 
+const potId = 'pot_b2a7b02d761b4f5ab5438be84f642c3b';
+
 const validPot = {
   ...initPot,
   div_id: 'div_f30aea2c534f4cfe87f4315531cef8ef',
@@ -220,7 +222,8 @@ describe("tests for pot validation", () => {
   describe('sanitizePot function', () => { 
     it('should return sanitized pot when pot is already sanitized', () => {
       const testPot = {
-        ...validPot
+        ...validPot,
+        id: '',
       }
       const sanitizedPot = sanitizePot(testPot)
       expect(sanitizedPot.div_id).toEqual(testPot.div_id)
@@ -228,6 +231,30 @@ describe("tests for pot validation", () => {
       expect(sanitizedPot.pot_type).toEqual(testPot.pot_type)
       expect(sanitizedPot.fee).toEqual(testPot.fee)
       expect(sanitizedPot.sort_order).toEqual(testPot.sort_order)
+    })
+    it('should return sanitized pot when pot has an id', () => {
+      const testPot = {
+        ...validPot,
+        id: potId,
+      }
+      const sanitizedPot = sanitizePot(testPot)
+      expect(sanitizedPot.id).toEqual(potId)
+    })
+    it('should return sanitized pot when pot has a post id', () => {
+      const testPot = {
+        ...validPot,
+        id: postSecret + potId,
+      }
+      const sanitizedPot = sanitizePot(testPot)
+      expect(sanitizedPot.id).toEqual(postSecret + potId)
+    })
+    it('should return sanitized pot when pot has an invalidid', () => {
+      const testPot = {
+        ...validPot,
+        id: 'test',
+      }
+      const sanitizedPot = sanitizePot(testPot)
+      expect(sanitizedPot.id).toEqual('')
     })
     it('should return sanitized pot when pot is not already sanitized', () => {
       // no numerical fields

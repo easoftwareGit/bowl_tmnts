@@ -16,6 +16,8 @@ import { ErrorCode, maxEventLength, maxSortOrder, validPostId } from "@/lib/vali
 
 const { gotDivData, validDivData } = exportedForTesting;
 
+const divId = 'div_f30aea2c534f4cfe87f4315531cef8ef'
+
 const validScratchDiv: divType = {
   ...initDiv,
   tmnt_id: "tmt_fd99387c33d9c78aba290286576ddce5",
@@ -234,7 +236,7 @@ describe('tests for div validation', () => {
   })
 
   describe('validDivData function', () => { 
-    it('should return ErrorCode.None when valid event data', () => { 
+    it('should return ErrorCode.None when valid div data', () => { 
       expect(validDivData(validScratchDiv)).toBe(ErrorCode.None);
       expect(validDivData(validHdcpDiv)).toBe(ErrorCode.None);
     })
@@ -374,11 +376,13 @@ describe('tests for div validation', () => {
   })
 
   describe('sanitizeDiv function', () => { 
-    it('should return a sanitized event when event is alread sanitized', () => {
+    it('should return a sanitized div when div is alread sanitized', () => {
       const testDiv = {
         ...validScratchDiv,
+        id: '',
       }
       const sanitizedDiv = sanitizeDiv(testDiv)
+      expect(sanitizedDiv.id).toEqual('')
       expect(sanitizedDiv.tmnt_id).toEqual('tmt_fd99387c33d9c78aba290286576ddce5') 
       expect(sanitizedDiv.div_name).toEqual('Scratch')
       expect(sanitizedDiv.hdcp_per).toEqual(0)
@@ -387,7 +391,31 @@ describe('tests for div validation', () => {
       expect(sanitizedDiv.hdcp_for).toEqual('Game')
       expect(sanitizedDiv.sort_order).toEqual(1)
     })
-    it('should return a sanitized event when event is NOT alread sanitized', () => {
+    it('should return a sanitized div when div has an id', () => { 
+      const testDiv = {
+        ...validScratchDiv,
+        id: divId,
+      }
+      const sanitizedDiv = sanitizeDiv(testDiv)
+      expect(sanitizedDiv.id).toEqual(divId)
+    })
+    it('should return a sanitized div when div has a post id', () => { 
+      const testDiv = {
+        ...validScratchDiv,
+        id: postSecret + divId,        
+      }
+      const sanitizedDiv = sanitizeDiv(testDiv)
+      expect(sanitizedDiv.id).toEqual(postSecret + divId)
+    })
+    it('should return a sanitized div when div has an invalid id', () => {
+      const testDiv = {
+        ...validScratchDiv,
+        id: 'abc_123',
+      }
+      const sanitizedDiv = sanitizeDiv(testDiv)
+      expect(sanitizedDiv.id).toEqual('')      
+    })
+    it('should return a sanitized div when div is NOT alread sanitized', () => {
       // no numerical fields in this test
       const testDiv = {
         ...validScratchDiv,
@@ -397,12 +425,12 @@ describe('tests for div validation', () => {
         hdcp_for: 'everyone' as any,
       }
       const sanitizedDiv = sanitizeDiv(testDiv)
-      expect(sanitizedDiv.tmnt_id).toEqual('1') // not valid, but sanitized
+      expect(sanitizedDiv.tmnt_id).toEqual('') 
       expect(sanitizedDiv.div_name).toEqual('Test')
       expect(sanitizedDiv.int_hdcp).toEqual(true)
       expect(sanitizedDiv.hdcp_for).toEqual('Game')
     })
-    it('should return a sanitized event when numerical values are null', () => {
+    it('should return a sanitized div when numerical values are null', () => {
       const testDiv = {
         ...validScratchDiv,
         hdcp_per: null as any,
@@ -414,7 +442,7 @@ describe('tests for div validation', () => {
       expect(sanitizedDiv.hdcp_from).toBeNull()
       expect(sanitizedDiv.sort_order).toBeNull()
     })
-    it('should return a sanitized event when numerical values are not numbers', () => {
+    it('should return a sanitized div when numerical values are not numbers', () => {
       const testDiv = {
         ...validScratchDiv,
         hdcp_per: 'abc' as any,
@@ -426,7 +454,7 @@ describe('tests for div validation', () => {
       expect(sanitizedDiv.hdcp_from).toBeNull()
       expect(sanitizedDiv.sort_order).toBeNull()
     })
-    it('should return a sanitized event when numerical values are too low', () => {
+    it('should return a sanitized div when numerical values are too low', () => {
       const testDiv = {
         ...validScratchDiv,
         hdcp_per: -0.5,
@@ -439,7 +467,7 @@ describe('tests for div validation', () => {
       expect(sanitizedDiv.hdcp_from).toEqual(-1)
       expect(sanitizedDiv.sort_order).toEqual(0)
     })
-    it('should return a sanitized event when numerical values are to high', () => {
+    it('should return a sanitized div when numerical values are to high', () => {
       const testDiv = {
         ...validScratchDiv,
         hdcp_per: 2.5,

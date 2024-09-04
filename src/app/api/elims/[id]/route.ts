@@ -4,7 +4,7 @@ import { ErrorCode, isValidBtDbId } from "@/lib/validation";
 import { sanitizeElim, validateElim } from "../validate";
 import { elimType } from "@/lib/types/types";
 import { initElim } from "@/lib/db/initVals";
-import { findElimById } from "@/lib/db/elims";
+import { findElimById } from "@/lib/db/elims/elims";
 
 // routes /api/elims/:id
 

@@ -13,6 +13,8 @@ import { mockUser } from "../../../mocks/tmnts/mockTmnt";
 import { ErrorCode, validPostId } from "@/lib/validation";
 import { postSecret } from "@/lib/tools";
 
+const userId = 'usr_5bcefb5d314fff1ff5da6521a2fa7bde';
+
 const { gotUserData, validUserData } = exportedForTesting;
 
 describe("user table data validation", () => {  
@@ -426,15 +428,40 @@ describe("user table data validation", () => {
     it("should return a sanitized user object - no sanitizing", () => {
       const testUser: userType = {
         ...mockUser,
+        id: '',
         first_name: "John-Paul",
         last_name: "Jones Doe",
         phone: "1+8005551234",
       };
       const sanitized = sanitizeUser(testUser);
+      expect(sanitized.id).toEqual("");
       expect(sanitized.first_name).toEqual("John-Paul");
       expect(sanitized.last_name).toEqual("Jones Doe");
       expect(sanitized.phone).toEqual("+18005551234");
     });
+    it('should return a sanitized user when user has an id', () => { 
+      const testUser: userType = {
+        ...mockUser,        
+      };
+      const sanitized = sanitizeUser(testUser);
+      expect(sanitized.id).toEqual(mockUser.id);
+    })
+    it('should return a sanitized user when user has a post id', () => { 
+      const testUser: userType = {
+        ...mockUser,
+        id: postSecret + userId,
+      };
+      const sanitized = sanitizeUser(testUser);
+      expect(sanitized.id).toEqual(postSecret + userId);
+    })
+    it('should return a sanitized user when user has an invalid id', () => { 
+      const testUser: userType = {
+        ...mockUser,
+        id: "test",
+      };
+      const sanitized = sanitizeUser(testUser);
+      expect(sanitized.id).toEqual("");
+    })
     it("should return a sanitized user object", () => {
       const testUser: userType = {
         ...mockUser,

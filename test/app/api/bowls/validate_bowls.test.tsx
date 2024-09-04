@@ -10,9 +10,11 @@ import {
 import { initBowl } from "@/lib/db/initVals";
 import { postSecret } from "@/lib/tools";
 import { bowlType } from "@/lib/types/types";
-import { ErrorCode, validPostId } from "@/lib/validation";
+import { ErrorCode, maxUrlLength, validPostId } from "@/lib/validation";
 
 const { gotBowlData, validBowlData } = exportedForTesting;
+
+const bowlId = 'bwl_561540bd64974da9abdd97765fdb3659';
 
 const validBowl = {
   ...initBowl,
@@ -359,7 +361,7 @@ describe("bowl table data validation", () => {
     });
 
     it('should return false for URL exceeding max length', () => {
-      const url = 'http://example.com/' + 'a'.repeat(41);
+      const url = 'http://example.com/' + 'a'.repeat(maxUrlLength);
       const result = validUrl(url);
       expect(result).toBe(false);
     });
@@ -499,7 +501,7 @@ describe("bowl table data validation", () => {
     });
         
     it('should return ErrorCode.InvalidData when url exceeds max length', () => {
-      const invalidUrl = 'http://'.repeat(100); // creating a url that exceeds max length
+      const invalidUrl = 'http://'.repeat(maxUrlLength); // creating a url that exceeds max length
       const invalidBowl = {
         id: '1',
         bowl_name: 'Valid Bowl',
@@ -537,67 +539,93 @@ describe("bowl table data validation", () => {
 
   describe('sanitizeBowl function', () => { 
     it('should make not changed to bowl object when all properties are already sanitized', () => { 
-      const bowl = {
+      const testBowl = {
         ...validBowl,
-        url: 'https://valid.com/'
+        id: '',
+        url: 'https://valid.com'
       }
-      const sanitizedBowl = sanitizeBowl(bowl);
+      const sanitizedBowl = sanitizeBowl(testBowl);
+      expect(sanitizedBowl.id).toEqual('');
       expect(sanitizedBowl.bowl_name).toEqual('Valid Bowl Name');
       expect(sanitizedBowl.city).toEqual('Valid City');
       expect(sanitizedBowl.state).toEqual('VS');
-      expect(sanitizedBowl.url).toEqual('https://valid.com/');
+      expect(sanitizedBowl.url).toEqual('https://valid.com');
+    })
+    it('should return a sanitized bowl when bowl has an id', () => { 
+      const testBowl = {
+        ...validBowl,
+        id: bowlId,
+      }
+      const sanitizedBowl = sanitizeBowl(testBowl);
+      expect(sanitizedBowl.id).toEqual(bowlId);
+    })
+    it('should return a sanitized bowl when bowl has a post id', () => { 
+      const testBowl = {
+        ...validBowl,
+        id: postSecret + bowlId,
+      }
+      const sanitizedBowl = sanitizeBowl(testBowl);
+      expect(sanitizedBowl.id).toEqual(postSecret + bowlId);
+    })
+    it('should return a sanitized bowl when bowl has an invalid id', () => { 
+      const testBowl = {
+        ...validBowl,
+        id: 'test123',
+      }
+      const sanitizedBowl = sanitizeBowl(testBowl);
+      expect(sanitizedBowl.id).toEqual('');
     })
     it('should remove unwanted characters from bowl_name, city, and state', () => {
-      const bowl = {
+      const testBowl = {    
         id: '1',
         bowl_name: 'Test<bowl>',
         city: 'City<script>',
         state: 'State<alert>',
         url: 'http://example.com'
       };
-      const sanitizedBowl = sanitizeBowl(bowl);
+      const sanitizedBowl = sanitizeBowl(testBowl);      
+      expect(sanitizedBowl.id).toBe('');
       expect(sanitizedBowl.bowl_name).toBe('Test');
       expect(sanitizedBowl.city).toBe('City');
       expect(sanitizedBowl.state).toBe('State');
-      expect(sanitizedBowl.url).toBe('http://example.com/');
-    });
-    
+      expect(sanitizedBowl.url).toBe('http://example.com');
+    });    
     it('should sanitize a valid URL when calling sanitizeBowl', () => {
-      const bowl = {
+      const testBowl = {
         id: '1',
         bowl_name: 'Test Bowl',
         city: 'City',
         state: 'State',
         url: 'http://example.com'
       };
-      const sanitizedBowl = sanitizeBowl(bowl);
-      expect(sanitizedBowl.url).toBe('http://example.com/');
+      const sanitizedBowl = sanitizeBowl(testBowl);
+      expect(sanitizedBowl.url).toBe('http://example.com');
     });
     
     it('should return a bowl object with the same structure as the input', () => {
-      const bowl = {
+      const testBowl = {
         id: '1',
         bowl_name: 'Test<bowl>',
         city: 'City<script>',
         state: 'State<alert>',
         url: 'http://example.com'
       };
-      const sanitizedBowl = sanitizeBowl(bowl);
+      const sanitizedBowl = sanitizeBowl(testBowl);
       expect(sanitizedBowl.bowl_name).toBe('Test');
       expect(sanitizedBowl.city).toBe('City');
       expect(sanitizedBowl.state).toBe('State');
-      expect(sanitizedBowl.url).toBe('http://example.com/');
+      expect(sanitizedBowl.url).toBe('http://example.com');
     });
     
     it('should handle empty strings in bowl_name, city, state, and url gracefully', () => {
-      const bowl = {
+      const testBowl = {
         id: '1',
         bowl_name: '',
         city: '',
         state: '',
         url: ''
       };
-      const sanitizedBowl = sanitizeBowl(bowl);
+      const sanitizedBowl = sanitizeBowl(testBowl);
       expect(sanitizedBowl.bowl_name).toBe('');
       expect(sanitizedBowl.city).toBe('');
       expect(sanitizedBowl.state).toBe('');
@@ -605,42 +633,42 @@ describe("bowl table data validation", () => {
     });
 
     it('should handle strings with HTML tags in bowl_name, city, and state', () => {
-      const bowl = {
+      const testBowl = {
         id: '1',
         bowl_name: 'Test<bowl>',
         city: 'City<script>',
         state: 'State<alert>',
         url: 'http://example.com'
       };
-      const sanitizedBowl = sanitizeBowl(bowl);
+      const sanitizedBowl = sanitizeBowl(testBowl);
       expect(sanitizedBowl.bowl_name).toBe('Test');
       expect(sanitizedBowl.city).toBe('City');
       expect(sanitizedBowl.state).toBe('State');
     });
     
     it('should handle strings with special characters like parentheses, asterisks, and plus signs', () => {
-      const bowl = {
+      const testBowl = {
         id: '1',
         bowl_name: 'Test(bowl)*&',
         city: 'City(bowl)*@',
         state: 'S(T)*#',
         url: 'http://example.com'
       };
-      const sanitizedBowl = sanitizeBowl(bowl);
+      const sanitizedBowl = sanitizeBowl(testBowl);
       expect(sanitizedBowl.bowl_name).toBe('Testbowl');
       expect(sanitizedBowl.city).toBe('Citybowl');
       expect(sanitizedBowl.state).toBe('ST');
-      expect(sanitizedBowl.url).toBe('http://example.com/');
+      expect(sanitizedBowl.url).toBe('http://example.com');
     });
     it('should sanitize url', () => {
-      const bowl = {
+      const testBowl = {
         id: '1',
         bowl_name: 'Testbowl',
         city: 'Citybowl',
         state: 'ST',
         url: 'http://username:password@example.com/path?query=123#hash'
       };
-      const sanitizedBowl = sanitizeBowl(bowl);
+      const sanitizedBowl = sanitizeBowl(testBowl);
       expect(sanitizedBowl.bowl_name).toBe('Testbowl');
       expect(sanitizedBowl.city).toBe('Citybowl');
       expect(sanitizedBowl.state).toBe('ST');
@@ -830,17 +858,17 @@ describe("bowl table data validation", () => {
         expect(result).toBe(ErrorCode.InvalidData);
       });
   
-      it('should return ErrorCode.InvalidData when url exceeds max length', () => {
-        const invalidUrl = 'http://'.repeat(100); // creating a url that exceeds max length
+      it('should return ErrorCode.MissingData when url exceeds max length', () => {
+        const invalidUrl = 'http://test.com/' + 'a'.repeat(maxUrlLength); // creating a url that exceeds max length
         const invalidBowl = {
-          id: '1',
+          id: '',
           bowl_name: 'Valid Bowl',
           city: 'Valid City',
           state: 'VS',
           url: invalidUrl
         };
         const result = validateBowl(invalidBowl);
-        expect(result).toBe(ErrorCode.InvalidData);
+        expect(result).toBe(ErrorCode.MissingData);
       });
   
     })

@@ -85,6 +85,22 @@ export type eventType = {
   [key: string]: any;
 }
 
+// NO lpox in eventDataType
+export type eventDataType = {
+  tmnt_id: string,
+  event_name: string,
+  team_size: number,
+  games: number,
+  entry_fee: string,
+  lineage: string,
+  prize_fund: string,
+  other: string,
+  expenses: string,
+  added_money: string,      
+  sort_order: number,
+  id?: string
+}
+
 export type HdcpForTypes = "Game" | "Series";
 
 export type divType = {

@@ -4,8 +4,8 @@ import { ErrorCode, isValidBtDbId } from "@/lib/validation";
 import { sanitizeEvent, validateEvent } from "@/app/api/events/validate";
 import { eventType } from "@/lib/types/types";
 import { initEvent } from "@/lib/db/initVals";
-import { findEventById } from "@/lib/db/events";
-import { findTmntById } from "@/lib/db/tmnts";
+import { findEventById } from "@/lib/db/events/events";
+import { findTmntById } from "@/lib/db/tmnts/tmnts";
 
 // routes /api/events/:id
 

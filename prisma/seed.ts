@@ -103,6 +103,7 @@ async function userUpsert() {
         first_name: "Eric",
         last_name: "Adolphson",
         phone: null as any,
+        role: 'DIRECTOR',
       },
       create: {
         id: "usr_c8fcd7146f9a4c5fb4c42f386304e7a6",
@@ -111,6 +112,7 @@ async function userUpsert() {
         first_name: "Eric",
         last_name: "Adolphson",
         phone: null as any,
+        role: 'DIRECTOR',
       },
     });
     user = await prisma.user.upsert({
@@ -1094,7 +1096,7 @@ async function laneUpsert() {
       });
       lane = await prisma.lane.upsert({
         where: {
-          id: "lan_327d738e43bb4ff680f6b17fac0a61f0",
+          id: "lan_7b5b9d9e6b6e4c5b9f6b7d9e7f9b6c5d",
         },
         update: {
           lane_number: 30,
@@ -1108,7 +1110,7 @@ async function laneUpsert() {
       });
       lane = await prisma.lane.upsert({
         where: {
-          id: "lan_8b78890d8b8e4c5b9f6b7d9e7f9b6c5d",
+          id: "lan_7b5b9d9e6b6e4c5b9f6b7d9e7f9b6c5d",
         },
         update: {          
           lane_number: 31,
@@ -1136,7 +1138,7 @@ async function laneUpsert() {
       });
       lane = await prisma.lane.upsert({
         where: {
-          id: "lan_8b78890d8b8e4c5b9f6b7d9e7f9b6234",
+          id: "lan_8b78890d8b8e4c5b9f6b7d9e7f9b6123",
         },
         update: {          
           lane_number: 33,
@@ -1150,7 +1152,7 @@ async function laneUpsert() {
       });
       lane = await prisma.lane.upsert({
         where: {
-          id: "lan_8b78890d8b8e4c5b9f6b7d9e7f9b6345",
+          id: "lan_8b78890d8b8e4c5b9f6b7d9e7f9b6123",
         },
         update: {          
           lane_number: 34,

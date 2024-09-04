@@ -1,6 +1,6 @@
 import { createAsyncThunk, createSlice } from "@reduxjs/toolkit";
 import { loadStatusType } from "@/redux/statusTypes";
-import { getTmnts } from "@/lib/db/tmnts";
+import { getTmnts } from "@/lib/db/tmnts/tmnts";
 import { tmntType, tmntListType } from "@/lib/types/types";
 
 export interface TmntSliceState {

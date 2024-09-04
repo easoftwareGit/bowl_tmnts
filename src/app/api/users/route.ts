@@ -2,7 +2,7 @@ import { NextResponse, NextRequest } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { hash } from "bcrypt";
 import { ErrorCode, validPostId } from "@/lib/validation";
-import { findUserByEmail } from "@/lib/db/users";
+import { findUserByEmail } from "@/lib/db/users/users";
 import { sanitizeUser, validateUser } from "./validate";
 import { userType } from "@/lib/types/types";
 import { initUser } from "@/lib/db/initVals";

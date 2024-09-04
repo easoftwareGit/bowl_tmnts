@@ -17,7 +17,7 @@ export const mockEvents: eventType[] = [
     lineage_err: '',
     prize_fund: '20',
     prize_fund_err: '',
-    other: '',
+    other: '0',
     other_err: '',
     expenses: '1',
     expenses_err: '',

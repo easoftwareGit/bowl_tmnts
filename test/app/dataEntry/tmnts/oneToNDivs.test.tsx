@@ -310,6 +310,88 @@ describe("OneToNDivs - Component", () => {
       expect(tabs).toHaveLength(3)
       expect(tabs[2]).toHaveTextContent("50+");
     })
+    it('test added division keyboard fields', async () => {
+      // ARRANGE
+      const user = userEvent.setup();
+      render(<OneToNDivs {...mockOneToNDivsProps} />)      
+      const addBtn = screen.getByText('Add');          
+      expect(addBtn).toBeInTheDocument()          
+      // ACT
+      await user.click(addBtn)
+      // ASSERT
+      expect(mockOneToNDivsProps.setDivs).toHaveBeenCalled();
+
+      // ACT
+      const tabs = screen.getAllByRole("tab");
+      // ASSERT
+      expect(tabs).toHaveLength(3)
+
+      // ARRANGE
+      await user.click(tabs[2]);
+      
+      // ACT
+      const divNames = screen.getAllByRole("textbox", { name: /div name/i }) as HTMLInputElement[];
+      const hdcps = screen.getAllByRole('spinbutton', { name: /hdcp %/i }) as HTMLInputElement[];
+      const hdcpFroms = screen.getAllByRole('spinbutton', { name: /hdcp from/i }) as HTMLInputElement[];
+
+      // ASSERT
+      expect(divNames).toHaveLength(3)
+      expect(hdcps).toHaveLength(3)
+      expect(hdcpFroms).toHaveLength(3)
+      expect(divNames[2]).toHaveValue(mockDivs[2].div_name);
+      expect(hdcps[2]).toHaveValue(mockDivs[2].hdcp_per);
+      expect(hdcpFroms[2]).toHaveValue(mockDivs[2].hdcp_from);
+
+      await user.type(divNames[2], 'Test Div');
+      await user.type(hdcps[2], '0.90');
+      await user.type(hdcpFroms[2], '225');
+
+      expect(divNames[2]).toHaveValue(mockDivs[2].div_name);
+      expect(hdcps[2]).toHaveValue(mockDivs[2].hdcp_per);
+      expect(hdcpFroms[2]).toHaveValue(mockDivs[2].hdcp_from);      
+    })
+    it('test added division check box', async () => {
+      // ARRANGE
+      const user = userEvent.setup();
+      render(<OneToNDivs {...mockOneToNDivsProps} />)      
+      const addBtn = screen.getByText('Add');          
+      expect(addBtn).toBeInTheDocument()          
+      // ACT
+      await user.click(addBtn)
+      // ASSERT
+      expect(mockOneToNDivsProps.setDivs).toHaveBeenCalled();
+
+      // ACT
+      const tabs = screen.getAllByRole("tab");
+      // ASSERT
+      expect(tabs).toHaveLength(3)
+
+      // ARRANGE
+      await user.click(tabs[2]);
+      
+      // ACT
+      const intHdcps = screen.getAllByRole('checkbox', { name: /integer hdcp/i }) as HTMLInputElement[];
+
+      // ASSERT
+      expect(intHdcps).toHaveLength(3)              
+      expect(intHdcps[2]).toBeChecked()      
+
+      await user.click(intHdcps[2]);
+      mockDivs[2].int_hdcp = false;
+      try {
+        expect(intHdcps[2]).not.toBeChecked()
+      } catch (error) {
+        expect(mockOneToNDivsProps.divs[2].int_hdcp).toBe(false);
+      }
+
+      await user.click(intHdcps[2]);
+      mockDivs[2].int_hdcp = true;
+      try {
+        expect(intHdcps[2]).toBeChecked()  
+      } catch (error) {
+        expect(mockOneToNDivsProps.divs[2].int_hdcp).toBe(true);
+      }
+    })
 
     it('test added division radio buttons', async () => {
       // ARRANGE
@@ -372,7 +454,6 @@ describe("OneToNDivs - Component", () => {
         expect(mockOneToNDivsProps.divs[2].hdcp_for).toBe("Game");
       }            
     })
-
   })
 
   describe("delete division", () => { 
@@ -404,7 +485,7 @@ describe("OneToNDivs - Component", () => {
       // ACT
       await user.click(delBtns[1]);
       // ASSERT
-      expect(mockOneToNDivsProps.setDivs).toHaveBeenCalled();
+      expect(mockOneToNDivsProps.setDivs).toHaveBeenCalled();      
     })
   })
 })

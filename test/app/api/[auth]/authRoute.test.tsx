@@ -1,6 +1,6 @@
 import axios, { AxiosError } from "axios";
-import { baseUsersApi, baseRegisterApi, baseNextAuthApi } from "@/lib/db/apiPaths";
-import { testBaseUsersApi, testBaseRegisterApi, testBaseNextAuthApi } from "../../../testApi";
+import { baseUsersApi, baseRegisterApi } from "@/lib/db/apiPaths";
+import { testBaseUsersApi, testBaseRegisterApi } from "../../../testApi";
 import { userType } from "@/lib/types/types";
 import { initUser } from "@/lib/db/initVals";
 import { isValidBtDbId } from "@/lib/validation";

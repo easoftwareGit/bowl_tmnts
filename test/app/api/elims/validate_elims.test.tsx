@@ -14,6 +14,8 @@ import { postSecret } from "@/lib/tools";
 
 const { gotElimData, validElimData } = exportedForTesting;
 
+const elimId = 'elm_45d884582e7042bb95b4818ccdd9974c';
+
 const validElim = {
   ...initElim,
   id: "elm_45d884582e7042bb95b4818ccdd9974c",
@@ -153,7 +155,8 @@ describe("tests for eliminator validation", () => {
   describe('sanitizeElim function', () => { 
     it('should return sanitized elim for valid eliminator data', () => { 
       const testElim = {
-        ...validElim,        
+        ...validElim,  
+        id: '',
       }
       const sanitizedElim = sanitizeElim(testElim);
       expect(sanitizedElim.div_id).toEqual(testElim.div_id)
@@ -162,6 +165,30 @@ describe("tests for eliminator validation", () => {
       expect(sanitizedElim.games).toEqual(testElim.games)            
       expect(sanitizedElim.fee).toEqual(testElim.fee)
       expect(sanitizedElim.sort_order).toEqual(testElim.sort_order)
+    })
+    it('should return sanitized elim when elim has an id', () => { 
+      const testElim = {
+        ...validElim,  
+        id: elimId,
+      }
+      const sanitizedElim = sanitizeElim(testElim);
+      expect(sanitizedElim.id).toEqual(elimId)
+    })
+    it('should return sanitized elim when elim has a post id', () => { 
+      const testElim = {
+        ...validElim,  
+        id: postSecret + elimId,
+      }
+      const sanitizedElim = sanitizeElim(testElim);
+      expect(sanitizedElim.id).toEqual(postSecret + elimId)
+    })
+    it('should return sanitized elim when elim has an invalid id', () => { 
+      const testElim = {
+        ...validElim,  
+        id: 'test123',
+      }
+      const sanitizedElim = sanitizeElim(testElim);
+      expect(sanitizedElim.id).toEqual('')
     })
     it('should return sanitized elim when elim is not sanitzed', () => { 
       // no numerical fields

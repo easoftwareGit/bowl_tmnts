@@ -6,11 +6,12 @@ import {
   minGames,
   maxGames,
   isNumber,
+  validPostId,
 } from "@/lib/validation";
 import { sanitizeCurrency } from "@/lib/sanitize";
 import { validMoney } from "@/lib/currency/validate";
 import { elimType, idTypes } from "@/lib/types/types";
-import { initElim } from "@/lib/db/initVals";
+import { blankElim, initElim } from "@/lib/db/initVals";
 
 /**
  * checks if elim object has missing data - DOES NOT SANITIZE OR VALIDATE
@@ -111,11 +112,14 @@ const validElimData = (elim: elimType): ErrorCode => {
 export const sanitizeElim = (elim: elimType): elimType => {
   if (!elim) return null as any;
   const sanitizedElim = {
-    ...initElim,
+    ...blankElim,
     start: null as any,
     games: null as any,
     sort_order: null as any,
   };
+  if (elim.id === '' || isValidBtDbId(elim.id, "elm") || validPostId(elim.id, "elm")) {
+    sanitizedElim.id = elim.id;
+  }
   if (validElimFkId(elim.div_id, "div")) {
     sanitizedElim.div_id = elim.div_id;
   }

@@ -14,7 +14,6 @@ import {
 } from "../../../lib/db/initVals";
 import { fullTmntDataType, tmntPropsType } from "../../../lib/types/types";
 import { startOfToday } from "date-fns";
-import UserNavBar from "@/components/navBar/userNavBar";
 
 const blankTmnt = {
   ...initTmnt,
@@ -73,8 +72,7 @@ export const TmntDataPage: React.FC<FormProps> = ({
   };
 
   return (
-    <>
-      <UserNavBar />
+    <>      
       <div className="d-flex flex-column justify-content-center align-items-center">
         <div className="shadow p-3 m-3 rounded-3 container">
           <h2 className="mb-3">Tournament Info</h2>

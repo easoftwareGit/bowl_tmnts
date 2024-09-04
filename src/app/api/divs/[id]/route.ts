@@ -4,7 +4,7 @@ import { ErrorCode, isValidBtDbId } from "@/lib/validation";
 import { sanitizeDiv, validateDiv } from "../validate";
 import { divType, HdcpForTypes } from "@/lib/types/types";
 import { initDiv } from "@/lib/db/initVals";
-import { findDivById } from "@/lib/db/divs";
+import { findDivById } from "@/lib/db/divs/divs";
 
 // routes /api/divs/:id
 

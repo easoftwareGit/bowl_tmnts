@@ -402,7 +402,7 @@ describe('Bowls - API: /api/bowls', () => {
           method: "put",
           data: bowlJSON,
           withCredentials: true,
-          url: url + nonBowlId,
+          url: url + "/" + nonBowlId,
         })
         expect(response.status).toBe(404);
       } catch (err) {
@@ -705,7 +705,7 @@ describe('Bowls - API: /api/bowls', () => {
           method: "patch",
           data: bowlJSON,
           withCredentials: true,
-          url: url + nonBowlId,
+          url: url + '/' + nonBowlId,
         })
         expect(response.status).toBe(404);
       } catch (err) {
@@ -1023,7 +1023,7 @@ describe('Bowls - API: /api/bowls', () => {
         const response = await axios({
           method: "delete",
           withCredentials: true,
-          url: url + nonBowlId,
+          url: url + '/' + nonBowlId,
         })
         expect(response.status).toBe(404);
       } catch (err) {

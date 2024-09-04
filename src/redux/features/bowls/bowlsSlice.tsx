@@ -2,8 +2,7 @@ import { createAsyncThunk, createSlice } from "@reduxjs/toolkit";
 import { Bowl } from "@prisma/client";
 import { loadStatusType } from "@/redux/statusTypes";
 import { RootState } from "@/redux/store";
-// import { getBowls } from "@/lib/db/bowls";
-import { getBowls } from "@/lib/db/bowls";
+import { getBowls } from "@/lib/db/bowls/bowls";
 
 export interface bowlSliceState {
   bowls: Bowl[];
@@ -23,7 +22,6 @@ export const fetchBowls = createAsyncThunk("bowls/fetchBowls", async () => {
   // Do not use try / catch blocks here. Need the promise to be fulfilled or
   // rejected which will have the appropriate response in the extraReducers.
 
-  // return getBowls();
   return getBowls();
 });
 

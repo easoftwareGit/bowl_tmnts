@@ -16,8 +16,17 @@ import { compareAsc, isValid } from "date-fns";
 import ZeroToNPots, { validatePots } from "./zeroToNPots";
 import ZeroToNBrackets, { validateBrkts } from "./zeroToNBrkts";
 import ZeroToNElims, { validateElims } from "./zeroToNElims";
+import ModalErrorMsg, { cannotSaveTitle } from "@/components/modal/errorModal";
+import { initModalObj } from "@/components/modal/modalObjType";
+import { postTmnt } from "@/lib/db/tmnts/tmntsAxios";
+import { postEvent } from "@/lib/db/events/eventsAxios";
+import { postDiv } from "@/lib/db/divs/divsAxios";
+import { postSquad } from "@/lib/db/squads/squadsAxios";
+import { postLane } from "@/lib/db/lanes/lanesAxios";
+import { postPot } from "@/lib/db/pots/potsAxios";
+import { postBrkt } from "@/lib/db/brkts/brktsAxios";
+import { postElim } from "@/lib/db/elims/elimsAxios";
 import "./form.css";
-import { postTmnt } from "@/lib/db/tmntsAxios";
 
 interface FormProps {
   tmntProps: tmntPropsType
@@ -54,6 +63,8 @@ const TmntDataForm: React.FC<FormProps> = ({ tmntProps }) => {
 
   const [dateStrs, setDateStrs] = useState(initDateStrs);
 
+  const [errModalObj, setErrModalObj] = useState(initModalObj);
+
   useEffect(() => {
     dispatch(fetchBowls());
   }, [dispatch]);
@@ -63,6 +74,10 @@ const TmntDataForm: React.FC<FormProps> = ({ tmntProps }) => {
       {bowl.bowl_name} - {bowl.city}, {bowl.state}
     </option>
   ));
+
+  const canceledModalErr = () => {
+    setErrModalObj(initModalObj); // reset modal object (hides modal)
+  };
 
   const handleBowlSelectChange = (e: ChangeEvent<HTMLSelectElement>) => {
     const { value } = e.target;
@@ -240,6 +255,8 @@ const TmntDataForm: React.FC<FormProps> = ({ tmntProps }) => {
 
   const handleDebug = (e: React.MouseEvent<HTMLElement>) => {
 
+    console.log('events', events);
+    console.log('squads', squads);
     // const eventsAreValid = validateEvents(events, setEvents, setEventAcdnErr);
     // console.log("Events valid: ", eventsAreValid);
     // const divsArevalid = validateDivs(divs, setDivs, setDivAcdnErr);
@@ -280,10 +297,18 @@ const TmntDataForm: React.FC<FormProps> = ({ tmntProps }) => {
     // })
   };
 
-  const saveTmnt = async () => {    
-    // 1 post tmnt
+  const saveTmnt = async (): Promise<boolean> => {        
     const postedTmnt = await postTmnt(tmnt);
-    if (!postedTmnt) return false;
+    if (!postedTmnt) {
+      setErrModalObj({
+        show: true,
+        title: cannotSaveTitle,
+        message: `Cannot save Tournament "${tmnt.tmnt_name}".`,
+        id: initModalObj.id
+      })
+      return false      
+    };
+    // update tmnt id in tmnts
     setTmnt(postedTmnt);
     // update tmnt id in events
     setEvents(
@@ -299,8 +324,215 @@ const TmntDataForm: React.FC<FormProps> = ({ tmntProps }) => {
         return div;
       })
     )
-    // const postedEvents = await postEvents(events);
+    return true;    
+  }
+  const saveEvents = async (): Promise<boolean> => {
+    for (let i = 0; i < events.length; i++) {      
+      const currentEventId = events[i].id;
+      events[i].id = '';
+      const postedEvent = await postEvent(events[i]);      
+      if (!postedEvent) {
+        events[i].id = currentEventId;
+        setErrModalObj({
+          show: true,
+          title: cannotSaveTitle,
+          message: `Cannot save Event "${events[i].event_name}".`,
+          id: initModalObj.id
+        }) 
+        return false;
+      }
+      // update event id events
+      setEvents(
+        events.map((event) => {
+          if (event.id === currentEventId) {
+            event.id = postedEvent.id;
+          }
+          return event;
+        })
+      )
+      // update event id in squads
+      squads.map((squad) => {
+        if (squad.event_id === currentEventId) {
+          squad.event_id = postedEvent.id;
+        }
+        return squad;
+      })
+    }
+    return true;
+  }
+  const saveDivs = async (): Promise<boolean> => {
+    for (let i = 0; i < divs.length; i++) {
+      const currentDivId = divs[i].id;
+      divs[i].id = '';
+      const postedDiv = await postDiv(divs[i]);
+      if (!postedDiv) {
+        divs[i].id = currentDivId;
+        setErrModalObj({
+          show: true,
+          title: cannotSaveTitle,
+          message: `Cannot save Division "${divs[i].div_name}".`,
+          id: initModalObj.id
+        }) 
+        return false;
+      }
+      // update div id in pots
+      setPots(
+        pots.map((pot) => {
+          if (pot.div_id === currentDivId) {
+            pot.div_id = postedDiv.id;
+          }
+          return pot;
+        })
+      )
+      // update div id in brkts
+      brkts.map((brkt) => {
+        if (brkt.div_id === currentDivId) {
+          brkt.div_id = postedDiv.id;
+        }
+        return brkt;
+      })
+      // update div id in elims
+      elims.map((elim) => {
+        if (elim.div_id === currentDivId) {
+          elim.div_id = postedDiv.id;
+        }
+        return elim;
+      })
+    }
+    return true;
+  }  
+  const saveSquads = async (): Promise<boolean> => {
+    for (let i = 0; i < squads.length; i++) {
+      const currentSquadId = squads[i].id;
+      squads[i].id = '';
+      const postedSquad = await postSquad(squads[i]);
+      if (!postedSquad) {
+        squads[i].id = currentSquadId;
+        setErrModalObj({
+          show: true,
+          title: cannotSaveTitle,
+          message: `Cannot save Squad "${squads[i].squad_name}".`,
+          id: initModalObj.id
+        }) 
+        return false;
+      }
+      // update squad id in lanes
+      setLanes(
+        lanes.map((lane) => {
+          if (lane.squad_id === currentSquadId) {
+            lane.squad_id = postedSquad.id;
+          }
+          return lane;
+        })
+      )
+      // update squad id in pots
+      setPots(
+        pots.map((pot) => {
+          if (pot.squad_id === currentSquadId) {
+            pot.squad_id = postedSquad.id;
+          }
+          return pot;
+        })
+      )
+      // update squad id in brkts
+      brkts.map((brkt) => {
+        if (brkt.squad_id === currentSquadId) {
+          brkt.squad_id = postedSquad.id;
+        }
+        return brkt;
+      })
+      // update squad id in elims
+      elims.map((elim) => {
+        if (elim.squad_id === currentSquadId) {
+          elim.squad_id = postedSquad.id;
+        }
+        return elim;
+      })
+    }    
+    return true;
+  }
+  const saveLanes = async (): Promise<boolean> => {
+    for (let i = 0; i < lanes.length; i++) {
+      const currentLaneId = lanes[i].id;
+      lanes[i].id = '';
+      const postedLane = await postLane(lanes[i]);
+      if (!postedLane) {
+        lanes[i].id = currentLaneId;
+        setErrModalObj({
+          show: true,
+          title: cannotSaveTitle,
+          message: `Cannot save Lane "${lanes[i].lane_number}".`,
+          id: initModalObj.id
+        }) 
+        return false;
+      }
+    }
+    return true;
+  }
+  const savePots = async (): Promise<boolean> => {
+    for (let i = 0; i < pots.length; i++) {
+      const currentPotId = pots[i].id;
+      pots[i].id = '';
+      const postedPot = await postPot(pots[i]);
+      if (!postedPot) { 
+        pots[i].id = currentPotId;
+        setErrModalObj({
+          show: true,
+          title: cannotSaveTitle,
+          message: `Cannot save Pot "${pots[i].pot_type}".`,
+          id: initModalObj.id
+        }) 
+        return false;
+      }
+    }
+    return true;
+  }
+  const saveBrkts = async (): Promise<boolean> => {
+    for (let i = 0; i < brkts.length; i++) {
+      const currentBrktId = brkts[i].id;
+      brkts[i].id = '';
+      const postedBrkt = await postBrkt(brkts[i]);
+      if (!postedBrkt) {
+        brkts[i].id = currentBrktId;
+        setErrModalObj({
+          show: true,
+          title: cannotSaveTitle,
+          message: `Cannot save Bracket starting game "${brkts[i].start}".`,
+          id: initModalObj.id
+        }) 
+        return false;
+      }
+    }
+    return true;
+  }
+  const saveElims = async (): Promise<boolean> => {
+    for (let i = 0; i < elims.length; i++) {
+      const currentElimId = elims[i].id;
+      elims[i].id = '';
+      const postedElim = await postElim(elims[i]);
+      if (!postedElim) {
+        elims[i].id = currentElimId;
+        setErrModalObj({
+          show: true,
+          title: cannotSaveTitle,
+          message: `Cannot save Eliminator starting game "${elims[i].start}".`,
+          id: initModalObj.id
+        }) 
+        return false;
+      }
+    }
+    return true;
+  }
 
+  const save = async () => { 
+    if (!saveTmnt()) return false;
+    if (!saveEvents()) return false;
+    if (!saveDivs()) return false;
+    if (!saveSquads()) return false;
+    if (!saveLanes()) return false;
+    if (!savePots()) return false;
+    if (!saveBrkts()) return false;
+    if (!saveElims()) return false;
     return true;
   };
 
@@ -315,242 +547,250 @@ const TmntDataForm: React.FC<FormProps> = ({ tmntProps }) => {
   };
 
   return (
-    <form onSubmit={handleSubmit}>
-      {(bowlsStatus === 'loading' ) && <div>Loading...</div>}
-      {bowlsStatus !== 'loading' && bowlsError ? (
-        <div>Error: {bowlsError}</div>
-      ) : null}      
-      {(bowlsStatus === 'succeeded') ? (        
-        <div className="form_container">
-          <div className="row g-3 mb-3">
-            <div className="col-md-6">
-              <label htmlFor="inputTmntName" className="form-label">
-                Tournament Name
-              </label>
-              <input
-                type="text"
-                className={`form-control ${
-                  tmnt.tmnt_name_err && "is-invalid"
-                }`}
-                id="inputTmntName"                
-                name="tmnt_name"
-                value={tmnt.tmnt_name}
-                maxLength={maxTmntNameLength}
-                onChange={handleInputChange}
-              />
-              <div
-                className="text-danger"
-                data-testid="dangerTmntName"
-              >
-                {tmnt.tmnt_name_err}
+    <>
+      <ModalErrorMsg
+        show={errModalObj.show}
+        title={errModalObj.title}
+        message={errModalObj.message}   
+        onCancel={canceledModalErr}
+      />      
+      <form onSubmit={handleSubmit}>
+        {(bowlsStatus === 'loading' ) && <div>Loading...</div>}
+        {bowlsStatus !== 'loading' && bowlsError ? (
+          <div>Error: {bowlsError}</div>
+        ) : null}      
+        {(bowlsStatus === 'succeeded') ? (        
+          <div className="form_container">
+            <div className="row g-3 mb-3">
+              <div className="col-md-6">
+                <label htmlFor="inputTmntName" className="form-label">
+                  Tournament Name
+                </label>
+                <input
+                  type="text"
+                  className={`form-control ${
+                    tmnt.tmnt_name_err && "is-invalid"
+                  }`}
+                  id="inputTmntName"                
+                  name="tmnt_name"
+                  value={tmnt.tmnt_name}
+                  maxLength={maxTmntNameLength}
+                  onChange={handleInputChange}
+                />
+                <div
+                  className="text-danger"
+                  data-testid="dangerTmntName"
+                >
+                  {tmnt.tmnt_name_err}
+                </div>
+              </div>
+              <div className="col-md-6">
+                <label htmlFor="inputBowlName" className="form-label">
+                  Bowl Name
+                </label>
+                <select
+                  id="inputBowlName"
+                  data-testid="inputBowlName"
+                  name="bowl_id"
+                  className={`form-select ${tmnt.bowl_id_err && "is-invalid"}`}
+                  onChange={handleBowlSelectChange}
+                  value={tmnt.bowl_id === '' ? 'Choose...' : tmnt.bowl_id}
+                >
+                  <option disabled>                
+                    Choose...
+                  </option>
+                  {bowlOptions}
+                </select>
+                <div
+                  className="text-danger"
+                  data-testid="dangerBowlName"
+                >
+                  {tmnt.bowl_id_err}
+                </div>
               </div>
             </div>
-            <div className="col-md-6">
-              <label htmlFor="inputBowlName" className="form-label">
-                Bowl Name
-              </label>
-              <select
-                id="inputBowlName"
-                data-testid="inputBowlName"
-                name="bowl_id"
-                className={`form-select ${tmnt.bowl_id_err && "is-invalid"}`}
-                onChange={handleBowlSelectChange}
-                value={tmnt.bowl_id === '' ? 'Choose...' : tmnt.bowl_id}
-              >
-                <option disabled>                
-                  Choose...
-                </option>
-                {bowlOptions}
-              </select>
-              <div
-                className="text-danger"
-                data-testid="dangerBowlName"
-              >
-                {tmnt.bowl_id_err}
+            <div className="row g-3 mb-3">
+              <div className="col-md-3">
+                <label htmlFor="inputStartDate" className="form-label">
+                  Start Date
+                </label>
+                <input
+                  type="date"
+                  className={`form-control ${
+                    tmnt.start_date_err && "is-invalid"
+                  }`}
+                  id="inputStartDate"
+                  name="start_date"
+                  data-testid="inputStartDate"
+                  // value={dateTo_UTC_yyyyMMdd(tmnt.start_date)}
+                  value={dateStrs.start_date_str}
+                  onChange={handleInputChange}
+                  onBlur={handleBlur}
+                />
+                <div
+                  className="text-danger"
+                  data-testid="dangerStartDate"
+                >
+                  {tmnt.start_date_err}
+                </div>
+              </div>
+              <div className="col-md-3">
+                <label htmlFor="inputEndDate" className="form-label">
+                  End Date
+                </label>
+                <input
+                  type="date"
+                  className={`form-control ${
+                    tmnt.end_date_err && "is-invalid"
+                  }`}
+                  id="inputEndDate"
+                  name="end_date"
+                  data-testid="inputEndDate"
+                  // value={dateTo_UTC_yyyyMMdd(tmnt.end_date)}
+                  value={dateStrs.end_date_str}
+                  onChange={handleInputChange}
+                  onBlur={handleBlur}
+                />
+                <div
+                  className="text-danger"
+                  data-testid="dangerEndDate"
+                >
+                  {tmnt.end_date_err}
+                </div>
+              </div>
+              <div className="col-md-6 d-flex justify-content-center align-items-center">
+                <button
+                  className="btn btn-success"
+                  onClick={handleSubmit}
+                >
+                  Save Tournament
+                </button>
+              </div>
+              <div className="col-sm-3">
+                <button 
+                  className="btn btn-info"
+                  onClick={handleDebug}
+                  onFocus={() => console.log("Debug button: got focus")}
+                >
+                  Debug
+                </button>
               </div>
             </div>
+            <Accordion>
+              <AccordionItem eventKey="events" >
+                <Accordion.Header className={eventAcdnErr.errClassName} data-testid="acdnEvents">
+                  Events{eventAcdnErr.message}
+                </Accordion.Header>
+                <Accordion.Body data-testid="eventAcdn">
+                  <OneToNEvents
+                    events={events}
+                    setEvents={setEvents}
+                    squads={squads}
+                    setSquads={setSquads}
+                    setAcdnErr={setEventAcdnErr}
+                  />
+                </Accordion.Body>
+              </AccordionItem>
+            </Accordion>
+            <Accordion>
+              <AccordionItem eventKey="divs">
+                <Accordion.Header className={divAcdnErr.errClassName}>
+                  Divisions{divAcdnErr.message}
+                </Accordion.Header>
+                <Accordion.Body>
+                  <OneToNDivs
+                    divs={divs}
+                    setDivs={setDivs}
+                    pots={pots}
+                    brkts={brkts}
+                    elims={elims}
+                    setAcdnErr={setDivAcdnErr}
+                  />
+                </Accordion.Body>
+              </AccordionItem>
+            </Accordion>
+            <Accordion>
+              <AccordionItem eventKey="squads">
+                <Accordion.Header className={squadAcdnErr.errClassName}>
+                  Squads{squadAcdnErr.message}
+                </Accordion.Header>
+                <Accordion.Body>
+                  <OneToNSquads
+                    squads={squads}
+                    setSquads={setSquads}
+                    lanes={lanes}
+                    setLanes={setLanes}
+                    events={events}
+                    setAcdnErr={setSquadAcdnErr}
+                  />
+                </Accordion.Body>
+              </AccordionItem>
+            </Accordion>
+            <Accordion>
+              <AccordionItem eventKey="lanes">
+                {/* <no errors in Lanes */}
+                <Accordion.Header>
+                  Lanes
+                </Accordion.Header>
+                <Accordion.Body>
+                  <OneToNLanes  
+                    lanes={lanes}                                  
+                    squads={squads}                  
+                  />
+                </Accordion.Body>
+              </AccordionItem>
+            </Accordion>
+            <Accordion>
+              <AccordionItem eventKey="pots">
+                <Accordion.Header className={potAcdnErr.errClassName}>
+                  Pots{potAcdnErr.message}
+                </Accordion.Header>
+                <Accordion.Body>
+                  <ZeroToNPots
+                    pots={pots}
+                    setPots={setPots}
+                    divs={divs}                  
+                    setAcdnErr={setPotAcdnErr}
+                  />
+                </Accordion.Body>
+              </AccordionItem>
+            </Accordion>
+            <Accordion>
+              <AccordionItem eventKey="brkts">
+                <Accordion.Header className={brktAcdnErr.errClassName}>
+                  Brackets{brktAcdnErr.message}
+                </Accordion.Header>
+                <Accordion.Body>
+                  <ZeroToNBrackets
+                    brkts={brkts}
+                    setBrkts={setBrkts}
+                    divs={divs}
+                    squads={squads}
+                    setAcdnErr={setBrktAcdnErr}
+                  />
+                </Accordion.Body>
+              </AccordionItem>
+            </Accordion>
+            <Accordion>
+              <AccordionItem eventKey="elims">
+                <Accordion.Header className={elimAcdnErr.errClassName}>
+                  Eliminators{elimAcdnErr.message}
+                </Accordion.Header>
+                <Accordion.Body>
+                  <ZeroToNElims
+                    elims={elims}
+                    setElims={setElims}
+                    divs={divs}
+                    squads={squads}
+                    setAcdnErr={setElimAcdnErr}
+                  />
+                </Accordion.Body>
+              </AccordionItem>
+            </Accordion>
           </div>
-          <div className="row g-3 mb-3">
-            <div className="col-md-3">
-              <label htmlFor="inputStartDate" className="form-label">
-                Start Date
-              </label>
-              <input
-                type="date"
-                className={`form-control ${
-                  tmnt.start_date_err && "is-invalid"
-                }`}
-                id="inputStartDate"
-                name="start_date"
-                data-testid="inputStartDate"
-                // value={dateTo_UTC_yyyyMMdd(tmnt.start_date)}
-                value={dateStrs.start_date_str}
-                onChange={handleInputChange}
-                onBlur={handleBlur}
-              />
-              <div
-                className="text-danger"
-                data-testid="dangerStartDate"
-              >
-                {tmnt.start_date_err}
-              </div>
-            </div>
-            <div className="col-md-3">
-              <label htmlFor="inputEndDate" className="form-label">
-                End Date
-              </label>
-              <input
-                type="date"
-                className={`form-control ${
-                  tmnt.end_date_err && "is-invalid"
-                }`}
-                id="inputEndDate"
-                name="end_date"
-                data-testid="inputEndDate"
-                // value={dateTo_UTC_yyyyMMdd(tmnt.end_date)}
-                value={dateStrs.end_date_str}
-                onChange={handleInputChange}
-                onBlur={handleBlur}
-              />
-              <div
-                className="text-danger"
-                data-testid="dangerEndDate"
-              >
-                {tmnt.end_date_err}
-              </div>
-            </div>
-            <div className="col-md-6 d-flex justify-content-center align-items-center">
-              <button
-                className="btn btn-success"
-                onClick={handleSubmit}
-              >
-                Save Tournament
-              </button>
-            </div>
-            {/* <div className="col-sm-3">
-              <button 
-                className="btn btn-info"
-                onClick={handleDebug}
-                onFocus={() => console.log("Debug button: got focus")}
-              >
-                Debug
-              </button>
-            </div> */}
-          </div>
-          <Accordion>
-            <AccordionItem eventKey="events" >
-              <Accordion.Header className={eventAcdnErr.errClassName} data-testid="acdnEvents">
-                Events{eventAcdnErr.message}
-              </Accordion.Header>
-              <Accordion.Body data-testid="eventAcdn">
-                <OneToNEvents
-                  events={events}
-                  setEvents={setEvents}
-                  squads={squads}
-                  setSquads={setSquads}
-                  setAcdnErr={setEventAcdnErr}
-                />
-              </Accordion.Body>
-            </AccordionItem>
-          </Accordion>
-          <Accordion>
-            <AccordionItem eventKey="divs">
-              <Accordion.Header className={divAcdnErr.errClassName}>
-                Divisions{divAcdnErr.message}
-              </Accordion.Header>
-              <Accordion.Body>
-                <OneToNDivs
-                  divs={divs}
-                  setDivs={setDivs}
-                  pots={pots}
-                  brkts={brkts}
-                  elims={elims}
-                  setAcdnErr={setDivAcdnErr}
-                />
-              </Accordion.Body>
-            </AccordionItem>
-          </Accordion>
-          <Accordion>
-            <AccordionItem eventKey="squads">
-              <Accordion.Header className={squadAcdnErr.errClassName}>
-                Squads{squadAcdnErr.message}
-              </Accordion.Header>
-              <Accordion.Body>
-                <OneToNSquads
-                  squads={squads}
-                  setSquads={setSquads}
-                  lanes={lanes}
-                  setLanes={setLanes}
-                  events={events}
-                  setAcdnErr={setSquadAcdnErr}
-                />
-              </Accordion.Body>
-            </AccordionItem>
-          </Accordion>
-          <Accordion>
-            <AccordionItem eventKey="lanes">
-              {/* <no errors in Lanes */}
-              <Accordion.Header>
-                Lanes
-              </Accordion.Header>
-              <Accordion.Body>
-                <OneToNLanes  
-                  lanes={lanes}                                  
-                  squads={squads}                  
-                />
-              </Accordion.Body>
-            </AccordionItem>
-          </Accordion>
-          <Accordion>
-            <AccordionItem eventKey="pots">
-              <Accordion.Header className={potAcdnErr.errClassName}>
-                Pots{potAcdnErr.message}
-              </Accordion.Header>
-              <Accordion.Body>
-                <ZeroToNPots
-                  pots={pots}
-                  setPots={setPots}
-                  divs={divs}                  
-                  setAcdnErr={setPotAcdnErr}
-                />
-              </Accordion.Body>
-            </AccordionItem>
-          </Accordion>
-          <Accordion>
-            <AccordionItem eventKey="brkts">
-              <Accordion.Header className={brktAcdnErr.errClassName}>
-                Brackets{brktAcdnErr.message}
-              </Accordion.Header>
-              <Accordion.Body>
-                <ZeroToNBrackets
-                  brkts={brkts}
-                  setBrkts={setBrkts}
-                  divs={divs}
-                  squads={squads}
-                  setAcdnErr={setBrktAcdnErr}
-                />
-              </Accordion.Body>
-            </AccordionItem>
-          </Accordion>
-          <Accordion>
-            <AccordionItem eventKey="elims">
-              <Accordion.Header className={elimAcdnErr.errClassName}>
-                Eliminators{elimAcdnErr.message}
-              </Accordion.Header>
-              <Accordion.Body>
-                <ZeroToNElims
-                  elims={elims}
-                  setElims={setElims}
-                  divs={divs}
-                  squads={squads}
-                  setAcdnErr={setElimAcdnErr}
-                />
-              </Accordion.Body>
-            </AccordionItem>
-          </Accordion>
-        </div>
-      ) : null}
-    </form>
+        ) : null}
+      </form>
+    </>
   );
 };
 

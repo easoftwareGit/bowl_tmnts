@@ -1,4 +1,4 @@
-import { findUserByEmail } from "@/lib/db/users";
+import { findUserByEmail } from "@/lib/db/users/users";
 import { prisma } from "@/lib/prisma";
 import { User } from "@prisma/client";
 import { compare } from "bcrypt";

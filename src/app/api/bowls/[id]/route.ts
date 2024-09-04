@@ -4,7 +4,7 @@ import { bowlType } from "@/lib/types/types";
 import { initBowl } from "@/lib/db/initVals";
 import { ErrorCode, isValidBtDbId } from "@/lib/validation";
 import { sanitizeBowl, validateBowl } from "../validate";
-import { findBowlById } from "@/lib/db/bowls";
+import { findBowlById } from "@/lib/db/bowls/bowls";
 
 export async function GET(
   request: Request,

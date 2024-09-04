@@ -2,7 +2,7 @@ import { NextResponse, NextRequest } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { validateEvent, sanitizeEvent } from "@/app/api/events/validate";
 import { ErrorCode, validPostId } from "@/lib/validation";
-import { eventType } from "@/lib/types/types";
+import { eventDataType, eventType } from "@/lib/types/types";
 import { initEvent } from "@/lib/db/initVals";
 
 // routes /api/events
@@ -85,21 +85,6 @@ export async function POST(request: Request) {
       }
     }    
         
-    // NO lpox in eventDataType
-    type eventDataType = {
-      tmnt_id: string,
-      event_name: string,
-      team_size: number,
-      games: number,
-      entry_fee: string,
-      lineage: string,
-      prize_fund: string,
-      other: string,
-      expenses: string,
-      added_money: string,      
-      sort_order: number,
-      id?: string
-    }
     let eventData: eventDataType = {
       tmnt_id: toPost.tmnt_id,
       event_name: toPost.event_name,

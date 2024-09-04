@@ -1,3 +1,6 @@
+import { Pot } from "@prisma/client"
+import { Decimal } from "@prisma/client/runtime/library";
+
 export const mockPots = [
   {
     id: 'pot_f7935dec9e8b46148d6f1a6637daebf5',

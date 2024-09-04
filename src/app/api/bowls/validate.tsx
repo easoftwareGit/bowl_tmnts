@@ -1,7 +1,7 @@
-import { ErrorCode, maxBowlNameLemgth, maxCityLength, maxStateLength, maxUrlLength, validSortOrder } from "@/lib/validation";
+import { ErrorCode, isValidBtDbId, maxBowlNameLemgth, maxCityLength, maxStateLength, maxUrlLength, validPostId, validSortOrder } from "@/lib/validation";
 import { sanitize, sanitizeUrl } from "@/lib/sanitize";
 import { bowlType } from "@/lib/types/types";
-import { initBowl } from "@/lib/db/initVals";
+import { blankBowl, initBowl } from "@/lib/db/initVals";
 
 /**
  * checks for required data and returns error code if missing 
@@ -76,7 +76,11 @@ const validBowlData = (bowl: bowlType): ErrorCode => {
  *   - sanitized url 
  */
 export const sanitizeBowl = (bowl: bowlType): bowlType => { 
-  const sanitizedBowl: bowlType = { ...initBowl }
+  const sanitizedBowl: bowlType = { ...blankBowl }
+  if (bowl.id === '' || isValidBtDbId(bowl.id, "bwl") || validPostId(bowl.id, "bwl")) {
+    sanitizedBowl.id = bowl.id;
+  }
+
   sanitizedBowl.bowl_name = sanitize(bowl.bowl_name)
   sanitizedBowl.city = sanitize(bowl.city)
   sanitizedBowl.state = sanitize(bowl.state)

@@ -4,7 +4,7 @@ import { validatePot, sanitizePot } from "../validate";
 import { ErrorCode, isValidBtDbId } from "@/lib/validation";
 import { potType, PotCategories } from "@/lib/types/types";
 import { initPot } from "@/lib/db/initVals";
-import { findPotById } from "@/lib/db/pots";
+import { findPotById } from "@/lib/db/pots/pots";
 
 // routes /api/pots/:id
 

@@ -1,5 +1,6 @@
 import { laneType, squadType } from "@/lib/types/types";
 import { startOfDayFromString, todayStr } from "@/lib/dateTools";
+import { Squad } from "@prisma/client";
 
 export const mockSquads: squadType[] = [
   {
@@ -44,6 +45,35 @@ export const mockSquads: squadType[] = [
     sort_order: 2,
     errClassName: "",
   },
+]
+
+export const mockPrismaSquads: Squad[] = [
+  {
+    id: "sqd_42be0f9d527e4081972ce8877190489d",
+    event_id: "evt_06055deb80674bd592a357a4716d8ef2",
+    squad_name: "A Squad",
+    squad_date: new Date(Date.UTC(2022, 7, 21)),  // month is -1 
+    squad_time: '10:00 AM',
+    games: 6,
+    lane_count: 24,
+    starting_lane: 1,
+    sort_order: 1,
+    createdAt: new Date(),
+    updatedAt: new Date(),
+  },
+  {
+    id: "sqd_796c768572574019a6fa79b3b1c8fa57",
+    event_id: "evt_06055deb80674bd592a357a4716d8ef2",
+    squad_name: "B Squad",
+    squad_date: new Date(Date.UTC(2022, 7, 21)),  // month is -1 
+    squad_time: '02:00 PM',
+    games: 6,
+    lane_count: 24, 
+    starting_lane: 1,
+    sort_order: 2,
+    createdAt: new Date(),
+    updatedAt: new Date(),
+  }
 ]
 
 export const mockLanes: laneType[] = [

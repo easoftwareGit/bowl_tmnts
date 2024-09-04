@@ -585,10 +585,11 @@ describe("OneToNSquads - Component", () => {
     beforeAll(() => {
       mockSquads.push({
         ...initSquad,
-        id: "3",
+        id: "3",        
         sort_order: 3,
         squad_name: "Trios",
         tab_title: "Trios",
+        event_id: 'evt_6ff6774e94884658be5bdebc68a6aa7c',
       });
     });
 
@@ -611,6 +612,25 @@ describe("OneToNSquads - Component", () => {
       // ASSERT
       expect(tabs.length).toBe(3);
       expect(tabs[2]).toHaveTextContent("Trios");
+
+      // ARRANGE
+      const squadNames = screen.getAllByRole("textbox", { name: /squad name/i }) as HTMLInputElement[];
+      const squadGames = screen.getAllByRole("spinbutton", { name: /squad games/i }) as HTMLInputElement[];
+      const squadEvents = screen.getAllByRole("combobox", { name: /event/i }) as HTMLInputElement[];
+      const startingLanes = screen.getAllByRole("spinbutton", { name: /starting lane/i }) as HTMLInputElement[];
+      const squadLanes = screen.getAllByRole("spinbutton", { name: /# of lanes/i }) as HTMLInputElement[];
+      const squadDates = screen.getAllByLabelText(/date/i) as HTMLInputElement[];
+      const squadTimes = screen.getAllByLabelText(/time/i) as HTMLInputElement[];
+
+      // ASSERT
+      expect(mockSquads).toHaveLength(3);
+      expect(squadNames[2]).toHaveValue(mockSquads[2].squad_name);
+      expect(squadGames[2]).toHaveValue(mockSquads[2].games);
+      expect(squadEvents[2]).toHaveValue(mockSquads[2].event_id);
+      expect(startingLanes[2]).toHaveValue(mockSquads[2].starting_lane);
+      expect(squadLanes[2]).toHaveValue(mockSquads[2].lane_count);
+      expect(squadDates[2].value as string).toBe(dateTo_UTC_yyyyMMdd(mockSquads[2].squad_date));
+      expect(squadTimes[2].value).toBe(mockSquads[2].squad_time);
     });
   })
 

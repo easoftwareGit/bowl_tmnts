@@ -198,7 +198,7 @@ describe("OneToNEvents - Component", () => {
         render(<OneToNEvents {...mockOneToNEventsProps} />);
         const others = screen.getAllByRole('textbox', { name: /other/i }) as HTMLInputElement[];
         expect(others).toHaveLength(2);
-        expect(others[0]).toHaveValue("");
+        expect(others[0]).toHaveValue("$0.00");
       });
       it("DO NOT render other errors", () => {
         render(<OneToNEvents {...mockOneToNEventsProps} />);
@@ -555,227 +555,214 @@ describe("OneToNEvents - Component", () => {
       await user.type(eventNames[2], "Trios")
       expect(eventNames[2]).toHaveValue(mockEvents[2].event_name);      
     });
-    // it('enter team size', async () => {
-    //   // ARRANGE
-    //   const user = userEvent.setup()
-    //   render(<OneToNEvents {...mockOneToNEventsProps} />)
-    //   const addBtn = screen.getByText("Add");
-    //   await user.click(addBtn);
-    //   const tabs = screen.getAllByRole('tab');
-    //   await user.click(tabs[2]);
-    //   // ACT
-    //   const teamSizes = screen.getAllByRole('spinbutton', { name: /team size/i })
-    //   await user.clear(teamSizes[2])
-    //   await user.type(teamSizes[2], "3")
-    //   // ASSERT
-    //   expect(teamSizes[2]).toHaveValue(mockEvents[2].team_size);
-    // })
-    // it('enter games', async () => {
-    //   const user = userEvent.setup()
-    //   render(<OneToNEvents {...mockOneToNEventsProps} />)
-    //   const addBtn = screen.getByText("Add");
-    //   await user.click(addBtn);
-    //   const tabs = screen.getAllByRole('tab');
-    //   await user.click(tabs[2]);
-    //   const games = screen.getAllByRole('spinbutton', { name: /event games/i }) as HTMLInputElement[];
-    //   await user.clear(games[2])
-    //   await user.type(games[2], "5")
-    //   expect(games[2]).toHaveValue(mockEvents[2].games);
-    // })
-    // it('enter added money', async () => {
-    //   const user = userEvent.setup()
-    //   render(<OneToNEvents {...mockOneToNEventsProps} />)
-    //   const addBtn = screen.getByText("Add");
-    //   await user.click(addBtn);
-    //   const tabs = screen.getAllByRole('tab');
-    //   await user.click(tabs[2]);
-    //   const addeds = screen.getAllByRole('textbox', { name: /added \$/i }) as HTMLInputElement[];
-    //   await user.clear(addeds[2])
-    //   await user.type(addeds[2], "250")      
-    //   expect(addeds[2]).toHaveValue(
-    //     formatValueSymbSep2Dec(mockEvents[2].added_money, localConfig)
-    //   );
-    // })
-    // it('enter entry fee', async () => {
-    //   const user = userEvent.setup()
-    //   render(<OneToNEvents {...mockOneToNEventsProps} />)
-    //   const addBtn = screen.getByText("Add");
-    //   await user.click(addBtn);
-    //   const tabs = screen.getAllByRole('tab');
-    //   await user.click(tabs[2]);
-    //   const fees = screen.getAllByRole('textbox', { name: /entry fee/i }) as HTMLInputElement[];
-    //   await user.clear(fees[2])
-    //   await user.type(fees[2], "150")
-    //   expect(fees[2]).toHaveValue(
-    //     formatValueSymbSep2Dec(mockEvents[2].entry_fee, localConfig)
-    //   );
-    // })
-    // it('enter lineage', async () => {
-    //   const user = userEvent.setup()
-    //   render(<OneToNEvents {...mockOneToNEventsProps} />)
-    //   const addBtn = screen.getByText("Add");
-    //   await user.click(addBtn);
-    //   const tabs = screen.getAllByRole('tab');
-    //   await user.click(tabs[2]);
-    //   const lineages = screen.getAllByRole('textbox', { name: /lineage/i }) as HTMLInputElement[];
-    //   await user.clear(lineages[2])
-    //   await user.type(lineages[2], "45")      
-    //   expect(lineages[2]).toHaveValue(
-    //     formatValueSymbSep2Dec(mockEvents[2].lineage, localConfig)
-    //   );
-    // })
-    // it('enter prize fund', async () => {
-    //   const user = userEvent.setup()
-    //   render(<OneToNEvents {...mockOneToNEventsProps} />)
-    //   const addBtn = screen.getByText("Add");
-    //   await user.click(addBtn);
-    //   const tabs = screen.getAllByRole('tab');
-    //   await user.click(tabs[2]);
-    //   const prizes = screen.getAllByRole('textbox', { name: /prize fund/i }) as HTMLInputElement[];
-    //   await user.clear(prizes[2])
-    //   await user.type(prizes[2], "95")
-    //   expect(prizes[2]).toHaveValue(
-    //     formatValueSymbSep2Dec(mockEvents[2].prize_fund, localConfig)
-    //   );
-    // })
-    // it('enter other', async () => {
-    //   const user = userEvent.setup()
-    //   render(<OneToNEvents {...mockOneToNEventsProps} />)
-    //   const addBtn = screen.getByText("Add");
-    //   await user.click(addBtn);
-    //   const tabs = screen.getAllByRole('tab');
-    //   await user.click(tabs[2]);
-    //   const others = screen.getAllByRole('textbox', { name: /other/i }) as HTMLInputElement[];
-    //   await user.clear(others[2])
-    //   await user.type(others[2], "4")
-    //   expect(others[2]).toHaveValue(
-    //     formatValueSymbSep2Dec(mockEvents[2].other, localConfig)
-    //   );
-    // })
-    // it('enter expenses', async () => {
-    //   const user = userEvent.setup()
-    //   render(<OneToNEvents {...mockOneToNEventsProps} />)
-    //   const addBtn = screen.getByText("Add");
-    //   await user.click(addBtn);
-    //   const tabs = screen.getAllByRole('tab');
-    //   await user.click(tabs[2]);
-    //   const expenses = screen.getAllByRole('textbox', { name: /expenses/i }) as HTMLInputElement[];
-    //   await user.clear(expenses[2])
-    //   await user.type(expenses[2], "6")
-    //   expect(expenses[2]).toHaveValue(
-    //     formatValueSymbSep2Dec(mockEvents[2].expenses, localConfig)
-    //   );
-    // })
-    // it('test if LPOX is recalculated', async () => {
-    //   const logSpy = jest.spyOn(global.console, 'log')
-    //   const user = userEvent.setup()
-    //   render(<OneToNEvents {...mockOneToNEventsProps} />)
-    //   const addBtn = screen.getByText("Add");
-    //   await user.click(addBtn);
-    //   const tabs = screen.getAllByRole('tab');
-    //   await user.click(tabs[2]);
-    //   const fees = screen.getAllByRole('textbox', { name: /entry fee/i }) as HTMLInputElement[];      
-    //   const lpoxs = screen.getAllByRole('textbox', { name: /L\+P\+O\+X/i }) as HTMLInputElement[];
-    //   await user.clear(fees[2])
-    //   await user.type(fees[2], "150");      
-    //   const eventNames = screen.getAllByRole("textbox", { name: /event name/i }) as HTMLInputElement[];
-    //   await user.click(eventNames[2]);
-    //   expect(fees[2]).toHaveValue(
-    //     formatValueSymbSep2Dec(mockEvents[2].entry_fee, localConfig)
-    //   );    
-    //   expect(lpoxs[2]).toHaveValue(
-    //     formatValueSymbSep2Dec(mockEvents[2].lpox, localConfig)
-    //   );
-    //   expect(lpoxs[2]).toHaveClass('is-invalid')
-    // })
-    // it('test if LPOX is correct', async () => {
-    //   const user = userEvent.setup()
-    //   render(<OneToNEvents {...mockOneToNEventsProps} />)
-    //   const addBtn = screen.getByText("Add");
-    //   await user.click(addBtn);
-    //   const tabs = screen.getAllByRole('tab');
-    //   await user.click(tabs[2]);
-    //   const teamSizes = screen.getAllByRole('spinbutton', { name: /team size/i }) as HTMLInputElement[];      
-    //   const games = screen.getAllByRole('spinbutton', { name: /event games/i }) as HTMLInputElement[];            
-    //   const addeds = screen.getAllByRole('textbox', { name: /added \$/i }) as HTMLInputElement[];
-    //   const fees = screen.getAllByRole('textbox', { name: /entry fee/i }) as HTMLInputElement[]; 
-    //   const lineages = screen.getAllByRole('textbox', { name: /lineage/i }) as HTMLInputElement[];
-    //   const prizes = screen.getAllByRole('textbox', { name: /prize fund/i }) as HTMLInputElement[];
-    //   const others = screen.getAllByRole('textbox', { name: /other/i }) as HTMLInputElement[];
-    //   const expenses = screen.getAllByRole('textbox', { name: /expenses/i }) as HTMLInputElement[];
-    //   const lpoxs = screen.getAllByRole('textbox', { name: /L\+P\+O\+X/i }) as HTMLInputElement[];
-    //   await userEvent.type(teamSizes[2], "3")
-    //   await userEvent.type(games[2], "5")
-    //   await userEvent.type(addeds[2], "1000")
-    //   await userEvent.type(fees[2], "150")
-    //   await userEvent.type(lineages[2], "45")
-    //   await userEvent.type(prizes[2], "95")
-    //   await userEvent.type(others[2], "4")
-    //   await userEvent.type(expenses[2], "6")
+    it('enter team size', async () => {
+      // ARRANGE
+      const user = userEvent.setup()
+      render(<OneToNEvents {...mockOneToNEventsProps} />)
+      const addBtn = screen.getByText("Add");
+      await user.click(addBtn);
+      const tabs = screen.getAllByRole('tab');
+      await user.click(tabs[2]);
+      // ACT
+      const teamSizes = screen.getAllByRole('spinbutton', { name: /team size/i })
+      await user.clear(teamSizes[2])
+      await user.type(teamSizes[2], "3")
+      // ASSERT
+      expect(teamSizes[2]).toHaveValue(mockEvents[2].team_size);
+    })
+    it('enter games', async () => {
+      const user = userEvent.setup()
+      render(<OneToNEvents {...mockOneToNEventsProps} />)
+      const addBtn = screen.getByText("Add");
+      await user.click(addBtn);
+      const tabs = screen.getAllByRole('tab');
+      await user.click(tabs[2]);
+      const games = screen.getAllByRole('spinbutton', { name: /event games/i }) as HTMLInputElement[];
+      await user.clear(games[2])
+      await user.type(games[2], "5")
+      expect(games[2]).toHaveValue(mockEvents[2].games);
+    })
+    it('enter added money', async () => {
+      const user = userEvent.setup()
+      render(<OneToNEvents {...mockOneToNEventsProps} />)
+      const addBtn = screen.getByText("Add");
+      await user.click(addBtn);
+      const tabs = screen.getAllByRole('tab');
+      await user.click(tabs[2]);
+      const addeds = screen.getAllByRole('textbox', { name: /added \$/i }) as HTMLInputElement[];
+      await user.clear(addeds[2])
+      await user.type(addeds[2], "250")      
+      expect(addeds[2]).toHaveValue(
+        formatValueSymbSep2Dec(mockEvents[2].added_money, localConfig)
+      );
+    })
+    it('enter entry fee', async () => {
+      const user = userEvent.setup()
+      render(<OneToNEvents {...mockOneToNEventsProps} />)
+      const addBtn = screen.getByText("Add");
+      await user.click(addBtn);
+      const tabs = screen.getAllByRole('tab');
+      await user.click(tabs[2]);
+      const fees = screen.getAllByRole('textbox', { name: /entry fee/i }) as HTMLInputElement[];
+      await user.clear(fees[2])
+      await user.type(fees[2], "150")
+      expect(fees[2]).toHaveValue(
+        formatValueSymbSep2Dec(mockEvents[2].entry_fee, localConfig)
+      );
+    })
+    it('enter lineage', async () => {
+      const user = userEvent.setup()
+      render(<OneToNEvents {...mockOneToNEventsProps} />)
+      const addBtn = screen.getByText("Add");
+      await user.click(addBtn);
+      const tabs = screen.getAllByRole('tab');
+      await user.click(tabs[2]);
+      const lineages = screen.getAllByRole('textbox', { name: /lineage/i }) as HTMLInputElement[];
+      await user.clear(lineages[2])
+      await user.type(lineages[2], "45")      
+      expect(lineages[2]).toHaveValue(
+        formatValueSymbSep2Dec(mockEvents[2].lineage, localConfig)
+      );
+    })
+    it('enter prize fund', async () => {
+      const user = userEvent.setup()
+      render(<OneToNEvents {...mockOneToNEventsProps} />)
+      const addBtn = screen.getByText("Add");
+      await user.click(addBtn);
+      const tabs = screen.getAllByRole('tab');
+      await user.click(tabs[2]);
+      const prizes = screen.getAllByRole('textbox', { name: /prize fund/i }) as HTMLInputElement[];
+      await user.clear(prizes[2])
+      await user.type(prizes[2], "95")
+      expect(prizes[2]).toHaveValue(
+        formatValueSymbSep2Dec(mockEvents[2].prize_fund, localConfig)
+      );
+    })
+    it('enter other', async () => {
+      const user = userEvent.setup()
+      render(<OneToNEvents {...mockOneToNEventsProps} />)
+      const addBtn = screen.getByText("Add");
+      await user.click(addBtn);
+      const tabs = screen.getAllByRole('tab');
+      await user.click(tabs[2]);
+      const others = screen.getAllByRole('textbox', { name: /other/i }) as HTMLInputElement[];
+      await user.clear(others[2])
+      await user.type(others[2], "4")
+      expect(others[2]).toHaveValue(
+        formatValueSymbSep2Dec(mockEvents[2].other, localConfig)
+      );
+    })
+    it('enter expenses', async () => {
+      const user = userEvent.setup()
+      render(<OneToNEvents {...mockOneToNEventsProps} />)
+      const addBtn = screen.getByText("Add");
+      await user.click(addBtn);
+      const tabs = screen.getAllByRole('tab');
+      await user.click(tabs[2]);
+      const expenses = screen.getAllByRole('textbox', { name: /expenses/i }) as HTMLInputElement[];
+      await user.clear(expenses[2])
+      await user.type(expenses[2], "6")
+      expect(expenses[2]).toHaveValue(
+        formatValueSymbSep2Dec(mockEvents[2].expenses, localConfig)
+      );
+    })
+    it('test if LPOX is recalculated', async () => {
+      const logSpy = jest.spyOn(global.console, 'log')
+      const user = userEvent.setup()
+      render(<OneToNEvents {...mockOneToNEventsProps} />)
+      const addBtn = screen.getByText("Add");
+      await user.click(addBtn);
+      const tabs = screen.getAllByRole('tab');
+      await user.click(tabs[2]);
+      const fees = screen.getAllByRole('textbox', { name: /entry fee/i }) as HTMLInputElement[];      
+      const lpoxs = screen.getAllByRole('textbox', { name: /L\+P\+O\+X/i }) as HTMLInputElement[];
+      await user.clear(fees[2])
+      await user.type(fees[2], "150");      
+      const eventNames = screen.getAllByRole("textbox", { name: /event name/i }) as HTMLInputElement[];
+      await user.click(eventNames[2]);
+      expect(fees[2]).toHaveValue(
+        formatValueSymbSep2Dec(mockEvents[2].entry_fee, localConfig)
+      );    
+      expect(lpoxs[2]).toHaveValue(
+        formatValueSymbSep2Dec(mockEvents[2].lpox, localConfig)
+      );      
+      expect(lpoxs[2]).toHaveClass('form-control')
+    })
+    it('test if LPOX is correct', async () => {
+      const user = userEvent.setup()
+      render(<OneToNEvents {...mockOneToNEventsProps} />)
+      const addBtn = screen.getByText("Add");
+      await user.click(addBtn);
+      const tabs = screen.getAllByRole('tab');
+      await user.click(tabs[2]);
+      const teamSizes = screen.getAllByRole('spinbutton', { name: /team size/i }) as HTMLInputElement[];      
+      const games = screen.getAllByRole('spinbutton', { name: /event games/i }) as HTMLInputElement[];            
+      const addeds = screen.getAllByRole('textbox', { name: /added \$/i }) as HTMLInputElement[];
+      const fees = screen.getAllByRole('textbox', { name: /entry fee/i }) as HTMLInputElement[]; 
+      const lineages = screen.getAllByRole('textbox', { name: /lineage/i }) as HTMLInputElement[];
+      const prizes = screen.getAllByRole('textbox', { name: /prize fund/i }) as HTMLInputElement[];
+      const others = screen.getAllByRole('textbox', { name: /other/i }) as HTMLInputElement[];
+      const expenses = screen.getAllByRole('textbox', { name: /expenses/i }) as HTMLInputElement[];
+      const lpoxs = screen.getAllByRole('textbox', { name: /L\+P\+O\+X/i }) as HTMLInputElement[];
+      await user.type(teamSizes[2], "3")
+      await user.type(games[2], "5")
+      await user.type(addeds[2], "1000")
+      await user.type(fees[2], "150")
+      await user.type(lineages[2], "45")
+      await user.type(prizes[2], "95")
+      await user.type(others[2], "4")
+      await user.type(expenses[2], "6")
 
-    //   const eventNames = screen.getAllByRole("textbox", { name: /event name/i }) as HTMLInputElement[];      
-    //   await user.click(eventNames[2]);
+      const eventNames = screen.getAllByRole("textbox", { name: /event name/i }) as HTMLInputElement[];      
+      await user.click(eventNames[2]);
 
-    //   // test lpox vs entry fee, to test if lpox calc is working
-    //   expect(lpoxs[2]).toHaveValue(
-    //     formatValueSymbSep2Dec(mockEvents[2].lpox, localConfig)
-    //   );
-    //   expect(lpoxs[2]).toHaveClass('is-valid')
-    // })
+      // test lpox vs entry fee, to test if lpox calc is working
+      expect(lpoxs[2]).toHaveValue(
+        formatValueSymbSep2Dec(mockEvents[2].lpox, localConfig)
+      );      
+      expect(lpoxs[2]).toHaveClass('form-control')
+    })
+    it("add an event", async () => {
+      // ARRANGE
+      const user = userEvent.setup()
+      render(<OneToNEvents {...mockOneToNEventsProps} />)
+      const addBtn = screen.getByText("Add");
+      // ACT
+      await user.click(addBtn);
+      // ASSERT
+      expect(mockOneToNEventsProps.setEvents).toHaveBeenCalled();
 
-    // it("add an event", async () => {
-    //   // ARRANGE
-    //   const user = userEvent.setup()
-    //   render(<OneToNEvents {...mockOneToNEventsProps} />)
-    //   const addBtn = screen.getByText("Add");
-    //   // ACT
-    //   await user.click(addBtn);
-    //   // ASSERT
-    //   expect(mockOneToNEventsProps.setEvents).toHaveBeenCalled();
+      // ACT
+      const tabs = screen.getAllByRole('tab');
+      // ASSERT
+      expect(tabs).toHaveLength(3)
 
-    //   // ACT
-    //   const tabs = screen.getAllByRole('tab');
-    //   // ASSERT
-    //   expect(tabs?).toHaveLength(3)
-
-    //   // ARRANGE
-    //   await user.click(tabs[2]);
-
-    //   // ACT
-    //   const eventNames = screen.getAllByTestId('inputEventName') as HTMLInputElement[];
-    //   const teamSizes = screen.getAllByTestId('inputTeamSize') as HTMLInputElement[];
-    //   const games = screen.getAllByTestId('inputEventGames') as HTMLInputElement[];
-    //   const addeds = screen.getAllByTestId('inputEventAddedMoney') as HTMLInputElement[];
-    //   const fees = screen.getAllByTestId('inputEventEntryFee') as HTMLInputElement[];
-    //   const lineages = screen.getAllByTestId('inputEventLineage') as HTMLInputElement[];
-    //   const prizes = screen.getAllByTestId('inputEventPrizeFund') as HTMLInputElement[];
-    //   const others = screen.getAllByTestId('inputEventOther') as HTMLInputElement[];
-    //   const exps = screen.getAllByTestId('inputEventExpenses') as HTMLInputElement[];
-    //   const lpoxs = screen.getAllByTestId('inputEventLpox') as HTMLInputElement[];
-    //   await userEvent.type(eventNames[2], "Trios")
-    //   await userEvent.type(teamSizes[2], "3")
-    //   await userEvent.type(games[2], "5")
-    //   await userEvent.type(addeds[2], "1000")
-    //   await userEvent.type(fees[2], "150")
-    //   await userEvent.type(lineages[2], "45")
-    //   await userEvent.type(prizes[2], "95")
-    //   await userEvent.type(others[2], "4")
-    //   await userEvent.type(exps[2], "6")
-
-    //   expect(mockEvents).toHaveLength(3);
-    //   expect(eventNames[2].value).toBe(mockEvents[2].event_name);
-    //   expect(teamSizes[2].value).toBe(mockEvents[2].team_size.toString());
-    //   expect(games[2].value).toBe(mockEvents[2].games.toString());
-    //   expect(addeds[2].value).toBe(formatValueSymbSep2Dec(mockEvents[2].added_money[0], localConfig));
-    //   expect(fees[2].value).toBe(formatValueSymbSep2Dec(mockEvents[2].entry_fee, localConfig));
-    //   expect(lineages[2].value).toBe(formatValueSymbSep2Dec(mockEvents[2].lineage, localConfig));
-    //   expect(prizes[2].value).toBe(formatValueSymbSep2Dec(mockEvents[2].prize_fund, localConfig));
-    //   expect(others[2].value).toBe(formatValueSymbSep2Dec(mockEvents[2].other, localConfig));
-    //   expect(exps[2].value).toBe(formatValueSymbSep2Dec(mockEvents[2].expenses, localConfig));
-    //   // test lpox vs entry fee, to test if lpox calc is working
-    //   expect(lpoxs[2].value).toBe(formatValueSymbSep2Dec(mockEvents[2].entry_fee, localConfig));
-    //   expect(lpoxs[2]).not.toHaveClass('is-invalid')
-    // })
+      // ARRANGE                       
+      const eventNames = screen.getAllByRole("textbox", { name: /event name/i }) as HTMLInputElement[];      
+      const teamSizes = screen.getAllByRole('spinbutton', { name: /team size/i }) as HTMLInputElement[];      
+      const games = screen.getAllByRole('spinbutton', { name: /event games/i }) as HTMLInputElement[];            
+      const addeds = screen.getAllByRole('textbox', { name: /added \$/i }) as HTMLInputElement[];
+      const fees = screen.getAllByRole('textbox', { name: /entry fee/i }) as HTMLInputElement[]; 
+      const lineages = screen.getAllByRole('textbox', { name: /lineage/i }) as HTMLInputElement[];
+      const prizes = screen.getAllByRole('textbox', { name: /prize fund/i }) as HTMLInputElement[];
+      const others = screen.getAllByRole('textbox', { name: /other/i }) as HTMLInputElement[];
+      const expenses = screen.getAllByRole('textbox', { name: /expenses/i }) as HTMLInputElement[];
+      const lpoxs = screen.getAllByRole('textbox', { name: /L\+P\+O\+X/i }) as HTMLInputElement[];
+      // ACT 
+      await user.click(tabs[2]);
+      expect(eventNames[2]).toHaveValue(mockEvents[2].event_name);
+      expect(teamSizes[2].value as string).toBe(mockEvents[2].team_size.toString());      
+      expect(games[2].value as string).toBe(mockEvents[2].games.toString());
+      expect(addeds[2].value as string).toBe(formatValueSymbSep2Dec(mockEvents[2].added_money[0], localConfig));      
+      expect(fees[2].value as string).toBe(formatValueSymbSep2Dec(mockEvents[2].entry_fee, localConfig));
+      expect(lineages[2].value as string).toBe(formatValueSymbSep2Dec(mockEvents[2].lineage, localConfig));
+      expect(prizes[2].value as string).toBe(formatValueSymbSep2Dec(mockEvents[2].prize_fund, localConfig));
+      expect(others[2].value as string).toBe(formatValueSymbSep2Dec(mockEvents[2].other, localConfig));
+      expect(expenses[2].value as string).toBe(formatValueSymbSep2Dec(mockEvents[2].expenses, localConfig));
+      // test lpox vs entry fee, to test if lpox calc is working
+      expect(lpoxs[2].value as string).toBe(formatValueSymbSep2Dec(mockEvents[2].entry_fee, localConfig));
+      expect(lpoxs[2]).not.toHaveClass('is-invalid')      
+    })
   });
 
   describe("delete event", () => {

@@ -3,10 +3,11 @@ import {
   minLane,
   maxLaneCount,
   ErrorCode,
-  isNumber,    
+  isNumber,
+  validPostId,    
 } from "@/lib/validation";
 import { idTypes, laneType } from "@/lib/types/types";
-import { initLane } from "@/lib/db/initVals";
+import { blankLane, initLane } from "@/lib/db/initVals";
 
 /**
  * checks if lane object has missing data - DOES NOT SANITIZE OR VALIDATE
@@ -80,9 +81,12 @@ const validLaneData = (lane: laneType): ErrorCode => {
 export const sanitizeLane = (lane: laneType): laneType => { 
   if (!lane) return null as any
   const sanitizedLane = {
-    ...initLane,
+    ...blankLane,
     lane_number: null as any
   }  
+  if (lane.id === '' || isValidBtDbId(lane.id, "lan") || validPostId(lane.id, "lan")) {
+    sanitizedLane.id = lane.id;
+  }
   if (validEventFkId(lane.squad_id, 'sqd')) {
     sanitizedLane.squad_id = lane.squad_id
   }

@@ -11,6 +11,8 @@ import { postSecret } from "@/lib/tools";
 
 const { gotLaneData, validLaneData } = exportedForTesting;
 
+const laneId = 'lan_7b5b9d9e6b6e4c5b9f6b7d9e7f9b6c5d';
+
 const validLane = {
   ...initLane,  
   lane_number: 29,
@@ -111,23 +113,50 @@ describe("tests for lane validation", () => {
   })
 
   describe('sanitizeLane function', () => { 
-    it('should return a sanitized laneType when lanetype is already sanitized', () => {
+    it('should return a sanitized lane when lane is already sanitized', () => {
       const testLane = {
         ...validLane,
+        id: '',
       }
       const sanitizedLane = sanitizeLane(testLane)
-      expect(sanitizedLane).toEqual(testLane)
+      expect(sanitizedLane.id).toEqual('')
+      expect(sanitizedLane.squad_id).toEqual(validLane.squad_id)
+      expect(sanitizedLane.lane_number).toEqual(validLane.lane_number)
     })
-    it('should return a sanitized laneType when lanetype is NOT already sanitized', () => {
+    it('should return a sanitized lane when lane has an id', () => {
+      const testLane = {
+        ...validLane,
+        id: laneId,
+      }
+      const sanitizedLane = sanitizeLane(testLane)
+      expect(sanitizedLane.id).toEqual(laneId)
+    })
+    it('should return a sanitized lane when lane has a post id', () => {
+      const testLane = {
+        ...validLane,
+        id: postSecret + laneId,
+      }
+      const sanitizedLane = sanitizeLane(testLane)
+      expect(sanitizedLane.id).toEqual(postSecret + laneId)
+    })
+    it('should return a sanitized lane when lane has an invalid id', () => {
+      const testLane = {
+        ...validLane,
+        id: 'abc_123',
+      }
+      const sanitizedLane = sanitizeLane(testLane)
+      expect(sanitizedLane.id).toEqual('')
+    })
+    it('should return a sanitized lane when lane is NOT already sanitized', () => {
       // no numerical fields
       const testLane = {
         ...validLane,        
         squad_id: 'abc_123'
       }
       const sanitizedLane = sanitizeLane(testLane)      
-      expect(sanitizedLane.squad_id).toEqual('1')
+      expect(sanitizedLane.squad_id).toEqual('')
     })    
-    it('should return a sanitized laneType when numerical fields are null', () => {
+    it('should return a sanitized lane when numerical fields are null', () => {
       const testLane = {
         ...validLane,
         lane_number: null as any,        
@@ -135,7 +164,7 @@ describe("tests for lane validation", () => {
       const sanitizedLane = sanitizeLane(testLane)
       expect(sanitizedLane.lane_number).toBeNull()
     })    
-    it('should return a sanitized laneType when numerical fields are null', () => {
+    it('should return a sanitized lane when numerical fields are null', () => {
       const testLane = {
         ...validLane,
         lane_number: null as any,        
@@ -143,7 +172,7 @@ describe("tests for lane validation", () => {
       const sanitizedLane = sanitizeLane(testLane)
       expect(sanitizedLane.lane_number).toBeNull()
     })    
-    it('should return a sanitized laneType when numerical fields are not numbers', () => {
+    it('should return a sanitized lane when numerical fields are not numbers', () => {
       const testLane = {
         ...validLane,
         lane_number: 'abc' as any,        
@@ -151,7 +180,7 @@ describe("tests for lane validation", () => {
       const sanitizedLane = sanitizeLane(testLane)
       expect(sanitizedLane.lane_number).toBeNull()
     })    
-    it('should return a sanitized laneType when numerical fields are too low', () => {
+    it('should return a sanitized lane when numerical fields are too low', () => {
       const testLane = {
         ...validLane,
         lane_number: 0,
@@ -159,7 +188,7 @@ describe("tests for lane validation", () => {
       const sanitizedLane = sanitizeLane(testLane)
       expect(sanitizedLane.lane_number).toEqual(0)
     })    
-    it('should return a sanitized laneType when numerical fields are too high', () => {
+    it('should return a sanitized lane when numerical fields are too high', () => {
       const testLane = {
         ...validLane,
         lane_number: 201,

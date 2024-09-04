@@ -1,8 +1,8 @@
-import { ErrorCode, maxFirstNameLength, maxLastNameLength, isEmail, isPassword8to20 } from "@/lib/validation";
+import { ErrorCode, maxFirstNameLength, maxLastNameLength, isEmail, isPassword8to20, isValidBtDbId, validPostId } from "@/lib/validation";
 import { sanitize } from "@/lib/sanitize";
 import { userType } from "@/lib/types/types";
 import { phone as phoneChecking } from "phone";
-import { initUser } from "@/lib/db/initVals";
+import { blankUser, initUser } from "@/lib/db/initVals";
 
 /**
  * checks for required data and returns error code if missing 
@@ -94,9 +94,11 @@ const validUserData = (user: userType, checkPhone: boolean, checkPass: boolean):
  *  - phone in correct format (not validated, just format OK) 
  */
 export const sanitizeUser = (user: userType): userType => {
-
-  const sanitizedUser: userType = { ...initUser }
-
+  if (!user) return null as any;
+  const sanitizedUser: userType = { ...blankUser }
+  if (user.id === '' || isValidBtDbId(user.id, 'usr') || validPostId(user.id, "usr")) {
+    sanitizedUser.id = user.id
+  }  
   sanitizedUser.first_name = sanitize(user.first_name)
   sanitizedUser.last_name = sanitize(user.last_name)
   if (isEmail(user.email)) {

@@ -1,8 +1,8 @@
-import { isValidBtDbId, ErrorCode, maxMoney, validSortOrder, isNumber } from "@/lib/validation";
+import { isValidBtDbId, ErrorCode, maxMoney, validSortOrder, isNumber, validPostId } from "@/lib/validation";
 import { sanitize, sanitizeCurrency } from "@/lib/sanitize";
 import { validMoney } from "@/lib/currency/validate";
 import { potType, PotCategories, idTypes } from "@/lib/types/types";
-import { initPot } from "@/lib/db/initVals";
+import { blankPot, initPot } from "@/lib/db/initVals";
 
 /**
  * checks if pot object has missing data - DOES NOT SANITIZE OR VALIDATE
@@ -92,9 +92,12 @@ const validPotData = (pot: potType): ErrorCode => {
 export const sanitizePot = (pot: potType): potType => {
   if (!pot) return null as any;
   const sanitizedPot = {
-    ...initPot,
+    ... blankPot,
     sort_order: null as any,
   };    
+  if (pot.id === '' || isValidBtDbId(pot.id, "pot") || validPostId(pot.id, "pot")) {
+    sanitizedPot.id = pot.id;
+  }
   if (validPotFkId(pot.div_id, "div")) {
     sanitizedPot.div_id = pot.div_id
   };

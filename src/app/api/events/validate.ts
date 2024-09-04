@@ -8,11 +8,12 @@ import {
   ErrorCode,
   maxMoney,
   validSortOrder,
+  validPostId,
 } from "@/lib/validation";
 import { sanitize, sanitizeCurrency } from "@/lib/sanitize";
 import { validMoney } from "@/lib/currency/validate";
 import { eventType, idTypes } from "@/lib/types/types";
-import { initEvent } from "@/lib/db/initVals";
+import { blankEvent, initEvent } from "@/lib/db/initVals";
 import { isNumber } from "@/lib/validation";
 
 /**
@@ -173,16 +174,19 @@ const validEventData = (event: eventType): ErrorCode => {
 export const sanitizeEvent = (event: eventType): eventType => {
   if (!event) return null as any;
   const sanitizedEvent = {
-    ...initEvent,
+    ...blankEvent,    
     event_name: '',
     team_size: null as any,
     games: null as any,
     sort_order: null as any,
   };
-  sanitizedEvent.event_name = sanitize(event.event_name);
+  if (event.id === '' || isValidBtDbId(event.id, "evt") || validPostId(event.id, "evt")) {
+    sanitizedEvent.id = event.id;
+  }
   if (validEventFkId(event.tmnt_id, "tmt")) {
     sanitizedEvent.tmnt_id = event.tmnt_id;
   }
+  sanitizedEvent.event_name = sanitize(event.event_name);
   if ((event.team_size === null) || isNumber(event.team_size)) {
     sanitizedEvent.team_size = event.team_size;
   }

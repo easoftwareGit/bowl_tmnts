@@ -16,6 +16,8 @@ import { postSecret } from "@/lib/tools";
 
 const { gotBrktData, validBrktData } = exportedForTesting;
 
+const brktId = 'brk_5109b54c2cc44ff9a3721de42c80c8c1';
+
 const validBrkt = {
   ...initBrkt,
   id: "brk_5109b54c2cc44ff9a3721de42c80c8c1",
@@ -355,7 +357,8 @@ describe("tests for bracket validation", () => {
   describe('sanitizeBrkt function', () => { 
     it('should return sanitized brkt for valid bracket data', () => { 
       const testBrkt = {
-        ...validBrkt,        
+        ...validBrkt,  
+        id: '',
       }
       const sanitizedBrkt = sanitizeBrkt(testBrkt);
       expect(sanitizedBrkt.div_id).toEqual(testBrkt.div_id)
@@ -369,6 +372,30 @@ describe("tests for bracket validation", () => {
       expect(sanitizedBrkt.admin).toEqual(testBrkt.admin)
       expect(sanitizedBrkt.fsa).toEqual(testBrkt.fsa)
       expect(sanitizedBrkt.sort_order).toEqual(testBrkt.sort_order)
+    })
+    it('should return sanitized brkt when bracket has an id', () => { 
+      const testBrkt = {
+        ...validBrkt,  
+        id: brktId,
+      }
+      const sanitizedBrkt = sanitizeBrkt(testBrkt);
+      expect(sanitizedBrkt.id).toEqual(brktId)
+    })
+    it('should return sanitized brkt when bracket has a post id', () => { 
+      const testBrkt = {
+        ...validBrkt,  
+        id: postSecret + brktId,
+      }
+      const sanitizedBrkt = sanitizeBrkt(testBrkt);
+      expect(sanitizedBrkt.id).toEqual(postSecret + brktId)
+    })
+    it('should return sanitized brkt when bracket has an invalid id', () => { 
+      const testBrkt = {
+        ...validBrkt,  
+        id: 'test123',
+      }
+      const sanitizedBrkt = sanitizeBrkt(testBrkt);
+      expect(sanitizedBrkt.id).toEqual('')
     })
     it('should return sanitized brkt when bracket is not sanitzed', () => { 
       // no numerical fields

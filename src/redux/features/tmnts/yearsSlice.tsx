@@ -1,7 +1,6 @@
 import { createAsyncThunk, createSlice } from '@reduxjs/toolkit'
 import { loadStatusType } from '@/redux/statusTypes';
-import { getTmntYears } from '@/lib/db/tmnts';
-// import { getTmntYears } from '@/lib/db/tmntYears';
+import { getTmntYears } from '@/lib/db/tmnts/tmnts';
 import { YearObj } from '@/lib/types/types';
 
 export interface TmntYearsSliceState {
