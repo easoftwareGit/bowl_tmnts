@@ -7,6 +7,7 @@ import ModalErrorMsg, { cannotDeleteTitle } from "@/components/modal/errorModal"
 import { initModalObj } from "@/components/modal/modalObjType";
 import { objErrClassName, acdnErrClassName, getAcdnErrMsg, noAcdnErr, isDuplicateDivName } from "./errors";
 import { maxEventLength, minHdcpPer, maxHdcpPer, minHdcpFrom, maxHdcpFrom } from "@/lib/validation";
+import { EaPercentInput } from "@/components/currency/eaCurrencyInput";
 
 interface ChildProps {
   divs: divType[],
@@ -248,23 +249,48 @@ const OneToNDivs: React.FC<ChildProps> = ({
               ...div,
               hdcp_for: hdcpFor,
             };
-          } else if (name === 'hdcp_per') {
-            const hdcpPerNum = Number(value);
+          } else if (name === 'hdcp_per_str') {
+            let rawValue = value === undefined ? 'undefined' : value;
+            rawValue = (rawValue || ' ')
+            if (rawValue && Number.isNaN(Number(rawValue))) {
+              rawValue = '';
+            }
+            const hdcpPerNum =Number(rawValue) / 100;
             updatedDiv = {
               ...div,
-              hdcp_per: hdcpPerNum,
-              hdcp_per_err: ''
+              hdcp_per_str: rawValue,
+              hdcp_per: Number(rawValue) / 100
             }
             // do check AFETR setting updatedDiv above
             // need to clear hdcp_from_err because if hdcp is 0,
             // hdcp_from spineditis disabled, so user can't clear error
-            if (hdcpPerNum === 0 && (div.hdcp_from < minHdcpFrom || div.hdcp_from > maxHdcpFrom)) {
-              updatedDiv = {
-                ...updatedDiv,
-                hdcp_from: defaultHdcpFrom,
-                hdcp_from_err: ''
-              }
-            }
+            
+            // if (hdcpPerNum === 0 && (div.hdcp_from < minHdcpFrom || div.hdcp_from > maxHdcpFrom)) {
+            //   updatedDiv = {
+            //     ...updatedDiv,
+            //     hdcp_from: defaultHdcpFrom,
+            //     hdcp_from_err: ''
+            //   }
+            // }
+
+
+            // const hdcpPerNum = Number(value);
+            // updatedDiv = {
+            //   ...div,
+            //   hdcp_per: hdcpPerNum,
+            //   hdcp_per_err: ''
+            // }
+            // // do check AFETR setting updatedDiv above
+            // // need to clear hdcp_from_err because if hdcp is 0,
+            // // hdcp_from spineditis disabled, so user can't clear error
+            // if (hdcpPerNum === 0 && (div.hdcp_from < minHdcpFrom || div.hdcp_from > maxHdcpFrom)) {
+            //   updatedDiv = {
+            //     ...updatedDiv,
+            //     hdcp_from: defaultHdcpFrom,
+            //     hdcp_from_err: ''
+            //   }
+            // }
+
           } else { // hdcp_from
             const hdcpFromNum = Number(value);
             updatedDiv = {
@@ -467,7 +493,15 @@ const OneToNDivs: React.FC<ChildProps> = ({
                 >
                   Hdcp % <span className="popup-help">&nbsp;?&nbsp;</span>
                 </label>
-                <input
+                <EaPercentInput
+                  id={`inputHdcpPer${div.id}`}
+                  name="hdcp_per_str"
+                  className={`form-control ${div.hdcp_per_err && "is-invalid"}`}
+                  value={div.hdcp_per_str}
+                  onChange={handleInputChange(div.id)}
+                  onBlur={handleBlur(div.id)}
+                />
+                {/* <input
                   type="number"
                   min={minHdcpPer}
                   max={maxHdcpPer}
@@ -478,7 +512,7 @@ const OneToNDivs: React.FC<ChildProps> = ({
                   value={div.hdcp_per}
                   onChange={handleInputChange(div.id)}
                   onBlur={handleBlur(div.id)}
-                />
+                /> */}
                 <div
                   className="text-danger"
                   data-testid="dangerHdcp"

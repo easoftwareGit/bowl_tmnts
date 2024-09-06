@@ -152,7 +152,7 @@ describe("TmntDataPage - Brackets Component", () => {
       // fees[0] - events, fees[1] - pots, fees[2] - brkts, fees[3] - elims
       expect(fees).toHaveLength(4)
       // start[0] - brkts, start[1] - elims
-      expect(start).toHaveLength(2);
+      expect(start).toHaveLength(3);
       await user.clear(fees[2]);
       await user.type(fees[2], "20[Tab]");
       expect(fees[2]).toHaveValue("$20.00");
@@ -179,7 +179,7 @@ describe("TmntDataPage - Brackets Component", () => {
       // fees[0] - events, fees[1] - pots, fees[2] - brkts, fees[3] - elims
       expect(fees).toHaveLength(4)
       // start[0] - brkts, start[1] - elims
-      expect(start).toHaveLength(2);
+      expect(start).toHaveLength(3);
       await user.clear(fees[2]);
       await user.type(fees[2], "20");
       await user.click(addBtn);
@@ -227,7 +227,7 @@ describe("TmntDataPage - Brackets Component", () => {
       // fees[0] - events, fees[1] - pots, fees[2] - brkts, fees[3] - elims
       expect(fees).toHaveLength(4)
       // start[0] - brkts, start[1] - elims
-      expect(start).toHaveLength(2);
+      expect(start).toHaveLength(3);
       expect(fees[2]).toHaveTextContent("");
       await user.click(div1s[1]);
       await user.click(addBtn);
@@ -253,7 +253,7 @@ describe("TmntDataPage - Brackets Component", () => {
       // fees[0] - events, fees[1] - pots, fees[2] - brkts, fees[3] - elims
       expect(fees).toHaveLength(4)
       // start[0] - brkts, start[1] - elims
-      expect(start).toHaveLength(2);
+      expect(start).toHaveLength(3);
       await user.click(div1s[1]);
       expect(fees[2]).toHaveValue("$1,234,567.00");
 
@@ -280,7 +280,7 @@ describe("TmntDataPage - Brackets Component", () => {
       // fees[0] - events, fees[1] - pots, fees[2] - brkts, fees[3] - elims
       expect(fees).toHaveLength(4)
       // start[0] - brkts, start[1] - elims
-      expect(start).toHaveLength(2);
+      expect(start).toHaveLength(3);
       await user.click(div1s[1]);
       expect(fees[2]).toHaveValue("$1,234,567.00");
 
@@ -330,11 +330,11 @@ describe("TmntDataPage - Brackets Component", () => {
       expect(div1s).toHaveLength(3);
       // fees[0] - events, fees[1] - pots, fees[2] - brkts, fees[3] - elims
       expect(fees).toHaveLength(4)
-      // start[0] - brkts, start[1] - elims
-      expect(start).toHaveLength(2);
-      await user.click(start[0]);
-      await user.clear(start[0]);
-      await user.type(start[0], '0');
+      // start[0] - squads, start[1] - brkts, start[1] - elims
+      expect(start).toHaveLength(3);
+      await user.click(start[1]);
+      await user.clear(start[1]);
+      await user.type(start[1], '0');
 
       await user.click(fees[2]);
       await user.clear(fees[2]);
@@ -361,11 +361,11 @@ describe("TmntDataPage - Brackets Component", () => {
       expect(div1s).toHaveLength(3);
       // fees[0] - events, fees[1] - pots, fees[2] - brkts, fees[3] - elims
       expect(fees).toHaveLength(4)
-      // start[0] - brkts, start[1] - elims
-      expect(start).toHaveLength(2);
-      await user.click(start[0]);
-      await user.clear(start[0]);
-      await user.type(start[0], '5');
+      // start[0] - squads, start[1] - brkts, start[1] - elims
+      expect(start).toHaveLength(3);
+      await user.click(start[1]);
+      await user.clear(start[1]);
+      await user.type(start[1], '5');
 
       await user.click(fees[2]);
       await user.clear(fees[2]);
@@ -392,11 +392,11 @@ describe("TmntDataPage - Brackets Component", () => {
       expect(div1s).toHaveLength(3);
       // fees[0] - events, fees[1] - pots, fees[2] - brkts, fees[3] - elims
       expect(fees).toHaveLength(4)
-      // start[0] - brkts, start[1] - elims
-      expect(start).toHaveLength(2);
-      await user.click(start[0]);
-      await user.clear(start[0]);
-      await user.type(start[0], '5');
+      // start[0] - lanes, start[1] - brkts, start[1] - elims
+      expect(start).toHaveLength(3);
+      await user.click(start[1]);
+      await user.clear(start[1]);
+      await user.type(start[1], '5');
 
       await user.click(fees[2]);
       await user.clear(fees[2]);
@@ -410,10 +410,10 @@ describe("TmntDataPage - Brackets Component", () => {
       expect(acdns[0]).toHaveTextContent("Brackets: Error in Create Bracket - Start cannot be more than");
       expect(createTab).toHaveClass('objError')
 
-      await user.click(start[0]);
+      await user.click(start[1]);
       // clear or type will clear the error
-      await user.clear(start[0]);
-      await user.type(start[0], '4');
+      await user.clear(start[1]);
+      await user.type(start[1], '4');
       expect(brktStartErr).toHaveTextContent("");
       expect(acdns[0]).not.toHaveTextContent(": Error in Create Bracket - Start cannot be more than");
       expect(createTab).not.toHaveClass('objError')
@@ -544,8 +544,8 @@ describe("TmntDataPage - Brackets Component", () => {
       expect(scratches).toHaveLength(3);
       // fees[0] - events, fees[1] - pots, fees[2,3,4,5,6] - brkts, fees[7] - elims
       expect(fees).toHaveLength(8)
-      // start[0,1,2,3,4] - brkts, start[5] - elims
-      expect(start).toHaveLength(6);
+      // start[0] - squad start[1,2,3,4,5] - brkts, start[6] - elims
+      expect(start).toHaveLength(7);
 
       await user.clear(fees[2]);
       await user.type(fees[2], "20[Tab]");

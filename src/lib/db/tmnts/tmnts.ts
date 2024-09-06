@@ -4,8 +4,8 @@
 // prima is a server only, using these functions without the "use server"
 // directive in a client file will cause an error.
 
-// import { prisma } from "@/lib/prisma"; // for production & developemnt
-import prisma from '../../../../test/client'  // for testing
+import { prisma } from "@/lib/prisma"; // for production & developemnt
+// import prisma from '../../../../test/client'  // for testing
 
 // NOTE at the bottom of this file:
 //    export const exportedForTesting = {

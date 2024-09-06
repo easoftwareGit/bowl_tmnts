@@ -19,7 +19,7 @@ describe('TmntDataPage - Event Component', () => {
     })
   })
   
-  describe('click on the events accordian', () => { 
+  describe('click on the events accordian', () => {
     it('find and open the events accordian', async () => {
       const user = userEvent.setup()
       render(<RootLayout><TmntDataPage /></RootLayout>)
@@ -27,17 +27,17 @@ describe('TmntDataPage - Event Component', () => {
       expect(acdns).toHaveLength(1);
       await user.click(acdns[0]);
     })
-    it('render the event tab', async () => { 
+    it('render the event tab', async () => {
       const user = userEvent.setup()
       render(<RootLayout><TmntDataPage /></RootLayout>)
       const acdns = await screen.findAllByRole('button', { name: /events/i });
       await user.click(acdns[0]);
       const eventTab = await screen.findByRole('tab', { name: /singles/i })
-      expect(eventTab).toBeVisible();      
+      expect(eventTab).toBeVisible();
     })
   })
 
-  describe('editing the event name changes the event name in other locations', () => { 
+  describe('editing the event name changes the event name in other locations', () => {
     it('edit the event name, change the event tab title', async () => {
       const user = userEvent.setup()
       render(<RootLayout><TmntDataPage /></RootLayout>)
@@ -54,7 +54,7 @@ describe('TmntDataPage - Event Component', () => {
       const eventTab = await screen.findByRole('tab', { name: /testing/i })
       expect(eventTab).toBeInTheDocument();
     })
-    it('changing event name changes squad event name', async () => { 
+    it('changing event name changes squad event name', async () => {
       const user = userEvent.setup()
       render(<RootLayout><TmntDataPage /></RootLayout>)
       const acdns = await screen.findAllByRole('button', { name: /events/i });
@@ -71,12 +71,12 @@ describe('TmntDataPage - Event Component', () => {
       await user.click(squadAcdns[0]);
       const squadEvents = screen.getAllByRole("combobox", { name: /event/i }) as HTMLInputElement[];
       expect(squadEvents).toHaveLength(1);
-      expect(squadEvents[0]).toHaveValue('1'); // event_id has not been set, 
+      expect(squadEvents[0]).toHaveValue('1'); // event_id has not been set,
       expect(squadEvents[0]).toHaveDisplayValue("Testing");
     })
   })
 
-  describe('changing Event Games changes squad event games', () => { 
+  describe('changing Event Games changes squad event games', () => {
     const mockFullTmnt: fullTmntDataType = {
       tmnt: mockSDTmnt,
       events: mockEvents,
@@ -144,9 +144,38 @@ describe('TmntDataPage - Event Component', () => {
     })
   })
 
-  describe('enter the entry fee and disbursals', () => { 
+  describe('enter the added $ value', () => {
+    
+    const mockFullTmnt: fullTmntDataType = {
+      tmnt: mockSDTmnt,
+      events: initEvents,
+      divs: initDivs,
+      squads: initSquads,
+      lanes: initLanes,
+      pots: initPots,
+      brkts: initBrkts,
+      elims: initElims
+    };  
+
+    it('enter the added $ amount', async () => { 
+      const user = userEvent.setup()
+      render(<RootLayout><TmntDataPage fullTmntData={mockFullTmnt} /></RootLayout>)
+      const saveBtn = await screen.findByRole('button', { name: /save tournament/i });      
+      const acdns = await screen.findAllByRole('button', { name: /events/i });
+      await user.click(acdns[0]);      
+      const addeds = screen.getAllByRole('textbox', { name: /added \$/i }) as HTMLInputElement[];
+      const entryFees = screen.getAllByRole('textbox', { name: /entry fee/i }) as HTMLInputElement[];
+      // enter less than min value - will not accept negative sign, enter value w/o "-"
+      await user.clear(addeds[0]);
+      await user.clear(addeds[0]);
+      await user.type(addeds[0], '100');
+      expect(addeds[0]).toHaveValue('$100');
+    })
+  })  
+
+  describe('enter the entry fee and disbursals', () => {
     // team size, event games & added $ renders in oneToNEvents.test.tsx
-    it('enter event fee amount', async () => { 
+    it('enter event fee amount', async () => {
       const user = userEvent.setup()
       render(<RootLayout><TmntDataPage /></RootLayout>)
       const acdns = await screen.findAllByRole('button', { name: /events/i });
@@ -162,9 +191,9 @@ describe('TmntDataPage - Event Component', () => {
       expect(lineages[0]).toHaveFocus();
       const lpoxs = screen.getAllByRole('textbox', { name: /L\+P\+O\+X/i }) as HTMLInputElement[];
       expect(lpoxs).toHaveLength(1);
-      expect(lpoxs[0]).toHaveClass("is-invalid");      
+      expect(lpoxs[0]).toHaveClass("is-invalid");
     })
-    it('enter linage amount', async () => { 
+    it('enter lineage amount', async () => {
       const user = userEvent.setup()
       render(<RootLayout><TmntDataPage /></RootLayout>)
       const acdns = await screen.findAllByRole('button', { name: /events/i });
@@ -186,9 +215,9 @@ describe('TmntDataPage - Event Component', () => {
       expect(prizes[0]).toHaveFocus();
       const lpoxs = screen.getAllByRole('textbox', { name: /L\+P\+O\+X/i }) as HTMLInputElement[];
       expect(lpoxs).toHaveLength(1);
-      expect(lpoxs[0]).toHaveClass("is-invalid");      
+      expect(lpoxs[0]).toHaveClass("is-invalid");
     })
-    it('enter prize fund amount', async () => { 
+    it('enter prize fund amount', async () => {
       const user = userEvent.setup()
       render(<RootLayout><TmntDataPage /></RootLayout>)
       const acdns = await screen.findAllByRole('button', { name: /events/i });
@@ -212,9 +241,9 @@ describe('TmntDataPage - Event Component', () => {
       expect(others[0]).toHaveFocus();
       const lpoxs = screen.getAllByRole('textbox', { name: /L\+P\+O\+X/i }) as HTMLInputElement[];
       expect(lpoxs).toHaveLength(1);
-      expect(lpoxs[0]).toHaveClass("is-invalid");      
+      expect(lpoxs[0]).toHaveClass("is-invalid");
     })
-    it('enter other amount', async () => { 
+    it('enter other amount', async () => {
       const user = userEvent.setup()
       render(<RootLayout><TmntDataPage /></RootLayout>)
       const acdns = await screen.findAllByRole('button', { name: /events/i });
@@ -242,9 +271,9 @@ describe('TmntDataPage - Event Component', () => {
       expect(expenses[0]).toHaveFocus();
       const lpoxs = screen.getAllByRole('textbox', { name: /L\+P\+O\+X/i }) as HTMLInputElement[];
       expect(lpoxs).toHaveLength(1);
-      expect(lpoxs[0]).toHaveClass("is-invalid");      
+      expect(lpoxs[0]).toHaveClass("is-invalid");
     })
-    it('enter other amount', async () => { 
+    it('enter expenses amount', async () => {
       const user = userEvent.setup()
       render(<RootLayout><TmntDataPage /></RootLayout>)
       const acdns = await screen.findAllByRole('button', { name: /events/i });
@@ -274,11 +303,11 @@ describe('TmntDataPage - Event Component', () => {
       expect(others[0]).toHaveFocus();
       const lpoxs = screen.getAllByRole('textbox', { name: /L\+P\+O\+X/i }) as HTMLInputElement[];
       expect(lpoxs).toHaveLength(1);
-      expect(lpoxs[0]).toHaveClass("is-valid");      
+      expect(lpoxs[0]).toHaveClass("is-valid");
     })
   })
 
-  describe('render multiple events', () => { 
+  describe('render multiple events', () => {
     const mockFullTmnt: fullTmntDataType = {
       tmnt: mockSDTmnt,
       events: mockEvents,
@@ -290,7 +319,7 @@ describe('TmntDataPage - Event Component', () => {
       elims: initElims
     };
     
-    it('render multiple event tabs', async () => { 
+    it('render multiple event tabs', async () => {
       const user = userEvent.setup()
       render(<RootLayout><TmntDataPage fullTmntData={mockFullTmnt} /></RootLayout>)
       const acdns = await screen.findAllByRole('button', { name: /events/i });
@@ -302,7 +331,7 @@ describe('TmntDataPage - Event Component', () => {
     })
   })
 
-  describe('render the event name errors', () => { 
+  describe('render the event name errors', () => {
     const mockFullTmnt: fullTmntDataType = {
       tmnt: mockSDTmnt,
       events: mockEvents,
@@ -312,40 +341,40 @@ describe('TmntDataPage - Event Component', () => {
       pots: initPots,
       brkts: initBrkts,
       elims: initElims
-    };      
-    it('render the event name required error', async () => { 
-      const user = userEvent.setup()      
+    };
+    it('render the event name required error', async () => {
+      const user = userEvent.setup()
       render(<RootLayout><TmntDataPage fullTmntData={mockFullTmnt} /></RootLayout>)
-      const saveBtn = await screen.findByRole('button', { name: /save tournament/i });      
+      const saveBtn = await screen.findByRole('button', { name: /save tournament/i });
       const acdns = await screen.findAllByRole('button', { name: /events/i });
       await user.click(acdns[0]);
       const singlesTabs = await screen.findAllByRole('tab', { name: /singles/i })
       // expect 3 singles tab buttos 1 each in events, squads and lanes
       expect(singlesTabs).toHaveLength(3);
-      const eventNames = screen.getAllByRole("textbox", { name: /event name/i }) as HTMLInputElement[];          
+      const eventNames = screen.getAllByRole("textbox", { name: /event name/i }) as HTMLInputElement[];
       expect(eventNames).toHaveLength(2);
       await user.clear(eventNames[0]);
-      expect(singlesTabs[0]).toHaveTextContent('');      
+      expect(singlesTabs[0]).toHaveTextContent('');
       // click will cause invalid data errors to show
       await user.click(saveBtn);
-      const eventNameErrors = await screen.findAllByTestId('dangerEventName');    
+      const eventNameErrors = await screen.findAllByTestId('dangerEventName');
       expect(eventNameErrors).toHaveLength(2);
       expect(eventNameErrors[0]).toHaveTextContent("Event Name is required");
       expect(acdns[0]).toHaveTextContent("Events: Error in Events - Event Name is required");
       expect(singlesTabs[0]).toHaveClass('objError');
     })
-    it('redner duplicate event name error', async () => { 
+    it('redner duplicate event name error', async () => {
       const user = userEvent.setup()
       render(<RootLayout><TmntDataPage fullTmntData={mockFullTmnt} /></RootLayout>)
-      const saveBtn = await screen.findByRole('button', { name: /save tournament/i });      
+      const saveBtn = await screen.findByRole('button', { name: /save tournament/i });
       const acdns = await screen.findAllByRole('button', { name: /events/i });
       await user.click(acdns[0]);
       const singlesTabs = await screen.findAllByRole('tab', { name: /singles/i })
       const doublesTabs = await screen.findAllByRole('tab', { name: /doubles/i })
       expect(singlesTabs[0]).toBeInTheDocument();
       expect(doublesTabs[0]).toBeInTheDocument();
-      await user.click(doublesTabs[0])    
-      const eventNames = screen.getAllByRole("textbox", { name: /event name/i }) as HTMLInputElement[];    
+      await user.click(doublesTabs[0])
+      const eventNames = screen.getAllByRole("textbox", { name: /event name/i }) as HTMLInputElement[];
       await user.clear(eventNames[1]);
       await user.type(eventNames[1], 'Singles')
       expect(eventNames[0]).toHaveValue("Singles");
@@ -359,34 +388,34 @@ describe('TmntDataPage - Event Component', () => {
       expect(singlesTabs[0]).not.toHaveClass('objError');
       expect(doublesTabs[0]).toHaveClass('objError');
     })
-    it('clear the event name error', async () => { 
-      const user = userEvent.setup()      
+    it('clear the event name error', async () => {
+      const user = userEvent.setup()
       render(<RootLayout><TmntDataPage fullTmntData={mockFullTmnt} /></RootLayout>)
-      const saveBtn = await screen.findByRole('button', { name: /save tournament/i });      
+      const saveBtn = await screen.findByRole('button', { name: /save tournament/i });
       const acdns = await screen.findAllByRole('button', { name: /events/i });
       await user.click(acdns[0]);
       const singlesTabs = await screen.findAllByRole('tab', { name: /singles/i });
-      const eventNames = screen.getAllByRole("textbox", { name: /event name/i }) as HTMLInputElement[];    
+      const eventNames = screen.getAllByRole("textbox", { name: /event name/i }) as HTMLInputElement[];
       await user.clear(eventNames[0]);
-      expect(singlesTabs[0]).toHaveTextContent('');      
+      expect(singlesTabs[0]).toHaveTextContent('');
       // click will cause invalid data errors to show
       await user.click(saveBtn);
-      const eventNameErrors = await screen.findAllByTestId('dangerEventName');    
+      const eventNameErrors = await screen.findAllByTestId('dangerEventName');
       expect(eventNameErrors[0]).toHaveTextContent("Event Name is required");
       expect(acdns[0]).toHaveTextContent("Events: Error in Events - Event Name is required");
       expect(singlesTabs[0]).toHaveClass('objError');
       // editing event name should clear the error
       await user.click(eventNames[0]);
       await user.type(eventNames[0], 'Singles');
-      expect(eventNameErrors[0]).toHaveTextContent("");      
+      expect(eventNameErrors[0]).toHaveTextContent("");
       expect(singlesTabs[0]).not.toHaveClass('objError');
       expect(singlesTabs[0]).toHaveTextContent('Singles');
       expect(acdns[0]).not.toHaveTextContent(": Error in Events - Event Name is required");
       expect(acdns[0]).toHaveTextContent("Events");
-    })    
+    })
   })
 
-  describe('render the team size errors', () => { 
+  describe('render the team size errors', () => {
 
     const mockFullTmnt: fullTmntDataType = {
       tmnt: mockSDTmnt,
@@ -399,233 +428,233 @@ describe('TmntDataPage - Event Component', () => {
       elims: initElims
     };
 
-    it('enter value less than min team size', async () => { 
+    it('enter value less than min team size', async () => {
       const user = userEvent.setup()
       render(<RootLayout><TmntDataPage /></RootLayout>)
-      const saveBtn = await screen.findByRole('button', { name: /save tournament/i });      
+      const saveBtn = await screen.findByRole('button', { name: /save tournament/i });
       const acdns = await screen.findAllByRole('button', { name: /events/i });
       await user.click(acdns[0]);
       const teamSizes = screen.getAllByRole('spinbutton', { name: /team size/i }) as HTMLInputElement[];
       // enter less than min value
       await user.clear(teamSizes[0]);
-      await user.type(teamSizes[0], '0');      
-      expect(teamSizes[0]).toHaveValue(0); 
+      await user.type(teamSizes[0], '0');
+      expect(teamSizes[0]).toHaveValue(0);
       // should show error
       await user.click(saveBtn);
-      const teamSizeError = await screen.findByTestId('dangerTeamSize');    
+      const teamSizeError = await screen.findByTestId('dangerTeamSize');
       expect(teamSizeError).toHaveTextContent("Team Size cannot be less than");
-      expect(acdns[0]).toHaveTextContent("Team Size cannot be less than");      
+      expect(acdns[0]).toHaveTextContent("Team Size cannot be less than");
       const eventTab = await screen.findByRole('tab', { name: /singles/i })
       expect(eventTab).toHaveClass('objError');
     })
-    it('enter value greater than max team size', async () => { 
+    it('enter value greater than max team size', async () => {
       const user = userEvent.setup()
       render(<RootLayout><TmntDataPage /></RootLayout>)
-      const saveBtn = await screen.findByRole('button', { name: /save tournament/i });      
+      const saveBtn = await screen.findByRole('button', { name: /save tournament/i });
       const acdns = await screen.findAllByRole('button', { name: /events/i });
       await user.click(acdns[0]);
       const teamSizes = screen.getAllByRole('spinbutton', { name: /team size/i }) as HTMLInputElement[];
       // enter greater than max value
       await user.clear(teamSizes[0]);
-      await user.type(teamSizes[0], '11');      
-      expect(teamSizes[0]).toHaveValue(11); 
+      await user.type(teamSizes[0], '11');
+      expect(teamSizes[0]).toHaveValue(11);
       // should show error
       await user.click(saveBtn);
-      const teamSizeError = await screen.findByTestId('dangerTeamSize');    
+      const teamSizeError = await screen.findByTestId('dangerTeamSize');
       expect(teamSizeError).toHaveTextContent("Team Size cannot be more than");
-      expect(acdns[0]).toHaveTextContent("Team Size cannot be more than");      
+      expect(acdns[0]).toHaveTextContent("Team Size cannot be more than");
       const eventTab = await screen.findByRole('tab', { name: /singles/i })
       expect(eventTab).toHaveClass('objError');
     })
-    it('enter negative value', async () => { 
+    it('enter negative value', async () => {
       const user = userEvent.setup()
       render(<RootLayout><TmntDataPage /></RootLayout>)
-      const saveBtn = await screen.findByRole('button', { name: /save tournament/i });      
+      const saveBtn = await screen.findByRole('button', { name: /save tournament/i });
       const acdns = await screen.findAllByRole('button', { name: /events/i });
       await user.click(acdns[0]);
       const teamSizes = screen.getAllByRole('spinbutton', { name: /team size/i }) as HTMLInputElement[];
       // enter less than min value
       await user.clear(teamSizes[0]);
-      await user.type(teamSizes[0], '-1');  
+      await user.type(teamSizes[0], '-1');
       // negitive sign ignored, conveted to 0
-      expect(teamSizes[0]).toHaveValue(1);  
+      expect(teamSizes[0]).toHaveValue(1);
       // should show error
       await user.click(saveBtn);
-      const teamSizeErrors = await screen.findAllByTestId('dangerTeamSize');    
+      const teamSizeErrors = await screen.findAllByTestId('dangerTeamSize');
       expect(teamSizeErrors[0]).toHaveTextContent("");
-      expect(acdns[0]).not.toHaveTextContent("Team Size cannot be less than");      
+      expect(acdns[0]).not.toHaveTextContent("Team Size cannot be less than");
       const eventTab = await screen.findByRole('tab', { name: /singles/i })
       expect(eventTab).not.toHaveClass('objError');
     })
-    it('enter text value', async () => { 
+    it('enter text value', async () => {
       const user = userEvent.setup()
       render(<RootLayout><TmntDataPage /></RootLayout>)
-      const saveBtn = await screen.findByRole('button', { name: /save tournament/i });      
+      const saveBtn = await screen.findByRole('button', { name: /save tournament/i });
       const acdns = await screen.findAllByRole('button', { name: /events/i });
       await user.click(acdns[0]);
       const teamSizes = screen.getAllByRole('spinbutton', { name: /team size/i }) as HTMLInputElement[];
       // enter less than min value
       await user.clear(teamSizes[0]);
-      await user.type(teamSizes[0], 'abc');  
-      expect(teamSizes[0]).toHaveValue(0); 
+      await user.type(teamSizes[0], 'abc');
+      expect(teamSizes[0]).toHaveValue(0);
       // should show error
       await user.click(saveBtn);
-      const teamSizeError = await screen.findByTestId('dangerTeamSize');    
+      const teamSizeError = await screen.findByTestId('dangerTeamSize');
       expect(teamSizeError).toHaveTextContent("Team Size cannot be less than");
-      expect(acdns[0]).toHaveTextContent("Team Size cannot be less than");      
+      expect(acdns[0]).toHaveTextContent("Team Size cannot be less than");
       const eventTab = await screen.findByRole('tab', { name: /singles/i })
       expect(eventTab).toHaveClass('objError');
     })
-    it('after error, entering a new value clears error', async () => { 
+    it('after error, entering a new value clears error', async () => {
       const user = userEvent.setup()
       render(<RootLayout><TmntDataPage /></RootLayout>)
-      const saveBtn = await screen.findByRole('button', { name: /save tournament/i });      
+      const saveBtn = await screen.findByRole('button', { name: /save tournament/i });
       const acdns = await screen.findAllByRole('button', { name: /events/i });
       await user.click(acdns[0]);
       const teamSizes = screen.getAllByRole('spinbutton', { name: /team size/i }) as HTMLInputElement[];
       // enter greater than max value
       await user.clear(teamSizes[0]);
-      await user.type(teamSizes[0], '11');      
-      expect(teamSizes[0]).toHaveValue(11); 
+      await user.type(teamSizes[0], '11');
+      expect(teamSizes[0]).toHaveValue(11);
       // should show error
       await user.click(saveBtn);
-      const teamSizeError = await screen.findByTestId('dangerTeamSize');    
+      const teamSizeError = await screen.findByTestId('dangerTeamSize');
       expect(teamSizeError).toHaveTextContent("Team Size cannot be more than");
-      expect(acdns[0]).toHaveTextContent("Team Size cannot be more than");      
+      expect(acdns[0]).toHaveTextContent("Team Size cannot be more than");
       const eventTab = await screen.findByRole('tab', { name: /singles/i })
       expect(eventTab).toHaveClass('objError');
       // clear error by entering new text
       await user.clear(teamSizes[0]);
-      await user.type(teamSizes[0], '1');      
+      await user.type(teamSizes[0], '1');
       // DO NOT call await user.click(saveBtn);
       expect(teamSizeError).toHaveTextContent("");
-      expect(acdns[0]).not.toHaveTextContent("Team Size cannot be less than");            
+      expect(acdns[0]).not.toHaveTextContent("Team Size cannot be less than");
       expect(eventTab).not.toHaveClass('objError');
     })
 
-    // it('past value less than min team size', async () => { 
+    // it('past value less than min team size', async () => {
     //   const user = userEvent.setup()
     //   render(<RootLayout><TmntDataPage fullTmntData={mockFullTmnt} /></RootLayout>)
-    //   const saveBtn = await screen.findByRole('button', { name: /save tournament/i });      
+    //   const saveBtn = await screen.findByRole('button', { name: /save tournament/i });
     //   const acdns = await screen.findAllByRole('button', { name: /events/i });
     //   await user.click(acdns[0]);
     //   const teamSizes = screen.getAllByRole('spinbutton', { name: /team size/i }) as HTMLInputElement[];
-    //   // enter less than min value      
+    //   // enter less than min value
     //   await user.clear(teamSizes[0]);
-    //   await user.paste('-1');      
+    //   await user.paste('-1');
     //   await user.click(saveBtn);
     //   expect(teamSizes[0]).toHaveValue(-1);
-    //   const teamSizeError = await screen.findByTestId('dangerTeamSize');    
+    //   const teamSizeError = await screen.findByTestId('dangerTeamSize');
     //   expect(teamSizeError).toHaveTextContent("Team Size cannot be less than");
-    //   expect(acdns[0]).toHaveTextContent("Team Size cannot be less than");      
+    //   expect(acdns[0]).toHaveTextContent("Team Size cannot be less than");
     //   const eventTab = await screen.findByRole('tab', { name: /singles/i })
     //   expect(eventTab).toHaveClass('objError');
     // })
   })
 
-  describe('render the event game errors', () => { 
+  describe('render the event game errors', () => {
 
-    it('enter value less than min event ganes', async () => { 
+    it('enter value less than min event ganes', async () => {
       const user = userEvent.setup()
       render(<RootLayout><TmntDataPage /></RootLayout>)
-      const saveBtn = await screen.findByRole('button', { name: /save tournament/i });      
+      const saveBtn = await screen.findByRole('button', { name: /save tournament/i });
       const acdns = await screen.findAllByRole('button', { name: /events/i });
       await user.click(acdns[0]);
       const eventGames = screen.getByRole('spinbutton', { name: /event games/i }) as HTMLInputElement;
       // enter less than min value
       await user.clear(eventGames);
-      await user.type(eventGames, '0');      
-      expect(eventGames).toHaveValue(0); 
+      await user.type(eventGames, '0');
+      expect(eventGames).toHaveValue(0);
       // should show error
       await user.click(saveBtn);
-      const gamesError = await screen.findByTestId('dangerEventGames');    
+      const gamesError = await screen.findByTestId('dangerEventGames');
       expect(gamesError).toHaveTextContent("Games cannot be less than");
-      expect(acdns[0]).toHaveTextContent("Games cannot be less than");      
+      expect(acdns[0]).toHaveTextContent("Games cannot be less than");
       const eventTab = await screen.findByRole('tab', { name: /singles/i })
       expect(eventTab).toHaveClass('objError');
     })
-    it('enter value more than max event ganes', async () => { 
+    it('enter value more than max event ganes', async () => {
       const user = userEvent.setup()
       render(<RootLayout><TmntDataPage /></RootLayout>)
-      const saveBtn = await screen.findByRole('button', { name: /save tournament/i });      
+      const saveBtn = await screen.findByRole('button', { name: /save tournament/i });
       const acdns = await screen.findAllByRole('button', { name: /events/i });
       await user.click(acdns[0]);
       const eventGames = screen.getByRole('spinbutton', { name: /event games/i }) as HTMLInputElement;
       // enter less than min value
       await user.clear(eventGames);
-      await user.type(eventGames, '123');      
-      expect(eventGames).toHaveValue(123); 
+      await user.type(eventGames, '123');
+      expect(eventGames).toHaveValue(123);
       // should show error
       await user.click(saveBtn);
-      const gamesError = await screen.findByTestId('dangerEventGames');    
+      const gamesError = await screen.findByTestId('dangerEventGames');
       expect(gamesError).toHaveTextContent("Games cannot be more than");
-      expect(acdns[0]).toHaveTextContent("Games cannot be more than");      
+      expect(acdns[0]).toHaveTextContent("Games cannot be more than");
       const eventTab = await screen.findByRole('tab', { name: /singles/i })
       expect(eventTab).toHaveClass('objError');
     })
-    it('enter negative value', async () => { 
+    it('enter negative value', async () => {
       const user = userEvent.setup()
       render(<RootLayout><TmntDataPage /></RootLayout>)
-      const saveBtn = await screen.findByRole('button', { name: /save tournament/i });      
+      const saveBtn = await screen.findByRole('button', { name: /save tournament/i });
       const acdns = await screen.findAllByRole('button', { name: /events/i });
       await user.click(acdns[0]);
       const eventGames = screen.getByRole('spinbutton', { name: /event games/i }) as HTMLInputElement;
       // enter less than min value
       await user.clear(eventGames);
-      await user.type(eventGames, '-1');  
+      await user.type(eventGames, '-1');
       // negitive sign ignored, conveted to 0
-      expect(eventGames).toHaveValue(1);  
+      expect(eventGames).toHaveValue(1);
       // should show error
       await user.click(saveBtn);
-      const gamesError = await screen.findByTestId('dangerEventGames');    
+      const gamesError = await screen.findByTestId('dangerEventGames');
       expect(gamesError).toHaveTextContent("");
-      expect(acdns[0]).not.toHaveTextContent("Games cannot be less than");      
+      expect(acdns[0]).not.toHaveTextContent("Games cannot be less than");
       const eventTab = await screen.findByRole('tab', { name: /singles/i })
       expect(eventTab).not.toHaveClass('objError');
     })
-    it('enter text value', async () => { 
+    it('enter text value', async () => {
       const user = userEvent.setup()
       render(<RootLayout><TmntDataPage /></RootLayout>)
-      const saveBtn = await screen.findByRole('button', { name: /save tournament/i });      
+      const saveBtn = await screen.findByRole('button', { name: /save tournament/i });
       const acdns = await screen.findAllByRole('button', { name: /events/i });
       await user.click(acdns[0]);
       const eventGames = screen.getByRole('spinbutton', { name: /event games/i }) as HTMLInputElement;
       // enter less than min value
       await user.clear(eventGames);
-      await user.type(eventGames, '0');      
-      expect(eventGames).toHaveValue(0); 
+      await user.type(eventGames, '0');
+      expect(eventGames).toHaveValue(0);
       // should show error
       await user.click(saveBtn);
-      const gamesError = await screen.findByTestId('dangerEventGames');    
+      const gamesError = await screen.findByTestId('dangerEventGames');
       expect(gamesError).toHaveTextContent("Games cannot be less than");
-      expect(acdns[0]).toHaveTextContent("Games cannot be less than");      
+      expect(acdns[0]).toHaveTextContent("Games cannot be less than");
       const eventTab = await screen.findByRole('tab', { name: /singles/i })
       expect(eventTab).toHaveClass('objError');
     })
-    it('after error, entering a new value clears error', async () => { 
+    it('after error, entering a new value clears error', async () => {
       const user = userEvent.setup()
       render(<RootLayout><TmntDataPage /></RootLayout>)
-      const saveBtn = await screen.findByRole('button', { name: /save tournament/i });      
+      const saveBtn = await screen.findByRole('button', { name: /save tournament/i });
       const acdns = await screen.findAllByRole('button', { name: /events/i });
       await user.click(acdns[0]);
       const eventGames = screen.getByRole('spinbutton', { name: /event games/i }) as HTMLInputElement;
       // enter greater than max value
       await user.clear(eventGames);
-      await user.type(eventGames, '123');      
-      expect(eventGames).toHaveValue(123); 
+      await user.type(eventGames, '123');
+      expect(eventGames).toHaveValue(123);
       // should show error
       await user.click(saveBtn);
-      const gamesError = await screen.findByTestId('dangerEventGames');    
+      const gamesError = await screen.findByTestId('dangerEventGames');
       expect(gamesError).toHaveTextContent("Games cannot be more than");
-      expect(acdns[0]).toHaveTextContent("Games cannot be more than");      
+      expect(acdns[0]).toHaveTextContent("Games cannot be more than");
       const eventTab = await screen.findByRole('tab', { name: /singles/i })
       expect(eventTab).toHaveClass('objError');
       // clear error by entering new text
       await user.clear(eventGames);
-      await user.type(eventGames, '3');      
+      await user.type(eventGames, '3');
       // DO NOT call await user.click(saveBtn);
       expect(gamesError).toHaveTextContent("");
-      expect(acdns[0]).not.toHaveTextContent("Games cannot be less than");            
+      expect(acdns[0]).not.toHaveTextContent("Games cannot be less than");
       expect(eventTab).not.toHaveClass('objError');
     })
   })
@@ -640,7 +669,7 @@ describe('TmntDataPage - Event Component', () => {
       lanes: initLanes,
       pots: initPots,
       brkts: initBrkts,
-      elims: initElims
+      elims: initElims      
     };  
 
     it('render the added $ errors', async () => { 
@@ -662,8 +691,8 @@ describe('TmntDataPage - Event Component', () => {
       expect(eventTab).not.toHaveClass('objError');
       // enter value over max value
       await user.clear(addeds[0]);
-      await user.type(addeds[0], '1000000');
-      expect(addeds[0]).toHaveValue('$1,000,000');
+      await user.type(addeds[0], '1000000{enter}');
+      // expect(addeds[0]).toHaveValue('$1,000,000'); 
       await user.click(saveBtn);
       expect(addedErrors[0]).toHaveTextContent("Added $ cannot be more than");
       expect(acdns[0]).toHaveTextContent("Added $ cannot be more than $999,999");
@@ -698,6 +727,7 @@ describe('TmntDataPage - Event Component', () => {
       // enter value over max value
       await user.clear(entryFees[0]);
       await user.type(entryFees[0], '1234567{enter}');      
+      expect(entryFees[0]).toHaveValue('$1,234,567');
       // new value entered clears error
       expect(acdns[0]).not.toHaveTextContent("Entry Fee ≠ LPOX");      
       expect(lpoxErrors[0]).toHaveTextContent("");      

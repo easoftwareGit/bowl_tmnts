@@ -20,9 +20,9 @@ import { Bowl } from "@prisma/client";
  * @returns { data: Bowl[] } - array of bowls;
  */
 
-export const getBowls = async (): Promise<Bowl[]> => {  
-  return prisma.bowl.findMany();
-};
+// export const getBowls = async (): Promise<Bowl[]> => {  
+//   return prisma.bowl.findMany();
+// };
 
 /**
  * finds one bowl by searching for a matching bowl id

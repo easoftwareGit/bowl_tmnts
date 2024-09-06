@@ -333,6 +333,50 @@ const OneToNEvents: React.FC<ChildProps> = ({
     }
   };
 
+  const handleAddedAmountValueChange = (id: string, name: string) => (value: string | undefined): void => {
+    const nameErr = name + "_err";
+    let rawValue = value === undefined ? 'undefined' : value;
+    rawValue = (rawValue || ' ');
+
+    setEvents(
+      events.map((event) => {
+        if (event.id === id) {
+          if (rawValue && Number.isNaN(Number(rawValue))) {
+            rawValue = ''
+          } 
+          let updatedEvent: eventType;
+          updatedEvent = {
+            ...event,
+            [name]: rawValue,
+            [nameErr]: ''
+          }
+          const acdnErrMsg = getNextAcdnErrMsg(updatedEvent, events);
+          if (acdnErrMsg) {
+            setAcdnErr({
+              errClassName: acdnErrClassName,
+              message: acdnErrMsg,
+            });
+          } else {
+            setAcdnErr(noAcdnErr);
+          }
+          const errMsg = getEventErrMsg(updatedEvent);
+          if (errMsg) {
+            return {
+              ...updatedEvent,
+              errClassName: objErrClassName,
+            };
+          } else {
+            return {
+              ...updatedEvent,
+              errClassName: '',
+            };
+          }
+        }
+        return event;
+      })
+    );
+  }
+
   const handleAmountValueChange = (id: string, name: string) => (value: string | undefined): void => {
     const nameErr = name + "_err";
     let rawValue = value === undefined ? 'undefined' : value;
@@ -777,7 +821,7 @@ const OneToNEvents: React.FC<ChildProps> = ({
                   name="added_money"
                   className={`form-control ${event.added_money_err && "is-invalid"}`}
                   value={event.added_money}
-                  onValueChange={handleAmountValueChange(event.id, 'added_money')}
+                  onValueChange={handleAmountValueChange(event.id, 'added_money')}                  
                 />
                 <div
                   className="text-danger"
@@ -801,6 +845,7 @@ const OneToNEvents: React.FC<ChildProps> = ({
                   className={`form-control ${event.entry_fee_err && "is-invalid"}`}
                   value={event.entry_fee}
                   onValueChange={handleAmountValueChange(event.id, 'entry_fee')}
+                  // onValueChange={handleAmountValueChange2(event.id, 'entry_fee')}
                   onBlur={handleBlur(event.id)}
                 />
                 <div

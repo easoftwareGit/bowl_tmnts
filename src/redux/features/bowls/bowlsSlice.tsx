@@ -2,7 +2,7 @@ import { createAsyncThunk, createSlice } from "@reduxjs/toolkit";
 import { Bowl } from "@prisma/client";
 import { loadStatusType } from "@/redux/statusTypes";
 import { RootState } from "@/redux/store";
-import { getBowls } from "@/lib/db/bowls/bowls";
+import { getBowls } from "@/lib/db/bowls/bowlsAxios";
 
 export interface bowlSliceState {
   bowls: Bowl[];

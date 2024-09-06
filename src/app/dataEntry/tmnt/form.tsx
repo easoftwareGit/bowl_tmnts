@@ -297,7 +297,7 @@ const TmntDataForm: React.FC<FormProps> = ({ tmntProps }) => {
     // })
   };
 
-  const saveTmnt = async (): Promise<boolean> => {        
+  const saveTmnt = async (): Promise<boolean> => {       
     const postedTmnt = await postTmnt(tmnt);
     if (!postedTmnt) {
       setErrModalObj({
@@ -307,9 +307,10 @@ const TmntDataForm: React.FC<FormProps> = ({ tmntProps }) => {
         id: initModalObj.id
       })
       return false      
-    };
-    // update tmnt id in tmnts
-    setTmnt(postedTmnt);
+    };    
+    // posting a new tmnt, all divs and events 
+    // rows must be updated to the new tmnt id    
+    setTmnt(postedTmnt);      
     // update tmnt id in events
     setEvents(
       events.map((event) => {
@@ -323,7 +324,7 @@ const TmntDataForm: React.FC<FormProps> = ({ tmntProps }) => {
         div.tmnt_id = postedTmnt.id;
         return div;
       })
-    )
+    )    
     return true;    
   }
   const saveEvents = async (): Promise<boolean> => {
@@ -526,13 +527,13 @@ const TmntDataForm: React.FC<FormProps> = ({ tmntProps }) => {
 
   const save = async () => { 
     if (!saveTmnt()) return false;
-    if (!saveEvents()) return false;
-    if (!saveDivs()) return false;
-    if (!saveSquads()) return false;
-    if (!saveLanes()) return false;
-    if (!savePots()) return false;
-    if (!saveBrkts()) return false;
-    if (!saveElims()) return false;
+    // if (!saveEvents()) return false;
+    // if (!saveDivs()) return false;
+    // if (!saveSquads()) return false;
+    // if (!saveLanes()) return false;
+    // if (!savePots()) return false;
+    // if (!saveBrkts()) return false;
+    // if (!saveElims()) return false;
     return true;
   };
 
@@ -540,6 +541,7 @@ const TmntDataForm: React.FC<FormProps> = ({ tmntProps }) => {
     // console.log("Submitted");
     e.preventDefault();
     if (validateTmnt()) {      
+      save();
       // console.log("Tournament valid");
     } else {
       // console.log("Tournament invalid");
