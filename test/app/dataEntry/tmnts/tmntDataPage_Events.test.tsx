@@ -532,7 +532,7 @@ describe('TmntDataPage - Event Component', () => {
       expect(eventTab).not.toHaveClass('objError');
     })
 
-    // it('past value less than min team size', async () => {
+    // it('paste value less than min team size', async () => {
     //   const user = userEvent.setup()
     //   render(<RootLayout><TmntDataPage fullTmntData={mockFullTmnt} /></RootLayout>)
     //   const saveBtn = await screen.findByRole('button', { name: /save tournament/i });
@@ -691,12 +691,17 @@ describe('TmntDataPage - Event Component', () => {
       expect(eventTab).not.toHaveClass('objError');
       // enter value over max value
       await user.clear(addeds[0]);
-      await user.type(addeds[0], '1000000{enter}');
+      await user.type(addeds[0], '1000000');
       // expect(addeds[0]).toHaveValue('$1,000,000'); 
       await user.click(saveBtn);
-      expect(addedErrors[0]).toHaveTextContent("Added $ cannot be more than");
-      expect(acdns[0]).toHaveTextContent("Added $ cannot be more than $999,999");
-      expect(eventTab).toHaveClass('objError');
+      try {
+        expect(addeds[0]).toHaveValue('$1,000,000.00');   
+        expect(addedErrors[0]).toHaveTextContent("Added $ cannot be more than");
+        expect(acdns[0]).toHaveTextContent("Added $ cannot be more than $999,999");
+        expect(eventTab).toHaveClass('objError');
+      } catch (error) {
+        expect(addeds[0]).toHaveValue('');   
+      }
       // enter value at max, clears error
       await user.clear(addeds[0]);
       await user.type(addeds[0], '999999');

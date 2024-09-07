@@ -333,50 +333,6 @@ const OneToNEvents: React.FC<ChildProps> = ({
     }
   };
 
-  const handleAddedAmountValueChange = (id: string, name: string) => (value: string | undefined): void => {
-    const nameErr = name + "_err";
-    let rawValue = value === undefined ? 'undefined' : value;
-    rawValue = (rawValue || ' ');
-
-    setEvents(
-      events.map((event) => {
-        if (event.id === id) {
-          if (rawValue && Number.isNaN(Number(rawValue))) {
-            rawValue = ''
-          } 
-          let updatedEvent: eventType;
-          updatedEvent = {
-            ...event,
-            [name]: rawValue,
-            [nameErr]: ''
-          }
-          const acdnErrMsg = getNextAcdnErrMsg(updatedEvent, events);
-          if (acdnErrMsg) {
-            setAcdnErr({
-              errClassName: acdnErrClassName,
-              message: acdnErrMsg,
-            });
-          } else {
-            setAcdnErr(noAcdnErr);
-          }
-          const errMsg = getEventErrMsg(updatedEvent);
-          if (errMsg) {
-            return {
-              ...updatedEvent,
-              errClassName: objErrClassName,
-            };
-          } else {
-            return {
-              ...updatedEvent,
-              errClassName: '',
-            };
-          }
-        }
-        return event;
-      })
-    );
-  }
-
   const handleAmountValueChange = (id: string, name: string) => (value: string | undefined): void => {
     const nameErr = name + "_err";
     let rawValue = value === undefined ? 'undefined' : value;
@@ -765,8 +721,6 @@ const OneToNEvents: React.FC<ChildProps> = ({
                 </label>
                 <input
                   type="number"
-                  min={minTeamSize}
-                  max={maxTeamSize}
                   step={1}
                   className={`form-control ${event.team_size_err && "is-invalid"}`}
                   id={`inputTeamSize${event.id}`}                  
@@ -791,8 +745,6 @@ const OneToNEvents: React.FC<ChildProps> = ({
                 </label>
                 <input
                   type="number"
-                  min={minGames}
-                  max={maxGames}
                   step={1}
                   className={`form-control ${event.games_err && "is-invalid"}`}
                   id={`inputEventGames${event.id}`}                  

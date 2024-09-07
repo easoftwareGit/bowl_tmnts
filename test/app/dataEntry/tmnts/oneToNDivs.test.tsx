@@ -73,10 +73,10 @@ describe("OneToNDivs - Component", () => {
         expect(hdcpTitles[0]).toHaveTextContent("?");
       });
       it('render hdcp % inputs', () => {        
-        render(<OneToNDivs {...mockOneToNDivsProps} />)              
-        const hdcps = screen.getAllByRole('spinbutton', { name: /hdcp %/i }) as HTMLInputElement[];
+        render(<OneToNDivs {...mockOneToNDivsProps} />)                      
+        const hdcps = screen.getAllByRole('textbox', { name: /hdcp %/i }) as HTMLInputElement[];
         expect(hdcps).toHaveLength(2)
-        expect(hdcps[0]).toHaveValue(0)
+        expect(hdcps[0]).toHaveValue('0.00%')
       })
       it('DO NOT render hdcp % errors', () => { 
         render(<OneToNDivs {...mockOneToNDivsProps} />);
@@ -91,7 +91,7 @@ describe("OneToNDivs - Component", () => {
       })
       it('render hdcp from inputs', () => {        
         render(<OneToNDivs {...mockOneToNDivsProps} />)              
-        const hdcpFroms = screen.getAllByRole('spinbutton', { name: /hdcp from/i }) as HTMLInputElement[];
+        const hdcpFroms = screen.getAllByRole('spinbutton', { name: /hdcp from/i }) as HTMLInputElement[];        
         expect(hdcpFroms).toHaveLength(2)
         expect(hdcpFroms[0]).toHaveValue(defaultHdcpFrom)
         expect(hdcpFroms[0]).toBeDisabled()
@@ -192,10 +192,10 @@ describe("OneToNDivs - Component", () => {
         const user = userEvent.setup()
         render(<OneToNDivs {...mockOneToNDivsProps} />)      
         const tabs = screen.getAllByRole('tab');  
-        await user.click(tabs[1]);
-        const hdcpPers = screen.getAllByRole('spinbutton', { name: /hdcp %/i }) as HTMLInputElement[];        
+        await user.click(tabs[1]);        
+        const hdcpPers = screen.getAllByRole('textbox', { name: /hdcp %/i }) as HTMLInputElement[];        
         expect(hdcpPers[1]).toHaveClass("is-invalid");
-        expect(hdcpPers[1]).toHaveValue(1)
+        expect(hdcpPers[1]).toHaveValue('100.00%')
       })
       it('render 2nd hdcp % errors', async () => { 
         const user = userEvent.setup()
@@ -330,8 +330,8 @@ describe("OneToNDivs - Component", () => {
       await user.click(tabs[2]);
       
       // ACT
-      const divNames = screen.getAllByRole("textbox", { name: /div name/i }) as HTMLInputElement[];
-      const hdcps = screen.getAllByRole('spinbutton', { name: /hdcp %/i }) as HTMLInputElement[];
+      const divNames = screen.getAllByRole("textbox", { name: /div name/i }) as HTMLInputElement[];      
+      const hdcps = screen.getAllByRole('textbox', { name: /hdcp %/i }) as HTMLInputElement[];
       const hdcpFroms = screen.getAllByRole('spinbutton', { name: /hdcp from/i }) as HTMLInputElement[];
 
       // ASSERT
@@ -339,7 +339,7 @@ describe("OneToNDivs - Component", () => {
       expect(hdcps).toHaveLength(3)
       expect(hdcpFroms).toHaveLength(3)
       expect(divNames[2]).toHaveValue(mockDivs[2].div_name);
-      expect(hdcps[2]).toHaveValue(mockDivs[2].hdcp_per);
+      expect(hdcps[2]).toHaveValue(mockDivs[2].hdcp_per_str + "%"); // 1 is the number = 100.00% in entry field
       expect(hdcpFroms[2]).toHaveValue(mockDivs[2].hdcp_from);
 
       await user.type(divNames[2], 'Test Div');
@@ -347,7 +347,7 @@ describe("OneToNDivs - Component", () => {
       await user.type(hdcpFroms[2], '225');
 
       expect(divNames[2]).toHaveValue(mockDivs[2].div_name);
-      expect(hdcps[2]).toHaveValue(mockDivs[2].hdcp_per);
+      expect(hdcps[2]).toHaveValue(mockDivs[2].hdcp_per_str + "%");
       expect(hdcpFroms[2]).toHaveValue(mockDivs[2].hdcp_from);      
     })
     it('test added division check box', async () => {

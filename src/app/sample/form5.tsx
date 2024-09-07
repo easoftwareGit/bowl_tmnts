@@ -51,9 +51,8 @@ export const Form5: React.FC<FormProps> = ({ tmntProps }) => {
         if (rawValue && Number.isNaN(Number(rawValue))) {
           rawValue = ''
         } 
-        let updatedDiv: divType;
-        updatedDiv = {
-            ...div,
+        const updatedDiv: divType = {
+          ...div,
           [name]: rawValue,
         }
         if (name === 'hdcp_per_str') { 
@@ -71,46 +70,22 @@ export const Form5: React.FC<FormProps> = ({ tmntProps }) => {
       {divs.map((div) => (
         <div key={div.id}>
           <div className="row g-3 mb-3">
-            {/* <div className="col-md-3">
-              <label className="form-label" htmlFor="hdcpPer">
-                Hdcp %
+            <div className="col-sm-2">
+              <label
+                htmlFor={`currency`}
+                className="form-label"
+              >
+                Entry Fee
               </label>
-              <div className="input-group">
-                <input
-                  type="number"
-                  step="10"
-                  min="0"
-                  max="125"
-                  className="form-control percent-input"
-                  id="hdcpPer"
-                  name="hdcp_per"
-                  placeholder="0.0"
-                  value={(div.hdcp_per * 100)} 
-                  pattern="^\d*(\.\d{0,2})?$"
-                  inputMode="decimal"
-                  onChange={handleInputChange}
-                />
-                <div className="input-group-append">
-                    <span className="input-group-text">%</span>
-                </div>
-              </div>              
-            </div> */}
-              <div className="col-sm-2">
-                <label
-                  htmlFor={`currency`}
-                  className="form-label"
-                >
-                  Entry Fee
-                </label>
-                <EaCurrencyInput
-                  id={`currency`}                  
-                  name="entry_fee"
-                  className={`form-control`}
-                  value={div.div_name}
-                  onValueChange={handleAmountValueChange(div.id, 'div_name')}
-                  // onBlur={handleBlur(event.id)}
-                />
-              </div> 
+              <EaCurrencyInput
+                id={`currency`}                  
+                name="entry_fee"
+                className={`form-control`}
+                value={div.div_name}
+                onValueChange={handleAmountValueChange(div.id, 'div_name')}
+                // onBlur={handleBlur(event.id)}
+              />
+            </div> 
 
             <div className="col-md-3">
               <label className="form-label" htmlFor="hdcpPerUi">

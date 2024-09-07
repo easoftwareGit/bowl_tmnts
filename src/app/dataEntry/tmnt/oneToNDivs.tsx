@@ -8,6 +8,7 @@ import { initModalObj } from "@/components/modal/modalObjType";
 import { objErrClassName, acdnErrClassName, getAcdnErrMsg, noAcdnErr, isDuplicateDivName } from "./errors";
 import { maxEventLength, minHdcpPer, maxHdcpPer, minHdcpFrom, maxHdcpFrom } from "@/lib/validation";
 import { EaPercentInput } from "@/components/currency/eaCurrencyInput";
+import { formatValuePercent2Dec } from "@/lib/currency/formatValue";
 
 interface ChildProps {
   divs: divType[],
@@ -88,20 +89,20 @@ export const validateDivs = (
       }
       const hdcpPer = Number(div.hdcp_per);
       if (hdcpPer < minHdcpPer) {
-        hdcpErr = 'Hdcp % must be more than ' + (minHdcpPer - 1)
+        hdcpErr = 'Hdcp % cannot be less than ' + formatValuePercent2Dec(minHdcpPer)
         setError(div.div_name, hdcpErr);
       } else if (hdcpPer > maxHdcpPer) {
-        hdcpErr = 'Hdcp % must be less than ' + (maxHdcpPer + 1)
+        hdcpErr = 'Hdcp % cannot be more than ' + formatValuePercent2Dec(maxHdcpPer)
         setError(div.div_name, hdcpErr);
       } else {
         hdcpErr = ''
       }
       const hdcpFrom = Number(div.hdcp_from)
       if (hdcpFrom < minHdcpFrom) {
-        hdcpFromErr = 'Hdcp From must be more than ' + (minHdcpFrom - 1)
+        hdcpFromErr = 'Hdcp From cannot be less than ' + (minHdcpFrom)
         setError(div.div_name, hdcpFromErr);
       } else if (div.hdcp_from > maxHdcpFrom) {
-        hdcpFromErr = 'Hdcp From must be less than ' + (maxHdcpFrom + 1)
+        hdcpFromErr = 'Hdcp From cannot be more than ' + (maxHdcpFrom)
         setError(div.div_name, hdcpFromErr);
       } else {
         hdcpFromErr = ''
@@ -222,10 +223,67 @@ const OneToNDivs: React.FC<ChildProps> = ({
     }
   }
  
+  const handlePercentValueChange = (id: string) => (value: string | undefined): void => {
+    
+    let rawValue = value === undefined ? 'undefined' : value;
+    rawValue = (rawValue || ' ');
+    // if user types fast, % might not be at end of string
+    rawValue = rawValue.replace('%', '');
+    if (rawValue && Number.isNaN(Number(rawValue))) {
+      rawValue = '';
+    }
+    const hdcpPerNum = Number(rawValue) / 100;
+    setDivs(
+      divs.map((div) => {
+        if (div.id === id) { 
+          let updatedDiv: divType = {
+            ...div,
+            hdcp_per_str: rawValue,
+            hdcp_per: hdcpPerNum,
+            hdcp_per_err: '',
+          }
+          // do check AFTER setting updatedDiv above
+          // need to clear hdcp_from_err because if hdcp is 0,
+          // hdcp_from spineditis disabled, so user can't clear error
+          if (hdcpPerNum === 0 && (div.hdcp_from < minHdcpFrom || div.hdcp_from > maxHdcpFrom)) {
+            updatedDiv = {
+              ...updatedDiv,
+              hdcp_from: defaultHdcpFrom,
+              hdcp_from_err: ''
+            }
+          }
+          const acdnErrMsg = getNextAcdnErrMsg(updatedDiv, divs);
+          if (acdnErrMsg) {
+            setAcdnErr({
+              errClassName: acdnErrClassName,
+              message: acdnErrMsg
+            })
+          } else {
+            setAcdnErr(noAcdnErr)
+          }
+          const errMsg = getDivErrMsg(updatedDiv);            
+          if (errMsg) {
+            return {
+              ...updatedDiv,
+              errClassName: objErrClassName,
+            }            
+          } else {
+            return {
+              ...updatedDiv,
+              errClassName: '',
+            }            
+          }
+        }
+        return div;
+      })
+    )
+
+  }
+
   const handleInputChange = (id: string) => (e: ChangeEvent<HTMLInputElement>) => { 
     const { name, value, checked } = e.target;
     const nameErr = name + '_err';   
-
+    
     setDivs(
       divs.map((div) => {
         if (div.id === id) {
@@ -249,48 +307,31 @@ const OneToNDivs: React.FC<ChildProps> = ({
               ...div,
               hdcp_for: hdcpFor,
             };
-          } else if (name === 'hdcp_per_str') {
-            let rawValue = value === undefined ? 'undefined' : value;
-            rawValue = (rawValue || ' ')
-            if (rawValue && Number.isNaN(Number(rawValue))) {
-              rawValue = '';
-            }
-            const hdcpPerNum =Number(rawValue) / 100;
-            updatedDiv = {
-              ...div,
-              hdcp_per_str: rawValue,
-              hdcp_per: Number(rawValue) / 100
-            }
-            // do check AFETR setting updatedDiv above
-            // need to clear hdcp_from_err because if hdcp is 0,
-            // hdcp_from spineditis disabled, so user can't clear error
-            
-            // if (hdcpPerNum === 0 && (div.hdcp_from < minHdcpFrom || div.hdcp_from > maxHdcpFrom)) {
-            //   updatedDiv = {
-            //     ...updatedDiv,
-            //     hdcp_from: defaultHdcpFrom,
-            //     hdcp_from_err: ''
-            //   }
-            // }
-
-
-            // const hdcpPerNum = Number(value);
-            // updatedDiv = {
-            //   ...div,
-            //   hdcp_per: hdcpPerNum,
-            //   hdcp_per_err: ''
-            // }
-            // // do check AFETR setting updatedDiv above
-            // // need to clear hdcp_from_err because if hdcp is 0,
-            // // hdcp_from spineditis disabled, so user can't clear error
-            // if (hdcpPerNum === 0 && (div.hdcp_from < minHdcpFrom || div.hdcp_from > maxHdcpFrom)) {
-            //   updatedDiv = {
-            //     ...updatedDiv,
-            //     hdcp_from: defaultHdcpFrom,
-            //     hdcp_from_err: ''
-            //   }
-            // }
-
+          // } else if (name === 'hdcp_per_str') {
+          //   let rawValue = value === undefined ? 'undefined' : value;
+          //   rawValue = (rawValue || ' ')
+          //   // if user types fast, % might not be at end of string
+          //   rawValue = rawValue.replace('%', '');
+          //   console.log(`4 - rawValue: "${rawValue}"`)            
+          //   if (rawValue && Number.isNaN(Number(rawValue))) {
+          //     rawValue = '';
+          //   }
+          //   const hdcpPerNum = Number(rawValue) / 100;
+          //   updatedDiv = {
+          //     ...div,
+          //     hdcp_per_str: rawValue,
+          //     hdcp_per: hdcpPerNum,
+          //   }
+          //   // do check AFETR setting updatedDiv above
+          //   // need to clear hdcp_from_err because if hdcp is 0,
+          //   // hdcp_from spineditis disabled, so user can't clear error
+          //   if (hdcpPerNum === 0 && (div.hdcp_from < minHdcpFrom || div.hdcp_from > maxHdcpFrom)) {
+          //     updatedDiv = {
+          //       ...updatedDiv,
+          //       hdcp_from: defaultHdcpFrom,
+          //       hdcp_from_err: ''
+          //     }
+          //   }
           } else { // hdcp_from
             const hdcpFromNum = Number(value);
             updatedDiv = {
@@ -341,10 +382,11 @@ const OneToNDivs: React.FC<ChildProps> = ({
                 tab_title: 'Division ' + div.id,
                 name_err: ''  
               }
-            } else if (name === 'hdcp_per') {
+            } else if (name === 'hdcp_per_str') {
               return {
                 ...div,
                 hdcp_per: 0,
+                hdcp_per_str: '0.00',
                 hdcp_per_err: '',
               }
             } else if (name === 'hdcp_from') {
@@ -408,6 +450,7 @@ const OneToNDivs: React.FC<ChildProps> = ({
               <button
                 className="btn btn-success"
                 id="divAdd"
+                data-testid="divAdd"
                 onClick={handleAdd}                
               >
                 Add
@@ -498,21 +541,9 @@ const OneToNDivs: React.FC<ChildProps> = ({
                   name="hdcp_per_str"
                   className={`form-control ${div.hdcp_per_err && "is-invalid"}`}
                   value={div.hdcp_per_str}
-                  onChange={handleInputChange(div.id)}
+                  onValueChange={handlePercentValueChange(div.id)}                  
                   onBlur={handleBlur(div.id)}
                 />
-                {/* <input
-                  type="number"
-                  min={minHdcpPer}
-                  max={maxHdcpPer}
-                  step={10}
-                  className={`form-control ${div.hdcp_per_err && "is-invalid"}`}
-                  id={`inputHdcpPer${div.id}`}                  
-                  name="hdcp_per"
-                  value={div.hdcp_per}
-                  onChange={handleInputChange(div.id)}
-                  onBlur={handleBlur(div.id)}
-                /> */}
                 <div
                   className="text-danger"
                   data-testid="dangerHdcp"
@@ -526,8 +557,6 @@ const OneToNDivs: React.FC<ChildProps> = ({
                 </label>
                 <input
                   type="number"
-                  min={minHdcpFrom}
-                  max={maxHdcpFrom}
                   step={10}        
                   className={`form-control ${div.hdcp_from_err && "is-invalid"}`}
                   id={`inputHdcpFrom${div.id}`}
