@@ -1,5 +1,3 @@
-"use client";
-
 import React from "react";
 import Link from "next/link";
 
@@ -23,12 +21,18 @@ export default function UserTmnts() {
           </Link> 
         </div>    
         <div className="col-md-auto">
-          <button className="btn btn-info" onClick={handleNewTmnt}>
+          <button
+            className="btn btn-info"
+            // onClick={handleNewTmnt}
+          >
             Edit
           </button>
         </div>    
         <div className="col-md-auto">
-          <button className="btn btn-primary" onClick={handleNewTmnt}>
+          <button
+            className="btn btn-primary"
+            // onClick={handleNewTmnt}
+          >
             Run
           </button>
         </div>    

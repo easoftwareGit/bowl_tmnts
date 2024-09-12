@@ -41,7 +41,7 @@ export const TmntDataPage: React.FC<FormProps> = ({
 }) => {
 
   const { status, data } = useSession();
-  fullTmntData.tmnt.user_id = data?.user?.id || "";
+  fullTmntData.tmnt.user_id = data?.user?.id || "";  
 
   const [tmntData, setTmntData] = useState(fullTmntData.tmnt);
   const [events, setEvents] = useState(fullTmntData.events);

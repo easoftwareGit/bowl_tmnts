@@ -1,3 +1,4 @@
+import { initEvent, initEvents } from "@/lib/db/initVals";
 import { eventType } from "@/lib/types/types";
 
 export const mockEvents: eventType[] = [
@@ -57,4 +58,39 @@ export const mockEvents: eventType[] = [
     sort_order: 2,
     errClassName: "",
   },
+]
+
+export const mockEventsToEdit: eventType[] = [
+  {
+    ...initEvent,
+    id: "evt_9a58f0a486cb4e6c92ca3348702b1a62",
+    tmnt_id: "tmt_fe8ac53dad0f400abe6354210a8f4cd1",
+    event_name: "Singles",
+    team_size: 1,
+    games: 6,
+    entry_fee: '80',
+    lineage: '18',
+    prize_fund: '55',
+    other: '2',
+    expenses: '5',
+    added_money: '0',    
+    lpox: '80',
+    sort_order: 1,
+  },
+  { 
+    ...initEvent,
+    id: "evt_cb55703a8a084acb86306e2944320e8d",
+    tmnt_id: "tmt_fe8ac53dad0f400abe6354210a8f4cd1",
+    event_name: "Doubles",
+    team_size: 2,
+    games: 6,
+    entry_fee: '160',
+    lineage: '36',
+    prize_fund: '110',
+    other: '4',
+    expenses: '10',
+    added_money: '0',
+    lpox: '160',
+    sort_order: 2,      
+  }
 ]

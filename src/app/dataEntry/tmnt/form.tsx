@@ -3,9 +3,9 @@ import { useState, ChangeEvent, useEffect } from "react";
 import { useSelector, useDispatch } from "react-redux";
 import { AppDispatch, RootState, store } from "@/redux/store";
 import { fetchBowls, selectAllBowls, getBowlsStatus, getBowlsError } from "@/redux/features/bowls/bowlsSlice";
-import { maxTmntNameLength } from "@/lib/validation";
+import { isValidBtDbId, maxTmntNameLength } from "@/lib/validation";
 import { Accordion, AccordionItem } from "react-bootstrap";
-import { tmntType, tmntPropsType } from "../../../lib/types/types";
+import { tmntType, tmntPropsType, saveTypes } from "../../../lib/types/types";
 import { noAcdnErr } from "./errors";
 import OneToNEvents, { validateEvents } from "./oneToNEvents";
 import OneToNDivs, { validateDivs } from "./oneToNDivs";
@@ -18,7 +18,6 @@ import ZeroToNBrackets, { validateBrkts } from "./zeroToNBrkts";
 import ZeroToNElims, { validateElims } from "./zeroToNElims";
 import ModalErrorMsg, { cannotSaveTitle } from "@/components/modal/errorModal";
 import { initModalObj } from "@/components/modal/modalObjType";
-import { postTmnt } from "@/lib/db/tmnts/tmntsAxios";
 import { postEvent } from "@/lib/db/events/eventsAxios";
 import { postDiv } from "@/lib/db/divs/divsAxios";
 import { postSquad } from "@/lib/db/squads/squadsAxios";
@@ -27,6 +26,7 @@ import { postPot } from "@/lib/db/pots/potsAxios";
 import { postBrkt } from "@/lib/db/brkts/brktsAxios";
 import { postElim } from "@/lib/db/elims/elimsAxios";
 import "./form.css";
+import { tmntSaveTmnt } from "./saveTmnt";
 
 interface FormProps {
   tmntProps: tmntPropsType
@@ -43,6 +43,10 @@ const TmntDataForm: React.FC<FormProps> = ({ tmntProps }) => {
     brkts, setBrkts,
     elims, setElims
   } = tmntProps;
+
+  let saveType: saveTypes = 'POST';
+  let origEvents = [...events];
+
   const dispatch = useDispatch<AppDispatch>();
 
   const [eventAcdnErr, setEventAcdnErr] = useState(noAcdnErr);
@@ -297,35 +301,18 @@ const TmntDataForm: React.FC<FormProps> = ({ tmntProps }) => {
     // })
   };
 
-  const saveTmnt = async (): Promise<boolean> => {       
-    const postedTmnt = await postTmnt(tmnt);
-    if (!postedTmnt) {
+  const saveTmnt = async (): Promise<boolean | null> => {      
+
+    const didSave = await tmntSaveTmnt({tmnt, setTmnt, events, setEvents, divs, setDivs});
+    if (!didSave) {
       setErrModalObj({
         show: true,
         title: cannotSaveTitle,
         message: `Cannot save Tournament "${tmnt.tmnt_name}".`,
         id: initModalObj.id
-      })
-      return false      
-    };    
-    // posting a new tmnt, all divs and events 
-    // rows must be updated to the new tmnt id    
-    setTmnt(postedTmnt);      
-    // update tmnt id in events
-    setEvents(
-      events.map((event) => {
-        event.tmnt_id = postedTmnt.id;
-        return event;
-      })
-    )
-    // update tmnt id in divs
-    setDivs(
-      divs.map((div) => {
-        div.tmnt_id = postedTmnt.id;
-        return div;
-      })
-    )    
-    return true;    
+      })      
+    };
+    return didSave
   }
   const saveEvents = async (): Promise<boolean> => {
     for (let i = 0; i < events.length; i++) {      
@@ -337,7 +324,7 @@ const TmntDataForm: React.FC<FormProps> = ({ tmntProps }) => {
         setErrModalObj({
           show: true,
           title: cannotSaveTitle,
-          message: `Cannot save Event "${events[i].event_name}".`,
+          message: `Cannot save Tournament, error saving Events.`,
           id: initModalObj.id
         }) 
         return false;
@@ -359,6 +346,8 @@ const TmntDataForm: React.FC<FormProps> = ({ tmntProps }) => {
         return squad;
       })
     }
+
+    origEvents = [...events];
     return true;
   }
   const saveDivs = async (): Promise<boolean> => {
@@ -526,6 +515,7 @@ const TmntDataForm: React.FC<FormProps> = ({ tmntProps }) => {
   }
 
   const save = async () => { 
+
     if (!saveTmnt()) return false;
     // if (!saveEvents()) return false;
     // if (!saveDivs()) return false;
@@ -534,6 +524,7 @@ const TmntDataForm: React.FC<FormProps> = ({ tmntProps }) => {
     // if (!savePots()) return false;
     // if (!saveBrkts()) return false;
     // if (!saveElims()) return false;
+    saveType = 'PUT';
     return true;
   };
 

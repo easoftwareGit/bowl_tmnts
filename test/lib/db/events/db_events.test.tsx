@@ -4,6 +4,7 @@ import { mockPrimsmaEvents } from "../../../mocks/tmnts/twoDivs/mockEvent";
 import { mockEvents } from "../../../mocks/tmnts/singlesAndDoubles/mockEvents";
 import { ErrorCode } from "@/lib/validation";
 import { eventType } from "@/lib/types/types";
+import { postSecret } from "@/lib/tools";
 
 // in @/lib/db/events/events.ts, make sure to use correct prisma client
 // import { prisma } from "@/lib/prisma"  // for production & developemnt
@@ -75,7 +76,7 @@ describe('events', () => {
       const result = validateEvents(validEvents);
       expect(result).toEqual(ErrorCode.None);
     })
-    it('should return ErroCode.MissingData when required data is missing', async () => { 
+    it('should return ErrorCode.MissingData when required data is missing', async () => { 
       const invalidEvents = [
         {
           ...mockEvents[0],
@@ -101,11 +102,51 @@ describe('events', () => {
       const result = validateEvents(invalidEvents);
       expect(result).toEqual(ErrorCode.InvalidData);
     })
-    it('should return ErroCode.InvalidData when id is not blank', async () => { 
+    it('should return ErroCode.None when id is a valid id', async () => { 
       const invalidEvents = [
         {
           ...mockEvents[0],
           id: 'evt_9a58f0a486cb4e6c92ca3348702b1a62',
+        },
+        {
+          ...mockEvents[1],          
+        }
+      ]
+      const result = validateEvents(invalidEvents);
+      expect(result).toEqual(ErrorCode.None);
+    })
+    it('should return ErroCode.None when id is a valid temp id', async () => { 
+      const invalidEvents = [
+        {
+          ...mockEvents[0],
+          id: '1',
+        },
+        {
+          ...mockEvents[1],
+          id: '2',
+        }
+      ]
+      const result = validateEvents(invalidEvents);
+      expect(result).toEqual(ErrorCode.None);
+    })
+    it('should return ErroCode.None when id is postSecrent + valid id', async () => { 
+      const invalidEvents = [
+        {
+          ...mockEvents[0],
+          id: postSecret + 'evt_9a58f0a486cb4e6c92ca3348702b1a62',
+        },
+        {
+          ...mockEvents[1],          
+        }
+      ]
+      const result = validateEvents(invalidEvents);
+      expect(result).toEqual(ErrorCode.None);
+    })
+    it('should return ErroCode.invalidData when id is not a valid event id', async () => { 
+      const invalidEvents = [
+        {
+          ...mockEvents[0],
+          id: 'usr_9a58f0a486cb4e6c92ca3348702b1a62',
         },
         {
           ...mockEvents[1],          

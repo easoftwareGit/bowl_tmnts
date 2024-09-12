@@ -11,8 +11,6 @@ import { initEvent } from "@/lib/db/initVals";
 const mockSetEvents = jest.fn();
 const mockSetSquads = jest.fn();
 const mockSetAcdnErr = jest.fn();
-const mockDoDelete = jest.fn();
-const mockCancel = jest.fn();
 
 const mockOneToNEventsProps = {
   events: mockEvents,

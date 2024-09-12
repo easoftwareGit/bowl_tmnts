@@ -76,8 +76,8 @@ describe('Squads - API: /api/squads', () => {
     it('should get all squads', async () => { 
       const response = await axios.get(url);
       expect(response.status).toBe(200);
-      // 7 rows in prisma/seed.ts
-      expect(response.data.squads).toHaveLength(7);
+      // 8 rows in prisma/seed.ts
+      expect(response.data.squads).toHaveLength(8);
     })
 
   })

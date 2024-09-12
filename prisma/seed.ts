@@ -991,11 +991,37 @@ async function squadUpsert() {
     });    
     squad = await prisma.squad.upsert({
       where: {
+        id: "sqd_3397da1adc014cf58c44e07c19914f71",
+      },
+      update: {        
+        event_id: "evt_9a58f0a486cb4e6c92ca3348702b1a62",
+        squad_name: "Squad 1",
+        squad_date: new Date(Date.UTC(2023, 2, 1)),  // month is -1
+        squad_time: '08:00 AM',
+        games: 6,
+        lane_count: 24,
+        starting_lane: 1,
+        sort_order: 1,
+      },
+      create: {
+        id: "sqd_3397da1adc014cf58c44e07c19914f71",
+        event_id: "evt_9a58f0a486cb4e6c92ca3348702b1a62",
+        squad_name: "Squad 1",
+        squad_date: new Date(Date.UTC(2023, 2, 1)),  // month is -1
+        squad_time: '08:00 AM',
+        games: 6,
+        lane_count: 24,
+        starting_lane: 1,
+        sort_order: 1,
+      },
+    });   
+    squad = await prisma.squad.upsert({
+      where: {
         id: "sqd_20c24199328447f8bbe95c05e1b84644",
       },
       update: {        
         event_id: "evt_cb55703a8a084acb86306e2944320e8d",
-        squad_name: "Squad 1",
+        squad_name: "Squad 2",
         squad_date: new Date(Date.UTC(2023, 2, 1)),  // month is -1
         squad_time: '01:00 PM',
         games: 6,
@@ -1006,7 +1032,7 @@ async function squadUpsert() {
       create: {
         id: "sqd_20c24199328447f8bbe95c05e1b84644",
         event_id: "evt_cb55703a8a084acb86306e2944320e8d",
-        squad_name: "Squad 1",
+        squad_name: "Squad 2",
         squad_date: new Date(Date.UTC(2023, 2, 1)),  // month is -1
         squad_time: '01:00 PM',
         games: 6,
@@ -1048,9 +1074,9 @@ async function squadUpsert() {
       },
       update: {        
         event_id: "evt_9a58f0a486cb4e6c92ca3348702b1a62",
-        squad_name: "Squad 1",
+        squad_name: "Squad 3",
         squad_date: new Date(Date.UTC(2023, 8, 16)),  // month is -1
-        squad_time: '01:00 PM',
+        squad_time: '02:00 PM',
         games: 6,
         lane_count: 24,
         starting_lane: 1,
@@ -1059,17 +1085,17 @@ async function squadUpsert() {
       create: {
         id: "sqd_3397da1adc014cf58c44e07c19914f72",
         event_id: "evt_9a58f0a486cb4e6c92ca3348702b1a62",
-        squad_name: "Squad 1",
+        squad_name: "Squad 3",
         squad_date: new Date(Date.UTC(2023, 8, 16)),  // month is -1
-        squad_time: '01:00 PM',
+        squad_time: '02:00 PM',
         games: 6,
         lane_count: 24,
         starting_lane: 1,
         sort_order: 1,
       },
     });   
-    console.log("Upserted squads:", 7);
-    return 7;
+    console.log("Upserted squads:", 8);
+    return 8;
   } catch (error) {
     console.log(error);
     return -1;

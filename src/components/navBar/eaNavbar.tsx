@@ -5,6 +5,7 @@ import { usePathname } from "next/navigation";
 import { Container, Nav, Navbar } from "react-bootstrap";
 import NavDropdown from 'react-bootstrap/NavDropdown';
 import { useSession } from "next-auth/react"; 
+import { getServerSession } from "next-auth";
 import { signOut } from "next-auth/react"; 
 import ModelConfirm from "@/components/modal/confirmModal"
 import { useState } from "react";
@@ -15,7 +16,7 @@ import UserPage from "@/app/user/page";
 export default function EaNavbar() {
 
   const pathname = usePathname();
-  const { status, data } = useSession();  
+  const { status, data } = useSession();    
 
   const [isModalOpen, setModalOpen] = useState(false)
 
@@ -43,12 +44,8 @@ export default function EaNavbar() {
             <Nav.Link as={Link} href="/contact" active={pathname === "/contact"}>Contact</Nav.Link>
             {/* <Nav.Link as={Link} href="/secret" active={pathname === "/secret"}>Secret</Nav.Link> */}
             <Nav.Link as={Link} href="/sample" active={pathname === "/sample"}>Sample</Nav.Link>
-            {/* leave tmnt data here for testing */}
-            {/* <Nav.Link as={Link} href="/dataEntry/tmnt" active={pathname === "/dataEntry/tmnt"}>Tmnt Data</Nav.Link> */}
             {status === 'authenticated' ? (              
               <>
-                {/* uncomment line below when done testing */}
-                {/* <Nav.Link as={Link} href="/dataEntry/tmnt" active={pathname === "/dataEntry/tmnt"}>Tmnt Data</Nav.Link> */}
                 <NavDropdown title={ data.user?.name } id="user-dropdown">
                   <NavDropdown.Item
                     href="/user/tmnts"
@@ -70,8 +67,7 @@ export default function EaNavbar() {
                   >
                     Log out
                   </NavDropdown.Item>
-                </NavDropdown>  
-                {/* <UserPage /> */}
+                </NavDropdown>                  
               </>
             ) : (                
               <Nav.Link as={Link} href="/api/auth/signin" active={pathname === "/api/auth/signin"}>Log In</Nav.Link>

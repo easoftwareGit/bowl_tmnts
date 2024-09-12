@@ -172,6 +172,17 @@ export const validTime = (time: string): boolean => {
 }
 
 /**
+ * checks if numStr is a valid positive integer
+ * 
+ * @param {string} numStr - number to test
+ * @returns {boolean} - true if numStr is a valid positive integer
+ */
+export const validPositiveInt = (numStr: string): boolean => {
+  if (!numStr) return false;
+  return /^[1-9]\d*$/.test(numStr);
+}
+
+/**
  * checks if a numeber is odd
  * 
  * @param num - number to test

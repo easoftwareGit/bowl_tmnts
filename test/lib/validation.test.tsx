@@ -3,7 +3,7 @@ import {
   isEmail,
   isPassword8to20,
   isValidBtDbId,
-  validYear,  
+  validYear,
   validTime,
   isValidBtDbType,
   isOdd,
@@ -12,6 +12,7 @@ import {
   validPostId,
   validSortOrder,
   maxSortOrder,
+  validPositiveInt,
 } from "@/lib/validation";
 import { initDiv, initEvent } from "@/lib/db/initVals";
 
@@ -289,11 +290,11 @@ describe("tests for validation functions", () => {
       expect(validTime("00:00")).toBe(true);
       expect(validTime("23:59")).toBe(true);
     });
-    it("should return true for midnight", () => { 
+    it("should return true for midnight", () => {
       expect(validTime("00:00")).toBe(true);
       expect(validTime("24:00")).toBe(false);
       expect(validTime("12:00 AM")).toBe(true);
-    })
+    });
     it("should return false for invalid time format (24:00)", () => {
       expect(validTime("24:00")).toBe(false);
     });
@@ -337,6 +338,65 @@ describe("tests for validation functions", () => {
     });
   });
 
+  describe("validPositiveInt", () => {    
+    it("should return true when given a valid positive integer string", () => {
+      const result = validPositiveInt("123");
+      expect(result).toBe(true);
+    });
+    it("should return true when given a very large positive integer string", () => {
+      const result = validPositiveInt("12345678901234567890");
+      expect(result).toBe(true);
+    });
+    it("should return false when given an empty string", () => {
+      const result = validPositiveInt("");
+      expect(result).toBe(false);
+    });
+    it("should return false when given a string with leading zeros", () => {
+      const result = validPositiveInt("00123");
+      expect(result).toBe(false);
+    });
+    it("should return false when given a string with non-numeric characters", () => {
+      const result = validPositiveInt("abc");
+      expect(result).toBe(false);
+    });
+    it("should return false when given a negative number string", () => {
+      const result = validPositiveInt("-123");
+      expect(result).toBe(false);
+    });
+    it("should return false when given a string with only whitespace characters", () => {
+      const result = validPositiveInt("   ");
+      expect(result).toBe(false);
+    });
+    it("should return false when given a string with special characters", () => {
+      const result = validPositiveInt("123$");
+      expect(result).toBe(false);
+    });
+    it("should return false when given a string with a decimal point", () => {
+      const result = validPositiveInt("12.3");
+      expect(result).toBe(false);
+    });
+    it("should return false when input is null", () => {
+      const result = validPositiveInt(null as any);
+      expect(result).toBe(false);
+    });
+    it("should return false when input is undefined", () => {
+      const result = validPositiveInt(undefined as any);
+      expect(result).toBe(false);
+    });    
+    it("should return false when given a string with mixed numeric and alphabetic characters", () => {
+      const result = validPositiveInt("1a2b3");
+      expect(result).toBe(false);
+    });
+    it("should return false when given a positive integer string followed by alphabetic characters", () => {
+      const result = validPositiveInt("123abc");
+      expect(result).toBe(false);
+    });
+    it("should return false when given a string with alphabetic characters followed by numeric characters", () => {
+      const result = validPositiveInt("a123");
+      expect(result).toBe(false);
+    });
+  });
+
   describe("isOdd and IsEven functions", () => {
     it("should return true for odd number", () => {
       expect(isOdd(5)).toBe(true);
@@ -352,70 +412,68 @@ describe("tests for validation functions", () => {
     });
   });
 
-  describe('isNumber', () => {
-
+  describe("isNumber", () => {
     // returns true for integer values
-    it('should return true when the value is an integer', () => {
+    it("should return true when the value is an integer", () => {
       const result = isNumber(42);
       expect(result).toBe(true);
     });
-  
+
     // return true for 0
-    it('should return true for 0', () => {
+    it("should return true for 0", () => {
       const result = isNumber(0);
       expect(result).toBe(true);
     });
-  
+
     // returns false for Infinity
-    it('should return false when the value is Infinity', () => {
+    it("should return false when the value is Infinity", () => {
       const result = isNumber(Infinity);
       expect(result).toBe(false);
     });
-  
+
     // returns false for -Infinity
-    it('should return false for -Infinity', () => {
+    it("should return false for -Infinity", () => {
       const result = isNumber(-Infinity);
       expect(result).toBe(false);
     });
-  
+
     // returns false for string values
-    it('should return false when the value is a string', () => {
-      const result = isNumber('42');
+    it("should return false when the value is a string", () => {
+      const result = isNumber("42");
       expect(result).toBe(false);
     });
-  
+
     // returns true for floating-point values
-    it('should return true for floating-point values', () => {
+    it("should return true for floating-point values", () => {
       const result = isNumber(3.14);
       expect(result).toBe(true);
     });
-  
+
     // returns false for boolean values
-    it('should return false for boolean values', () => {
+    it("should return false for boolean values", () => {
       const result = isNumber(true);
       expect(result).toBe(false);
     });
-  
+
     // returns false for null values
-    it('should return false for null values', () => {
+    it("should return false for null values", () => {
       const result = isNumber(null);
       expect(result).toBe(false);
     });
-  
+
     // returns false for undefined values
-    it('should return false for undefined values', () => {
+    it("should return false for undefined values", () => {
       const result = isNumber(undefined);
       expect(result).toBe(false);
     });
-  
+
     // returns false for NaN
-    it('should return false for NaN', () => {
+    it("should return false for NaN", () => {
       const result = isNumber(NaN);
       expect(result).toBe(false);
     });
-  
   });
- 
+
   describe("validSortOrder function", () => {
     it("should return true for valid sort order", () => {
       expect(validSortOrder(initEvent.sort_order)).toBe(true);

@@ -154,11 +154,9 @@ describe('Events - PUT, PATCH, DELETE API: /api/events', () => {
         expect(putResponse.status).toBe(404);
       } catch (err) {
         if (err instanceof AxiosError) {
-          if (err instanceof AxiosError) {
-            expect(err.response?.status).toBe(404);
-          } else {
-            expect(true).toBeFalsy();
-          }
+          expect(err.response?.status).toBe(404);
+        } else {
+          expect(true).toBeFalsy();
         }
       }
     })
@@ -2293,16 +2291,16 @@ describe('Events - PUT, PATCH, DELETE API: /api/events', () => {
 
     afterEach(async () => {
       if (!didDel) return;
-      // if deleted bowl, add bowl back
+      // if deleted event, add event back
       try {
-        const restoreUser = {
+        const restoreEvent = {
           ...toDelEvent,
           id: postSecret + "evt_bd63777a6aee43be8372e4d008c1d6d0",
         }
-        const bowlJSON = JSON.stringify(restoreUser);
+        const eventJSON = JSON.stringify(restoreEvent);
         const response = await axios({
           method: "post",
-          data: bowlJSON,
+          data: eventJSON,
           withCredentials: true,
           url: url,
         });

@@ -2,6 +2,8 @@ export type roleTypes = "ADMIN" | "DIRECTOR" | "USER"
 
 export type idTypes = 'usr' | 'bwl' | 'tmt' | 'evt' | 'div' | 'sqd' | 'lan' | 'hdc' | 'pot' | 'brk' | 'elm' | 'ply'
 
+export type saveTypes = "POST" | "PUT"
+
 export type userType = {
   id: string
   email: string
@@ -81,8 +83,7 @@ export type eventType = {
   lpox_valid: lpoxValidTypes,
   lpox_err: string,
   sort_order: number,
-  errClassName: string,
-  [key: string]: any;
+  errClassName: string,  
 }
 
 // NO lpox in eventDataType
