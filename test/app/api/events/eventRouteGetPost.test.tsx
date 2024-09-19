@@ -4,7 +4,6 @@ import { testBaseEventsApi } from "../../../testApi";
 import { eventType } from "@/lib/types/types";
 import { initEvent } from "@/lib/db/initVals";
 import { Event } from "@prisma/client";
-import { postSecret } from "@/lib/tools";
 import { isValidBtDbId } from "@/lib/validation";
 
 // before running this test, run the following commands in the terminal:
@@ -24,7 +23,8 @@ import { isValidBtDbId } from "@/lib/validation";
 
 const url = testBaseEventsApi.startsWith("undefined")
   ? baseEventsApi
-  : testBaseEventsApi;   
+  : testBaseEventsApi; 
+const oneEventUrl = url + "/event/";
 
 describe('Events - GETs and POST API: /api/events', () => { 
 
@@ -52,24 +52,27 @@ describe('Events - GETs and POST API: /api/events', () => {
   const event2Id = 'evt_dadfd0e9c11a4aacb87084f1609a0afd';
   const tmnt1Id = 'tmt_fd99387c33d9c78aba290286576ddce5';
 
+  const deletePostedEvent = async () => {
+    const response = await axios.get(url);
+    const events = response.data.events;
+    const toDel = events.find((e: eventType) => e.event_name === 'Test Event');
+    if (toDel) {
+      try {
+        const delResponse = await axios({
+          method: "delete",
+          withCredentials: true,
+          url: oneEventUrl + toDel.id
+        });
+      } catch (err) {
+        if (err instanceof AxiosError) console.log(err.message);
+      }
+    }
+  }
+
   describe('GET', () => { 
 
     beforeAll(async () => {
-      // if row left over from post test, then delete it
-      const response = await axios.get(url);
-      const events = response.data.events;
-      const toDel = events.find((e: eventType) => e.event_name === 'Test Event');
-      if (toDel) {
-        try {
-          const delResponse = await axios({
-            method: "delete",
-            withCredentials: true,
-            url: url + "/" + toDel.id
-          });
-        } catch (err) {
-          if (err instanceof AxiosError) console.log(err.message);
-        }
-      }
+      await deletePostedEvent();
     })
 
     it('should get all events', async () => {
@@ -84,21 +87,7 @@ describe('Events - GETs and POST API: /api/events', () => {
   describe('GET event lists API: /api/events/tmnt/:id', () => {
         
     beforeAll(async () => {
-      // if row left over from post test, then delete it
-      const response = await axios.get(url);
-      const events = response.data.events;
-      const toDel = events.find((e: eventType) => e.event_name === 'Test Event');
-      if (toDel) {
-        try {
-          const delResponse = await axios({
-            method: "delete",
-            withCredentials: true,
-            url: url + "/" + toDel.id
-          });
-        } catch (err) {
-          if (err instanceof AxiosError) console.log(err.message);
-        }
-      }
+      await deletePostedEvent();
     })
 
     it('should get all events for a tournament', async () => { 
@@ -129,8 +118,7 @@ describe('Events - GETs and POST API: /api/events', () => {
   describe('POST', () => { 
 
     const eventToPost: eventType = {
-      ...initEvent,
-      id: "",
+      ...initEvent,      
       tmnt_id: "tmt_fd99387c33d9c78aba290286576ddce5",
       event_name: "Test Event",
       team_size: 1,
@@ -145,38 +133,20 @@ describe('Events - GETs and POST API: /api/events', () => {
       sort_order: 2,
     };
 
-    let createdEventId = '';
+    let createdEvent = false;    
 
     beforeAll(async () => { 
-      const response = await axios.get(url);
-      const events = response.data.events;
-      const toDel = events.find((e: eventType) => e.event_name === 'Test Event');
-      if (toDel) {
-        try {
-          const delResponse = await axios({
-            method: "delete",
-            withCredentials: true,
-            url: url + "/" + toDel.id
-          });
-        } catch (err) {
-          if (err instanceof AxiosError) console.log(err.message);
-        }
-      }
+      await deletePostedEvent();
     })
 
     beforeEach(() => {
-      createdEventId = "";
+      createdEvent = false;
     })
 
     afterEach(async () => {
-      if (createdEventId) {
-        const delResponse = await axios({
-          method: "delete",
-          withCredentials: true,
-          url: url + "/" + createdEventId,
-        });
-      }
-      createdEventId = "";
+      if (createdEvent) {
+        await deletePostedEvent();
+      }      
     })
 
     it('should create a new event', async () => { 
@@ -189,7 +159,7 @@ describe('Events - GETs and POST API: /api/events', () => {
       });
       expect(response.status).toBe(201);
       const postedEvent = response.data.event;
-      createdEventId = postedEvent.id;
+      createdEvent = true;
       expect(postedEvent.tmnt_id).toEqual(eventToPost.tmnt_id);
       expect(postedEvent.event_name).toEqual(eventToPost.event_name);
       expect(postedEvent.team_size).toEqual(eventToPost.team_size);
@@ -203,54 +173,23 @@ describe('Events - GETs and POST API: /api/events', () => {
       expect(postedEvent.sort_order).toEqual(eventToPost.sort_order);      
       expect(isValidBtDbId(postedEvent.id, 'evt')).toBeTruthy();
     })
-    it('should create a new event with the provided eventID', async () => { 
-      const supIdEvent = {
+    it('should NOT create a new event when ID is blank', async () => { 
+      const invalidEvent = {
         ...eventToPost,
-        id: postSecret + notFoundId, // use a valid ID
+        id: "",
       }
-      const eventJSON = JSON.stringify(supIdEvent);
-      const response = await axios({
-        method: "post",
-        data: eventJSON,
-        withCredentials: true,
-        url: url,
-      });
-      expect(response.status).toBe(201);
-      const postedEvent = response.data.event;
-      createdEventId = postedEvent.id;
-      expect(postedEvent.id).toEqual(notFoundId);      
-    })
-    it('should NOT create a new event when ID is invalid', async () => { 
+      const eventJSON = JSON.stringify(invalidEvent);
       try {
-        const userJSON = JSON.stringify(eventToPost);
         const response = await axios({
-          method: "put",
-          data: userJSON,
+          method: "post",
+          data: eventJSON,
           withCredentials: true,
-          url: url + "/" + 'invalid'
+          url: url,
         });
-        expect(response.status).toBe(404);
+        expect(response.status).toBe(422);
       } catch (err) {
         if (err instanceof AxiosError) {
-          expect(err.response?.status).toBe(404);
-        } else {
-          expect(true).toBeFalsy();
-        }
-      }
-    })
-    it('should NOT create a new event when ID is valid, but not an event ID', async () => {
-      try {
-        const userJSON = JSON.stringify(eventToPost);
-        const response = await axios({
-          method: "put",
-          data: userJSON,
-          withCredentials: true,
-          url: url + "/" + nonEventId
-        });
-        expect(response.status).toBe(404);
-      } catch (err) {
-        if (err instanceof AxiosError) {
-          expect(err.response?.status).toBe(404);
+          expect(err.response?.status).toBe(422);
         } else {
           expect(true).toBeFalsy();
         }
@@ -520,10 +459,54 @@ describe('Events - GETs and POST API: /api/events', () => {
         }
       }
     })
+    it('should NOT create a new event when ID is invalid', async () => { 
+      const invalidEvent = {
+        ...eventToPost,
+        id: "test",
+      }
+      const eventJSON = JSON.stringify(invalidEvent);
+      try {
+        const response = await axios({
+          method: "post",
+          data: eventJSON,
+          withCredentials: true,
+          url: url,
+        });
+        expect(response.status).toBe(422);
+      } catch (err) {
+        if (err instanceof AxiosError) {
+          expect(err.response?.status).toBe(422);
+        } else {
+          expect(true).toBeFalsy();
+        }
+      }
+    })
+    it('should NOT create a new event when ID is valid, but not an event ID', async () => {
+      const invalidEvent = {
+        ...eventToPost,
+        id: nonEventId,
+      }
+      const eventJSON = JSON.stringify(invalidEvent);
+      try {
+        const response = await axios({
+          method: "post",
+          data: eventJSON,
+          withCredentials: true,
+          url: url,
+        });
+        expect(response.status).toBe(422);
+      } catch (err) {
+        if (err instanceof AxiosError) {
+          expect(err.response?.status).toBe(422);
+        } else {
+          expect(true).toBeFalsy();
+        }
+      }
+    })
     it('should NOT create a new event when tmnt id is invalid', async () => { 
       const invalidEvent = {
         ...eventToPost,
-        tmnt_id: "invalid",
+        tmnt_id: "test",
       }
       const eventJSON = JSON.stringify(invalidEvent);
       try {
@@ -1394,9 +1377,9 @@ describe('Events - GETs and POST API: /api/events', () => {
         withCredentials: true,
         url: url,
       })
-      const postedEvent = response.data.event;
-      createdEventId = postedEvent.id;
+      const postedEvent = response.data.event;      
       expect(response.status).toBe(201);
+      createdEvent = true
       expect(postedEvent.tmnt_id).toEqual(eventToPost.tmnt_id);
       expect(postedEvent.event_name).toEqual(eventToPost.event_name);
       expect(postedEvent.team_size).toEqual(eventToPost.team_size);
@@ -1413,10 +1396,10 @@ describe('Events - GETs and POST API: /api/events', () => {
     
   })
 
-  describe('GET by ID - API: API: /api/events/:id', () => { 
+  describe('GET by ID - API: API: /api/events/event/:id', () => { 
 
     it('should get an event by ID', async () => { 
-      const response = await axios.get(url + '/' + testEvent.id);
+      const response = await axios.get(oneEventUrl + testEvent.id);
       const event = response.data.event;
       expect(event.id).toEqual(testEvent.id);
       expect(event.tmnt_id).toEqual(testEvent.tmnt_id);
@@ -1433,7 +1416,7 @@ describe('Events - GETs and POST API: /api/events', () => {
     })
     it('should NOT get an event by ID when ID is invalid', async () => {
       try {
-        const response = await axios.get(url + '/invalid');
+        const response = await axios.get(oneEventUrl + '/invalid');
         expect(true).toBeFalsy();
       } catch (err) {
         if (err instanceof AxiosError) {
@@ -1445,7 +1428,7 @@ describe('Events - GETs and POST API: /api/events', () => {
     })
     it('should NOT get an event by ID when ID is valid, but not an event ID', async () => {
       try {
-        const response = await axios.get(url + '/' + nonEventId);
+        const response = await axios.get(oneEventUrl + nonEventId);
         expect(true).toBeFalsy();
       } catch (err) {
         if (err instanceof AxiosError) {
@@ -1457,13 +1440,11 @@ describe('Events - GETs and POST API: /api/events', () => {
     })
     it('should NOT get an event by ID when ID is not found', async () => {
       try {
-        const response = await axios.get(url + '/' + notFoundId);
+        const response = await axios.get(oneEventUrl + notFoundId);
         expect(response.status).toBe(404);
       } catch (err) {
         if (err instanceof AxiosError) {
           expect(err.response?.status).toBe(404);
-        // } else if ('response' in err) {
-        //   expect(err.response?.status).toBe(404);
         } else {
           expect(true).toBeFalsy();
         }

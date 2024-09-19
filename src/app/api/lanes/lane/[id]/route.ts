@@ -1,12 +1,11 @@
-import { NextResponse, NextRequest } from "next/server";
+import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
-import { validatePot, sanitizePot } from "../validate";
 import { ErrorCode, isValidBtDbId } from "@/lib/validation";
-import { potType, PotCategories } from "@/lib/types/types";
-import { initPot } from "@/lib/db/initVals";
-import { findPotById } from "@/lib/db/pots/pots";
+import { validateLane, sanitizeLane } from "@/app/api/lanes/validate";
+import { laneType } from "@/lib/types/types";
+import { initLane } from "@/lib/db/initVals";
 
-// routes /api/pots/:id
+// routes /api/lanes/lane/:id
 
 export async function GET(
   request: Request,
@@ -14,20 +13,20 @@ export async function GET(
 ) {
   try {
     const id = params.id;
-    if (!isValidBtDbId(id, "pot")) {
+    if (!isValidBtDbId(id, "lan")) {
       return NextResponse.json({ error: "invalid request" }, { status: 404 });
     }
-    const pot = await prisma.pot.findUnique({
+    const lane = await prisma.lane.findUnique({
       where: {
         id: id,
       },
     });
-    if (!pot) {
+    if (!lane) {
       return NextResponse.json({ error: "not found" }, { status: 404 });
     }
-    return NextResponse.json({ pot }, { status: 200 });
+    return NextResponse.json({ lane }, { status: 200 });
   } catch (err: any) {
-    return NextResponse.json({ error: "error getting pot" }, { status: 500 });
+    return NextResponse.json({ error: "error getting lane" }, { status: 500 });
   }
 }
 
@@ -37,22 +36,19 @@ export async function PUT(
 ) {
   try {
     const id = params.id;
-    if (!isValidBtDbId(id, "pot")) {
+    if (!isValidBtDbId(id, "lan")) {
       return NextResponse.json({ error: "invalid request" }, { status: 404 });
     }
 
-    const { div_id, squad_id, pot_type, fee, sort_order } =
-      await request.json();
-    const toCheck: potType = {
-      ...initPot,
-      div_id,
+    const { lane_number, squad_id } = await request.json();
+    const toCheck: laneType = {
+      ...initLane,
+      lane_number,
       squad_id,
-      pot_type,
-      fee,
-      sort_order,
     };
-
-    const errCode = validatePot(toCheck);
+    
+    const toPut = sanitizeLane(toCheck);
+    const errCode = validateLane(toPut);
     if (errCode !== ErrorCode.None) {
       let errMsg: string;
       switch (errCode) {
@@ -68,22 +64,17 @@ export async function PUT(
       }
       return NextResponse.json({ error: errMsg }, { status: 422 });
     }
-
-    const toPut = sanitizePot(toCheck);
-    // NO hdcp_per_str in data object
-    const pot = await prisma.pot.update({
+    
+    const lane = await prisma.lane.update({
       where: {
         id: id,
       },
       data: {
-        // div_id: toPut.div_id, // do not update div_id
+        lane_number: toPut.lane_number,
         // squad_id: toPut.squad_id, // do not update squad_id
-        pot_type: toPut.pot_type,
-        fee: toPut.fee,        
-        sort_order: toPut.sort_order,
       },
     });
-    return NextResponse.json({ pot }, { status: 200 });
+    return NextResponse.json({ lane }, { status: 200 });
   } catch (err: any) {
     let errStatus: number;
     switch (err.code) {
@@ -101,57 +92,50 @@ export async function PUT(
         break;
     }
     return NextResponse.json(
-      { error: "error updating pot" },
+      { error: "error updating lane" },
       { status: errStatus }
     );
   }
 }
 
-
 export async function PATCH(
   request: Request,
   { params }: { params: { id: string } }
-) { 
+) {
   try {
     const id = params.id;
-    if (!isValidBtDbId(id, "pot")) {
-      return NextResponse.json({ error: "not found" }, { status: 404 });
+    if (!isValidBtDbId(id, "lan")) {
+      return NextResponse.json({ error: "invalid request" }, { status: 404 });
     }
 
     const json = await request.json();
     // populate toCheck with json
     const jsonProps = Object.getOwnPropertyNames(json);
-
-    const currentPot = await findPotById(id);
-    if (!currentPot) {
+    
+    const currentLane = await prisma.lane.findUnique({
+      where: {
+        id: id,
+      },
+    });    
+    if (!currentLane) {
       return NextResponse.json({ error: "not found" }, { status: 404 });
     }
-    const toCheck: potType = {
-      ...initPot,
-      div_id: currentPot.div_id,
-      squad_id: currentPot.squad_id,
-      pot_type: currentPot.pot_type as PotCategories,
-      fee: currentPot.fee + '',      
-      sort_order: currentPot.sort_order,
+
+    const toCheck: laneType = {
+      ...initLane,
+      lane_number: currentLane.lane_number,
+      squad_id: currentLane.squad_id,
     };
 
-    if (jsonProps.includes("div_id")) {
-      toCheck.div_id = json.div_id;
+    if (jsonProps.includes("lane_number")) {
+      toCheck.lane_number = json.lane_number;
     }
     if (jsonProps.includes("squad_id")) {
       toCheck.squad_id = json.squad_id;
     }
-    if (jsonProps.includes("pot_type")) {
-      toCheck.pot_type = json.pot_type;
-    }
-    if (jsonProps.includes("fee")) {
-      toCheck.fee = json.fee;
-    }
-    if (jsonProps.includes("sort_order")) {
-      toCheck.sort_order = json.sort_order;
-    }
 
-    const errCode = validatePot(toCheck);
+    const toBePatched = sanitizeLane(toCheck);
+    const errCode = validateLane(toBePatched);
     if (errCode !== ErrorCode.None) {
       let errMsg: string;
       switch (errCode) {
@@ -167,45 +151,28 @@ export async function PATCH(
       }
       return NextResponse.json({ error: errMsg }, { status: 422 });
     }
-    const toBePatched = sanitizePot(toCheck);
-    const toPatch = {      
-      div_id: "",
-      squad_id: "",
-      pot_type: "",
-      fee: "",
-      sort_order: null as number | null,
+    
+    const toPatch = {
+      lane_number: null as number | null,
+      squad_id: "", 
     };
-
-    if (jsonProps.includes("div_id")) {
-      toPatch.div_id = toBePatched.div_id;
+    if (jsonProps.includes("lane_number")) {
+      toPatch.lane_number = toBePatched.lane_number;
     }
     if (jsonProps.includes("squad_id")) {
       toPatch.squad_id = toBePatched.squad_id;
     }
-    if (jsonProps.includes("pot_type")) {
-      toPatch.pot_type = toBePatched.pot_type;
-    }
-    if (jsonProps.includes("fee")) {
-      toPatch.fee = toBePatched.fee;
-    }
-    if (jsonProps.includes("sort_order")) {
-      toPatch.sort_order = toBePatched.sort_order;
-    }
-
-    const pot = await prisma.pot.update({
+    const lane = await prisma.lane.update({
       where: {
         id: id,
       },
-      // remove data if not sent
       data: {
-        // div_id: toPatch.div_id || undefined, // do not patch div_id
+        lane_number: toPatch.lane_number || undefined,
         // squad_id: toPatch.squad_id || undefined, // do not patch squad_id
-        pot_type: toPatch.pot_type || undefined,
-        fee: toPatch.fee || undefined,
-        sort_order: toPatch.sort_order || undefined,
       },
     });
-    return NextResponse.json({ pot }, { status: 200 });
+
+    return NextResponse.json({ lane }, { status: 200 });
   } catch (err: any) {
     let errStatus: number;
     switch (err.code) {
@@ -215,28 +182,31 @@ export async function PATCH(
       case "P2003": // foreign key constraint
         errStatus = 422;
         break;
+      case "P2025": // record not found
+        errStatus = 404;
+        break;
       default:
         errStatus = 500;
         break;
     }
     return NextResponse.json(
-      { error: "error patching pot" },
+      { error: "error patching lane" },
       { status: errStatus }
-    );    
+    );
   }
 }
 
 export async function DELETE(
   request: Request,
   { params }: { params: { id: string } }
-) { 
+) {
   try {
     const id = params.id;
-    if (!isValidBtDbId(id, "pot")) {
-      return NextResponse.json({ error: "not found" }, { status: 404 });
+    if (!isValidBtDbId(id, "lan")) {
+      return NextResponse.json({ error: "invalid request" }, { status: 404 });
     }
 
-    const deleted = await prisma.pot.delete({
+    const deleted = await prisma.lane.delete({
       where: {
         id: id,
       },
@@ -256,8 +226,8 @@ export async function DELETE(
         break;
     }
     return NextResponse.json(
-      { error: "error deleting div" },
+      { error: "error deleting lane" },
       { status: errStatus }
-    );    
+    );
   }
 }

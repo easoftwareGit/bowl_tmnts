@@ -26,7 +26,8 @@ interface ChildProps {
 
 const createPotTitle = "Create Pot";
 // const duplicatePotErrMsg = "Pot Type - Division already exists";
-const defaultTabKey = "pot1";
+// const defaultTabKey = "pot1";
+
 const potCategories: PotCategoryObjType[] = [
   {
     id: 1,
@@ -128,6 +129,10 @@ const ZeroToNPots: React.FC<ChildProps> = ({
   divs,  
   setAcdnErr,
 }) => {
+
+  const defaultTabKey = pots[0].id;
+  // const defaultTabKey = '';
+
   const [modalObj, setModalObj] = useState(initModalObj);
   const [tabKey, setTabKey] = useState(defaultTabKey);
   const [potId, setPotId] = useState(1); // id # used in initPots in form.tsx
@@ -372,7 +377,7 @@ const ZeroToNPots: React.FC<ChildProps> = ({
         {pots.map((pot) => (
           <Tab
             key={pot.id}
-            eventKey={`pot${pot.id}`}
+            eventKey={`${pot.id}`}
             title={
               pot.sort_order === 1 ? createPotTitle : getPotName(pot, divs)
             }
@@ -448,7 +453,7 @@ const ZeroToNPots: React.FC<ChildProps> = ({
                       name="inputPotFee"
                       className={`form-control ${pot.fee_err && "is-invalid"}`}
                       value={pot.fee}
-                      onValueChange={handleAmountValueChange("1")}
+                      onValueChange={handleAmountValueChange(pot.id)}
                     />
                     <div className="text-danger" data-testid="dangerPotFee">
                       {pot.fee_err}

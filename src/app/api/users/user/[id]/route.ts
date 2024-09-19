@@ -2,10 +2,9 @@ import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { userType } from "@/lib/types/types";
 import { initUser } from "@/lib/db/initVals";
-import { sanitizeUser, validateUser } from "../validate";
+import { sanitizeUser, validateUser } from "../../validate";
 import { ErrorCode, isValidBtDbId } from "@/lib/validation";
 import { hash } from "bcrypt";
-import { findUserById } from "@/lib/db/users/users";
 
 export async function GET(
   request: Request,
@@ -42,6 +41,7 @@ export async function PUT(
     const { first_name, last_name, email, phone, password } = await req.json();
     const toCheck: userType = {
       ...initUser,
+      id,
       first_name,
       last_name,
       email,
@@ -113,16 +113,19 @@ export async function PATCH(
     if (!isValidBtDbId(id, "usr")) {
       return NextResponse.json({ error: "invalid request" }, { status: 404 });
     }
-
-    const json = await request.json();
-    // populate toCheck with json
-    const jsonProps = Object.getOwnPropertyNames(json);
-
-    const currentUser = await findUserById(id);
+    
+    const currentUser = await prisma.user.findUnique({
+      where: {
+        id: id,
+      },
+    });    
     if (!currentUser) {
       return NextResponse.json({ error: "not found" }, { status: 404 });
     }
 
+    const json = await request.json();
+    // populate toCheck with json
+    const jsonProps = Object.getOwnPropertyNames(json);
     const toCheck: userType = {
       ...initUser,
       first_name: currentUser.first_name,

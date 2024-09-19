@@ -3,6 +3,7 @@ import { useState, ChangeEvent, useEffect } from "react";
 import { divType } from "../../lib/types/types";
 import { tmntPropsType } from "../../lib/types/types";
 import EaCurrencyInput, { EaPercentInput } from "@/components/currency/eaCurrencyInput";
+import { v4 as uuidv4 } from "uuid";
 
 interface FormProps {
   tmntProps: tmntPropsType;
@@ -29,7 +30,12 @@ export const Form5: React.FC<FormProps> = ({ tmntProps }) => {
   } = tmntProps;
 
   const handleButtonCLick = () => {
-    console.log("clicked");
+    setDivs(  
+      divs.map((div) => {        
+        div.id = 'div_' + uuidv4().replace(/\-/g, '');
+        return div;
+      })
+    )
   };
 
   const handleInputChange = (e: ChangeEvent<HTMLInputElement>) => {
@@ -106,6 +112,19 @@ export const Form5: React.FC<FormProps> = ({ tmntProps }) => {
               >
                 Click me
               </button>
+            </div>
+            <div className="col-md-5">
+              <label className="form-label" htmlFor="hdcpPerUi">
+                UUID
+              </label>
+              <input
+                type="text"
+                className={`form-control`}
+                id="div_id"
+                name="div_id"
+                value={div.id}                
+                disabled
+              />
             </div>
           </div>
         </div>

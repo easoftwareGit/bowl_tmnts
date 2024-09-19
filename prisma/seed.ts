@@ -235,16 +235,16 @@ async function tmntUpsert() {
         user_id: "usr_5bcefb5d314fff1ff5da6521a2fa7bde",
         tmnt_name: "Gold Pin",
         bowl_id: "bwl_561540bd64974da9abdd97765fdb3659",
-        start_date: new Date(Date.UTC(2022, 9, 23)),  // month is -1
-        end_date: new Date(Date.UTC(2022, 9, 23)),    // month is -1
+        start_date: startOfDayFromString('2022-10-23') as Date, 
+        end_date: startOfDayFromString('2022-10-23') as Date, 
       },
       create: {
         id: "tmt_fd99387c33d9c78aba290286576ddce5",
         user_id: "usr_5bcefb5d314fff1ff5da6521a2fa7bde",
         tmnt_name: "Gold Pin",
         bowl_id: "bwl_561540bd64974da9abdd97765fdb3659",
-        start_date: new Date(Date.UTC(2022, 9, 23)),  // month is -1
-        end_date: new Date(Date.UTC(2022, 9, 23)),    // month is -1
+        start_date: startOfDayFromString('2022-10-23') as Date, 
+        end_date: startOfDayFromString('2022-10-23') as Date, 
       },
     });
     tmnt = await prisma.tmnt.upsert({
@@ -255,16 +255,16 @@ async function tmntUpsert() {
         user_id: "usr_516a113083983234fc316e31fb695b85",
         tmnt_name: "Yosemite 6 Gamer",
         bowl_id: "bwl_8b4a5c35ad1247049532ff53a12def0a",
-        start_date: new Date(Date.UTC(2022, 0, 2)),  // month is -1 
-        end_date: new Date(Date.UTC(2022, 0, 2)),  // month is -1 
+        start_date: startOfDayFromString('2022-01-02') as Date,
+        end_date: startOfDayFromString('2022-01-02') as Date,
       },
       create: {
         id: "tmt_56d916ece6b50e6293300248c6792316",
         user_id: "usr_516a113083983234fc316e31fb695b85",
         tmnt_name: "Yosemite 6 Gamer",
         bowl_id: "bwl_8b4a5c35ad1247049532ff53a12def0a",
-        start_date: new Date(Date.UTC(2022, 0, 2)),  // month is -1 
-        end_date: new Date(Date.UTC(2022, 0, 2)),  // month is -1 
+        start_date: startOfDayFromString('2022-01-02') as Date,
+        end_date: startOfDayFromString('2022-01-02') as Date, 
       },
     });
     tmnt = await prisma.tmnt.upsert({
@@ -275,16 +275,16 @@ async function tmntUpsert() {
         user_id: "usr_a24894ed10c5dd835d5cbbfea7ac6dca",
         tmnt_name: "Coconut 5 Gamer",
         bowl_id: "bwl_ff4cd62b03f24017beea81c1d6e047e7",
-        start_date: new Date(Date.UTC(2022, 7, 21)),  // month is -1
-        end_date: new Date(Date.UTC(2022, 7, 21)),    // month is -1
+        start_date: startOfDayFromString('2022-08-21') as Date,
+        end_date: startOfDayFromString('2022-08-21') as Date,
       },
       create: {
         id: "tmt_d9b1af944d4941f65b2d2d4ac160cdea",
         user_id: "usr_a24894ed10c5dd835d5cbbfea7ac6dca",
         tmnt_name: "Coconut 5 Gamer",
         bowl_id: "bwl_ff4cd62b03f24017beea81c1d6e047e7",
-        start_date: new Date(Date.UTC(2022, 7, 21)),  // month is -1
-        end_date: new Date(Date.UTC(2022, 7, 21)),    // month is -1
+        start_date: startOfDayFromString('2022-08-21') as Date, 
+        end_date: startOfDayFromString('2022-08-21') as Date,
       },
     });
     tmnt = await prisma.tmnt.upsert({
@@ -295,16 +295,16 @@ async function tmntUpsert() {
         user_id: "usr_5bcefb5d314fff1ff5da6521a2fa7bde",
         tmnt_name: "Gold Pin",
         bowl_id: "bwl_561540bd64974da9abdd97765fdb3659",
-        start_date: new Date(Date.UTC(2023, 8, 16)),  // month is -1
-        end_date: new Date(Date.UTC(2023, 8, 16)),    // month is -1
+        start_date: startOfDayFromString('2023-09-16') as Date,
+        end_date: startOfDayFromString('2023-09-16') as Date,
       },
       create: {
         id: "tmt_467e51d71659d2e412cbc64a0d19ecb4",
         user_id: "usr_5bcefb5d314fff1ff5da6521a2fa7bde",
         tmnt_name: "Gold Pin",
         bowl_id: "bwl_561540bd64974da9abdd97765fdb3659",
-        start_date: new Date(Date.UTC(2023, 8, 16)),  // month is -1
-        end_date: new Date(Date.UTC(2023, 8, 16)),    // month is -1
+        start_date: startOfDayFromString('2023-09-16') as Date,
+        end_date: startOfDayFromString('2023-09-16') as Date,
       },
     });
     tmnt = await prisma.tmnt.upsert({
@@ -315,16 +315,16 @@ async function tmntUpsert() {
         user_id: "usr_a24894ed10c5dd835d5cbbfea7ac6dca",
         tmnt_name: "Coconut Singles & Doubles",
         bowl_id: "bwl_ff4cd62b03f24017beea81c1d6e047e7",
-        start_date: new Date(Date.UTC(2023, 0, 1)), // month is -1
-        end_date: new Date(Date.UTC(2023, 0, 1)),   // month is -1
+        start_date: startOfDayFromString('2023-01-02') as Date,
+        end_date: startOfDayFromString('2023-01-02') as Date,
       },
       create: {
         id: "tmt_02e9022687d13c2c922d43682e6b6a80",
         user_id: "usr_a24894ed10c5dd835d5cbbfea7ac6dca",
         tmnt_name: "Coconut Singles & Doubles",
         bowl_id: "bwl_ff4cd62b03f24017beea81c1d6e047e7",
-        start_date: new Date(Date.UTC(2023, 0, 1)), // month is -1
-        end_date: new Date(Date.UTC(2023, 0, 1)),   // month is -1
+        start_date: startOfDayFromString('2023-01-01') as Date,
+        end_date: startOfDayFromString('2023-01-01') as Date,
       },
     });
     tmnt = await prisma.tmnt.upsert({
@@ -335,16 +335,16 @@ async function tmntUpsert() {
         user_id: "usr_5bcefb5d314fff1ff5da6521a2fa7bde",
         tmnt_name: "Gold Pin",
         bowl_id: "bwl_561540bd64974da9abdd97765fdb3659",
-        start_date: new Date(Date.UTC(2023, 0, 2)), // month is -1
-        end_date: new Date(Date.UTC(2023, 0, 2)),   // month is -1
+        start_date: startOfDayFromString('2023-01-02') as Date,
+        end_date: startOfDayFromString('2023-01-02') as Date,
       },
       create: {
         id: "tmt_a78f073789cc0f8a9a0de8c6e273eab1",
         user_id: "usr_5bcefb5d314fff1ff5da6521a2fa7bde",
         tmnt_name: "Gold Pin",
         bowl_id: "bwl_561540bd64974da9abdd97765fdb3659",
-        start_date: new Date(Date.UTC(2023, 0, 2)), // month is -1
-        end_date: new Date(Date.UTC(2023, 0, 2)),   // month is -1
+        start_date: startOfDayFromString('2023-01-02') as Date, 
+        end_date: startOfDayFromString('2023-01-02') as Date,
       },
     });
     tmnt = await prisma.tmnt.upsert({
@@ -355,16 +355,16 @@ async function tmntUpsert() {
         user_id: "usr_5bcefb5d314fff1ff5da6521a2fa7bde",
         tmnt_name: "Masters",
         bowl_id: "bwl_8b4a5c35ad1247049532ff53a12def0a",
-        start_date: new Date(Date.UTC(2024, 0, 5)), // month is -1
-        end_date: new Date(Date.UTC(2024, 0, 5)),   // month is -1
+        start_date: startOfDayFromString('2024-01-05') as Date,
+        end_date: startOfDayFromString('2024-01-05') as Date,
       },
       create: {
         id: "tmt_9a34a65584f94f548f5ce3b3becbca19",
         user_id: "usr_5bcefb5d314fff1ff5da6521a2fa7bde",
         tmnt_name: "Masters",
         bowl_id: "bwl_8b4a5c35ad1247049532ff53a12def0a",
-        start_date: new Date(Date.UTC(2024, 0, 5)), // month is -1
-        end_date: new Date(Date.UTC(2024, 0, 5)),   // month is -1
+        start_date: startOfDayFromString('2024-01-05') as Date,
+        end_date: startOfDayFromString('2024-01-05') as Date,
       },
     });
     tmnt = await prisma.tmnt.upsert({
@@ -375,16 +375,16 @@ async function tmntUpsert() {
         user_id: "usr_5bcefb5d314fff1ff5da6521a2fa7bde",
         tmnt_name: "New Year's Eve 6 Gamer",
         bowl_id: "bwl_561540bd64974da9abdd97765fdb3659",
-        start_date: new Date(Date.UTC(2023, 11, 31)), // month is -1
-        end_date: new Date(Date.UTC(2023, 11, 31)),   // month is -1
+        start_date: startOfDayFromString('2023-12-31') as Date,
+        end_date: startOfDayFromString('2023-12-31') as Date,
       },
       create: {
         id: "tmt_fe8ac53dad0f400abe6354210a8f4cd1",
         user_id: "usr_5bcefb5d314fff1ff5da6521a2fa7bde",
         tmnt_name: "New Year's Eve 6 Gamer",
         bowl_id: "bwl_561540bd64974da9abdd97765fdb3659",
-        start_date: new Date(Date.UTC(2023, 11, 31)), // month is -1
-        end_date: new Date(Date.UTC(2023, 11, 31)),   // month is -1
+        start_date: startOfDayFromString('2023-12-31') as Date,
+        end_date: startOfDayFromString('2023-12-31') as Date,
       },
     });
     tmnt = await prisma.tmnt.upsert({
@@ -395,16 +395,16 @@ async function tmntUpsert() {
         user_id: "usr_5bcefb5d314fff1ff5da6521a2fa7bde",
         tmnt_name: "2-Day event",
         bowl_id: "bwl_561540bd64974da9abdd97765fdb3659",
-        start_date: new Date(Date.UTC(2023, 11, 20)), // month is -1
-        end_date: new Date(Date.UTC(2023, 11, 21)),   // month is -1
+        start_date: startOfDayFromString('2023-12-20') as Date,
+        end_date: startOfDayFromString('2023-12-20') as Date,
       },
       create: {
         id: "tmt_718fe20f53dd4e539692c6c64f991bbe",
         user_id: "usr_5bcefb5d314fff1ff5da6521a2fa7bde",
         tmnt_name: "2-Day event",
         bowl_id: "bwl_561540bd64974da9abdd97765fdb3659",
-        start_date: new Date(Date.UTC(2023, 11, 20)), // month is -1
-        end_date: new Date(Date.UTC(2023, 11, 21)),   // month is -1
+        start_date: startOfDayFromString('2023-12-20') as Date,
+        end_date: startOfDayFromString('2023-12-20') as Date,
       },
     });
     tmnt = await prisma.tmnt.upsert({
@@ -415,16 +415,16 @@ async function tmntUpsert() {
         user_id: "usr_5bcefb5d314fff1ff5da6521a2fa7bde",
         tmnt_name: "Gold Pin",
         bowl_id: "bwl_561540bd64974da9abdd97765fdb3659",
-        start_date: new Date(Date.UTC(2025, 7, 19)),  // month is -1
-        end_date: new Date(Date.UTC(2025, 7, 19)),    // month is -1
+        start_date: startOfDayFromString('2025-08-19') as Date, 
+        end_date: startOfDayFromString('2025-08-19') as Date,
       },
       create: {
         id: "tmt_e134ac14c5234d708d26037ae812ac33",
         user_id: "usr_5bcefb5d314fff1ff5da6521a2fa7bde",
         tmnt_name: "Gold Pin",
         bowl_id: "bwl_561540bd64974da9abdd97765fdb3659",
-        start_date: new Date(Date.UTC(2025, 7, 19)),  // month is -1
-        end_date: new Date(Date.UTC(2025, 7, 19)),    // month is -1
+        start_date: startOfDayFromString('2025-08-19') as Date,
+        end_date: startOfDayFromString('2025-08-19') as Date,
       },
     });
     console.log("Upserted tmnts:", 10);
@@ -892,7 +892,7 @@ async function squadUpsert() {
       update: {        
         event_id: "evt_cb97b73cb538418ab993fc867f860510",
         squad_name: "Squad 1",
-        squad_date: new Date(Date.UTC(2022, 9, 23)),  // month is -1 
+        squad_date: startOfDayFromString('2022-10-23') as Date,  
         squad_time: null,
         games: 6,
         lane_count: 12,
@@ -903,7 +903,7 @@ async function squadUpsert() {
         id: "sqd_7116ce5f80164830830a7157eb093396",
         event_id: "evt_cb97b73cb538418ab993fc867f860510",
         squad_name: "Squad 1",
-        squad_date: new Date(Date.UTC(2022, 9, 23)),  // month is -1 
+        squad_date: startOfDayFromString('2022-10-23') as Date,  
         squad_time: null,
         games: 6,
         lane_count: 12,
@@ -918,7 +918,7 @@ async function squadUpsert() {
       update: {        
         event_id: "evt_dadfd0e9c11a4aacb87084f1609a0afd",
         squad_name: "Squad 1",
-        squad_date: new Date(Date.UTC(2022, 0, 2)),  // month is -1 
+        squad_date: startOfDayFromString('2022-01-02') as Date,
         squad_time: null,
         games: 6,
         lane_count: 24,
@@ -929,7 +929,7 @@ async function squadUpsert() {
         id: "sqd_1a6c885ee19a49489960389193e8f819",
         event_id: "evt_dadfd0e9c11a4aacb87084f1609a0afd",
         squad_name: "Squad 1",
-        squad_date: new Date(Date.UTC(2022, 0, 2)),  // month is -1 
+        squad_date: startOfDayFromString('2022-01-02') as Date,
         squad_time: null,
         games: 6,
         lane_count: 24,
@@ -944,7 +944,7 @@ async function squadUpsert() {
       update: {        
         event_id: "evt_06055deb80674bd592a357a4716d8ef2",
         squad_name: "A Squad",
-        squad_date: new Date(Date.UTC(2022, 7, 21)),  // month is -1 
+        squad_date: startOfDayFromString('2022-08-21') as Date, 
         squad_time: '10:00 AM',
         games: 6,
         lane_count: 24,
@@ -955,7 +955,7 @@ async function squadUpsert() {
         id: "sqd_42be0f9d527e4081972ce8877190489d",
         event_id: "evt_06055deb80674bd592a357a4716d8ef2",
         squad_name: "A Squad",
-        squad_date: new Date(Date.UTC(2022, 7, 21)),  // month is -1 
+        squad_date: startOfDayFromString('2022-08-21') as Date, 
         squad_time: '10:00 AM',
         games: 6,
         lane_count: 24,
@@ -970,7 +970,7 @@ async function squadUpsert() {
       update: {        
         event_id: "evt_06055deb80674bd592a357a4716d8ef2",
         squad_name: "B Squad",
-        squad_date: new Date(Date.UTC(2022, 7, 21)),  // month is -1 
+        squad_date: startOfDayFromString('2022-08-21') as Date, 
         squad_time: '02:00 PM',
         games: 6,
         lane_count: 24,
@@ -981,7 +981,7 @@ async function squadUpsert() {
         id: "sqd_796c768572574019a6fa79b3b1c8fa57",
         event_id: "evt_06055deb80674bd592a357a4716d8ef2",
         squad_name: "B Squad",
-        squad_date: new Date(Date.UTC(2022, 7, 21)),  // month is -1 
+        squad_date: startOfDayFromString('2022-08-21') as Date, 
         squad_time: '02:00 PM',
         games: 6,
         lane_count: 24, 
@@ -996,7 +996,7 @@ async function squadUpsert() {
       update: {        
         event_id: "evt_9a58f0a486cb4e6c92ca3348702b1a62",
         squad_name: "Squad 1",
-        squad_date: new Date(Date.UTC(2023, 2, 1)),  // month is -1
+        squad_date: startOfDayFromString('2023-03-01') as Date,
         squad_time: '08:00 AM',
         games: 6,
         lane_count: 24,
@@ -1007,7 +1007,7 @@ async function squadUpsert() {
         id: "sqd_3397da1adc014cf58c44e07c19914f71",
         event_id: "evt_9a58f0a486cb4e6c92ca3348702b1a62",
         squad_name: "Squad 1",
-        squad_date: new Date(Date.UTC(2023, 2, 1)),  // month is -1
+        squad_date: startOfDayFromString('2023-03-01') as Date,
         squad_time: '08:00 AM',
         games: 6,
         lane_count: 24,
@@ -1022,7 +1022,7 @@ async function squadUpsert() {
       update: {        
         event_id: "evt_cb55703a8a084acb86306e2944320e8d",
         squad_name: "Squad 2",
-        squad_date: new Date(Date.UTC(2023, 2, 1)),  // month is -1
+        squad_date: startOfDayFromString('2023-03-01') as Date,
         squad_time: '01:00 PM',
         games: 6,
         lane_count: 24,
@@ -1033,7 +1033,7 @@ async function squadUpsert() {
         id: "sqd_20c24199328447f8bbe95c05e1b84644",
         event_id: "evt_cb55703a8a084acb86306e2944320e8d",
         squad_name: "Squad 2",
-        squad_date: new Date(Date.UTC(2023, 2, 1)),  // month is -1
+        squad_date: startOfDayFromString('2023-03-01') as Date,
         squad_time: '01:00 PM',
         games: 6,
         lane_count: 24,
@@ -1048,7 +1048,7 @@ async function squadUpsert() {
       update: {        
         event_id: "evt_c0b2bb31d647414a9bea003bd835f3a0",
         squad_name: "Squad 1",
-        squad_date: new Date(Date.UTC(2023, 8, 18)),  // month is -1 
+        squad_date: startOfDayFromString('2023-09-18') as Date,
         squad_time: '01:00 PM',
         games: 6,
         lane_count: 24,
@@ -1059,7 +1059,7 @@ async function squadUpsert() {
         id: "sqd_bb2de887bf274242af5d867476b029b8",
         event_id: "evt_c0b2bb31d647414a9bea003bd835f3a0",
         squad_name: "Squad 1",
-        squad_date: new Date(Date.UTC(2023, 8, 18)),  // month is -1
+        squad_date: startOfDayFromString('2023-09-18') as Date,
         squad_time: '01:00 PM',
         games: 6,
         lane_count: 24,
@@ -1075,7 +1075,7 @@ async function squadUpsert() {
       update: {        
         event_id: "evt_9a58f0a486cb4e6c92ca3348702b1a62",
         squad_name: "Squad 3",
-        squad_date: new Date(Date.UTC(2023, 8, 16)),  // month is -1
+        squad_date: startOfDayFromString('2023-09-16') as Date, 
         squad_time: '02:00 PM',
         games: 6,
         lane_count: 24,
@@ -1086,7 +1086,7 @@ async function squadUpsert() {
         id: "sqd_3397da1adc014cf58c44e07c19914f72",
         event_id: "evt_9a58f0a486cb4e6c92ca3348702b1a62",
         squad_name: "Squad 3",
-        squad_date: new Date(Date.UTC(2023, 8, 16)),  // month is -1
+        squad_date: startOfDayFromString('2023-09-16') as Date, 
         squad_time: '02:00 PM',
         games: 6,
         lane_count: 24,
@@ -1122,21 +1122,21 @@ async function laneUpsert() {
       });
       lane = await prisma.lane.upsert({
         where: {
-          id: "lan_7b5b9d9e6b6e4c5b9f6b7d9e7f9b6c5d",
+          id: "lan_8590d9693f8e45558b789a6595b1675b",
         },
         update: {
           lane_number: 30,
           squad_id: "sqd_7116ce5f80164830830a7157eb093396",
         },
         create: {
-          id: "lan_327d738e43bb4ff680f6b17fac0a61f0",
+          id: "lan_8590d9693f8e45558b789a6595b1675b",
           lane_number: 30,
           squad_id: "sqd_7116ce5f80164830830a7157eb093396",
         },
       });
       lane = await prisma.lane.upsert({
         where: {
-          id: "lan_7b5b9d9e6b6e4c5b9f6b7d9e7f9b6c5d",
+          id: "lan_8b78890d8b8e4c5b9f6b7d9e7f9b6c5d",
         },
         update: {          
           lane_number: 31,
@@ -1164,7 +1164,7 @@ async function laneUpsert() {
       });
       lane = await prisma.lane.upsert({
         where: {
-          id: "lan_8b78890d8b8e4c5b9f6b7d9e7f9b6123",
+          id: "lan_8b78890d8b8e4c5b9f6b7d9e7f9b6234",
         },
         update: {          
           lane_number: 33,
@@ -1178,7 +1178,7 @@ async function laneUpsert() {
       });
       lane = await prisma.lane.upsert({
         where: {
-          id: "lan_8b78890d8b8e4c5b9f6b7d9e7f9b6123",
+          id: "lan_8b78890d8b8e4c5b9f6b7d9e7f9b6345",
         },
         update: {          
           lane_number: 34,

@@ -1,7 +1,7 @@
 import { NextResponse, NextRequest } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { validateElim, sanitizeElim } from "./validate";
-import { ErrorCode, validPostId } from "@/lib/validation";
+import { ErrorCode } from "@/lib/validation";
 import { elimType } from "@/lib/types/types";
 import { initElim } from "@/lib/db/initVals";
 
@@ -39,6 +39,7 @@ export async function POST(request: Request) {
     
     const toCheck: elimType = {
       ...initElim,
+      id,
       div_id,
       squad_id,
       fee,
@@ -64,25 +65,18 @@ export async function POST(request: Request) {
       }
       return NextResponse.json({ error: errMsg }, { status: 422 });
     }
-
-    let postId = "";
-    if (id) {
-      postId = validPostId(id, "elm");
-      if (!postId) {
-        return NextResponse.json({ error: "invalid data" }, { status: 422 });
-      }
-    }
     
     type elimDataType = {
+      id: string;
       div_id: string;
       squad_id: string;
       fee: string;
       start: number;
       games: number;
-      sort_order: number;
-      id?: string;
+      sort_order: number;      
     };
     let elimData: elimDataType = {
+      id: toPost.id,
       div_id: toPost.div_id, 
       squad_id: toPost.squad_id,
       fee: toPost.fee,
@@ -90,9 +84,6 @@ export async function POST(request: Request) {
       games: toPost.games,
       sort_order: toPost.sort_order,
     };
-    if (postId) {
-      elimData.id = postId;
-    }
     const elim = await prisma.elim.create({
       data: elimData,
     });
@@ -101,10 +92,10 @@ export async function POST(request: Request) {
     let errStatus: number;
     switch (err.code) {
       case "P2002": // Unique constraint
-        errStatus = 422;
+        errStatus = 404;
         break;
       case "P2003": // Foreign key constraint
-        errStatus = 422;
+        errStatus = 404;
         break;
       default:
         errStatus = 500;

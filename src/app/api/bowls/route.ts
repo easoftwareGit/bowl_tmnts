@@ -3,7 +3,7 @@ import { prisma } from "@/lib/prisma";
 import { bowlType } from "@/lib/types/types";
 import { initBowl } from "@/lib/db/initVals";
 import { sanitizeBowl, validateBowl } from "./validate";
-import { ErrorCode, validPostId } from "@/lib/validation";
+import { ErrorCode } from "@/lib/validation";
 
 // routes /api/bowls
 
@@ -30,6 +30,7 @@ export async function POST(request: NextRequest) {
 
     const toCheck: bowlType = {
       ...initBowl,
+      id,
       bowl_name,      
       city,
       state,
@@ -58,32 +59,20 @@ export async function POST(request: NextRequest) {
         { status: 422 }
       )
     }
-    let postId = '';
-    if (id) { 
-      postId = validPostId(id, 'bwl');
-      if (!postId) {
-        return NextResponse.json(
-          { error: "invalid data" },
-          { status: 422 }
-        );
-      }
-    }    
     
     type bowlDataType = {
+      id: string
       bowl_name: string
       city: string
       state: string
-      url: string,
-      id?: string
+      url: string,      
     }
     let bowlData: bowlDataType = {
+      id: toPost.id,
       bowl_name: toPost.bowl_name,
       city: toPost.city,
       state: toPost.state,
       url: toPost.url
-    }
-    if (postId) {
-      bowlData.id = postId
     }
 
     const bowl = await prisma.bowl.create({
@@ -103,5 +92,6 @@ export async function POST(request: NextRequest) {
     return NextResponse.json(
       { error: "error creating bowl" },
       { status: errStatus }
-    );     }
+    );
+  }
 }

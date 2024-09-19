@@ -1,12 +1,11 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { ErrorCode, isValidBtDbId } from "@/lib/validation";
-import { sanitizeBrkt, validateBrkt } from "../validate";
+import { sanitizeBrkt, validateBrkt } from "../../validate";
 import { brktType } from "@/lib/types/types";
 import { initBrkt } from "@/lib/db/initVals";
-import { findBrktById } from "@/lib/db/brkts/brkts";
 
-// routes /api/brkts/:id
+// routes /api/brkts/brkt/:id
 
 export async function GET(
   request: Request,
@@ -98,8 +97,8 @@ export async function PUT(
         id: id,
       },
       data: {
-        // div_id: toPut.div_id, // do not update div_id
-        // squad_id: toPut.squad_id, // do not update squad_id
+        div_id: toPut.div_id, 
+        squad_id: toPut.squad_id, 
         fee: toPut.fee,
         start: toPut.start,
         games: toPut.games,
@@ -151,8 +150,13 @@ export async function PATCH(
     const json = await request.json();
     // populate toCheck with json
     const jsonProps = Object.getOwnPropertyNames(json);
+    
+    const currentBrkt = await prisma.brkt.findUnique({
+      where: {
+        id: id,
+      },
+    });    
 
-    const currentBrkt = await findBrktById(id);
     if (!currentBrkt) {
       return NextResponse.json({ error: "not found" }, { status: 404 });
     }
@@ -270,8 +274,8 @@ export async function PATCH(
       },
       // remove data if not sent
       data: {
-        // div_id: toPatch.div_id || undefined, // do not patch div_id
-        // squad_id: toPatch.squad_id || undefined, // do not patch squad_id
+        div_id: toPatch.div_id || undefined,
+        squad_id: toPatch.squad_id || undefined, 
         fee: toPatch.fee || undefined,
         start: toPatch.start || undefined,
         games: toPatch.games || undefined,

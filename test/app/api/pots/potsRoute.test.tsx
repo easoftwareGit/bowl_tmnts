@@ -3,7 +3,6 @@ import { basePotsApi } from "@/lib/db/apiPaths";
 import { testBasePotsApi } from "../../../testApi";
 import { potType } from "@/lib/types/types";
 import { initPot } from "@/lib/db/initVals";
-import { postSecret } from "@/lib/tools";
 import { isValidBtDbId } from "@/lib/validation";
 
 // before running this test, run the following commands in the terminal:
@@ -23,7 +22,8 @@ import { isValidBtDbId } from "@/lib/validation";
 
 const url = testBasePotsApi.startsWith("undefined")
   ? basePotsApi
-  : testBasePotsApi;   
+  : testBasePotsApi;  
+const onePotUrl = url + "/pot/";
 
 const notFoundId = "pot_01234567890123456789012345678901";
 const nonPotId = "usr_01234567890123456789012345678901";
@@ -46,29 +46,43 @@ describe('Pots - API: /api/pots', () => {
   }
 
   const blankPot = {
-    id: "pot_b2a7b02d761b4f5ab5438be84f642c3b",
-    squad_id: "sqd_7116ce5f80164830830a7157eb093396",
-    div_id: "div_f30aea2c534f4cfe87f4315531cef8ef",
+    id: testPot.id,
+    squad_id: testPot.squad_id,
+    div_id: testPot.div_id,
+  }
+
+  const deletePostedPot = async () => { 
+    const response = await axios.get(url);
+    const pots = response.data.pots;
+    const toDel = pots.find((p: potType) => p.sort_order === 13);
+    if (toDel) {
+      try {
+        const delResponse = await axios({
+          method: "delete",
+          withCredentials: true,
+          url: onePotUrl + toDel.id          
+        });        
+      } catch (err) {
+        if (err instanceof AxiosError) console.log(err.message);
+      }
+    }
+  }
+
+  const resetPot = async () => { 
+    // make sure test pot is reset in database
+    const potJSON = JSON.stringify(testPot);
+    const response = await axios({
+      method: "put",
+      data: potJSON,
+      withCredentials: true,
+      url: onePotUrl + testPot.id,
+    })
   }
 
   describe('GET', () => { 
 
     beforeAll(async () => {
-      // if row left over from post test, then delete it
-      const response = await axios.get(url);
-      const pots = response.data.pots;
-      const toDel = pots.find((p: potType) => p.fee === '13');
-      if (toDel) {
-        try {
-          const delResponse = await axios({
-            method: "delete",
-            withCredentials: true,
-            url: url + "/" + toDel.id
-          });
-        } catch (err) {
-          if (err instanceof AxiosError) console.log(err.message);
-        }
-      }
+      await deletePostedPot();
     })
 
     it('should get all pots', async () => { 
@@ -83,21 +97,7 @@ describe('Pots - API: /api/pots', () => {
   describe('GET pots for squad API: /api/pots/squad/:id', () => { 
 
     beforeAll(async () => {
-      // if row left over from post test, then delete it
-      const response = await axios.get(url);
-      const pots = response.data.pots;
-      const toDel = pots.find((p: potType) => p.fee === '13');
-      if (toDel) {
-        try {
-          const delResponse = await axios({
-            method: "delete",
-            withCredentials: true,
-            url: url + "/" + toDel.id
-          });
-        } catch (err) {
-          if (err instanceof AxiosError) console.log(err.message);
-        }
-      }
+      await deletePostedPot();
     })
 
     it('should get all pots for squad', async () => { 
@@ -127,21 +127,7 @@ describe('Pots - API: /api/pots', () => {
   describe('GET pots for div API: /api/pots/div/:id', () => { 
 
     beforeAll(async () => {
-      // if row left over from post test, then delete it
-      const response = await axios.get(url);
-      const pots = response.data.pots;
-      const toDel = pots.find((p: potType) => p.fee === '13');
-      if (toDel) {
-        try {
-          const delResponse = await axios({
-            method: "delete",
-            withCredentials: true,
-            url: url + "/" + toDel.id
-          });
-        } catch (err) {
-          if (err instanceof AxiosError) console.log(err.message);
-        }
-      }
+      await deletePostedPot();
     })
 
     it('should get all pots for div', async () => { 
@@ -171,49 +157,27 @@ describe('Pots - API: /api/pots', () => {
   describe('POST', () => { 
 
     const potToPost: potType = {
-      ...initPot,
-      id: "",
+      ...initPot,      
       squad_id: "sqd_3397da1adc014cf58c44e07c19914f72",
       div_id: 'div_66d39a83d7a84a8c85d28d8d1b2c7a90',
       fee: '13',
       pot_type: "Game",
-      sort_order: 1,
+      sort_order: 13,
     }
   
-    let createdPotId = "";
+    let createdPot = false;
 
     beforeAll(async () => {
-      const response = await axios.get(url);
-      const pots = response.data.pots;
-      const toDel = pots.find((p: potType) => p.fee === '13');
-      if (toDel) {
-        try {
-          const delResponse = await axios({
-            method: "delete",
-            withCredentials: true,
-            url: url + "/" + toDel.id
-          });
-        } catch (err) {
-          if (err instanceof AxiosError) console.log(err.message);
-        }
-      }
+      await deletePostedPot();
     })
 
     beforeEach(() => {
-      createdPotId = '';
+      createdPot = false;
     })
 
     afterEach(async () => {
-      if (createdPotId) {
-        try {
-          const delResponse = await axios({
-            method: "delete",
-            withCredentials: true,
-            url: url + "/" + createdPotId
-          });
-        } catch (err) {
-          if (err instanceof AxiosError) console.log(err.message);
-        }
+      if (createdPot) {
+        await deletePostedPot();
       }
     })
 
@@ -227,30 +191,13 @@ describe('Pots - API: /api/pots', () => {
       })
       expect(response.status).toBe(201);
       const postedPot = response.data.pot;
-      createdPotId = response.data.pot.id;
+      createdPot = true;
       expect(postedPot.div_id).toBe(potToPost.div_id);
       expect(postedPot.squad_id).toBe(potToPost.squad_id);
       expect(postedPot.fee).toBe(potToPost.fee);
       expect(postedPot.pot_type).toBe(potToPost.pot_type);
       expect(postedPot.sort_order).toBe(potToPost.sort_order);
       expect(isValidBtDbId(postedPot.id, 'pot')).toBeTruthy();
-    })
-    it('should create a new pot with the provided pot id', async () => {
-      const supIdPot = {
-        ...potToPost,
-        id: postSecret + notFoundId, // use valid ID
-      }
-      const potJSON = JSON.stringify(supIdPot);
-      const response = await axios({
-        method: "post",
-        withCredentials: true,
-        url: url,
-        data: potJSON
-      })
-      expect(response.status).toBe(201);
-      const postedPot = response.data.pot;
-      createdPotId = response.data.pot.id;
-      expect(postedPot.id).toEqual(notFoundId);
     })
     it('should create a new pot with a pot_type of "Last Game"', async () => {
       const lgPot = {
@@ -266,7 +213,7 @@ describe('Pots - API: /api/pots', () => {
       })
       expect(response.status).toBe(201);
       const postedPot = response.data.pot;
-      createdPotId = response.data.pot.id;
+      createdPot = true;
       expect(postedPot.pot_type).toBe('Last Game');
     })
     it('should create a new pot with a pot_type of "Series"', async () => {
@@ -283,8 +230,30 @@ describe('Pots - API: /api/pots', () => {
       })
       expect(response.status).toBe(201);
       const postedPot = response.data.pot;
-      createdPotId = response.data.pot.id;
+      createdPot = true;
       expect(postedPot.pot_type).toBe('Series');
+    })
+    it('should NOT create a new pot when id is blank', async () => {
+      const invalidPot = {
+        ...potToPost,
+        id: "",
+      }
+      const potJSON = JSON.stringify(invalidPot);
+      try {
+        const response = await axios({
+          method: "post",
+          data: potJSON,
+          withCredentials: true,
+          url: url
+        })
+        expect(response.status).toBe(422);
+      } catch (err) {
+        if (err instanceof AxiosError) {
+          expect(err.response?.status).toBe(422);
+        } else {
+          expect(true).toBeFalsy();
+        }
+      }
     })
     it('should NOT create a new pot when squad_id is blank', async () => {
       const invalidPot = {
@@ -631,10 +600,10 @@ describe('Pots - API: /api/pots', () => {
           withCredentials: true,
           url: url
         })
-        expect(response.status).toBe(422);
+        expect(response.status).toBe(404);
       } catch (err) {
         if (err instanceof AxiosError) {
-          expect(err.response?.status).toBe(422);
+          expect(err.response?.status).toBe(404);
         } else {
           expect(true).toBeFalsy();
         }
@@ -654,16 +623,16 @@ describe('Pots - API: /api/pots', () => {
       })
       expect(response.status).toBe(201);
       const postedPot = response.data.pot;
-      createdPotId = response.data.pot.id;      
+      createdPot = true;
       expect(postedPot.fee).toBe('5.46');
     })
 
   })
 
-  describe('GET by id - API: /api/pots/:id', () => { 
+  describe('GET by id - API: /api/pots/pot/:id', () => { 
 
     it('should get pot by id', async () => { 
-      const response = await axios.get(url + "/" + testPot.id);
+      const response = await axios.get(onePotUrl + testPot.id);
       expect(response.status).toBe(200);
       const pot = response.data.pot;
       expect(pot.id).toBe(testPot.id);
@@ -675,7 +644,7 @@ describe('Pots - API: /api/pots', () => {
     })
     it('should NOT get pot by id when ID is invalid', async () => { 
       try {
-        const response = await axios.get(url + "/" + 'invalid');
+        const response = await axios.get(onePotUrl + 'invalid');
         expect(response.status).toBe(404);
       } catch (err) {
         if (err instanceof AxiosError) {
@@ -687,7 +656,7 @@ describe('Pots - API: /api/pots', () => {
     })
     it('should NOT get pot by id when ID is not found', async () => { 
       try {
-        const response = await axios.get(url + "/" + notFoundId);
+        const response = await axios.get(onePotUrl + notFoundId);
         expect(response.status).toBe(404);
       } catch (err) {
         if (err instanceof AxiosError) {
@@ -699,7 +668,7 @@ describe('Pots - API: /api/pots', () => {
     })  
     it('should NOT get pot by id when ID is valid, but not a pot ID', async () => { 
       try {
-        const response = await axios.get(url + "/" + nonPotId);
+        const response = await axios.get(onePotUrl + nonPotId);
         expect(response.status).toBe(404);
       } catch (err) {
         if (err instanceof AxiosError) {
@@ -712,7 +681,7 @@ describe('Pots - API: /api/pots', () => {
 
   })
 
-  describe('PUT by ID - API: /api/pots/:id', () => { 
+  describe('PUT by ID - API: /api/pots/pot/:id', () => { 
 
     const putPot = {
       ...testPot,
@@ -723,39 +692,12 @@ describe('Pots - API: /api/pots', () => {
       sort_order: 10,
     }
 
-    const samplePot = {
-      ...initPot,
-      id: '',
-      squad_id: 'sqd_3397da1adc014cf58c44e07c19914f72',
-      div_id: 'div_29b9225d8dd44a4eae276f8bde855729',
-      fee: '13',
-      pot_type: "Last Game",
-      sort_order: 11,
-    }
-
     beforeAll(async () => {
-      // make sure test div is reset in database
-      const potJSON = JSON.stringify(testPot);
-      const putResponse = await axios({
-        method: "put",
-        data: potJSON,
-        withCredentials: true,
-        url: url + "/" + testPot.id,
-      })
+      await resetPot();
     })
 
     afterEach(async () => {
-      try {
-        const potJSON = JSON.stringify(testPot);
-        const putResponse = await axios({
-          method: "put",
-          data: potJSON,
-          withCredentials: true,
-          url: url + "/" + testPot.id,
-        })
-      } catch (err) {
-        if (err instanceof AxiosError) console.log(err.message);
-      }
+      await resetPot();
     })
 
     it('should update pot by id', async () => {
@@ -764,14 +706,12 @@ describe('Pots - API: /api/pots', () => {
         method: "put",
         data: potJSON,
         withCredentials: true,
-        url: url + "/" + testPot.id,
+        url: onePotUrl + testPot.id,
       })
       const pot = putResponse.data.pot;
-      expect(putResponse.status).toBe(200);
-      // did not update squad_id or div_id
-      expect(pot.squad_id).toBe(testPot.squad_id);
-      expect(pot.div_id).toBe(testPot.div_id);
-      // all other fields updated
+      expect(putResponse.status).toBe(200);      
+      expect(pot.squad_id).toBe(putPot.squad_id);
+      expect(pot.div_id).toBe(putPot.div_id);      
       expect(pot.fee).toBe(putPot.fee);
       expect(pot.pot_type).toBe(putPot.pot_type);
       expect(pot.sort_order).toBe(putPot.sort_order);
@@ -783,7 +723,7 @@ describe('Pots - API: /api/pots', () => {
           method: "put",
           data: potJSON,
           withCredentials: true,
-          url: url + "/" + 'test',
+          url: onePotUrl + 'test',
         })
         expect(putResponse.status).toBe(404);
       } catch (err) {
@@ -801,7 +741,7 @@ describe('Pots - API: /api/pots', () => {
           method: "put",
           data: potJSON,
           withCredentials: true,
-          url: url + "/" + nonPotId,
+          url: onePotUrl + nonPotId,
         })
         expect(putResponse.status).toBe(404);
       } catch (err) {
@@ -819,7 +759,7 @@ describe('Pots - API: /api/pots', () => {
           method: "put",
           data: potJSON,
           withCredentials: true,
-          url: url + "/" + notFoundId,
+          url: onePotUrl + notFoundId,
         })
         expect(putResponse.status).toBe(404);
       } catch (err) {
@@ -841,7 +781,7 @@ describe('Pots - API: /api/pots', () => {
           method: "put",
           data: potJSON,
           withCredentials: true,
-          url: url + "/" + testPot.id,
+          url: onePotUrl + testPot.id,
         })
         expect(response.status).toBe(422);
       } catch (err) {
@@ -863,7 +803,7 @@ describe('Pots - API: /api/pots', () => {
           method: "put",
           data: potJSON,
           withCredentials: true,
-          url: url + "/" + testPot.id,
+          url: onePotUrl + testPot.id,
         })
         expect(response.status).toBe(422);
       } catch (err) {
@@ -885,7 +825,7 @@ describe('Pots - API: /api/pots', () => {
           method: "put",
           data: potJSON,
           withCredentials: true,
-          url: url + "/" + testPot.id,
+          url: onePotUrl + testPot.id,
         })
         expect(response.status).toBe(422);
       } catch (err) {
@@ -907,7 +847,7 @@ describe('Pots - API: /api/pots', () => {
           method: "put",
           data: potJSON,
           withCredentials: true,
-          url: url + "/" + testPot.id,
+          url: onePotUrl + testPot.id,
         })
         expect(response.status).toBe(422);
       } catch (err) {
@@ -929,7 +869,7 @@ describe('Pots - API: /api/pots', () => {
           method: "put",
           data: potJSON,
           withCredentials: true,
-          url: url + "/" + testPot.id,
+          url: onePotUrl + testPot.id,
         })
         expect(response.status).toBe(422);
       } catch (err) {
@@ -951,7 +891,7 @@ describe('Pots - API: /api/pots', () => {
           method: "put",
           data: potJSON,
           withCredentials: true,
-          url: url + "/" + testPot.id,
+          url: onePotUrl + testPot.id,
         })
         expect(response.status).toBe(422);
       } catch (err) {
@@ -973,7 +913,7 @@ describe('Pots - API: /api/pots', () => {
           method: "put",
           data: potJSON,
           withCredentials: true,
-          url: url + "/" + testPot.id,
+          url: onePotUrl + testPot.id,
         })
         expect(response.status).toBe(422);
       } catch (err) {
@@ -995,7 +935,7 @@ describe('Pots - API: /api/pots', () => {
           method: "put",
           data: potJSON,
           withCredentials: true,
-          url: url + "/" + testPot.id,
+          url: onePotUrl + testPot.id,
         })
         expect(response.status).toBe(422);
       } catch (err) {
@@ -1017,7 +957,7 @@ describe('Pots - API: /api/pots', () => {
           method: "put",
           data: potJSON,
           withCredentials: true,
-          url: url + "/" + testPot.id,
+          url: onePotUrl + testPot.id,
         })
         expect(response.status).toBe(422);
       } catch (err) {
@@ -1039,7 +979,7 @@ describe('Pots - API: /api/pots', () => {
           method: "put",
           data: potJSON,
           withCredentials: true,
-          url: url + "/" + testPot.id,
+          url: onePotUrl + testPot.id,
         })
         expect(response.status).toBe(422);
       } catch (err) {
@@ -1061,7 +1001,7 @@ describe('Pots - API: /api/pots', () => {
           method: "put",
           data: potJSON,
           withCredentials: true,
-          url: url + "/" + testPot.id,
+          url: onePotUrl + testPot.id,
         })
         expect(response.status).toBe(422);
       } catch (err) {
@@ -1083,7 +1023,7 @@ describe('Pots - API: /api/pots', () => {
           method: "put",
           data: potJSON,
           withCredentials: true,
-          url: url + "/" + testPot.id,
+          url: onePotUrl + testPot.id,
         })
         expect(response.status).toBe(422);
       } catch (err) {
@@ -1101,7 +1041,7 @@ describe('Pots - API: /api/pots', () => {
         squad_id: squad2Id,
         div_id: div2Id,
         sort_order: 2,
-        fee: 10,
+        fee: '10',
         pot_type: "Game",
       }
       const potJSON = JSON.stringify(invalidPot);
@@ -1110,12 +1050,12 @@ describe('Pots - API: /api/pots', () => {
           method: "put",
           data: potJSON,
           withCredentials: true,
-          url: url + "/" + invalidPot.id,
+          url: onePotUrl + invalidPot.id,
         })
-        expect(response.status).toBe(422);
+        expect(response.status).toBe(404);
       } catch (err) {
         if (err instanceof AxiosError) {
-          expect(err.response?.status).toBe(422);
+          expect(err.response?.status).toBe(404);
         } else {
           expect(true).toBeFalsy();
         }
@@ -1131,7 +1071,7 @@ describe('Pots - API: /api/pots', () => {
         method: "put",
         data: potJSON,
         withCredentials: true,
-        url: url + "/" + testPot.id,
+        url: onePotUrl + testPot.id,
       })
       expect(putResponse.status).toBe(200);
       const pot = putResponse.data.pot;      
@@ -1149,7 +1089,7 @@ describe('Pots - API: /api/pots', () => {
         method: "put",
         data: potJSON,
         withCredentials: true,
-        url: url + "/" + testPot.id,
+        url: onePotUrl + testPot.id,
       })
     })
       
@@ -1160,7 +1100,7 @@ describe('Pots - API: /api/pots', () => {
           method: "put",
           data: potJSON,
           withCredentials: true,
-          url: url + "/" + testPot.id,
+          url: onePotUrl + testPot.id,
         })
       } catch (err) {
         if (err instanceof AxiosError) console.log(err.message);
@@ -1177,7 +1117,7 @@ describe('Pots - API: /api/pots', () => {
         method: "patch",
         data: potJSON,
         withCredentials: true,
-        url: url + "/" + blankPot.id,
+        url: onePotUrl + blankPot.id,
       })
       expect(response.status).toBe(200);
       const patchedPot = response.data.pot;
@@ -1193,7 +1133,7 @@ describe('Pots - API: /api/pots', () => {
         method: "patch",
         data: potJSON,
         withCredentials: true,
-        url: url + "/" + blankPot.id,
+        url: onePotUrl + blankPot.id,
       })
       expect(response.status).toBe(200);
       const patchedPot = response.data.Pot;
@@ -1209,7 +1149,7 @@ describe('Pots - API: /api/pots', () => {
         method: "patch",
         data: potJSON,
         withCredentials: true,
-        url: url + "/" + blankPot.id,
+        url: onePotUrl + blankPot.id,
       })
       expect(response.status).toBe(200);
       const patchedPot = response.data.pot;
@@ -1225,7 +1165,7 @@ describe('Pots - API: /api/pots', () => {
         method: "patch",
         data: potJSON,
         withCredentials: true,
-        url: url + "/" + blankPot.id,
+        url: onePotUrl + blankPot.id,
       })
       expect(response.status).toBe(200);
       const patchedPot = response.data.pot;
@@ -1242,7 +1182,7 @@ describe('Pots - API: /api/pots', () => {
         method: "patch",
         data: potJSON,
         withCredentials: true,
-        url: url + "/" + blankPot.id,
+        url: onePotUrl + blankPot.id,
       })
       expect(response.status).toBe(200);
       const patchedPot = response.data.pot;
@@ -1260,7 +1200,7 @@ describe('Pots - API: /api/pots', () => {
           method: "patch",
           data: potJSON,
           withCredentials: true,
-          url: url + "/" + 'test',
+          url: onePotUrl + 'test',
         })
         expect(response.status).toBe(404);
       } catch (err) {
@@ -1282,7 +1222,7 @@ describe('Pots - API: /api/pots', () => {
           method: "patch",
           data: potJSON,
           withCredentials: true,
-          url: url + "/" + notFoundId,
+          url: onePotUrl + notFoundId,
         })
         expect(response.status).toBe(404);
       } catch (err) {
@@ -1304,7 +1244,7 @@ describe('Pots - API: /api/pots', () => {
           method: "patch",
           data: potJSON,
           withCredentials: true,
-          url: url + "/" + nonPotId,
+          url: onePotUrl + nonPotId,
         })
         expect(response.status).toBe(404);
       } catch (err) {
@@ -1326,7 +1266,7 @@ describe('Pots - API: /api/pots', () => {
           method: "patch",
           data: potJSON,
           withCredentials: true,
-          url: url + "/" + blankPot.id,
+          url: onePotUrl + blankPot.id,
         })
         expect(response.status).toBe(422);
       } catch (err) {
@@ -1348,7 +1288,7 @@ describe('Pots - API: /api/pots', () => {
           method: "patch",
           data: potJSON,
           withCredentials: true,
-          url: url + "/" + blankPot.id,
+          url: onePotUrl + blankPot.id,
         })
         expect(response.status).toBe(422);
       } catch (err) {
@@ -1370,7 +1310,7 @@ describe('Pots - API: /api/pots', () => {
           method: "patch",
           data: potJSON,
           withCredentials: true,
-          url: url + "/" + blankPot.id,
+          url: onePotUrl + blankPot.id,
         })
         expect(response.status).toBe(422);
       } catch (err) {
@@ -1392,7 +1332,7 @@ describe('Pots - API: /api/pots', () => {
           method: "patch",
           data: potJSON,
           withCredentials: true,
-          url: url + "/" + blankPot.id,
+          url: onePotUrl + blankPot.id,
         })
         expect(response.status).toBe(422);
       } catch (err) {
@@ -1414,7 +1354,7 @@ describe('Pots - API: /api/pots', () => {
           method: "patch",
           data: potJSON,
           withCredentials: true,
-          url: url + "/" + blankPot.id,
+          url: onePotUrl + blankPot.id,
         })
         expect(response.status).toBe(422);
       } catch (err) {
@@ -1436,7 +1376,7 @@ describe('Pots - API: /api/pots', () => {
           method: "patch",
           data: potJSON,
           withCredentials: true,
-          url: url + "/" + blankPot.id,
+          url: onePotUrl + blankPot.id,
         })
         expect(response.status).toBe(422);
       } catch (err) {
@@ -1458,7 +1398,7 @@ describe('Pots - API: /api/pots', () => {
           method: "patch",
           data: potJSON,
           withCredentials: true,
-          url: url + "/" + blankPot.id,
+          url: onePotUrl + blankPot.id,
         })
         expect(response.status).toBe(422);
       } catch (err) {
@@ -1480,7 +1420,7 @@ describe('Pots - API: /api/pots', () => {
           method: "patch",
           data: potJSON,
           withCredentials: true,
-          url: url + "/" + blankPot.id,
+          url: onePotUrl + blankPot.id,
         })
         expect(response.status).toBe(422);
       } catch (err) {
@@ -1502,7 +1442,7 @@ describe('Pots - API: /api/pots', () => {
           method: "patch",
           data: potJSON,
           withCredentials: true,
-          url: url + "/" + blankPot.id,
+          url: onePotUrl + blankPot.id,
         })
         expect(response.status).toBe(422);
       } catch (err) {
@@ -1524,7 +1464,7 @@ describe('Pots - API: /api/pots', () => {
           method: "patch",
           data: potJSON,
           withCredentials: true,
-          url: url + "/" + blankPot.id,
+          url: onePotUrl + blankPot.id,
         })
         expect(response.status).toBe(422);
       } catch (err) {
@@ -1549,7 +1489,7 @@ describe('Pots - API: /api/pots', () => {
           method: "patch",
           data: potJSON,
           withCredentials: true,
-          url: url + "/" + invalidPot.id,
+          url: onePotUrl + invalidPot.id,
         })
         expect(response.status).toBe(422);
       } catch (err) {
@@ -1570,7 +1510,7 @@ describe('Pots - API: /api/pots', () => {
         method: "patch",
         data: potJSON,
         withCredentials: true,
-        url: url + "/" + blankPot.id,
+        url: onePotUrl + blankPot.id,
       })
       expect(response.status).toBe(200);
       const patchedPot = response.data.pot;
@@ -1600,11 +1540,7 @@ describe('Pots - API: /api/pots', () => {
     afterEach(async () => {
       if (!didDel) return;
       try {
-        const restoredPot = {
-          ...toDelPot,
-          id: postSecret + toDelPot.id,
-        }
-        const potJSON = JSON.stringify(restoredPot);
+        const potJSON = JSON.stringify(toDelPot);
         const response = await axios({
           method: 'post',
           data: potJSON,
@@ -1622,7 +1558,7 @@ describe('Pots - API: /api/pots', () => {
         const delResponse = await axios({
           method: "delete",
           withCredentials: true,
-          url: url + "/" + toDelPot.id,
+          url: onePotUrl + toDelPot.id,
         })  
         didDel = true;
         expect(delResponse.status).toBe(200);
@@ -1639,7 +1575,7 @@ describe('Pots - API: /api/pots', () => {
         const delResponse = await axios({
           method: "delete",
           withCredentials: true,
-          url: url + "/" + 'test',
+          url: onePotUrl + 'test',
         })  
         expect(delResponse.status).toBe(404);
       } catch (err) {
@@ -1655,7 +1591,7 @@ describe('Pots - API: /api/pots', () => {
         const delResponse = await axios({
           method: "delete",
           withCredentials: true,
-          url: url + "/" + notFoundId,
+          url: onePotUrl + notFoundId,
         })  
         expect(delResponse.status).toBe(404);
       } catch (err) {
@@ -1671,7 +1607,7 @@ describe('Pots - API: /api/pots', () => {
         const delResponse = await axios({
           method: "delete",
           withCredentials: true,
-          url: url + "/" + nonPotId
+          url: onePotUrl + nonPotId
         })  
         expect(delResponse.status).toBe(404);
       } catch (err) {
@@ -1682,12 +1618,13 @@ describe('Pots - API: /api/pots', () => {
         }
       }
     })
+
     // it('should NOT delete a pot by ID when pot has child rows', async () => { 
     //   try {
     //     const delResponse = await axios({
     //       method: "delete",
     //       withCredentials: true,
-    //       url: url + "/" + testPot.id
+    //       url: onePotUrl + testPot.id
     //     })  
     //     expect(delResponse.status).toBe(409);
     //   } catch (err) {

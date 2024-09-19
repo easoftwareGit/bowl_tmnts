@@ -95,8 +95,14 @@ const validIdTypes = [
   "ply",
 ];
 
+const validRoles = ["ADMIN", "DIRECTOR", "USER"]
+
 export const isValidBtDbType = (str: string): boolean => {
   return validIdTypes.includes(str);
+}
+
+export const isValidRole = (str: string): boolean => {
+  return validRoles.includes(str);
 }
 
 /**
@@ -117,30 +123,6 @@ export function isValidBtDbId(id: string, idType: idTypes): boolean {
   if (!isValidBtDbType(idType)) return false;  
   const regex = /^[a-z]{3}_[a-f0-9]{32}$/;
   return regex.test(id);
-}
-
-/**
- * checks if post id is valid, and returns the valid id if it is
- * 
- * @param {string} id
- * @return {string} - the valid user id if: str starts with postSecret and ends with a valid user BtDb id;
- *                  - otherwise returns an empty string
- */
-export function validPostId(id: string, idType: idTypes): string {  
-  
-  // const secret = (typeof postSecret === 'undefined')
-  //   ? testPostSecret
-  //   : postSecret
-  
-  if (id?.startsWith(postSecret as string)) {
-    const postId = id.replace(postSecret as string, '');
-    if (isValidBtDbId(postId, idType)) {
-      return postId
-    }
-    return ''
-  } else {
-    return ''
-  }
 }
 
 /**

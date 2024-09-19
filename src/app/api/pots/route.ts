@@ -1,7 +1,7 @@
 import { NextResponse, NextRequest } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { validatePot, sanitizePot } from "./validate";
-import { ErrorCode, validPostId } from "@/lib/validation";
+import { ErrorCode } from "@/lib/validation";
 import { potType, PotCategories } from "@/lib/types/types";
 import { initPot } from "@/lib/db/initVals";
 
@@ -22,7 +22,7 @@ export async function GET(request: NextRequest) {
   } catch (err: any) {
     return NextResponse.json(
       { error: "error getting pots" },
-      { status: 500 }
+      { status: 400 }
     );            
   }
 }
@@ -32,6 +32,7 @@ export async function POST(request: Request) {
     const { id, div_id, squad_id, pot_type, fee, sort_order } = await request.json()    
     const toCheck: potType = {
       ...initPot,
+      id,
       div_id,
       squad_id,
       pot_type,
@@ -59,35 +60,22 @@ export async function POST(request: Request) {
         { status: 422 }
       );
     }
-
-    let postId = '';
-    if (id) {
-      postId = validPostId(id, 'pot');
-      if (!postId) {
-        return NextResponse.json(
-          { error: "invalid post id" },
-          { status: 422 }
-        );
-      }
-    }
     
     type potDataType = {
+      id: string
       div_id: string
       squad_id: string
       pot_type: PotCategories
       fee: string
-      sort_order: number
-      id?: string
+      sort_order: number      
     }
     let potData: potDataType = {
+      id: toPost.id,
       div_id: toPost.div_id,
       squad_id: toPost.squad_id,
       pot_type: toPost.pot_type,
       fee: toPost.fee,            
       sort_order: toPost.sort_order
-    }
-    if (postId) {
-      potData.id = postId
     }
     const pot = await prisma.pot.create({
       data: potData
@@ -97,10 +85,10 @@ export async function POST(request: Request) {
     let errStatus: number
     switch (err.code) {
       case 'P2002': // Unique constraint
-        errStatus = 422
+        errStatus = 404
         break;
       case 'P2003': // Foreign key constraint
-        errStatus = 422
+        errStatus = 404
         break;    
       default:
         errStatus = 500

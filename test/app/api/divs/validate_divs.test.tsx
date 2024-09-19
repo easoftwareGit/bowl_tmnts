@@ -9,10 +9,10 @@ import {
   exportedForTesting,
   validHdcpFor
 } from "@/app/api/divs/validate";
-import { defaultHdcpFrom, defaultHdcpPer, initDiv } from "@/lib/db/initVals";
+import { initDiv } from "@/lib/db/initVals";
 import { postSecret } from "@/lib/tools";
 import { divType } from "@/lib/types/types";
-import { ErrorCode, maxEventLength, maxSortOrder, validPostId } from "@/lib/validation";
+import { ErrorCode, maxEventLength, maxSortOrder } from "@/lib/validation";
 
 const { gotDivData, validDivData } = exportedForTesting;
 
@@ -30,8 +30,7 @@ const validScratchDiv: divType = {
 }
 const validHdcpDiv: divType = {
   ...initDiv,
-  tmnt_id: "tmt_fd99387c33d9c78aba290286576ddce5",
-  id: '2',
+  tmnt_id: "tmt_fd99387c33d9c78aba290286576ddce5",  
   div_name: 'Hdcp',
   hdcp_per: 0.90,
   hdcp_from: 230,
@@ -399,14 +398,6 @@ describe('tests for div validation', () => {
       const sanitizedDiv = sanitizeDiv(testDiv)
       expect(sanitizedDiv.id).toEqual(divId)
     })
-    it('should return a sanitized div when div has a post id', () => { 
-      const testDiv = {
-        ...validScratchDiv,
-        id: postSecret + divId,        
-      }
-      const sanitizedDiv = sanitizeDiv(testDiv)
-      expect(sanitizedDiv.id).toEqual(postSecret + divId)
-    })
     it('should return a sanitized div when div has an invalid id', () => {
       const testDiv = {
         ...validScratchDiv,
@@ -674,34 +665,6 @@ describe('tests for div validation', () => {
         expect(validateDiv(invalidTestDiv)).toBe(ErrorCode.InvalidData);
       })
     })
-  })
-
-  describe('validPostId function', () => { 
-    const testDivId = "div_cb97b73cb538418ab993fc867f860510"
-    it('should return testDivId when id starts with post Secret and follows with a valid div id', () => { 
-      const validId = postSecret + testDivId;
-      expect(validPostId(validId, 'div')).toBe(testDivId)
-    })
-    it('should return "" when id starts with postSecret but does idType does not match idtype in postId', () => {
-      const invalidId = postSecret + testDivId;
-      expect(validPostId(invalidId, 'usr')).toBe('');
-    });
-    it('should return "" when id starts with postSecret but does idType is invalid', () => {
-      const invalidId = postSecret + testDivId;
-      expect(validPostId(invalidId, '123' as any)).toBe('');
-    });
-    it('should return "" when id starts with postSecret but does not follow with valid BtDb idType', () => {
-      const invalidId = postSecret + 'abc_a1b2c3d4e5f678901234567890abcdef';
-      expect(validPostId(invalidId, 'div')).toBe('');
-    });
-    it('should return "" when id starts with postSecret but does not follow with a valid BtDb id', () => {
-      const invalidId = process.env.POST_SECRET + 'div_invalidid';
-      expect(validPostId(invalidId, 'evt')).toBe('');
-    });
-    it('should return "" when id does not start with postSecret', () => {
-      const invalidId = testDivId;
-      expect(validPostId(invalidId, 'div')).toBe('');
-    });
   })
 
 })

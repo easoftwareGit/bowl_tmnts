@@ -11,14 +11,13 @@ import {
 } from "@/app/api/events/validate";
 import { initEvent } from "@/lib/db/initVals";
 import { eventType } from "@/lib/types/types";
-import { ErrorCode, maxEventLength, maxSortOrder, validPostId } from "@/lib/validation";
-import { postSecret } from "@/lib/tools";
+import { ErrorCode, maxEventLength, maxSortOrder } from "@/lib/validation";
 import { startOfDayFromString, todayStr } from "@/lib/dateTools";
-import { notFound } from "next/navigation";
 
 const { gotEventData, validEventData } = exportedForTesting;
 
 const eventId = 'evt_cb97b73cb538418ab993fc867f860510'
+const notfoundParentId = "tmt_01234567890123456789012345678901";
 
 const validEvent = {
   ...initEvent,
@@ -640,12 +639,8 @@ describe("tests for event validation", () => {
 
   describe("sanitizeEvent function", () => {
     it("should return a sanitized event when event is already sanitized", () => {
-      const testEvent = {
-        ...validEvent,
-        id: '',
-      };
-      const sanitizedEvent = sanitizeEvent(testEvent);
-      expect(sanitizedEvent.id).toEqual('');
+      const sanitizedEvent = sanitizeEvent(validEvent);
+      expect(sanitizedEvent.id).toEqual(validEvent.id);
       expect(sanitizedEvent.tmnt_id).toEqual("tmt_fd99387c33d9c78aba290286576ddce5"); // not valid, but sanitized
       expect(sanitizedEvent.event_name).toEqual("Event Name");
       expect(sanitizedEvent.team_size).toEqual(1);
@@ -681,22 +676,6 @@ describe("tests for event validation", () => {
       expect(sanitizedEvent.other).toEqual("2");
       expect(sanitizedEvent.expenses).toEqual("5");
     });
-    it('should return a sanitized event when event has an id', () => { 
-      const testEvent = {
-        ...validEvent,
-        id: eventId,
-      };
-      const sanitizedEvent = sanitizeEvent(testEvent);
-      expect(sanitizedEvent.id).toEqual(eventId);
-    })
-    it('should return a sanitized event when event has a post id', () => { 
-      const testEvent = {
-        ...validEvent,
-        id: postSecret + eventId,
-      };
-      const sanitizedEvent = sanitizeEvent(testEvent);
-      expect(sanitizedEvent.id).toEqual(postSecret + eventId);
-    })
     it('should return a sanitized event when event has an invalid id', () => { 
       const testEvent = {
         ...validEvent,
@@ -787,10 +766,34 @@ describe("tests for event validation", () => {
         const result = validateEvent(validTestEvent);
         expect(result).toBe(ErrorCode.None);
       });
+      it("should return ErrorCode.None when all fields valid, even if partent id is not in database", () => {
+        const validTestEvent = {
+          ...validEvent,
+          tmnt_id: notfoundParentId,
+        }
+        const result = validateEvent(validTestEvent);
+        expect(result).toBe(ErrorCode.None);
+      })
     });
 
     describe("validateEvent function - missing data", () => {
-      it("should return ErrorCode.MissingData when required field(s) are empty", () => {
+      it("should return ErrorCode.MissingData when id is blank", () => {
+        const invalidEvent = {
+          ...validEvent,
+          id: "",
+        };
+        const result = validateEvent(invalidEvent);
+        expect(result).toBe(ErrorCode.MissingData);
+      });
+      it("should return ErrorCode.MissingData when tmnt_id is blank", () => {
+        const invalidEvent = {
+          ...validEvent,
+          tmnt_id: "",
+        };
+        const result = validateEvent(invalidEvent);
+        expect(result).toBe(ErrorCode.MissingData);
+      });
+      it("should return ErrorCode.MissingData when event_name is blank", () => {
         const invalidEvent = {
           ...validEvent,
           event_name: "",
@@ -838,7 +841,7 @@ describe("tests for event validation", () => {
         const result = validateEvent(invalidEvent);
         expect(result).toBe(ErrorCode.MissingData); // sanitized to 0
       });
-      it("should return ErrorCode.MissingData when entry_fee is empty", () => {
+      it("should return ErrorCode.MissingData when entry_fee is blank", () => {
         const invalidEvent = {
           ...validEvent,
           entry_fee: "",
@@ -855,7 +858,7 @@ describe("tests for event validation", () => {
         const result = validateEvent(invalidEvent);
         expect(result).toBe(ErrorCode.MissingData);
       });
-      it("should return ErrorCode.MissingData when lineage is empty", () => {
+      it("should return ErrorCode.MissingData when lineage is blank", () => {
         const invalidEvent = {
           ...validEvent,
           lineage: "",
@@ -871,7 +874,7 @@ describe("tests for event validation", () => {
         const result = validateEvent(invalidEvent);
         expect(result).toBe(ErrorCode.MissingData);
       });
-      it("should return ErrorCode.MissingData when prize_fund is empty", () => {
+      it("should return ErrorCode.MissingData when prize_fund is blank", () => {
         const invalidEvent = {
           ...validEvent,
           prize_fund: "",
@@ -887,7 +890,7 @@ describe("tests for event validation", () => {
         const result = validateEvent(invalidEvent);
         expect(result).toBe(ErrorCode.MissingData);
       });
-      it("should return ErrorCode.MissingData when other is empty", () => {
+      it("should return ErrorCode.MissingData when other is blank", () => {
         const invalidEvent = {
           ...validEvent,
           other: "",
@@ -903,7 +906,7 @@ describe("tests for event validation", () => {
         const result = validateEvent(invalidEvent);
         expect(result).toBe(ErrorCode.MissingData);
       });
-      it("should return ErrorCode.MissingData when expenses is empty", () => {
+      it("should return ErrorCode.MissingData when expenses is blank", () => {
         const invalidEvent = {
           ...validEvent,
           expenses: "",
@@ -919,7 +922,7 @@ describe("tests for event validation", () => {
         const result = validateEvent(invalidEvent);
         expect(result).toBe(ErrorCode.MissingData);
       });
-      it("should return ErrorCode.MissingData when lpox is empty", () => {
+      it("should return ErrorCode.MissingData when lpox is blank", () => {
         const invalidEvent = {
           ...validEvent,
           lpox: "",
@@ -957,7 +960,7 @@ describe("tests for event validation", () => {
       });
     });
 
-    describe("validateEvent function - invalild data", () => {
+    describe("validateEvent function - invalid data", () => {
       it("should return ErrorCode.InvalidData when event_name exceeds max length", () => {
         const invalidEvent = {
           ...validEvent,
@@ -1146,31 +1149,4 @@ describe("tests for event validation", () => {
     });
   });
 
-  describe("validPostId function", () => {
-    const testEventId = "evt_cb97b73cb538418ab993fc867f860510";
-    it("should return testEventId when id starts with post Secret and follows with a valid event id", () => {
-      const validId = postSecret + testEventId;
-      expect(validPostId(validId, "evt")).toBe(testEventId);
-    });
-    it('should return "" when id starts with postSecret but does idType does not match idtype in postId', () => {
-      const invalidId = postSecret + testEventId;
-      expect(validPostId(invalidId, "usr")).toBe("");
-    });
-    it('should return "" when id starts with postSecret but does idType is invalid', () => {
-      const invalidId = postSecret + testEventId;
-      expect(validPostId(invalidId, "123" as any)).toBe("");
-    });
-    it('should return "" when id starts with postSecret but does not follow with valid BtDb idType', () => {
-      const invalidId = postSecret + "abc_a1b2c3d4e5f678901234567890abcdef";
-      expect(validPostId(invalidId, "evt")).toBe("");
-    });
-    it('should return "" when id starts with postSecret but does not follow with a valid BtDb id', () => {
-      const invalidId = process.env.POST_SECRET + "evt_invalidid";
-      expect(validPostId(invalidId, "evt")).toBe("");
-    });
-    it('should return "" when id does not start with postSecret', () => {
-      const invalidId = testEventId;
-      expect(validPostId(invalidId, "evt")).toBe("");
-    });
-  });
 });

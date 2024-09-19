@@ -1,4 +1,4 @@
-import { findUserByEmail } from "@/lib/db/users/users";
+
 import { prisma } from "@/lib/prisma";
 import { hash } from "bcrypt";
 import { NextResponse } from "next/server";
@@ -44,8 +44,14 @@ export async function POST(req: Request) {
       )
     }
 
-    // if got here, email is valid, ok to pass to findUserByEmail
-    const oldUser = await findUserByEmail(email);
+    // if got here, email is valid, ok to pass use sanitizedUser.email
+    // find user in database by matching email
+    const oldUser = await prisma.user.findUnique({
+      where: {
+        email: sanitizedUser.email,
+      },
+    });    
+    
     if (oldUser) {
       return NextResponse.json(
         { error: "email already in use" },

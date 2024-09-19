@@ -3,7 +3,6 @@ import { baseLanesApi } from "@/lib/db/apiPaths";
 import { testBaseLanesApi } from "../../../testApi";
 import { laneType } from "@/lib/types/types";
 import { initLane } from "@/lib/db/initVals";
-import { postSecret } from "@/lib/tools";
 import { isValidBtDbId } from "@/lib/validation";
 
 // before running this test, run the following commands in the terminal:
@@ -24,6 +23,7 @@ import { isValidBtDbId } from "@/lib/validation";
 const url = testBaseLanesApi.startsWith("undefined")
   ? baseLanesApi
   : testBaseLanesApi;   
+const oneLaneUrl = url + "/lane/";  
 
 const notFoundId = "lan_01234567890123456789012345678901";
 const notfoundSquadId = "squad_01234567890123456789012345678901";
@@ -31,6 +31,40 @@ const nonLaneId = "usr_01234567890123456789012345678901";
 
 const squad1Id = 'sqd_7116ce5f80164830830a7157eb093396';
 const squad2Id = 'sqd_1a6c885ee19a49489960389193e8f819';
+
+const testLane: laneType = {
+  id: "lan_7b5b9d9e6b6e4c5b9f6b7d9e7f9b6c5d",
+  lane_number: 29,
+  squad_id: "sqd_7116ce5f80164830830a7157eb093396",
+}
+
+const deletePostedLane = async () => {
+  const response = await axios.get(url);
+  const lanes = response.data.lanes;
+  const toDel = lanes.find((l: laneType) => l.lane_number === 101);
+  if (toDel) {
+    try {
+      const delResponse = await axios({
+        method: "delete",
+        withCredentials: true,
+        url: oneLaneUrl + toDel.id
+      });
+    } catch (err) {
+      if (err instanceof AxiosError) console.log(err.message);
+    }
+  }
+}
+
+const resetLane = async () => {
+  // make sure test lane is reset in database
+  const laneJSON = JSON.stringify(testLane);
+  const response = await axios({
+    method: "put",
+    data: laneJSON,
+    withCredentials: true,
+    url: oneLaneUrl + testLane.id,
+  })  
+}
 
 describe('Lanes - API: /api/lanes', () => { 
 
@@ -49,21 +83,7 @@ describe('Lanes - API: /api/lanes', () => {
   describe('GET', () => { 
 
     beforeAll(async () => {
-      // if row left over from post test, then delete it
-      const response = await axios.get(url);
-      const lanes = response.data.lanes;
-      const toDel = lanes.find((l: laneType) => l.lane_number === 101);
-      if (toDel) {
-        try {
-          const delResponse = await axios({
-            method: "delete",
-            withCredentials: true,
-            url: url + "/" + toDel.id
-          });
-        } catch (err) {
-          if (err instanceof AxiosError) console.log(err.message);
-        }
-      }
+      await deletePostedLane();
     })
 
     it('should get all lanes', async () => {
@@ -78,21 +98,7 @@ describe('Lanes - API: /api/lanes', () => {
   describe('GET lanes list APT: /api/lanes/squad/:id', () => { 
 
     beforeAll(async () => {
-      // if row left over from post test, then delete it
-      const response = await axios.get(url);
-      const lanes = response.data.lanes;
-      const toDel = lanes.find((l: laneType) => l.lane_number === 101);
-      if (toDel) {
-        try {
-          const delResponse = await axios({
-            method: "delete",
-            withCredentials: true,
-            url: url + "/" + toDel.id
-          });
-        } catch (err) {
-          if (err instanceof AxiosError) console.log(err.message);
-        }
-      }
+      await deletePostedLane();
     })
 
     it('should get all lanes for a squad', async () => {
@@ -117,50 +123,28 @@ describe('Lanes - API: /api/lanes', () => {
     })
 
   })
-
+  
   describe('POST', () => { 
 
     const laneToPost: laneType = {
-      ...initLane,
-      id: "",
+      ...initLane,      
       squad_id: "sqd_7116ce5f80164830830a7157eb093396",
       lane_number: 101,
     }
   
-    let createdLaneId = "";
+    let createdLane = false;
 
     beforeAll(async () => {
-      const response = await axios.get(url);
-      const lanes = response.data.lanes;
-      const toDel = lanes.find((l: laneType) => l.lane_number === 101);
-      if (toDel) {
-        try {
-          const delResponse = await axios({
-            method: "delete",
-            withCredentials: true,
-            url: url + "/" + toDel.id
-          });
-        } catch (err) {
-          if (err instanceof AxiosError) console.log(err.message);
-        }
-      }
+      await deletePostedLane();
     })
 
     beforeEach(() => {
-      createdLaneId = '';
+      createdLane = false;
     })
 
     afterEach(async () => {
-      if (createdLaneId) {
-        try {
-          const delResponse = await axios({
-            method: "delete",
-            withCredentials: true,
-            url: url + "/" + createdLaneId
-          });
-        } catch (err) {
-          if (err instanceof AxiosError) console.log(err.message);
-        }
+      if (createdLane) {
+        await deletePostedLane();
       }
     })
 
@@ -174,32 +158,59 @@ describe('Lanes - API: /api/lanes', () => {
       })      
       expect(response.status).toBe(201);
       const postedLane = response.data.lane;
-      createdLaneId = postedLane.id;
+      createdLane = true;
       expect(response.data.lane.squad_id).toBe(laneToPost.squad_id);
       expect(response.data.lane.lane_number).toBe(laneToPost.lane_number);
       expect(isValidBtDbId(postedLane.id, 'lan')).toBeTruthy();
-    })
-    it('should create a lane with the provided lane id', async () => { 
-      const supIdLane = {
-        ...laneToPost,
-        id: postSecret + notFoundId, // use valid ID 
-      }
-      const laneJSON = JSON.stringify(supIdLane);
-      const response = await axios({
-        method: "post",
-        data: laneJSON,
-        withCredentials: true,
-        url: url
-      })
-      expect(response.status).toBe(201);
-      const postedLane = response.data.lane;
-      createdLaneId = postedLane.id;
-      expect(postedLane.id).toBe(notFoundId);
     })
     it('should NOT create a new lane when squad id does not exist', async () => { 
       const invalidLane = {
         ...laneToPost,
         squad_id: notfoundSquadId,
+      }
+      const laneJSON = JSON.stringify(invalidLane);
+      try {
+        const response = await axios({
+          method: "post",
+          data: laneJSON,
+          withCredentials: true,
+          url: url
+        })
+        expect(response.status).toBe(422);
+      } catch (err) {
+        if (err instanceof AxiosError) {
+          expect(err.response?.status).toBe(422);
+        } else {
+          expect(true).toBeFalsy();
+        }
+      }
+    })
+    it('should NOT create a new lane when id is blank', async () => { 
+      const invalidLane = {
+        ...laneToPost,
+        id: '',
+      }
+      const laneJSON = JSON.stringify(invalidLane);
+      try {
+        const response = await axios({
+          method: "post",
+          data: laneJSON,
+          withCredentials: true,
+          url: url
+        })
+        expect(response.status).toBe(422);
+      } catch (err) {
+        if (err instanceof AxiosError) {
+          expect(err.response?.status).toBe(422);
+        } else {
+          expect(true).toBeFalsy();
+        }
+      }
+    })
+    it('should NOT create a new lane when squad_id is blank', async () => { 
+      const invalidLane = {
+        ...laneToPost,
+        squad_id: '',
       }
       const laneJSON = JSON.stringify(invalidLane);
       try {
@@ -331,19 +342,19 @@ describe('Lanes - API: /api/lanes', () => {
 
   })
 
-  describe('GET by ID - API: /api/lanes/:id', () => { 
+  describe('GET by ID - API: /api/lanes/lane/:id', () => { 
 
     it('should get a lane by ID', async () => { 
-      const response = await axios.get(url + "/" + testLane.id);
+      const response = await axios.get(oneLaneUrl + testLane.id);
       const lane = response.data.lane;
       expect(response.status).toBe(200);
       expect(lane.id).toBe(testLane.id);
       expect(lane.squad_id).toBe(testLane.squad_id);
       expect(lane.lane_number).toBe(testLane.lane_number);
     })
-    it('should NOT get a lane by ID when ID is invalid', async () => { 
+    it('should NOT get a lane by ID when ID is invalid', async () => {
       try {
-        const response = await axios.get(url + "/" + 'invalid');
+        const response = await axios.get(oneLaneUrl + 'invalid');
         expect(response.status).toBe(404);
       } catch (err) {
         if (err instanceof AxiosError) {
@@ -353,9 +364,9 @@ describe('Lanes - API: /api/lanes', () => {
         }
       }
     })
-    it('should NOT get a lane by ID when ID is valid, but not a lane ID', async () => { 
+    it('should NOT get a lane by ID when ID is valid, but not a lane ID', async () => {
       try {
-        const response = await axios.get(url + "/" + nonLaneId);
+        const response = await axios.get(oneLaneUrl + nonLaneId);
         expect(response.status).toBe(404);
       } catch (err) {
         if (err instanceof AxiosError) {
@@ -365,9 +376,9 @@ describe('Lanes - API: /api/lanes', () => {
         }
       }
     })
-    it('should NOT get a lane by ID when ID is not found', async () => { 
+    it('should NOT get a lane by ID when ID is not found', async () => {
       try {
-        const response = await axios.get(url + "/" + notFoundId);
+        const response = await axios.get(oneLaneUrl + notFoundId);
         expect(response.status).toBe(404);
       } catch (err) {
         if (err instanceof AxiosError) {
@@ -377,10 +388,10 @@ describe('Lanes - API: /api/lanes', () => {
         }
       }
     })
-
+    
   })
 
-  describe('PUT by ID - API: /api/lanes/:id', () => { 
+  describe('PUT by ID - API: /api/lanes/lane/lane/:id', () => { 
 
     const putLane = {
       ...testLane,
@@ -388,36 +399,12 @@ describe('Lanes - API: /api/lanes', () => {
       lane_number: 101,
     }
 
-    const samplelane = {
-      ...initLane,
-      id: '',
-      squad_id: "sqd_20c24199328447f8bbe95c05e1b84644",
-      lane_number: 101,
-    }
-
     beforeAll(async () => {
-      // make sure test div is reset in database
-      const laneJSON = JSON.stringify(testLane);
-      const putResponse = await axios({
-        method: "put",
-        data: laneJSON,
-        withCredentials: true,
-        url: url + "/" + testLane.id,
-      })
+      await resetLane();
     })
 
     afterEach(async () => {
-      try {
-        const laneJSON = JSON.stringify(testLane);
-        const putResponse = await axios({
-          method: "put",
-          data: laneJSON,
-          withCredentials: true,
-          url: url + "/" + testLane.id,
-        })
-      } catch (err) {
-        if (err instanceof AxiosError) console.log(err.message);
-      }
+      await resetLane();
     })
 
     it('should update a lane by ID', async () => { 
@@ -426,7 +413,7 @@ describe('Lanes - API: /api/lanes', () => {
         method: "put",
         data: laneJSON,
         withCredentials: true,
-        url: url + "/" + testLane.id,
+        url: oneLaneUrl + testLane.id,
       })
       const lane = putResponse.data.lane;
       expect(putResponse.status).toBe(200);
@@ -442,7 +429,7 @@ describe('Lanes - API: /api/lanes', () => {
           method: "put",
           data: laneJSON,
           withCredentials: true,
-          url: url + "/" + 'test',
+          url: oneLaneUrl + 'test',
         })
         expect(putResponse.status).toBe(404);
       } catch (err) {
@@ -460,7 +447,7 @@ describe('Lanes - API: /api/lanes', () => {
           method: "put",
           data: laneJSON,
           withCredentials: true,
-          url: url + "/" + nonLaneId,
+          url: oneLaneUrl + nonLaneId,
         })
         expect(putResponse.status).toBe(404);
       } catch (err) {
@@ -478,7 +465,7 @@ describe('Lanes - API: /api/lanes', () => {
           method: "put",
           data: laneJSON,
           withCredentials: true,
-          url: url + "/" + notFoundId,
+          url: oneLaneUrl + notFoundId,
         })
         expect(putResponse.status).toBe(404);
       } catch (err) {
@@ -500,7 +487,7 @@ describe('Lanes - API: /api/lanes', () => {
           method: "put",
           data: laneJSON,
           withCredentials: true,
-          url: url + "/" + testLane.id,
+          url: oneLaneUrl + testLane.id,
         })
         expect(putResponse.status).toBe(422);
       } catch (err) {
@@ -522,7 +509,7 @@ describe('Lanes - API: /api/lanes', () => {
           method: "put",
           data: laneJSON,
           withCredentials: true,
-          url: url + "/" + testLane.id,
+          url: oneLaneUrl + testLane.id,
         })
         expect(putResponse.status).toBe(422);
       } catch (err) {
@@ -544,7 +531,7 @@ describe('Lanes - API: /api/lanes', () => {
           method: "put",
           data: laneJSON,
           withCredentials: true,
-          url: url + "/" + testLane.id,
+          url: oneLaneUrl + testLane.id,
         })
         expect(putResponse.status).toBe(422);
       } catch (err) {
@@ -567,7 +554,7 @@ describe('Lanes - API: /api/lanes', () => {
           method: "put",
           data: laneJSON,
           withCredentials: true,
-          url: url + "/" + invalidLane.id,
+          url: oneLaneUrl + invalidLane.id,
         })
         expect(response.status).toBe(422);
       } catch (err) {
@@ -581,31 +568,14 @@ describe('Lanes - API: /api/lanes', () => {
 
   })
 
-  describe('PATCH by ID - API: /api/lanes/:id', () => { 
+  describe('PATCH by ID - API: /api/lanes/lane/:id', () => { 
 
     beforeAll(async () => {
-      // make sure test div is reset in database
-      const laneJSON = JSON.stringify(testLane);
-      const putResponse = await axios({
-        method: "put",
-        data: laneJSON,
-        withCredentials: true,
-        url: url + "/" + testLane.id,
-      })
+      await resetLane();
     })
       
     afterEach(async () => {
-      try {
-        const laneJSON = JSON.stringify(testLane);
-        const putResponse = await axios({
-          method: "put",
-          data: laneJSON,
-          withCredentials: true,
-          url: url + "/" + testLane.id,
-        })
-      } catch (err) {
-        if (err instanceof AxiosError) console.log(err.message);
-      }
+      await resetLane();
     })
 
     it('should patch a lane by ID', async () => { 
@@ -618,7 +588,7 @@ describe('Lanes - API: /api/lanes', () => {
         method: "patch",
         data: laneJSON,
         withCredentials: true,
-        url: url + "/" + testLane.id,
+        url: oneLaneUrl + testLane.id,
       })
       expect(patchResponse.status).toBe(200);
       const patchedlane = patchResponse.data.lane;
@@ -634,7 +604,7 @@ describe('Lanes - API: /api/lanes', () => {
         method: "patch",
         data: laneJSON,
         withCredentials: true,
-        url: url + "/" + testLane.id,
+        url: oneLaneUrl + testLane.id,
       })
       expect(patchResponse.status).toBe(200);
       const patchedlane = patchResponse.data.lane;
@@ -648,7 +618,7 @@ describe('Lanes - API: /api/lanes', () => {
           method: "patch",
           data: laneJSON,
           withCredentials: true,
-          url: url + "/" + 'test',
+          url: oneLaneUrl + 'test',
         })
         expect(patchResponse.status).toBe(404);
       } catch (err) {
@@ -666,7 +636,7 @@ describe('Lanes - API: /api/lanes', () => {
           method: "patch",
           data: laneJSON,
           withCredentials: true,
-          url: url + "/" + nonLaneId,
+          url: oneLaneUrl + nonLaneId,
         })
         expect(patchResponse.status).toBe(404);
       } catch (err) {
@@ -684,7 +654,7 @@ describe('Lanes - API: /api/lanes', () => {
           method: "patch",
           data: laneJSON,
           withCredentials: true,
-          url: url + "/" + notFoundId,
+          url: oneLaneUrl + notFoundId,
         })
         expect(patchResponse.status).toBe(404);
       } catch (err) {
@@ -706,7 +676,7 @@ describe('Lanes - API: /api/lanes', () => {
           method: "patch",
           data: laneJSON,
           withCredentials: true,
-          url: url + "/" + testLane.id,
+          url: oneLaneUrl + testLane.id,
         })
         expect(patchResponse.status).toBe(422);
       } catch (err) {
@@ -728,7 +698,7 @@ describe('Lanes - API: /api/lanes', () => {
           method: "patch",
           data: laneJSON,
           withCredentials: true,
-          url: url + "/" + testLane.id,
+          url: oneLaneUrl + testLane.id,
         })
         expect(patchResponse.status).toBe(422);
       } catch (err) {
@@ -750,7 +720,7 @@ describe('Lanes - API: /api/lanes', () => {
           method: "patch",
           data: laneJSON,
           withCredentials: true,
-          url: url + "/" + testLane.id,
+          url: oneLaneUrl + testLane.id,
         })
         expect(patchResponse.status).toBe(422);
       } catch (err) {
@@ -772,7 +742,7 @@ describe('Lanes - API: /api/lanes', () => {
           method: "patch",
           data: laneJSON,
           withCredentials: true,
-          url: url + "/" + testLane.id,
+          url: oneLaneUrl + testLane.id,
         })
         expect(patchResponse.status).toBe(422);
       } catch (err) {
@@ -795,7 +765,7 @@ describe('Lanes - API: /api/lanes', () => {
           method: "patch",
           data: laneJSON,
           withCredentials: true,
-          url: url + "/" + invalidLane.id,
+          url: oneLaneUrl + invalidLane.id,
         })
         expect(response.status).toBe(422);
       } catch (err) {
@@ -806,11 +776,10 @@ describe('Lanes - API: /api/lanes', () => {
         }
       }
     })
-    
 
   })
 
-  describe('DELETE by ID - API: /api/lanes/:id', () => { 
+  describe('DELETE by ID - API: /api/lanes/lane/:id', () => { 
 
     const toDelLane = {
       ...initLane,
@@ -828,11 +797,7 @@ describe('Lanes - API: /api/lanes', () => {
     afterEach(async () => {
       if (!didDel) return;
       try {
-        const restoredDiv = {
-          ...toDelLane,
-          id: postSecret + 'lan_255dd3b8755f4dea956445e7a3511d91',
-        }
-        const divJSON = JSON.stringify(restoredDiv);
+        const divJSON = JSON.stringify(toDelLane);
         const response = await axios({
           method: 'post',
           data: divJSON,
@@ -850,7 +815,7 @@ describe('Lanes - API: /api/lanes', () => {
         const delResponse = await axios({
           method: "delete",
           withCredentials: true,
-          url: url + "/" + toDelLane.id,
+          url: oneLaneUrl + toDelLane.id,
         })  
         didDel = true;
         expect(delResponse.status).toBe(200);
@@ -867,7 +832,7 @@ describe('Lanes - API: /api/lanes', () => {
         const delResponse = await axios({
           method: "delete",
           withCredentials: true,
-          url: url + "/" + 'test',
+          url: oneLaneUrl + 'test',
         })  
         expect(delResponse.status).toBe(404);
       } catch (err) {
@@ -883,7 +848,7 @@ describe('Lanes - API: /api/lanes', () => {
         const delResponse = await axios({
           method: "delete",
           withCredentials: true,
-          url: url + "/" + notFoundId,
+          url: oneLaneUrl + notFoundId,
         })  
         expect(delResponse.status).toBe(404);
       } catch (err) {
@@ -899,7 +864,7 @@ describe('Lanes - API: /api/lanes', () => {
         const delResponse = await axios({
           method: "delete",
           withCredentials: true,
-          url: url + "/" + nonLaneId
+          url: oneLaneUrl + nonLaneId
         })  
         expect(delResponse.status).toBe(404);
       } catch (err) {
@@ -909,13 +874,13 @@ describe('Lanes - API: /api/lanes', () => {
           expect(true).toBeFalsy();
         }
       }
-    })
+    })    
     // it('should NOT delete a lane by ID when lane has child rows', async () => { 
     //   try {
     //     const delResponse = await axios({
     //       method: "delete",
     //       withCredentials: true,
-    //       url: url + "/" + testLane.id
+    //       url: oneLaneUrl + testLane.id
     //     })
     //     expect(delResponse.status).toBe(409);
     //   } catch (err) {

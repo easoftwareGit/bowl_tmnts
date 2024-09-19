@@ -23,7 +23,7 @@ interface AddOrDelButtonProps {
   sortOrder: number;
 }
 
-const defaultTabKey = 'div1'
+// const defaultTabKey = 'div1'
 
 const getDivErrMsg = (div: divType): string => {
   if (div.div_name_err) return div.div_name_err;
@@ -130,6 +130,8 @@ const OneToNDivs: React.FC<ChildProps> = ({
   elims,
   setAcdnErr
 }) => { 
+
+  const defaultTabKey = divs[0].id;
 
   const [confModalObj, setConfModalObj] = useState(initModalObj);
   const [errModalObj, setErrModalObj] = useState(initModalObj);
@@ -500,7 +502,7 @@ const OneToNDivs: React.FC<ChildProps> = ({
         {divs.map((div) => (
           <Tab
             key={div.id}
-            eventKey={`div${div.id}`}
+            eventKey={`${div.id}`}
             title={div.tab_title}
             tabClassName={`${div.errClassName}`}
           >

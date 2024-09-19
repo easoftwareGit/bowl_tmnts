@@ -1,10 +1,9 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { ErrorCode, isValidBtDbId } from "@/lib/validation";
-import { sanitizeElim, validateElim } from "../validate";
+import { sanitizeElim, validateElim } from "@/app/api/elims/validate";
 import { elimType } from "@/lib/types/types";
 import { initElim } from "@/lib/db/initVals";
-import { findElimById } from "@/lib/db/elims/elims";
 
 // routes /api/elims/:id
 
@@ -41,7 +40,7 @@ export async function PUT(
       return NextResponse.json({ error: "not found" }, { status: 404 });
     }
 
-    const {
+    const {      
       div_id,
       squad_id,
       fee,
@@ -51,6 +50,7 @@ export async function PUT(
     } = await request.json();
     const toCheck: elimType = {
       ...initElim,
+      id,
       div_id,
       squad_id,
       fee,
@@ -59,7 +59,8 @@ export async function PUT(
       sort_order,
     };
 
-    const errCode = validateElim(toCheck);
+    const toPut = sanitizeElim(toCheck);
+    const errCode = validateElim(toPut);
     if (errCode !== ErrorCode.None) {
       let errMsg: string;
       switch (errCode) {
@@ -75,15 +76,14 @@ export async function PUT(
       }
       return NextResponse.json({ error: errMsg }, { status: 422 });
     }
-
-    const toPut = sanitizeElim(toCheck);    
+        
     const elim = await prisma.elim.update({
       where: {
         id: id,
       },
       data: {
-        // div_id: toPut.div_id, // do not update div_id
-        // squad_id: toPut.squad_id, // do not update squad_id
+        div_id: toPut.div_id,
+        squad_id: toPut.squad_id, 
         fee: toPut.fee,
         start: toPut.start,
         games: toPut.games,
@@ -95,10 +95,10 @@ export async function PUT(
     let errStatus: number;
     switch (err.code) {
       case "P2002": // unique constraint
-        errStatus = 422;
+        errStatus = 404;
         break;
       case "P2003": // foreign key constraint
-        errStatus = 422;
+        errStatus = 404;
         break;
       case "P2025": // record not found
         errStatus = 404;
@@ -126,8 +126,13 @@ export async function PATCH(
     const json = await request.json();
     // populate toCheck with json
     const jsonProps = Object.getOwnPropertyNames(json);
+    
+    const currentElim = await prisma.elim.findUnique({
+      where: {
+        id: id,
+      },
+    });    
 
-    const currentElim = await findElimById(id);
     if (!currentElim) {
       return NextResponse.json({ error: "not found" }, { status: 404 });
     }

@@ -6,8 +6,7 @@ import {
   exportedForTesting,
 } from "@/app/api/lanes/validate";
 import { initLane } from "@/lib/db/initVals";
-import { ErrorCode, maxEventLength, maxLaneCount, maxSortOrder, validPostId } from "@/lib/validation";
-import { postSecret } from "@/lib/tools";
+import { ErrorCode, maxLaneCount } from "@/lib/validation";
 
 const { gotLaneData, validLaneData } = exportedForTesting;
 
@@ -131,14 +130,6 @@ describe("tests for lane validation", () => {
       const sanitizedLane = sanitizeLane(testLane)
       expect(sanitizedLane.id).toEqual(laneId)
     })
-    it('should return a sanitized lane when lane has a post id', () => {
-      const testLane = {
-        ...validLane,
-        id: postSecret + laneId,
-      }
-      const sanitizedLane = sanitizeLane(testLane)
-      expect(sanitizedLane.id).toEqual(postSecret + laneId)
-    })
     it('should return a sanitized lane when lane has an invalid id', () => {
       const testLane = {
         ...validLane,
@@ -248,31 +239,4 @@ describe("tests for lane validation", () => {
     })  
   })
 
-  describe('validPostId function', () => { 
-    const testId = "lan_7b5b9d9e6b6e4c5b9f6b7d9e7f9b6c5d"
-    it('should return testId when id starts with post Secret and follows with a valid lane id', () => { 
-      const validId = postSecret + testId;
-      expect(validPostId(validId, 'lan')).toBe(testId)
-    })
-    it('should return "" when id starts with postSecret but does idType does not match idtype in postId', () => {
-      const invalidId = postSecret + testId;
-      expect(validPostId(invalidId, 'usr')).toBe('');
-    });
-    it('should return "" when id starts with postSecret but does idType is invalid', () => {
-      const invalidId = postSecret + testId;
-      expect(validPostId(invalidId, '123' as any)).toBe('');
-    });
-    it('should return "" when id starts with postSecret but does not follow with valid BtDb idType', () => {
-      const invalidId = postSecret + 'abc_a1b2c3d4e5f678901234567890abcdef';
-      expect(validPostId(invalidId, 'lan')).toBe('');
-    });
-    it('should return "" when id starts with postSecret but does not follow with a valid BtDb id', () => {
-      const invalidId = process.env.POST_SECRET + 'lan_invalidid';
-      expect(validPostId(invalidId, 'lan')).toBe('');
-    });
-    it('should return "" when id does not start with postSecret', () => {
-      const invalidId = testId;
-      expect(validPostId(invalidId, 'lan')).toBe('');
-    });
-  })
 })

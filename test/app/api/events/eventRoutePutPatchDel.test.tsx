@@ -3,9 +3,6 @@ import { baseEventsApi } from "@/lib/db/apiPaths";
 import { testBaseEventsApi } from "../../../testApi";
 import { eventType } from "@/lib/types/types";
 import { initEvent } from "@/lib/db/initVals";
-import { Event } from "@prisma/client";
-import { postSecret } from "@/lib/tools";
-import { isValidBtDbId } from "@/lib/validation";
 
 // before running this test, run the following commands in the terminal:
 // 1) clear and re-seed the database
@@ -25,8 +22,9 @@ import { isValidBtDbId } from "@/lib/validation";
 const url = testBaseEventsApi.startsWith("undefined")
   ? baseEventsApi
   : testBaseEventsApi;   
-
-describe('Events - PUT, PATCH, DELETE API: /api/events', () => { 
+const oneEventUrl = url + "/event/";
+  
+describe('Events - PUT, PATCH, DELETE API: /api/events/event/:id', () => { 
 
   const testEvent: eventType = {
     ...initEvent,
@@ -59,7 +57,7 @@ describe('Events - PUT, PATCH, DELETE API: /api/events', () => {
   const tmnt1Id = 'tmt_fd99387c33d9c78aba290286576ddce5';
   const tmnt8Id = 'tmt_fe8ac53dad0f400abe6354210a8f4cd1'; //tmnt with singles & doubles
 
-  describe('PUT by ID - API: /api/events/:id', () => { 
+  describe('PUT by ID - API: /api/events/event/:id', () => { 
 
     const putEvent = { 
       ...testEvent,
@@ -78,8 +76,7 @@ describe('Events - PUT, PATCH, DELETE API: /api/events', () => {
     }
 
     const sampleEvent = {
-      ...initEvent, 
-      id: '',
+      ...initEvent,       
       tmnt_id: "tmt_fe8ac53dad0f400abe6354210a8f4cd1",
       event_name: "All Events",
       team_size: 1,
@@ -101,7 +98,7 @@ describe('Events - PUT, PATCH, DELETE API: /api/events', () => {
         method: "put",
         data: userJSON,
         withCredentials: true,
-        url: url + "/" + testEvent.id,
+        url: oneEventUrl + testEvent.id,
       })
     })
 
@@ -112,7 +109,7 @@ describe('Events - PUT, PATCH, DELETE API: /api/events', () => {
           method: "put",
           data: eventJSON,
           withCredentials: true,
-          url: url + "/" + testEvent.id,
+          url: oneEventUrl + testEvent.id,
         })
       } catch (err) {
         if (err instanceof AxiosError) console.log(err.message);
@@ -125,7 +122,7 @@ describe('Events - PUT, PATCH, DELETE API: /api/events', () => {
         method: "put",
         data: eventJSON,
         withCredentials: true,
-        url: url + "/" + testEvent.id,
+        url: oneEventUrl + testEvent.id,
       })
       const puttedEvent = putResponse.data.event;
       // did not update tmnt_id
@@ -149,7 +146,7 @@ describe('Events - PUT, PATCH, DELETE API: /api/events', () => {
           method: "put",
           data: eventJSON,
           withCredentials: true,
-          url: url + "/" + 'test',
+          url: oneEventUrl + 'test',
         })
         expect(putResponse.status).toBe(404);
       } catch (err) {
@@ -167,7 +164,7 @@ describe('Events - PUT, PATCH, DELETE API: /api/events', () => {
           method: "put",
           data: eventJSON,
           withCredentials: true,
-          url: url + "/" + nonEventId,
+          url: oneEventUrl + nonEventId,
         })
         expect(putResponse.status).toBe(404);
       } catch (err) {
@@ -187,7 +184,7 @@ describe('Events - PUT, PATCH, DELETE API: /api/events', () => {
           method: "put",
           data: eventJSON,
           withCredentials: true,
-          url: url + "/" + notFoundId,
+          url: oneEventUrl + notFoundId,
         })
         expect(putResponse.status).toBe(404);
       } catch (err) {
@@ -213,7 +210,7 @@ describe('Events - PUT, PATCH, DELETE API: /api/events', () => {
           method: "put",
           data: eventJSON,
           withCredentials: true,
-          url: url + "/" + testEvent.id,
+          url: oneEventUrl + testEvent.id,
         });
         expect(response.status).toBe(422);
       } catch (err) {
@@ -235,7 +232,7 @@ describe('Events - PUT, PATCH, DELETE API: /api/events', () => {
           method: "put",
           data: eventJSON,
           withCredentials: true,
-          url: url + "/" + testEvent.id,
+          url: oneEventUrl + testEvent.id,
         });
         expect(response.status).toBe(422);
       } catch (err) {
@@ -257,7 +254,7 @@ describe('Events - PUT, PATCH, DELETE API: /api/events', () => {
           method: "put",
           data: eventJSON,
           withCredentials: true,
-          url: url + "/" + testEvent.id,
+          url: oneEventUrl + testEvent.id,
         });
         expect(response.status).toBe(422);
       } catch (err) {
@@ -279,7 +276,7 @@ describe('Events - PUT, PATCH, DELETE API: /api/events', () => {
           method: "put",
           data: eventJSON,
           withCredentials: true,
-          url: url + "/" + testEvent.id,
+          url: oneEventUrl + testEvent.id,
         });
         expect(response.status).toBe(422);
       } catch (err) {
@@ -301,7 +298,7 @@ describe('Events - PUT, PATCH, DELETE API: /api/events', () => {
           method: "put",
           data: eventJSON,
           withCredentials: true,
-          url: url + "/" + testEvent.id,
+          url: oneEventUrl + testEvent.id,
         });
         expect(response.status).toBe(422);
       } catch (err) {
@@ -323,7 +320,7 @@ describe('Events - PUT, PATCH, DELETE API: /api/events', () => {
           method: "put",
           data: eventJSON,
           withCredentials: true,
-          url: url + "/" + testEvent.id,
+          url: oneEventUrl + testEvent.id,
         });
         expect(response.status).toBe(422);
       } catch (err) {
@@ -345,7 +342,7 @@ describe('Events - PUT, PATCH, DELETE API: /api/events', () => {
           method: "put",
           data: eventJSON,
           withCredentials: true,
-          url: url + "/" + testEvent.id,
+          url: oneEventUrl + testEvent.id,
         });
         expect(response.status).toBe(422);
       } catch (err) {
@@ -367,7 +364,7 @@ describe('Events - PUT, PATCH, DELETE API: /api/events', () => {
           method: "put",
           data: eventJSON,
           withCredentials: true,
-          url: url + "/" + testEvent.id,
+          url: oneEventUrl + testEvent.id,
         });
         expect(response.status).toBe(422);
       } catch (err) {
@@ -389,7 +386,7 @@ describe('Events - PUT, PATCH, DELETE API: /api/events', () => {
           method: "put",
           data: eventJSON,
           withCredentials: true,
-          url: url + "/" + testEvent.id,
+          url: oneEventUrl + testEvent.id,
         });
         expect(response.status).toBe(422);
       } catch (err) {
@@ -411,7 +408,7 @@ describe('Events - PUT, PATCH, DELETE API: /api/events', () => {
           method: "put",
           data: eventJSON,
           withCredentials: true,
-          url: url + "/" + testEvent.id,
+          url: oneEventUrl + testEvent.id,
         });
         expect(response.status).toBe(422);
       } catch (err) {
@@ -433,7 +430,7 @@ describe('Events - PUT, PATCH, DELETE API: /api/events', () => {
           method: "put",
           data: eventJSON,
           withCredentials: true,
-          url: url + "/" + testEvent.id,
+          url: oneEventUrl + testEvent.id,
         });
         expect(response.status).toBe(422);
       } catch (err) {
@@ -455,7 +452,7 @@ describe('Events - PUT, PATCH, DELETE API: /api/events', () => {
           method: "put",
           data: eventJSON,
           withCredentials: true,
-          url: url + "/" + testEvent.id,
+          url: oneEventUrl + testEvent.id,
         });
         expect(response.status).toBe(422);
       } catch (err) {
@@ -479,7 +476,7 @@ describe('Events - PUT, PATCH, DELETE API: /api/events', () => {
           method: "put",
           data: eventJSON,
           withCredentials: true,
-          url: url + "/" + testEvent.id,
+          url: oneEventUrl + testEvent.id,
         });
         expect(response.status).toBe(422);
       } catch (err) {
@@ -503,7 +500,7 @@ describe('Events - PUT, PATCH, DELETE API: /api/events', () => {
           method: "put",
           data: eventJSON,
           withCredentials: true,
-          url: url + "/" + testEvent.id,
+          url: oneEventUrl + testEvent.id,
         });
         expect(response.status).toBe(422);
       } catch (err) {
@@ -525,7 +522,7 @@ describe('Events - PUT, PATCH, DELETE API: /api/events', () => {
           method: "put",
           data: eventJSON,
           withCredentials: true,
-          url: url + "/" + testEvent.id,
+          url: oneEventUrl + testEvent.id,
         });
         expect(response.status).toBe(422);
       } catch (err) {
@@ -547,7 +544,7 @@ describe('Events - PUT, PATCH, DELETE API: /api/events', () => {
           method: "put",
           data: eventJSON,
           withCredentials: true,
-          url: url + "/" + testEvent.id,
+          url: oneEventUrl + testEvent.id,
         });
         expect(response.status).toBe(422);
       } catch (err) {
@@ -569,7 +566,7 @@ describe('Events - PUT, PATCH, DELETE API: /api/events', () => {
           method: "put",
           data: eventJSON,
           withCredentials: true,
-          url: url + "/" + testEvent.id,
+          url: oneEventUrl + testEvent.id,
         });
         expect(response.status).toBe(422);
       } catch (err) {
@@ -591,7 +588,7 @@ describe('Events - PUT, PATCH, DELETE API: /api/events', () => {
           method: "put",
           data: eventJSON,
           withCredentials: true,
-          url: url + "/" + testEvent.id,
+          url: oneEventUrl + testEvent.id,
         });
         expect(response.status).toBe(422);
       } catch (err) {
@@ -613,7 +610,7 @@ describe('Events - PUT, PATCH, DELETE API: /api/events', () => {
           method: "put",
           data: eventJSON,
           withCredentials: true,
-          url: url + "/" + testEvent.id,
+          url: oneEventUrl + testEvent.id,
         });
         expect(response.status).toBe(422);
       } catch (err) {
@@ -635,7 +632,7 @@ describe('Events - PUT, PATCH, DELETE API: /api/events', () => {
           method: "put",
           data: eventJSON,
           withCredentials: true,
-          url: url + "/" + testEvent.id,
+          url: oneEventUrl + testEvent.id,
         });
         expect(response.status).toBe(422);
       } catch (err) {
@@ -657,7 +654,7 @@ describe('Events - PUT, PATCH, DELETE API: /api/events', () => {
           method: "put",
           data: eventJSON,
           withCredentials: true,
-          url: url + "/" + testEvent.id,
+          url: oneEventUrl + testEvent.id,
         });
         expect(response.status).toBe(422);
       } catch (err) {
@@ -679,7 +676,7 @@ describe('Events - PUT, PATCH, DELETE API: /api/events', () => {
           method: "put",
           data: eventJSON,
           withCredentials: true,
-          url: url + "/" + testEvent.id,
+          url: oneEventUrl + testEvent.id,
         });
         expect(response.status).toBe(422);
       } catch (err) {
@@ -701,7 +698,7 @@ describe('Events - PUT, PATCH, DELETE API: /api/events', () => {
           method: "put",
           data: eventJSON,
           withCredentials: true,
-          url: url + "/" + testEvent.id,
+          url: oneEventUrl + testEvent.id,
         });
         expect(response.status).toBe(422);
       } catch (err) {
@@ -723,7 +720,7 @@ describe('Events - PUT, PATCH, DELETE API: /api/events', () => {
           method: "put",
           data: eventJSON,
           withCredentials: true,
-          url: url + "/" + testEvent.id,
+          url: oneEventUrl + testEvent.id,
         });
         expect(response.status).toBe(422);
       } catch (err) {
@@ -745,7 +742,7 @@ describe('Events - PUT, PATCH, DELETE API: /api/events', () => {
           method: "put",
           data: eventJSON,
           withCredentials: true,
-          url: url + "/" + testEvent.id,
+          url: oneEventUrl + testEvent.id,
         });
         expect(response.status).toBe(422);
       } catch (err) {
@@ -767,7 +764,7 @@ describe('Events - PUT, PATCH, DELETE API: /api/events', () => {
           method: "put",
           data: eventJSON,
           withCredentials: true,
-          url: url + "/" + testEvent.id,
+          url: oneEventUrl + testEvent.id,
         });
         expect(response.status).toBe(422);
       } catch (err) {
@@ -789,7 +786,7 @@ describe('Events - PUT, PATCH, DELETE API: /api/events', () => {
           method: "put",
           data: eventJSON,
           withCredentials: true,
-          url: url + "/" + testEvent.id,
+          url: oneEventUrl + testEvent.id,
         });
         expect(response.status).toBe(422);
       } catch (err) {
@@ -811,7 +808,7 @@ describe('Events - PUT, PATCH, DELETE API: /api/events', () => {
           method: "put",
           data: eventJSON,
           withCredentials: true,
-          url: url + "/" + testEvent.id,
+          url: oneEventUrl + testEvent.id,
         });
         expect(response.status).toBe(422);
       } catch (err) {
@@ -833,7 +830,7 @@ describe('Events - PUT, PATCH, DELETE API: /api/events', () => {
           method: "put",
           data: eventJSON,
           withCredentials: true,
-          url: url + "/" + testEvent.id,
+          url: oneEventUrl + testEvent.id,
         });
         expect(response.status).toBe(422);
       } catch (err) {
@@ -855,7 +852,7 @@ describe('Events - PUT, PATCH, DELETE API: /api/events', () => {
           method: "put",
           data: eventJSON,
           withCredentials: true,
-          url: url + "/" + testEvent.id,
+          url: oneEventUrl + testEvent.id,
         });
         expect(response.status).toBe(422);
       } catch (err) {
@@ -877,7 +874,7 @@ describe('Events - PUT, PATCH, DELETE API: /api/events', () => {
           method: "put",
           data: eventJSON,
           withCredentials: true,
-          url: url + "/" + testEvent.id,
+          url: oneEventUrl + testEvent.id,
         });
         expect(response.status).toBe(422);
       } catch (err) {
@@ -899,7 +896,7 @@ describe('Events - PUT, PATCH, DELETE API: /api/events', () => {
           method: "put",
           data: eventJSON,
           withCredentials: true,
-          url: url + "/" + testEvent.id,
+          url: oneEventUrl + testEvent.id,
         });
         expect(response.status).toBe(422);
       } catch (err) {
@@ -921,7 +918,7 @@ describe('Events - PUT, PATCH, DELETE API: /api/events', () => {
           method: "put",
           data: eventJSON,
           withCredentials: true,
-          url: url + "/" + testEvent.id,
+          url: oneEventUrl + testEvent.id,
         });
         expect(response.status).toBe(422);
       } catch (err) {
@@ -943,7 +940,7 @@ describe('Events - PUT, PATCH, DELETE API: /api/events', () => {
           method: "put",
           data: eventJSON,
           withCredentials: true,
-          url: url + "/" + testEvent.id,
+          url: oneEventUrl + testEvent.id,
         });
         expect(response.status).toBe(422);
       } catch (err) {
@@ -965,7 +962,7 @@ describe('Events - PUT, PATCH, DELETE API: /api/events', () => {
           method: "put",
           data: eventJSON,
           withCredentials: true,
-          url: url + "/" + testEvent.id,
+          url: oneEventUrl + testEvent.id,
         });
         expect(response.status).toBe(422);
       } catch (err) {
@@ -987,7 +984,7 @@ describe('Events - PUT, PATCH, DELETE API: /api/events', () => {
           method: "put",
           data: eventJSON,
           withCredentials: true,
-          url: url + "/" + testEvent.id,
+          url: oneEventUrl + testEvent.id,
         });
         expect(response.status).toBe(422);
       } catch (err) {
@@ -1009,7 +1006,7 @@ describe('Events - PUT, PATCH, DELETE API: /api/events', () => {
           method: "put",
           data: eventJSON,
           withCredentials: true,
-          url: url + "/" + testEvent.id,
+          url: oneEventUrl + testEvent.id,
         });
         expect(response.status).toBe(422);
       } catch (err) {
@@ -1031,7 +1028,7 @@ describe('Events - PUT, PATCH, DELETE API: /api/events', () => {
           method: "put",
           data: eventJSON,
           withCredentials: true,
-          url: url + "/" + testEvent.id,
+          url: oneEventUrl + testEvent.id,
         });
         expect(response.status).toBe(422);
       } catch (err) {
@@ -1053,7 +1050,7 @@ describe('Events - PUT, PATCH, DELETE API: /api/events', () => {
           method: "put",
           data: eventJSON,
           withCredentials: true,
-          url: url + "/" + testEvent.id,
+          url: oneEventUrl + testEvent.id,
         });
         expect(response.status).toBe(422);
       } catch (err) {
@@ -1075,7 +1072,7 @@ describe('Events - PUT, PATCH, DELETE API: /api/events', () => {
           method: "put",
           data: eventJSON,
           withCredentials: true,
-          url: url + "/" + testEvent.id,
+          url: oneEventUrl + testEvent.id,
         });
         expect(response.status).toBe(422);
       } catch (err) {
@@ -1097,7 +1094,7 @@ describe('Events - PUT, PATCH, DELETE API: /api/events', () => {
           method: "put",
           data: eventJSON,
           withCredentials: true,
-          url: url + "/" + testEvent.id,
+          url: oneEventUrl + testEvent.id,
         });
         expect(response.status).toBe(422);
       } catch (err) {
@@ -1119,7 +1116,7 @@ describe('Events - PUT, PATCH, DELETE API: /api/events', () => {
           method: "put",
           data: eventJSON,
           withCredentials: true,
-          url: url + "/" + testEvent.id,
+          url: oneEventUrl + testEvent.id,
         });
         expect(response.status).toBe(422);
       } catch (err) {
@@ -1141,7 +1138,7 @@ describe('Events - PUT, PATCH, DELETE API: /api/events', () => {
           method: "put",
           data: eventJSON,
           withCredentials: true,
-          url: url + "/" + testEvent.id,
+          url: oneEventUrl + testEvent.id,
         });
         expect(response.status).toBe(422);
       } catch (err) {
@@ -1163,7 +1160,7 @@ describe('Events - PUT, PATCH, DELETE API: /api/events', () => {
           method: "put",
           data: eventJSON,
           withCredentials: true,
-          url: url + "/" + testEvent.id,
+          url: oneEventUrl + testEvent.id,
         });
         expect(response.status).toBe(422);
       } catch (err) {
@@ -1185,7 +1182,7 @@ describe('Events - PUT, PATCH, DELETE API: /api/events', () => {
           method: "put",
           data: eventJSON,
           withCredentials: true,
-          url: url + "/" + testEvent.id,
+          url: oneEventUrl + testEvent.id,
         });
         expect(response.status).toBe(422);
       } catch (err) {
@@ -1207,7 +1204,7 @@ describe('Events - PUT, PATCH, DELETE API: /api/events', () => {
           method: "put",
           data: eventJSON,
           withCredentials: true,
-          url: url + "/" + testEvent.id,
+          url: oneEventUrl + testEvent.id,
         });
         expect(response.status).toBe(422);
       } catch (err) {
@@ -1229,7 +1226,7 @@ describe('Events - PUT, PATCH, DELETE API: /api/events', () => {
           method: "put",
           data: eventJSON,
           withCredentials: true,
-          url: url + "/" + testEvent.id,
+          url: oneEventUrl + testEvent.id,
         });
         expect(response.status).toBe(422);
       } catch (err) {
@@ -1251,7 +1248,7 @@ describe('Events - PUT, PATCH, DELETE API: /api/events', () => {
           method: "put",
           data: eventJSON,
           withCredentials: true,
-          url: url + "/" + testEvent.id,
+          url: oneEventUrl + testEvent.id,
         });
         expect(response.status).toBe(422);
       } catch (err) {
@@ -1273,7 +1270,7 @@ describe('Events - PUT, PATCH, DELETE API: /api/events', () => {
           method: "put",
           data: eventJSON,
           withCredentials: true,
-          url: url + "/" + testEvent.id,
+          url: oneEventUrl + testEvent.id,
         });
         expect(response.status).toBe(422);
       } catch (err) {
@@ -1298,12 +1295,12 @@ describe('Events - PUT, PATCH, DELETE API: /api/events', () => {
           method: "put",
           data: eventJSON,
           withCredentials: true,
-          url: url + "/" + event5Id,
+          url: oneEventUrl + event5Id,
         });
-        expect(response.status).toBe(422);
+        expect(response.status).toBe(404);
       } catch (err) {
         if (err instanceof AxiosError) {
-          expect(err.response?.status).toBe(422);
+          expect(err.response?.status).toBe(404);
         } else {
           expect(true).toBeFalsy();
         }
@@ -1326,7 +1323,7 @@ describe('Events - PUT, PATCH, DELETE API: /api/events', () => {
         method: "put",
         data: eventJSON,
         withCredentials: true,
-        url: url + "/" + testEvent.id,
+        url: oneEventUrl + testEvent.id,
       })
       const puttedEvent = response.data.event;
       expect(response.status).toBe(200);
@@ -1335,7 +1332,7 @@ describe('Events - PUT, PATCH, DELETE API: /api/events', () => {
 
   })
 
-  describe('PATCH by ID - API: /api/events/:id', () => {
+  describe('PATCH by ID - API: /api/events/event/:id', () => {
 
     beforeAll(async () => {
       // make sure test user is reset in database
@@ -1344,7 +1341,7 @@ describe('Events - PUT, PATCH, DELETE API: /api/events', () => {
         method: "put",
         data: userJSON,
         withCredentials: true,
-        url: url + "/" + testEvent.id,
+        url: oneEventUrl + testEvent.id,
       })
     })
 
@@ -1355,7 +1352,7 @@ describe('Events - PUT, PATCH, DELETE API: /api/events', () => {
           method: "put",
           data: eventJSON,
           withCredentials: true,
-          url: url + "/" + testEvent.id,
+          url: oneEventUrl + testEvent.id,
         })
       } catch (err) {
         if (err instanceof AxiosError) console.log(err.message);
@@ -1374,7 +1371,7 @@ describe('Events - PUT, PATCH, DELETE API: /api/events', () => {
         method: "patch",
         data: eventJSON,
         withCredentials: true,
-        url: url + "/" + blankEvent.id,
+        url: oneEventUrl + blankEvent.id,
       })
       const patchedEvent = response.data.event;
       expect(response.status).toBe(200);
@@ -1391,7 +1388,7 @@ describe('Events - PUT, PATCH, DELETE API: /api/events', () => {
         method: "patch",
         data: eventJSON,
         withCredentials: true,
-        url: url + "/" + blankEvent.id,
+        url: oneEventUrl + blankEvent.id,
       })
       const patchedEvent = response.data.event;
       expect(response.status).toBe(200);
@@ -1407,7 +1404,7 @@ describe('Events - PUT, PATCH, DELETE API: /api/events', () => {
         method: "patch",
         data: eventJSON,
         withCredentials: true,
-        url: url + "/" + blankEvent.id,
+        url: oneEventUrl + blankEvent.id,
       })
       const patchedEvent = response.data.event;
       expect(response.status).toBe(200);
@@ -1423,7 +1420,7 @@ describe('Events - PUT, PATCH, DELETE API: /api/events', () => {
         method: "patch",
         data: eventJSON,
         withCredentials: true,
-        url: url + "/" + blankEvent.id,
+        url: oneEventUrl + blankEvent.id,
       })
       const patchedEvent = response.data.event;
       expect(response.status).toBe(200);
@@ -1439,7 +1436,7 @@ describe('Events - PUT, PATCH, DELETE API: /api/events', () => {
         method: "patch",
         data: eventJSON,
         withCredentials: true,
-        url: url + "/" + blankEvent.id,
+        url: oneEventUrl + blankEvent.id,
       })
       const patchedEvent = response.data.event;
       expect(response.status).toBe(200);
@@ -1457,7 +1454,7 @@ describe('Events - PUT, PATCH, DELETE API: /api/events', () => {
         method: "patch",
         data: eventJSON,
         withCredentials: true,
-        url: url + "/" + blankEvent.id,
+        url: oneEventUrl + blankEvent.id,
       })
       const patchedEvent = response.data.event;
       expect(response.status).toBe(200);
@@ -1477,7 +1474,7 @@ describe('Events - PUT, PATCH, DELETE API: /api/events', () => {
         method: "patch",
         data: eventJSON,
         withCredentials: true,
-        url: url + "/" + blankEvent.id,
+        url: oneEventUrl + blankEvent.id,
       })
       const patchedEvent = response.data.event;
       expect(response.status).toBe(200);
@@ -1497,7 +1494,7 @@ describe('Events - PUT, PATCH, DELETE API: /api/events', () => {
         method: "patch",
         data: eventJSON,
         withCredentials: true,
-        url: url + "/" + blankEvent.id,
+        url: oneEventUrl + blankEvent.id,
       })
       const patchedEvent = response.data.event;
       expect(response.status).toBe(200);
@@ -1517,7 +1514,7 @@ describe('Events - PUT, PATCH, DELETE API: /api/events', () => {
         method: "patch",
         data: eventJSON,
         withCredentials: true,
-        url: url + "/" + blankEvent.id,
+        url: oneEventUrl + blankEvent.id,
       })
       const patchedEvent = response.data.event;
       expect(response.status).toBe(200);
@@ -1535,7 +1532,7 @@ describe('Events - PUT, PATCH, DELETE API: /api/events', () => {
           method: "patch",
           data: eventJSON,
           withCredentials: true,
-          url: url + "/" + blankEvent.id,
+          url: oneEventUrl + blankEvent.id,
         })
         expect(response.status).toBe(422);
       } catch (err) {
@@ -1556,7 +1553,7 @@ describe('Events - PUT, PATCH, DELETE API: /api/events', () => {
           method: "patch",
           data: eventJSON,
           withCredentials: true,
-          url: url + "/" + blankEvent.id,
+          url: oneEventUrl + blankEvent.id,
         })
         expect(response.status).toBe(422);
       } catch (err) {
@@ -1577,7 +1574,7 @@ describe('Events - PUT, PATCH, DELETE API: /api/events', () => {
           method: "patch",
           data: eventJSON,
           withCredentials: true,
-          url: url + "/" + blankEvent.id,
+          url: oneEventUrl + blankEvent.id,
         })
         expect(response.status).toBe(422);
       } catch (err) {
@@ -1598,7 +1595,7 @@ describe('Events - PUT, PATCH, DELETE API: /api/events', () => {
           method: "patch",
           data: eventJSON,
           withCredentials: true,
-          url: url + "/" + blankEvent.id,
+          url: oneEventUrl + blankEvent.id,
         })
         expect(response.status).toBe(422);
       } catch (err) {
@@ -1619,7 +1616,7 @@ describe('Events - PUT, PATCH, DELETE API: /api/events', () => {
           method: "patch",
           data: eventJSON,
           withCredentials: true,
-          url: url + "/" + blankEvent.id,
+          url: oneEventUrl + blankEvent.id,
         })
         expect(response.status).toBe(422);
       } catch (err) {
@@ -1640,7 +1637,7 @@ describe('Events - PUT, PATCH, DELETE API: /api/events', () => {
           method: "patch",
           data: eventJSON,
           withCredentials: true,
-          url: url + "/" + blankEvent.id,
+          url: oneEventUrl + blankEvent.id,
         })
         expect(response.status).toBe(422);
       } catch (err) {
@@ -1661,7 +1658,7 @@ describe('Events - PUT, PATCH, DELETE API: /api/events', () => {
           method: "patch",
           data: eventJSON,
           withCredentials: true,
-          url: url + "/" + blankEvent.id,
+          url: oneEventUrl + blankEvent.id,
         })
         expect(response.status).toBe(422);
       } catch (err) {
@@ -1682,7 +1679,7 @@ describe('Events - PUT, PATCH, DELETE API: /api/events', () => {
           method: "patch",
           data: eventJSON,
           withCredentials: true,
-          url: url + "/" + blankEvent.id,
+          url: oneEventUrl + blankEvent.id,
         })
         expect(response.status).toBe(422);
       } catch (err) {
@@ -1703,7 +1700,7 @@ describe('Events - PUT, PATCH, DELETE API: /api/events', () => {
           method: "patch",
           data: eventJSON,
           withCredentials: true,
-          url: url + "/" + blankEvent.id,
+          url: oneEventUrl + blankEvent.id,
         })
         expect(response.status).toBe(422);
       } catch (err) {
@@ -1724,7 +1721,7 @@ describe('Events - PUT, PATCH, DELETE API: /api/events', () => {
           method: "patch",
           data: eventJSON,
           withCredentials: true,
-          url: url + "/" + blankEvent.id,
+          url: oneEventUrl + blankEvent.id,
         })
         expect(response.status).toBe(422);
       } catch (err) {
@@ -1745,7 +1742,7 @@ describe('Events - PUT, PATCH, DELETE API: /api/events', () => {
           method: "patch",
           data: eventJSON,
           withCredentials: true,
-          url: url + "/" + blankEvent.id,
+          url: oneEventUrl + blankEvent.id,
         })
         expect(response.status).toBe(422);
       } catch (err) {
@@ -1766,7 +1763,7 @@ describe('Events - PUT, PATCH, DELETE API: /api/events', () => {
           method: "patch",
           data: eventJSON,
           withCredentials: true,
-          url: url + "/" + blankEvent.id,
+          url: oneEventUrl + blankEvent.id,
         })
         expect(response.status).toBe(422);
       } catch (err) {
@@ -1787,7 +1784,7 @@ describe('Events - PUT, PATCH, DELETE API: /api/events', () => {
           method: "patch",
           data: eventJSON,
           withCredentials: true,
-          url: url + "/" + blankEvent.id,
+          url: oneEventUrl + blankEvent.id,
         })
         expect(response.status).toBe(422);
       } catch (err) {
@@ -1808,7 +1805,7 @@ describe('Events - PUT, PATCH, DELETE API: /api/events', () => {
           method: "patch",
           data: eventJSON,
           withCredentials: true,
-          url: url + "/" + blankEvent.id,
+          url: oneEventUrl + blankEvent.id,
         })
         expect(response.status).toBe(422);
       } catch (err) {
@@ -1829,7 +1826,7 @@ describe('Events - PUT, PATCH, DELETE API: /api/events', () => {
           method: "patch",
           data: eventJSON,
           withCredentials: true,
-          url: url + "/" + blankEvent.id,
+          url: oneEventUrl + blankEvent.id,
         })
         expect(response.status).toBe(422);
       } catch (err) {
@@ -1850,7 +1847,7 @@ describe('Events - PUT, PATCH, DELETE API: /api/events', () => {
           method: "patch",
           data: eventJSON,
           withCredentials: true,
-          url: url + "/" + blankEvent.id,
+          url: oneEventUrl + blankEvent.id,
         })
         expect(response.status).toBe(422);
       } catch (err) {
@@ -1871,7 +1868,7 @@ describe('Events - PUT, PATCH, DELETE API: /api/events', () => {
           method: "patch",
           data: eventJSON,
           withCredentials: true,
-          url: url + "/" + blankEvent.id,
+          url: oneEventUrl + blankEvent.id,
         })
         expect(response.status).toBe(422);
       } catch (err) {
@@ -1892,7 +1889,7 @@ describe('Events - PUT, PATCH, DELETE API: /api/events', () => {
           method: "patch",
           data: eventJSON,
           withCredentials: true,
-          url: url + "/" + blankEvent.id,
+          url: oneEventUrl + blankEvent.id,
         })
         expect(response.status).toBe(422);
       } catch (err) {
@@ -1913,7 +1910,7 @@ describe('Events - PUT, PATCH, DELETE API: /api/events', () => {
           method: "patch",
           data: eventJSON,
           withCredentials: true,
-          url: url + "/" + blankEvent.id,
+          url: oneEventUrl + blankEvent.id,
         })
         expect(response.status).toBe(422);
       } catch (err) {
@@ -1934,7 +1931,7 @@ describe('Events - PUT, PATCH, DELETE API: /api/events', () => {
           method: "patch",
           data: eventJSON,
           withCredentials: true,
-          url: url + "/" + blankEvent.id,
+          url: oneEventUrl + blankEvent.id,
         })
         expect(response.status).toBe(422);
       } catch (err) {
@@ -1955,7 +1952,7 @@ describe('Events - PUT, PATCH, DELETE API: /api/events', () => {
           method: "patch",
           data: eventJSON,
           withCredentials: true,
-          url: url + "/" + blankEvent.id,
+          url: oneEventUrl + blankEvent.id,
         })
         expect(response.status).toBe(422);
       } catch (err) {
@@ -1976,7 +1973,7 @@ describe('Events - PUT, PATCH, DELETE API: /api/events', () => {
           method: "patch",
           data: eventJSON,
           withCredentials: true,
-          url: url + "/" + blankEvent.id,
+          url: oneEventUrl + blankEvent.id,
         })
         expect(response.status).toBe(422);
       } catch (err) {
@@ -1997,7 +1994,7 @@ describe('Events - PUT, PATCH, DELETE API: /api/events', () => {
           method: "patch",
           data: eventJSON,
           withCredentials: true,
-          url: url + "/" + blankEvent.id,
+          url: oneEventUrl + blankEvent.id,
         })
         expect(response.status).toBe(422);
       } catch (err) {
@@ -2018,7 +2015,7 @@ describe('Events - PUT, PATCH, DELETE API: /api/events', () => {
           method: "patch",
           data: eventJSON,
           withCredentials: true,
-          url: url + "/" + blankEvent.id,
+          url: oneEventUrl + blankEvent.id,
         })
         expect(response.status).toBe(422);
       } catch (err) {
@@ -2039,7 +2036,7 @@ describe('Events - PUT, PATCH, DELETE API: /api/events', () => {
           method: "patch",
           data: eventJSON,
           withCredentials: true,
-          url: url + "/" + blankEvent.id,
+          url: oneEventUrl + blankEvent.id,
         })
         expect(response.status).toBe(422);
       } catch (err) {
@@ -2060,7 +2057,7 @@ describe('Events - PUT, PATCH, DELETE API: /api/events', () => {
           method: "patch",
           data: eventJSON,
           withCredentials: true,
-          url: url + "/" + blankEvent.id,
+          url: oneEventUrl + blankEvent.id,
         })
         expect(response.status).toBe(422);
       } catch (err) {
@@ -2081,7 +2078,7 @@ describe('Events - PUT, PATCH, DELETE API: /api/events', () => {
           method: "patch",
           data: eventJSON,
           withCredentials: true,
-          url: url + "/" + blankEvent.id,
+          url: oneEventUrl + blankEvent.id,
         })
         expect(response.status).toBe(422);
       } catch (err) {
@@ -2102,7 +2099,7 @@ describe('Events - PUT, PATCH, DELETE API: /api/events', () => {
           method: "patch",
           data: eventJSON,
           withCredentials: true,
-          url: url + "/" + blankEvent.id,
+          url: oneEventUrl + blankEvent.id,
         })
         expect(response.status).toBe(422);
       } catch (err) {
@@ -2123,7 +2120,7 @@ describe('Events - PUT, PATCH, DELETE API: /api/events', () => {
           method: "patch",
           data: eventJSON,
           withCredentials: true,
-          url: url + "/" + blankEvent.id,
+          url: oneEventUrl + blankEvent.id,
         })
         expect(response.status).toBe(422);
       } catch (err) {
@@ -2144,7 +2141,7 @@ describe('Events - PUT, PATCH, DELETE API: /api/events', () => {
           method: "patch",
           data: eventJSON,
           withCredentials: true,
-          url: url + "/" + blankEvent.id,
+          url: oneEventUrl + blankEvent.id,
         })
         expect(response.status).toBe(422);
       } catch (err) {
@@ -2165,7 +2162,7 @@ describe('Events - PUT, PATCH, DELETE API: /api/events', () => {
           method: "patch",
           data: eventJSON,
           withCredentials: true,
-          url: url + "/" + blankEvent.id,
+          url: oneEventUrl + blankEvent.id,
         })
         expect(response.status).toBe(422);
       } catch (err) {
@@ -2186,7 +2183,7 @@ describe('Events - PUT, PATCH, DELETE API: /api/events', () => {
           method: "patch",
           data: eventJSON,
           withCredentials: true,
-          url: url + "/" + blankEvent.id,
+          url: oneEventUrl + blankEvent.id,
         })
         expect(response.status).toBe(422);
       } catch (err) {
@@ -2207,7 +2204,7 @@ describe('Events - PUT, PATCH, DELETE API: /api/events', () => {
           method: "patch",
           data: eventJSON,
           withCredentials: true,
-          url: url + "/" + blankEvent.id,
+          url: oneEventUrl + blankEvent.id,
         })
         expect(response.status).toBe(422);
       } catch (err) {
@@ -2232,7 +2229,7 @@ describe('Events - PUT, PATCH, DELETE API: /api/events', () => {
           method: "patch",
           data: eventJSON,
           withCredentials: true,
-          url: url + "/" + event5Id,
+          url: oneEventUrl + event5Id,
         });
         expect(response.status).toBe(422);
       } catch (err) {
@@ -2256,7 +2253,7 @@ describe('Events - PUT, PATCH, DELETE API: /api/events', () => {
         method: "patch",
         data: eventJSON,
         withCredentials: true,
-        url: url + "/" + blankEvent.id,
+        url: oneEventUrl + blankEvent.id,
       })
       const patchedEvent = response.data.event;
       expect(response.status).toBe(200);
@@ -2265,7 +2262,7 @@ describe('Events - PUT, PATCH, DELETE API: /api/events', () => {
 
   })
 
-  describe('DELETE by ID - API: /api/events/:id', () => {
+  describe('DELETE by ID - API: /api/events/event/:id', () => {
 
     const toDelEvent = {
       ...initEvent,
@@ -2280,6 +2277,7 @@ describe('Events - PUT, PATCH, DELETE API: /api/events', () => {
       other: '2',
       expenses: '5',
       added_money: '0',
+      lpox: '80',
       sort_order: 1,
     }
 
@@ -2293,11 +2291,7 @@ describe('Events - PUT, PATCH, DELETE API: /api/events', () => {
       if (!didDel) return;
       // if deleted event, add event back
       try {
-        const restoreEvent = {
-          ...toDelEvent,
-          id: postSecret + "evt_bd63777a6aee43be8372e4d008c1d6d0",
-        }
-        const eventJSON = JSON.stringify(restoreEvent);
+        const eventJSON = JSON.stringify(toDelEvent);
         const response = await axios({
           method: "post",
           data: eventJSON,
@@ -2315,7 +2309,7 @@ describe('Events - PUT, PATCH, DELETE API: /api/events', () => {
         const response = await axios({
           method: "delete",
           withCredentials: true,
-          url: url + "/" + toDelEvent.id,
+          url: oneEventUrl + toDelEvent.id,
         });
         expect(response.status).toBe(200);
         didDel = true;
@@ -2332,7 +2326,7 @@ describe('Events - PUT, PATCH, DELETE API: /api/events', () => {
         const response = await axios({
           method: "delete",
           withCredentials: true,
-          url: url + "/" + 'test',
+          url: oneEventUrl + 'test',
         });
         expect(response.status).toBe(404);
       } catch (err) {
@@ -2348,7 +2342,7 @@ describe('Events - PUT, PATCH, DELETE API: /api/events', () => {
         const response = await axios({
           method: "delete",
           withCredentials: true,
-          url: url + "/" + nonEventId,
+          url: oneEventUrl + nonEventId,
         });
         expect(response.status).toBe(404);
       } catch (err) {
@@ -2364,7 +2358,7 @@ describe('Events - PUT, PATCH, DELETE API: /api/events', () => {
         const response = await axios({
           method: "delete",
           withCredentials: true,
-          url: url + "/" + notFoundId,
+          url: oneEventUrl + notFoundId,
         });
         expect(response.status).toBe(404);
       } catch (err) {
@@ -2380,7 +2374,7 @@ describe('Events - PUT, PATCH, DELETE API: /api/events', () => {
         const response = await axios({
           method: "delete",
           withCredentials: true,
-          url: url + "/" + testEvent.id
+          url: oneEventUrl + testEvent.id
         });
         expect(response.status).toBe(409);
       } catch (err) {

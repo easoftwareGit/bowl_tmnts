@@ -1,9 +1,10 @@
 import { NextResponse, NextRequest } from "next/server";
 import { prisma } from "@/lib/prisma";
-import { ErrorCode, validPostId } from "@/lib/validation";
+import { ErrorCode } from "@/lib/validation";
 import { tmntType } from "@/lib/types/types";
 import { sanitizeTmnt, validateTmnt } from "./valildate";
 import { initTmnt } from "@/lib/db/initVals";
+import { removeTimeFromISODateStr, startOfDayFromString } from "@/lib/dateTools";
 
 // routes /api/tmnts
 
@@ -29,12 +30,16 @@ export async function POST(request: Request) {
 
   try {
     const { id, tmnt_name, start_date, end_date, user_id, bowl_id } = await request.json()    
+
+    const startDateStr = removeTimeFromISODateStr(start_date);
+    const endDateStr = removeTimeFromISODateStr(end_date);
+
     const toCheck: tmntType = {
       ...initTmnt, 
       id,
       tmnt_name,
-      start_date,
-      end_date,
+      start_date: startOfDayFromString(startDateStr) as Date,
+      end_date: startOfDayFromString(endDateStr) as Date,
       user_id,
       bowl_id
     }
@@ -59,39 +64,30 @@ export async function POST(request: Request) {
         { status: 422 }
       );
     }
-    let postId = '';
-    if (id) {
-      postId = validPostId(id, 'tmt');
-      if (!postId) {
-        return NextResponse.json(
-          { error: 'invalid data' },
-          { status: 422 }
-        );
-      }
-    }
     
     type tmntDataType = {
+      id: string
       tmnt_name: string
       start_date: Date
       end_date: Date
       user_id: string
-      bowl_id: string
-      id?: string
+      bowl_id: string      
     }
     let tmntData: tmntDataType = {
+      id: toPost.id,
       tmnt_name: toPost.tmnt_name,
       start_date: toPost.start_date,
       end_date: toPost.end_date,
       user_id: toPost.user_id,
       bowl_id: toPost.bowl_id
     }
-    if (postId) {
-      tmntData.id = postId
-    }
 
     const tmnt = await prisma.tmnt.create({
       data: tmntData
     })
+
+    console.log({tmnt})
+
     return NextResponse.json({ tmnt }, { status: 201 });
   } catch (error: any) {
     let errStatus: number
@@ -99,6 +95,9 @@ export async function POST(request: Request) {
       case 'P2003': //parent row not found
         errStatus = 404
         break;    
+      case "P2025": // record not found
+        errStatus = 404;
+        break;      
       default:
         errStatus = 500
         break;

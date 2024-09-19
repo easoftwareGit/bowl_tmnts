@@ -356,6 +356,14 @@ describe('sanitize inputs', () => {
       const result = sanitizeCurrency(undefined as any);
       expect(result).toBe('');
     })    
+    it('should return an formatted string when passed a number', () => { 
+      const result = sanitizeCurrency(123.45 as any);
+      expect(result).toBe('123.45');
+    })
+    it('should return an formatted string when passed a negative number', () => { 
+      const result = sanitizeCurrency(-123.45 as any);
+      expect(result).toBe('-123.45');
+    })
   })
 
 });

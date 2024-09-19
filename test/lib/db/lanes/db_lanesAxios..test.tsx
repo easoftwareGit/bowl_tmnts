@@ -24,55 +24,54 @@ import { postLane } from "@/lib/db/lanes/lanesAxios";
 const url = testBaseLanesApi.startsWith("undefined")
   ? baseLanesApi
   : testBaseLanesApi;   
+const oneLaneUrl = url + "/lane/";  
 
 describe('postLane', () => { 
 
-  const laneToPost = {
-    ...initLane,
-    id: '',
-    squad_id: 'sqd_3397da1adc014cf58c44e07c19914f72',
-    lane_number: 1
-  }
-
-  let createdLaneId = '';
-
-  beforeAll(async () => { 
+  const deletePostedLane = async () => {
     const response = await axios.get(url);
     const lanes = response.data.lanes;
-    const toDel = lanes.find((l: laneType) => l.squad_id === 'sqd_3397da1adc014cf58c44e07c19914f72');
+    const toDel = lanes.find((l: laneType) => l.lane_number === 101);
     if (toDel) {
       try {
         const delResponse = await axios({
           method: "delete",
           withCredentials: true,
-          url: url + "/" + toDel.id
+          url: oneLaneUrl + toDel.id
         });
       } catch (err) {
         if (err instanceof AxiosError) console.log(err.message);
       }
     }
+  }
+
+  const laneToPost = {
+    ...initLane,    
+    squad_id: 'sqd_3397da1adc014cf58c44e07c19914f72',
+    lane_number: 101
+  }
+
+  let createdLane = false;
+
+  beforeAll(async () => { 
+    await deletePostedLane();
   })
 
   beforeEach(() => {
-    createdLaneId = "";
+    createdLane = false;
   })
 
   afterEach(async () => {
-    if (createdLaneId) {
-      const delResponse = await axios({
-        method: "delete",
-        withCredentials: true,
-        url: url + "/" + createdLaneId,
-      });
+    if (createdLane) {
+      const response = await axios.get(url);
     }
-    createdLaneId = "";
   })
 
   it('should post a lane', async () => {
     const postedLane = await postLane(laneToPost);
     expect(postedLane).not.toBeNull();
     if (!postedLane) return;
-    createdLaneId = postedLane.id;
+    createdLane = true;
     expect(postedLane.squad_id).toBe(laneToPost.squad_id);
     expect(postedLane.lane_number).toBe(laneToPost.lane_number);
     expect(isValidBtDbId(postedLane.id, 'lan')).toBeTruthy();

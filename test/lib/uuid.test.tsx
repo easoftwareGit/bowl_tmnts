@@ -11,7 +11,16 @@ describe('tests for uuid', () => {
   })
   it('should return a blank uuid for invalid type', () => { 
     const bad = 'bad';
-    const bowUuid = btDbUuid(bad);
+    const bowUuid = btDbUuid(bad as any);
     expect(bowUuid).toHaveLength(0);
   })
+  it('should return a blank uuid for null type', () => {     
+    const bowUuid = btDbUuid(null as any);
+    expect(bowUuid).toHaveLength(0);
+  })
+  it('should return a blank uuid for undefined type', () => {     
+    const bowUuid = btDbUuid(undefined as any);
+    expect(bowUuid).toHaveLength(0);
+  })
+
 })

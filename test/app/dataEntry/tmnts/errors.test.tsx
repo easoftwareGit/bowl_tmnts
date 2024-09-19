@@ -18,6 +18,7 @@ import {
 import { mockDivs } from "../../../mocks/tmnts/twoDivs/mockDivs";
 import { mockSquads } from "../../../mocks/tmnts/singlesAndDoubles/mockSquads";
 import { startOfDayFromString, todayStr } from "@/lib/dateTools";
+import { startOfToday } from "date-fns";
 
 describe("getAcdnErrMsg", () => {
   // Returns formatted error message for valid object name and error message
@@ -394,7 +395,7 @@ describe('isDuplicateDateTime', () => {
     const squad = {
       ...initSquad,
       sort_order: 3,  
-      squad_date: startOfDayFromString(todayStr) as Date, 
+      squad_date: startOfToday(),
       squad_date_str: todayStr,
       squad_time: '10:00',
     } 
@@ -420,7 +421,7 @@ describe('isDuplicateDateTime', () => {
       const squad = {
         ...initSquad,
         sort_order: 1,  
-        squad_date: startOfDayFromString(todayStr) as Date, 
+        squad_date: startOfToday(),
         squad_date_str: todayStr,
         squad_time: '10:00',
       } 

@@ -9,12 +9,12 @@ import {
 } from "@/app/api/elims/validate";
 import { initElim } from "@/lib/db/initVals";
 import { elimType } from "@/lib/types/types";
-import { ErrorCode, minGames, maxGames, validPostId } from "@/lib/validation";
-import { postSecret } from "@/lib/tools";
+import { ErrorCode, minGames, maxGames } from "@/lib/validation";
 
 const { gotElimData, validElimData } = exportedForTesting;
 
-const elimId = 'elm_45d884582e7042bb95b4818ccdd9974c';
+const elimId = 'elm_45d884582e7042bb95b4818ccdd9974c'
+const nonElimId = 'usr_45d884582e7042bb95b4818ccdd9974c';
 
 const validElim = {
   ...initElim,
@@ -33,6 +33,13 @@ describe("tests for eliminator validation", () => {
     it('should return ErrorCode.None when all data is present', () => { 
       expect(gotElimData(validElim)).toBe(ErrorCode.None);
     })
+    it('should return ErrorCode.MissingData when id is missing', () => {
+      const testElim = {
+        ...validElim,
+        id: null as any
+      }
+      expect(gotElimData(testElim)).toBe(ErrorCode.MissingData);
+    })  
     it('should return ErrorCode.MissingData when div_id is missing', () => {
       const testElim = {
         ...validElim,
@@ -111,7 +118,7 @@ describe("tests for eliminator validation", () => {
     })
   })
 
-  describe('validBrktMoney function', () => {
+  describe('validElimMoney function', () => {
     it('should return true when fee is valid', () => {
       expect(validElimMoney('5')).toBe(true);
     })
@@ -152,6 +159,132 @@ describe("tests for eliminator validation", () => {
     });
   });
 
+  describe('validElimData function', () => { 
+    it('should return ErrorCode.None for valid eliminator data', () => { 
+      expect(validElimData(validElim)).toBe(ErrorCode.None);
+    })
+    it('should return ErrorCode.InvalidData when id is blank', () => { 
+      const invalidElim = {
+        ...validElim,
+        id: '',
+      }
+      expect(validateElim(invalidElim)).toBe(ErrorCode.MissingData);
+    })
+    it('should return ErrorCode.InvalidData when id is invalid', () => { 
+      const invalidElim = {
+        ...validElim,
+        id: 'test',
+      }
+      expect(validateElim(invalidElim)).toBe(ErrorCode.InvalidData);
+    })
+    it('should return ErrorCode.InvalidData when id is valid, but not a elim id', () => { 
+      const invalidElim = {
+        ...validElim,
+        id: nonElimId,
+      }
+      expect(validateElim(invalidElim)).toBe(ErrorCode.InvalidData);
+    })
+    it('should return ErrorCode.InvalidData when div_id is blank', () => { 
+      const invalidElim = {
+        ...validElim,
+        div_id: '',
+      }
+      expect(validateElim(invalidElim)).toBe(ErrorCode.MissingData);
+    })
+    it('should return ErrorCode.InvalidData when div_id is invalid', () => { 
+      const invalidElim = {
+        ...validElim,
+        div_id: '<script>alert(1)</script>',
+      }
+      expect(validateElim(invalidElim)).toBe(ErrorCode.InvalidData);
+    })
+    it('should return ErrorCode.InvalidData when div_id is valid, but not a div id', () => { 
+      const invalidElim = {
+        ...validElim,
+        div_id: nonElimId,
+      }
+      expect(validateElim(invalidElim)).toBe(ErrorCode.InvalidData);
+    })
+    it('should return ErrorCode.InvalidData when squad_id is blank', () => { 
+      const invalidElim = {
+        ...validElim,
+        squad_id: '',
+      }
+      expect(validateElim(invalidElim)).toBe(ErrorCode.MissingData);
+    })
+    it('should return ErrorCode.InvalidData when squad_id is invalid', () => { 
+      const invalidElim = {
+        ...validElim,
+        squad_id: 'abc_123',
+      }
+      expect(validateElim(invalidElim)).toBe(ErrorCode.InvalidData);
+    })
+    it('should return ErrorCode.InvalidData when squad_id is valid, but not a squad id', () => { 
+      const invalidElim = {
+        ...validElim,
+        squad_id: nonElimId,
+      }
+      expect(validateElim(invalidElim)).toBe(ErrorCode.InvalidData);
+    })
+    it('should return ErrorCode.InvalidData when start is too low', () => { 
+      const invalidElim = {
+        ...validElim,
+        start: -1,
+      }
+      expect(validateElim(invalidElim)).toBe(ErrorCode.InvalidData);
+    })
+    it('should return ErrorCode.InvalidData when start is too high', () => { 
+      const invalidElim = {
+        ...validElim,
+        start: 1000,
+      }
+      expect(validateElim(invalidElim)).toBe(ErrorCode.InvalidData);
+    })
+    it('should return ErrorCode.InvalidData when games is too low', () => { 
+      const invalidElim = {
+        ...validElim,
+        games: 0,
+      }
+      expect(validateElim(invalidElim)).toBe(ErrorCode.InvalidData);
+    })
+    it('should return ErrorCode.InvalidData when games is too high', () => { 
+      const invalidElim = {
+        ...validElim,
+        games: 1000,
+      }
+      expect(validateElim(invalidElim)).toBe(ErrorCode.InvalidData);
+    })
+    it('should return ErrorCode.InvalidData when fee is too low', () => { 
+      const invalidElim = {
+        ...validElim,
+        fee: '0',
+      }
+      expect(validateElim(invalidElim)).toBe(ErrorCode.InvalidData);
+    })
+    it('should return ErrorCode.InvalidData when fee is to high', () => { 
+      const invalidElim = {
+        ...validElim,
+        fee: '1234567890',
+      }
+      expect(validateElim(invalidElim)).toBe(ErrorCode.InvalidData);
+    })
+    it('should return ErrorCode.InvalidData when sort_order is too low', () => { 
+      const invalidElim = {
+        ...validElim,
+        sort_order: -1,
+      }
+      expect(validateElim(invalidElim)).toBe(ErrorCode.InvalidData);
+    })
+    it('should return ErrorCode.InvalidData when sort_order is too high', () => { 
+      const invalidElim = {
+        ...validElim,
+        sort_order: 1234567890,
+      }
+      expect(validateElim(invalidElim)).toBe(ErrorCode.InvalidData);
+    })
+
+  })
+
   describe('sanitizeElim function', () => { 
     it('should return sanitized elim for valid eliminator data', () => { 
       const testElim = {
@@ -173,14 +306,6 @@ describe("tests for eliminator validation", () => {
       }
       const sanitizedElim = sanitizeElim(testElim);
       expect(sanitizedElim.id).toEqual(elimId)
-    })
-    it('should return sanitized elim when elim has a post id', () => { 
-      const testElim = {
-        ...validElim,  
-        id: postSecret + elimId,
-      }
-      const sanitizedElim = sanitizeElim(testElim);
-      expect(sanitizedElim.id).toEqual(postSecret + elimId)
     })
     it('should return sanitized elim when elim has an invalid id', () => { 
       const testElim = {
@@ -324,6 +449,13 @@ describe("tests for eliminator validation", () => {
     })
 
     describe('ValidateElim function - invalid data', () => { 
+      it('should return ErrorCode.InvalidData when id is invalid', () => { 
+        const testElim = {
+          ...validElim,
+          id: '<script>alert(1)</script>',
+        }
+        expect(validateElim(testElim)).toBe(ErrorCode.InvalidData);
+      })
       it('should return ErrorCode.InvalidData when div_id is invalid', () => { 
         const testElim = {
           ...validElim,
@@ -368,34 +500,6 @@ describe("tests for eliminator validation", () => {
       })
     })
 
-  })
-
-  describe('validPostId function', () => { 
-    const testElimId = "elm_cb97b73cb538418ab993fc867f860510"
-    it('should return testElimId when id starts with post Secret and follows with a valid elim id', () => {
-      const validId = postSecret + testElimId;
-      expect(validPostId(validId, 'elm')).toBe(testElimId);
-    })
-    it('should return "" when id starts with postSecret but does idType does not match idtype in postId', () => { 
-      const invalidId = postSecret + testElimId;
-      expect(validPostId(invalidId, 'usr')).toBe('');
-    });
-    it('should return "" when id starts with postSecret but does idType is invalid', () => { 
-      const invalidId = postSecret + testElimId;
-      expect(validPostId(invalidId, '123' as any)).toBe('');
-    });
-    it('should return "" when id starts with postSecret but does not follow with valid BtDb idType', () => { 
-      const invalidId = postSecret + 'abc_a1b2c3d4e5f678901234567890abcdef';
-      expect(validPostId(invalidId, 'elm')).toBe('');
-    });
-    it('should return "" when id starts with postSecret but does not follow with a valid BtDb id', () => { 
-      const invalidId = postSecret + 'elm_invalidid';
-      expect(validPostId(invalidId, 'elm')).toBe('');
-    });
-    it('should return "" when id does not start with postSecret', () => { 
-      const invalidId = testElimId;
-      expect(validPostId(invalidId, 'elm')).toBe('');
-    });
   })
 
 })

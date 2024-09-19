@@ -41,7 +41,21 @@ export const TmntDataPage: React.FC<FormProps> = ({
 }) => {
 
   const { status, data } = useSession();
+  // line the tmnt data types
   fullTmntData.tmnt.user_id = data?.user?.id || "";  
+  fullTmntData.events[0].tmnt_id = fullTmntData.tmnt.id;
+  fullTmntData.divs[0].tmnt_id = fullTmntData.tmnt.id;
+  fullTmntData.squads[0].event_id = fullTmntData.events[0].id;
+  fullTmntData.lanes[0].squad_id = fullTmntData.squads[0].id;
+  fullTmntData.lanes[1].squad_id = fullTmntData.squads[0].id; // initLanes has 2 itens
+
+  fullTmntData.pots[0].div_id = fullTmntData.divs[0].id;
+  fullTmntData.pots[0].squad_id = fullTmntData.squads[0].id;
+  
+  // fullTmntData.brkts[0].div_id = fullTmntData.divs[0].id;
+  // fullTmntData.brkts[0].squad_id = fullTmntData.squads[0].id;
+  // fullTmntData.elims[0].div_id = fullTmntData.divs[0].id;
+  // fullTmntData.elims[0].squad_id = fullTmntData.squads[0].id;
 
   const [tmntData, setTmntData] = useState(fullTmntData.tmnt);
   const [events, setEvents] = useState(fullTmntData.events);

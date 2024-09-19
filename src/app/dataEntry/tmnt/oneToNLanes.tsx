@@ -9,13 +9,15 @@ interface ChildProps {
   squads: squadType[];  
 }
 
-const defaultTabKey = 'squad1'
+// const defaultTabKey = 'squad1'
 
 const OneToNLanes: React.FC<ChildProps> = ({
   lanes,  
   squads,  
 }) => {
   
+  const defaultTabKey = `lane${squads[0].id}`; // need to have 'lane' in key
+
   const [tabKey, setTabKey] = useState(defaultTabKey); 
 
   const handleTabSelect = (key: string | null) => {
@@ -37,7 +39,7 @@ const OneToNLanes: React.FC<ChildProps> = ({
         {squads.map((squad) => 
           <Tab
             key={squad.id}
-            eventKey={`squad${squad.id}`}
+            eventKey={`lane${squad.id}`} // need to have 'lane' in key
             title={squad.tab_title}
             // tabClassName={`${squad.laneErrClassName}`} no errors in lane tabs
           >

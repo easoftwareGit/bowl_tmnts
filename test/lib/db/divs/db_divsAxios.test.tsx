@@ -23,22 +23,20 @@ import { postDiv } from "@/lib/db/divs/divsAxios";
 
 const url = testBaseDivsApi.startsWith("undefined")
   ? baseDivsApi
-  : testBaseDivsApi;   
-
+  : testBaseDivsApi;
+const oneDivUrl = url + "/div/";
+    
 describe('postDiv', () => { 
 
   const divToPost = {
     ...initDiv,
-    id: '',
     tmnt_id: 'tmt_e134ac14c5234d708d26037ae812ac33',
     div_name: 'Test Div',
     hdcp_per: 0.80,
     hdcp_from: 230,    
   }
 
-  let createdDivId = '';
-
-  beforeAll(async () => { 
+  const deletePostedDiv = async () => {
     const response = await axios.get(url);
     const divs = response.data.divs;
     const toDel = divs.find((d: divType) => d.div_name === 'Test Div');
@@ -47,34 +45,35 @@ describe('postDiv', () => {
         const delResponse = await axios({
           method: "delete",
           withCredentials: true,
-          url: url + "/" + toDel.id
+          url: oneDivUrl + toDel.id
         });
       } catch (err) {
         if (err instanceof AxiosError) console.log(err.message);
       }
     }
+  }
+
+  let createdDiv = false;
+
+  beforeAll(async () => { 
+    await deletePostedDiv();
   })
 
   beforeEach(() => {
-    createdDivId = "";
+    createdDiv = false;
   })
 
   afterEach(async () => {
-    if (createdDivId) {
-      const delResponse = await axios({
-        method: "delete",
-        withCredentials: true,
-        url: url + "/" + createdDivId,
-      });
+    if (createdDiv) {
+      await deletePostedDiv();
     }
-    createdDivId = "";
   })
 
   it('should post a div', async () => { 
     const postedDiv = await postDiv(divToPost);
     expect(postedDiv).not.toBeNull();
     if(!postedDiv) return;
-    createdDivId = postedDiv.id;
+    createdDiv = true;
     expect(postedDiv.tmnt_id).toBe(divToPost.tmnt_id);
     expect(postedDiv.div_name).toBe(divToPost.div_name);    
     expect(postedDiv.hdcp_per).toBe(divToPost.hdcp_per);

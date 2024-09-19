@@ -13,14 +13,13 @@ import {
   maxLaneCount,
   validSortOrder,
   maxDate,
-  minDate,
-  validPostId,
+  minDate,  
 } from "@/lib/validation";
 import { sanitize } from "@/lib/sanitize";
 import { compareAsc, isValid } from "date-fns";
 import { squadType, idTypes } from "@/lib/types/types";
 import { blankSquad, initSquad } from "@/lib/db/initVals";
-import { validFullDateISOString } from "@/lib/dateTools";
+import { validDateString } from "@/lib/dateTools";
 
 /**
  * checks if squad object has missing data - DOES NOT SANITIZE OR VALIDATE
@@ -31,8 +30,9 @@ import { validFullDateISOString } from "@/lib/dateTools";
 const gotSquadData =(squad: squadType): ErrorCode => {
   try {
     // squad_time can be blank
-    if (
-      !squad.event_id
+    if (!squad
+      || !squad.id
+      || !squad.event_id
       || !sanitize(squad.squad_name)
       || (typeof squad.games !== "number")
       || (typeof squad.starting_lane !== "number")
@@ -69,7 +69,7 @@ export const validLaneCount = (laneCount: number): boolean => {
 export const validSquadDate = (squadDate: Date): boolean => { 
   if (!squadDate) return false  
   if (typeof squadDate === 'string') {
-    if (validFullDateISOString(squadDate)) {
+    if (validDateString(squadDate)) {
       squadDate = new Date(squadDate)
     } else {
       return false
@@ -82,6 +82,24 @@ export const validSquadTime = (squadTimeStr: string | null): boolean => {
   if (typeof squadTimeStr === 'undefined') return false  
   if (!squadTimeStr) return true
   return validTime(squadTimeStr)
+}
+
+/**
+ * sanitizes a time string, DOES NOT VALIDATE!
+ *   ##:## or ##:## am/pm are valid, any number and any case for am/pm
+ * 
+ * @param timeStr - time string to sanitize
+ * @returns - sanitized time string
+ */
+export const sanitizedTime = (timeStr: string): string | null => {
+  if (timeStr === null) return null;
+  if (!timeStr || !(timeStr.length === 5 || timeStr.length === 8)) return ''; 
+  const regex =
+    timeStr.length === 5
+      ? /^\d{2}:\d{2}$/
+      : /\d{2}:\d{2} ([AaPp][Mm])/;
+  if (!regex.test(timeStr)) return '';
+  return timeStr;
 }
 
 /**
@@ -119,6 +137,9 @@ export const validEventFkId = (FkId: string, idType: idTypes): boolean => {
 const validSquadData = (squad: squadType): ErrorCode => {  
   try {
     if (!squad) return ErrorCode.InvalidData;
+    if (!isValidBtDbId(squad.id, 'sqd')) {
+      return ErrorCode.InvalidData
+    }
     if (!isValidBtDbId(squad.event_id, 'evt')) {
       return ErrorCode.InvalidData;
     }
@@ -161,7 +182,7 @@ export const sanitizeSquad = (squad: squadType): squadType => {
     starting_lane: null as any,
     sort_order: null as any,
   }
-  if (squad.id === '' || isValidBtDbId(squad.id, "sqd") || validPostId(squad.id, "sqd")) {
+  if (isValidBtDbId(squad.id, "sqd")) {
     sanitizedSquad.id = squad.id;
   }
   sanitizedSquad.squad_name = sanitize(squad.squad_name)
@@ -180,9 +201,7 @@ export const sanitizeSquad = (squad: squadType): squadType => {
   if (validSquadDate(squad.squad_date)) {
     sanitizedSquad.squad_date = squad.squad_date
   }
-  if (validSquadTime(squad.squad_time)) {
-    sanitizedSquad.squad_time = squad.squad_time
-  }
+  sanitizedSquad.squad_time = sanitizedTime(squad.squad_time as string)
   if ((squad.sort_order === null) || isNumber(squad.sort_order)) {
     sanitizedSquad.sort_order = squad.sort_order
   }  

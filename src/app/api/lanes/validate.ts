@@ -3,11 +3,10 @@ import {
   minLane,
   maxLaneCount,
   ErrorCode,
-  isNumber,
-  validPostId,    
+  isNumber,    
 } from "@/lib/validation";
 import { idTypes, laneType } from "@/lib/types/types";
-import { blankLane, initLane } from "@/lib/db/initVals";
+import { blankLane } from "@/lib/db/initVals";
 
 /**
  * checks if lane object has missing data - DOES NOT SANITIZE OR VALIDATE
@@ -16,10 +15,10 @@ import { blankLane, initLane } from "@/lib/db/initVals";
  * @returns {ErrorCode.None | ErrorCode.MissingData |  ErrorCode.OtherError }
  */
 const gotLaneData = (lane: laneType): ErrorCode => {
-  try {
-    if(!lane) return ErrorCode.MissingData;
-    if (
-      !lane.squad_id      
+  try {    
+    if (!lane 
+      || !lane.id 
+      || !lane.squad_id      
       || (typeof lane.lane_number !== 'number')
     ) {
       return ErrorCode.MissingData;
@@ -60,6 +59,9 @@ export const validEventFkId = (FkId: string, idType: idTypes): boolean => {
 const validLaneData = (lane: laneType): ErrorCode => {  
   try {
     if (!lane) return ErrorCode.InvalidData;
+    if (!isValidBtDbId(lane.id, 'lan')) {
+      return ErrorCode.InvalidData
+    }
     if (!isValidBtDbId(lane.squad_id, 'sqd')) {
       return ErrorCode.InvalidData;
     }
@@ -84,7 +86,7 @@ export const sanitizeLane = (lane: laneType): laneType => {
     ...blankLane,
     lane_number: null as any
   }  
-  if (lane.id === '' || isValidBtDbId(lane.id, "lan") || validPostId(lane.id, "lan")) {
+  if (isValidBtDbId(lane.id, "lan")) {
     sanitizedLane.id = lane.id;
   }
   if (validEventFkId(lane.squad_id, 'sqd')) {

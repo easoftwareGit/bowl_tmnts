@@ -1,7 +1,7 @@
 import { NextResponse, NextRequest } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { validateLane, sanitizeLane } from "./validate";
-import { ErrorCode, validPostId } from "@/lib/validation";
+import { ErrorCode } from "@/lib/validation";
 import { laneType } from "@/lib/types/types";
 import { initLane } from "@/lib/db/initVals";
 
@@ -22,8 +22,8 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({ lanes }, { status: 200 });        
   } catch (error: any) {
     return NextResponse.json(
-      { error: "error getting events" },
-      { status: 500 }
+      { error: "error getting lanes" },
+      { status: 400 }
     );            
   }  
 }
@@ -38,7 +38,8 @@ export const POST = async (request: NextRequest) => {
       squad_id
     }
 
-    const errCode = validateLane(toCheck);
+    const toPost = sanitizeLane(toCheck);
+    const errCode = validateLane(toPost);
     if (errCode !== ErrorCode.None) {
       let errMsg: string;
       switch (errCode) {
@@ -57,30 +58,16 @@ export const POST = async (request: NextRequest) => {
         { status: 422 }
       );
     }
-
-    let postId = '';
-    if (id) {
-      postId = validPostId(id, 'lan');
-      if (!postId) {
-        return NextResponse.json(
-          { error: "invalid data" },
-          { status: 422 }
-        );
-      }
-    }
-
-    const toPost = sanitizeLane(toCheck);
+    
     type laneDataType = {
+      id: string,
       squad_id: string,
-      lane_number: number,
-      id?: string
+      lane_number: number,      
     }
     let laneData: laneDataType = {
+      id: toPost.id,
       squad_id: toPost.squad_id,
       lane_number: toPost.lane_number
-    }
-    if (postId) {
-      laneData.id = postId
     }
     const lane = await prisma.lane.create({
       data: laneData      

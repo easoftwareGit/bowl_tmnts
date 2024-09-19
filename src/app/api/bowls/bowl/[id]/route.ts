@@ -3,8 +3,7 @@ import { prisma } from "@/lib/prisma";
 import { bowlType } from "@/lib/types/types";
 import { initBowl } from "@/lib/db/initVals";
 import { ErrorCode, isValidBtDbId } from "@/lib/validation";
-import { sanitizeBowl, validateBowl } from "../validate";
-import { findBowlById } from "@/lib/db/bowls/bowls";
+import { sanitizeBowl, validateBowl } from "../../validate";
 
 export async function GET(
   request: Request,
@@ -109,14 +108,18 @@ export async function PATCH(
       return NextResponse.json({ error: "not found" }, { status: 404 });
     }
 
-    const json = await request.json();
-    // populate toCheck with json
-    const jsonProps = Object.getOwnPropertyNames(json);
-
-    const currentBowl = await findBowlById(id);
+    const currentBowl = await prisma.bowl.findUnique({
+      where: {
+        id: id,
+      },
+    });    
     if (!currentBowl) {
       return NextResponse.json({ error: "not found" }, { status: 404 });
     }
+
+    const json = await request.json();
+    // populate toCheck with json
+    const jsonProps = Object.getOwnPropertyNames(json);
     const toCheck: bowlType = {
       ...initBowl,
       bowl_name: currentBowl.bowl_name,

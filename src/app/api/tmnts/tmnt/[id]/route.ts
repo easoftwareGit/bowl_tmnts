@@ -1,12 +1,12 @@
 import { NextResponse } from "next/server";
-import { prisma } from "@/lib/prisma";
+import { prisma } from "@/lib/prisma"; 
 import { ErrorCode, isValidBtDbId } from "@/lib/validation";
 import { sanitizeTmnt, validateTmnt } from "@/app/api/tmnts/valildate";
 import { tmntType } from "@/lib/types/types";
 import { initTmnt } from "@/lib/db/initVals";
-import { findTmntById } from "@/lib/db/tmnts/tmnts";
+import { removeTimeFromISODateStr, startOfDayFromString } from "@/lib/dateTools";
 
-// routes /api/tmnts/:id
+// routes /api/tmnts/tmnt/:id
 
 export async function GET(
   request: Request,
@@ -15,9 +15,8 @@ export async function GET(
   try {
     const id = params.id;
     if (!isValidBtDbId(id, "tmt")) {
-      return NextResponse.json({ error: "not found" }, { status: 404 });
+      return NextResponse.json({ error: "invalid request" }, { status: 404 });
     }
-
     const tmnt = await prisma.tmnt.findUnique({
       where: {
         id: id,
@@ -27,8 +26,8 @@ export async function GET(
       return NextResponse.json({ error: "not found" }, { status: 404 });
     }
     return NextResponse.json({ tmnt }, { status: 200 });
-  } catch (err: any) {
-    return NextResponse.json({ error: "error getting tmnt" }, { status: 500 });
+  } catch (error) {
+    return NextResponse.json({ error: "Error getting tmnt" }, { status: 500 });
   }
 }
 
@@ -41,14 +40,17 @@ export async function PUT(
     if (!isValidBtDbId(id, "tmt")) {
       return NextResponse.json({ error: "not found" }, { status: 404 });
     }
+    const { tmnt_name, start_date, end_date, user_id, bowl_id } = await request.json();
 
-    const { tmnt_name, start_date, end_date, user_id, bowl_id } =
-      await request.json();
+    const startDateStr = removeTimeFromISODateStr(start_date);
+    const endDateStr = removeTimeFromISODateStr(end_date);
+
     const toCheck: tmntType = {
       ...initTmnt,
+      id,
       tmnt_name,
-      start_date,
-      end_date,
+      start_date: startOfDayFromString(startDateStr) as Date,
+      end_date: startOfDayFromString(endDateStr) as Date,
       user_id,
       bowl_id,
     };
@@ -114,15 +116,16 @@ export async function PATCH(
       return NextResponse.json({ error: "not found" }, { status: 404 });
     }
 
-    const json = await request.json();
-    // populate toCheck with json
-    const jsonProps = Object.getOwnPropertyNames(json);
-
-    const currentTmnt = await findTmntById(id);
+    const currentTmnt = await prisma.tmnt.findUnique({
+      where: { id: id },
+    });
     if (!currentTmnt) {
       return NextResponse.json({ error: "not found" }, { status: 404 });
     }
 
+    const json = await request.json();
+    // populate toCheck with json
+    const jsonProps = Object.getOwnPropertyNames(json);
     const toCheck: tmntType = {
       ...initTmnt,
       tmnt_name: currentTmnt.tmnt_name,
@@ -136,10 +139,12 @@ export async function PATCH(
       toCheck.tmnt_name = json.tmnt_name;
     }
     if (jsonProps.includes("start_date")) {
-      toCheck.start_date = json.start_date;
+      const startDateStr = removeTimeFromISODateStr(json.start_date);
+      toCheck.start_date = startOfDayFromString(startDateStr) as Date
     }
     if (jsonProps.includes("end_date")) {
-      toCheck.end_date = json.end_date;
+      const endDateStr = removeTimeFromISODateStr(json.end_date);      
+      toCheck.end_date = startOfDayFromString(endDateStr) as Date
     }
     if (jsonProps.includes("bowl_id")) {      
       toCheck.bowl_id = json.bowl_id;
@@ -234,7 +239,7 @@ export async function DELETE(
   try {
     const id = params.id;
     if (!isValidBtDbId(id, "tmt")) {
-      return NextResponse.json({ error: "not found" }, { status: 404 });
+      return NextResponse.json({ error: "invalid request" }, { status: 404 });
     }
 
     const deleted = await prisma.tmnt.delete({
@@ -243,9 +248,9 @@ export async function DELETE(
       },
     });
     return NextResponse.json({ deleted }, { status: 200 });
-  } catch (err: any) {
+  } catch (error: any) {
     let errStatus: number;
-    switch (err.code) {
+    switch (error.code) {
       case "P2003": // parent has child rows
         errStatus = 409;
         break;
@@ -257,8 +262,9 @@ export async function DELETE(
         break;
     }
     return NextResponse.json(
-      { error: "error deleting tmnt" },
+      { error: "Error deleting tmnt" },
       { status: errStatus }
     );
   }
+
 }

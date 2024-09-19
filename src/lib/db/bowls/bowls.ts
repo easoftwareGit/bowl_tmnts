@@ -10,21 +10,6 @@ import { isValidBtDbId } from "@/lib/validation";
 import { Bowl } from "@prisma/client";
 
 /**
- * get array of bowls
- *
- * NOTE:
- * Do not use try / catch blocks here. Need the promise to be fulfilled
- * or rejected in /src/redux/features/bowls/bowlsSlice.tsx
- * which will have the appropriate response in the extraReducers.
- *
- * @returns { data: Bowl[] } - array of bowls;
- */
-
-// export const getBowls = async (): Promise<Bowl[]> => {  
-//   return prisma.bowl.findMany();
-// };
-
-/**
  * finds one bowl by searching for a matching bowl id
  *
  * @param {id} - bowl id

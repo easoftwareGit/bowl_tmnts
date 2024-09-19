@@ -4,8 +4,6 @@ import { ErrorCode, isValidBtDbId } from "@/lib/validation";
 import { sanitizeEvent, validateEvent } from "@/app/api/events/validate";
 import { eventType } from "@/lib/types/types";
 import { initEvent } from "@/lib/db/initVals";
-import { findEventById } from "@/lib/db/events/events";
-import { findTmntById } from "@/lib/db/tmnts/tmnts";
 
 // routes /api/events/:id
 
@@ -124,10 +122,10 @@ export async function PUT(
     let errStatus: number;
     switch (err.code) {
       case "P2002": // unique constraint
-        errStatus = 422;
+        errStatus = 404;
         break;
       case "P2003": // parent not found
-        errStatus = 422;
+        errStatus = 404;
         break;
       case "P2025": // record not found
         errStatus = 404;
@@ -152,18 +150,23 @@ export async function PATCH(
     if (!isValidBtDbId(id, "evt")) {
       return NextResponse.json({ error: "not found" }, { status: 404 });
     }
-    const json = await request.json();
-    // populate toCheck with json
-    const jsonProps = Object.getOwnPropertyNames(json);
 
-    const currentEvent = await findEventById(id);
+    const currentEvent = await prisma.event.findUnique({
+      where: {
+        id: id,
+      },
+    });
     if (!currentEvent) {
       return NextResponse.json({ error: "not found" }, { status: 404 });
     }
     
+    const json = await request.json();
+    // populate toCheck with json
+    const jsonProps = Object.getOwnPropertyNames(json);    
     // currentEvent money values are deimals, so convert to strings
     const toCheck: eventType = {
       ...initEvent,
+      id: currentEvent.id,
       tmnt_id: currentEvent.tmnt_id,
       event_name: currentEvent.event_name,
       team_size: currentEvent.team_size,
@@ -229,14 +232,6 @@ export async function PATCH(
           break;
       }
       return NextResponse.json({ error: errMsg }, { status: 422 });
-    }
-
-    if (jsonProps.includes("tmnt_id")) {
-      // find parent. findTmntById sanitizes tmnt_id before using it
-      const parent = await findTmntById(json.tmnt_id);
-      if (!parent) {
-        return NextResponse.json({ error: "not found" }, { status: 404 });
-      }
     }
     
     const toPatch = {

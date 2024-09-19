@@ -2,6 +2,7 @@ import { laneType, squadType } from "@/lib/types/types";
 import { startOfDayFromString, todayStr } from "@/lib/dateTools";
 import { Squad } from "@prisma/client";
 import { initSquad } from "@/lib/db/initVals";
+import { startOfToday } from "date-fns";
 
 export const mockSquads: squadType[] = [
   {
@@ -17,7 +18,7 @@ export const mockSquads: squadType[] = [
     lane_count_err: "",
     starting_lane: 1,
     starting_lane_err: "",
-    squad_date: startOfDayFromString(todayStr) as Date, 
+    squad_date: startOfToday(),
     squad_date_str: todayStr,
     squad_date_err: "",
     squad_time: "10:00",
@@ -38,7 +39,7 @@ export const mockSquads: squadType[] = [
     lane_count_err: "",
     starting_lane: 1,
     starting_lane_err: "",
-    squad_date: startOfDayFromString(todayStr) as Date,  
+    squad_date: startOfToday(),
     squad_date_str: todayStr,
     squad_date_err: "",
     squad_time: "12:30",
@@ -53,7 +54,7 @@ export const mockPrismaSquads: Squad[] = [
     id: "sqd_42be0f9d527e4081972ce8877190489d",
     event_id: "evt_06055deb80674bd592a357a4716d8ef2",
     squad_name: "A Squad",
-    squad_date: new Date(Date.UTC(2022, 7, 21)),  // month is -1 
+    squad_date: startOfDayFromString('2022-08-21') as Date,
     squad_time: '10:00 AM',
     games: 6,
     lane_count: 24,
@@ -66,7 +67,7 @@ export const mockPrismaSquads: Squad[] = [
     id: "sqd_796c768572574019a6fa79b3b1c8fa57",
     event_id: "evt_06055deb80674bd592a357a4716d8ef2",
     squad_name: "B Squad",
-    squad_date: new Date(Date.UTC(2022, 7, 21)),  // month is -1 
+    squad_date: startOfDayFromString('2022-08-21') as Date,
     squad_time: '02:00 PM',
     games: 6,
     lane_count: 24, 
@@ -83,7 +84,7 @@ export const mockSquadsToEdit: squadType[] = [
     id: "sqd_3397da1adc014cf58c44e07c19914f71",
     event_id: "evt_9a58f0a486cb4e6c92ca3348702b1a62",
     squad_name: "Squad 1",
-    squad_date: new Date(Date.UTC(2023, 2, 1)),  // month is -1
+    squad_date: startOfDayFromString('2023-03-01') as Date,
     squad_time: '08:00 AM',
     games: 6,
     lane_count: 24,
@@ -95,7 +96,7 @@ export const mockSquadsToEdit: squadType[] = [
     id: "sqd_20c24199328447f8bbe95c05e1b84644",
     event_id: "evt_cb55703a8a084acb86306e2944320e8d",
     squad_name: "Squad 1",
-    squad_date: new Date(Date.UTC(2023, 2, 1)),  // month is -1
+    squad_date: startOfDayFromString('2023-03-01') as Date,
     squad_time: '01:00 PM',
     games: 6,
     lane_count: 24,

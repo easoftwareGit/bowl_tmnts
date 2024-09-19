@@ -1,7 +1,7 @@
 import { NextResponse, NextRequest } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { hash } from "bcrypt";
-import { ErrorCode, validPostId } from "@/lib/validation";
+import { ErrorCode } from "@/lib/validation";
 import { findUserByEmail } from "@/lib/db/users/users";
 import { sanitizeUser, validateUser } from "./validate";
 import { userType } from "@/lib/types/types";
@@ -23,6 +23,7 @@ export async function POST(request: Request) {
     
     const toCheck: userType = {
       ...initUser,
+      id,
       first_name,
       last_name,
       email,
@@ -50,16 +51,6 @@ export async function POST(request: Request) {
         { status: 422 }
       )
     }
-    let postId = '';
-    if (id) {       
-      postId = validPostId(id, 'usr');
-      if (!postId) {
-        return NextResponse.json(
-          { error: "invalid id data" },
-          { status: 422 }
-        );
-      }
-    }    
 
     const oldUser = await findUserByEmail(email);
     if (oldUser) {
@@ -74,22 +65,20 @@ export async function POST(request: Request) {
     const hashed = await hash(password, saltRounds);
 
     type userDataType = {
+      id: string;
       first_name: string,
       last_name: string,
       email: string,
       phone: string,
-      password_hash: string,
-      id?: string;
+      password_hash: string,      
     }
     let userData: userDataType = {
+      id: toPost.id,
       first_name: toPost.first_name,
       last_name: toPost.last_name,
       email,
       phone: toPost.phone,
       password_hash: hashed,
-    }
-    if (postId) {
-      userData.id = postId
     }
 
     const user = await prisma.user.create({

@@ -92,7 +92,7 @@ describe('auth route', () => {
       });
       expect(response.status).toBe(201);
       const postedUser: userType = response.data.user;
-      createdUserId = postedUser.id;
+      createdUserId = postedUser.id;      
       expect(postedUser.first_name).toEqual(registerUser.first_name);
       expect(postedUser.last_name).toEqual(registerUser.last_name);
       expect(postedUser.email).toEqual(registerUser.email);

@@ -5,7 +5,7 @@ import Image from "next/image";
 import Link from "next/link";
 import axios from "axios";
 import { signIn } from "next-auth/react";
-import { baseApi, baseOrigin } from "@/lib/tools";
+import { baseApi } from "@/lib/tools";
 import { Alert } from "@/components/ui/index";
 import {
   isEmail,
@@ -16,10 +16,10 @@ import {
   maxPhoneLength,
 } from "@/lib/validation";
 import { phone as phoneChecking } from "phone";
-import "./form.css";
 import { userType } from "@/lib/types/types";
 import { initUser } from "@/lib/db/initVals";
 import { sanitizeUser } from "@/app/api/users/validate";
+import "./form.css";
 
 const blankValues = {
   first_name: "",
@@ -164,6 +164,7 @@ export const RegisterForm = () => {
         }
         const sanitizedUser = sanitizeUser(toScrub);
         var userJson = JSON.stringify({
+          id: sanitizedUser.id,
           first_name: sanitizedUser.first_name,
           last_name: sanitizedUser.last_name,
           email: formData.email,

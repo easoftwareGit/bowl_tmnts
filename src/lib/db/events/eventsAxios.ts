@@ -7,7 +7,8 @@ import { validateEvent } from "@/app/api/events/validate";
 const url = testBaseEventsApi.startsWith("undefined")
   ? baseEventsApi
   : testBaseEventsApi;   
-
+const oneEventUrl = url + "/event/"; 
+  
 /**
  * posts an event
  * 
@@ -50,7 +51,7 @@ export const putEvent = async (event: eventType): Promise<eventType | null> => {
       method: "put",
       data: eventJSON,
       withCredentials: true,
-      url: url + "/" + event.id,
+      url: oneEventUrl + event.id,
     });
     return (response.status === 200)
       ? response.data.event
@@ -74,7 +75,7 @@ export const deleteEvent = async (event: eventType): Promise<eventType | null> =
     const response = await axios({
       method: "delete",
       withCredentials: true,
-      url: url + "/" + event.id,
+      url: oneEventUrl + event.id,
     });
     return (response.status === 200)
       ? response.data.deleted

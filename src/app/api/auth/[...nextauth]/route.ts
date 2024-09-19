@@ -217,10 +217,15 @@ export const authOptions: NextAuthOptions = {
           },
         });
 
-        const googleUser = await findUserByEmail(googleInfo.email)        
+        // if got here, email is valid, ok to pass use googleInfo.email
+        // find user in database by matching email
+        const googleUser = await prisma.user.findUnique({
+          where: {
+            email: googleInfo.email,
+          },
+        });    
         if (googleUser && googleUser.id) {
-          user.id = googleUser?.id          
-          // console.log('user', user)
+          user.id = googleUser?.id                    
         }
 
         // user was authenticated and upserted

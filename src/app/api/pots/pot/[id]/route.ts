@@ -1,12 +1,11 @@
-import { NextResponse } from "next/server";
+import { NextResponse, NextRequest } from "next/server";
 import { prisma } from "@/lib/prisma";
+import { validatePot, sanitizePot } from "../../validate";
 import { ErrorCode, isValidBtDbId } from "@/lib/validation";
-import { validateLane, sanitizeLane } from "@/app/api/lanes/validate";
-import { laneType } from "@/lib/types/types";
-import { initLane } from "@/lib/db/initVals";
-import { findLaneById } from "@/lib/db/lanes/lanes";
+import { potType, PotCategories } from "@/lib/types/types";
+import { initPot } from "@/lib/db/initVals";
 
-// routes /api/lanes/:id
+// routes /api/pots/pot/:id
 
 export async function GET(
   request: Request,
@@ -14,20 +13,20 @@ export async function GET(
 ) {
   try {
     const id = params.id;
-    if (!isValidBtDbId(id, "lan")) {
+    if (!isValidBtDbId(id, "pot")) {
       return NextResponse.json({ error: "invalid request" }, { status: 404 });
     }
-    const lane = await prisma.lane.findUnique({
+    const pot = await prisma.pot.findUnique({
       where: {
         id: id,
       },
     });
-    if (!lane) {
+    if (!pot) {
       return NextResponse.json({ error: "not found" }, { status: 404 });
     }
-    return NextResponse.json({ lane }, { status: 200 });
+    return NextResponse.json({ pot }, { status: 200 });
   } catch (err: any) {
-    return NextResponse.json({ error: "error getting lane" }, { status: 500 });
+    return NextResponse.json({ error: "error getting pot" }, { status: 500 });
   }
 }
 
@@ -37,23 +36,24 @@ export async function PUT(
 ) {
   try {
     const id = params.id;
-    if (!isValidBtDbId(id, "lan")) {
+    if (!isValidBtDbId(id, "pot")) {
       return NextResponse.json({ error: "invalid request" }, { status: 404 });
     }
 
-    const { lane_number, squad_id } = await request.json();
-    const toCheck: laneType = {
-      ...initLane,
-      lane_number,
+    const { div_id, squad_id, pot_type, fee, sort_order } =
+      await request.json();
+    const toCheck: potType = {
+      ...initPot,
+      id,
+      div_id,
       squad_id,
+      pot_type,
+      fee,
+      sort_order,
     };
 
-    const currentLane = await findLaneById(id);
-    if (!currentLane) {
-      return NextResponse.json({ error: "not found" }, { status: 404 });
-    }
-
-    const errCode = validateLane(toCheck);
+    const toPut = sanitizePot(toCheck);
+    const errCode = validatePot(toPut);
     if (errCode !== ErrorCode.None) {
       let errMsg: string;
       switch (errCode) {
@@ -69,26 +69,29 @@ export async function PUT(
       }
       return NextResponse.json({ error: errMsg }, { status: 422 });
     }
-
-    const toPut = sanitizeLane(toCheck);
-    const lane = await prisma.lane.update({
+    
+    // NO hdcp_per_str in data object
+    const pot = await prisma.pot.update({
       where: {
         id: id,
       },
       data: {
-        lane_number: toPut.lane_number,
-        // squad_id: toPut.squad_id, // do not update squad_id
+        div_id: toPut.div_id, 
+        squad_id: toPut.squad_id, 
+        pot_type: toPut.pot_type,
+        fee: toPut.fee,        
+        sort_order: toPut.sort_order,
       },
     });
-    return NextResponse.json({ lane }, { status: 200 });
+    return NextResponse.json({ pot }, { status: 200 });
   } catch (err: any) {
     let errStatus: number;
     switch (err.code) {
       case "P2002": // unique constraint
-        errStatus = 422;
+        errStatus = 404;
         break;
       case "P2003": // foreign key constraint
-        errStatus = 422;
+        errStatus = 404;
         break;
       case "P2025": // record not found
         errStatus = 404;
@@ -98,45 +101,63 @@ export async function PUT(
         break;
     }
     return NextResponse.json(
-      { error: "error updating lane" },
+      { error: "error updating pot" },
       { status: errStatus }
     );
   }
 }
 
+
 export async function PATCH(
   request: Request,
   { params }: { params: { id: string } }
-) {
+) { 
   try {
     const id = params.id;
-    if (!isValidBtDbId(id, "lan")) {
-      return NextResponse.json({ error: "invalid request" }, { status: 404 });
+    if (!isValidBtDbId(id, "pot")) {
+      return NextResponse.json({ error: "not found" }, { status: 404 });
     }
 
     const json = await request.json();
     // populate toCheck with json
     const jsonProps = Object.getOwnPropertyNames(json);
+    
+    const currentPot = await prisma.pot.findUnique({
+      where: {
+        id: id,
+      },
+    });    
 
-    const currentLane = await findLaneById(id);
-    if (!currentLane) {
+    if (!currentPot) {
       return NextResponse.json({ error: "not found" }, { status: 404 });
     }
-
-    const toCheck: laneType = {
-      ...initLane,
-      lane_number: currentLane.lane_number,
-      squad_id: currentLane.squad_id,
+    const toCheck: potType = {
+      ...initPot,
+      div_id: currentPot.div_id,
+      squad_id: currentPot.squad_id,
+      pot_type: currentPot.pot_type as PotCategories,
+      fee: currentPot.fee + '',      
+      sort_order: currentPot.sort_order,
     };
 
-    if (jsonProps.includes("lane_number")) {
-      toCheck.lane_number = json.lane_number;
+    if (jsonProps.includes("div_id")) {
+      toCheck.div_id = json.div_id;
     }
     if (jsonProps.includes("squad_id")) {
       toCheck.squad_id = json.squad_id;
     }
+    if (jsonProps.includes("pot_type")) {
+      toCheck.pot_type = json.pot_type;
+    }
+    if (jsonProps.includes("fee")) {
+      toCheck.fee = json.fee;
+    }
+    if (jsonProps.includes("sort_order")) {
+      toCheck.sort_order = json.sort_order;
+    }
 
-    const errCode = validateLane(toCheck);
+    const toBePatched = sanitizePot(toCheck);
+    const errCode = validatePot(toBePatched);
     if (errCode !== ErrorCode.None) {
       let errMsg: string;
       switch (errCode) {
@@ -152,39 +173,52 @@ export async function PATCH(
       }
       return NextResponse.json({ error: errMsg }, { status: 422 });
     }
-
-    const toBePatched = sanitizeLane(toCheck);
-    const toPatch = {
-      lane_number: null as number | null,
-      squad_id: "", 
+    
+    const toPatch = {      
+      div_id: "",
+      squad_id: "",
+      pot_type: "",
+      fee: "",
+      sort_order: null as number | null,
     };
-    if (jsonProps.includes("lane_number")) {
-      toPatch.lane_number = toBePatched.lane_number;
+
+    if (jsonProps.includes("div_id")) {
+      toPatch.div_id = toBePatched.div_id;
     }
     if (jsonProps.includes("squad_id")) {
       toPatch.squad_id = toBePatched.squad_id;
     }
-    const lane = await prisma.lane.update({
+    if (jsonProps.includes("pot_type")) {
+      toPatch.pot_type = toBePatched.pot_type;
+    }
+    if (jsonProps.includes("fee")) {
+      toPatch.fee = toBePatched.fee;
+    }
+    if (jsonProps.includes("sort_order")) {
+      toPatch.sort_order = toBePatched.sort_order;
+    }
+
+    const pot = await prisma.pot.update({
       where: {
         id: id,
       },
+      // remove data if not sent
       data: {
-        lane_number: toPatch.lane_number || undefined,
+        // div_id: toPatch.div_id || undefined, // do not patch div_id
         // squad_id: toPatch.squad_id || undefined, // do not patch squad_id
+        pot_type: toPatch.pot_type || undefined,
+        fee: toPatch.fee || undefined,
+        sort_order: toPatch.sort_order || undefined,
       },
     });
-
-    return NextResponse.json({ lane }, { status: 200 });
+    return NextResponse.json({ pot }, { status: 200 });
   } catch (err: any) {
     let errStatus: number;
     switch (err.code) {
       case "P2002": // unique constraint
-        errStatus = 422;
+        errStatus = 404;
         break;
       case "P2003": // foreign key constraint
-        errStatus = 422;
-        break;
-      case "P2025": // record not found
         errStatus = 404;
         break;
       default:
@@ -192,23 +226,23 @@ export async function PATCH(
         break;
     }
     return NextResponse.json(
-      { error: "error patching lane" },
+      { error: "error patching pot" },
       { status: errStatus }
-    );
+    );    
   }
 }
 
 export async function DELETE(
   request: Request,
   { params }: { params: { id: string } }
-) {
+) { 
   try {
     const id = params.id;
-    if (!isValidBtDbId(id, "lan")) {
-      return NextResponse.json({ error: "invalid request" }, { status: 404 });
+    if (!isValidBtDbId(id, "pot")) {
+      return NextResponse.json({ error: "not found" }, { status: 404 });
     }
 
-    const deleted = await prisma.lane.delete({
+    const deleted = await prisma.pot.delete({
       where: {
         id: id,
       },
@@ -228,8 +262,8 @@ export async function DELETE(
         break;
     }
     return NextResponse.json(
-      { error: "error deleting lane" },
+      { error: "error deleting div" },
       { status: errStatus }
-    );
+    );    
   }
 }

@@ -11,8 +11,7 @@ import {
 } from "@/app/api/brkts/validate";
 import { defaultBrktGames, defaultBrktPlayers, initBrkt } from "@/lib/db/initVals";
 import { brktType } from "@/lib/types/types";
-import { ErrorCode, maxGames, maxSortOrder, validPostId } from "@/lib/validation";
-import { postSecret } from "@/lib/tools";
+import { ErrorCode, maxGames, maxSortOrder } from "@/lib/validation";
 
 const { gotBrktData, validBrktData } = exportedForTesting;
 
@@ -381,14 +380,6 @@ describe("tests for bracket validation", () => {
       const sanitizedBrkt = sanitizeBrkt(testBrkt);
       expect(sanitizedBrkt.id).toEqual(brktId)
     })
-    it('should return sanitized brkt when bracket has a post id', () => { 
-      const testBrkt = {
-        ...validBrkt,  
-        id: postSecret + brktId,
-      }
-      const sanitizedBrkt = sanitizeBrkt(testBrkt);
-      expect(sanitizedBrkt.id).toEqual(postSecret + brktId)
-    })
     it('should return sanitized brkt when bracket has an invalid id', () => { 
       const testBrkt = {
         ...validBrkt,  
@@ -665,31 +656,4 @@ describe("tests for bracket validation", () => {
     })
   })
 
-  describe('validPostId function', () => { 
-    const testBrktId = "brk_cb97b73cb538418ab993fc867f860510"
-    it('should return testBrktId when id starts with post Secret and follows with a valid bracket id', () => {
-      const validId = postSecret + testBrktId;
-      expect(validPostId(validId, 'brk')).toBe(testBrktId);
-    })
-    it('should return "" when id starts with postSecret but does idType does not match idtype in postId', () => { 
-      const invalidId = postSecret + testBrktId;
-      expect(validPostId(invalidId, 'usr')).toBe('');
-    });
-    it('should return "" when id starts with postSecret but does idType is invalid', () => { 
-      const invalidId = postSecret + testBrktId;
-      expect(validPostId(invalidId, '123' as any)).toBe('');
-    });
-    it('should return "" when id starts with postSecret but does not follow with valid BtDb idType', () => { 
-      const invalidId = postSecret + 'abc_a1b2c3d4e5f678901234567890abcdef';
-      expect(validPostId(invalidId, 'brk')).toBe('');
-    });
-    it('should return "" when id starts with postSecret but does not follow with a valid BtDb id', () => { 
-      const invalidId = postSecret + 'brk_invalidid';
-      expect(validPostId(invalidId, 'brk')).toBe('');
-    });
-    it('should return "" when id does not start with postSecret', () => { 
-      const invalidId = testBrktId;
-      expect(validPostId(invalidId, 'brk')).toBe('');
-    });
-  })
 })

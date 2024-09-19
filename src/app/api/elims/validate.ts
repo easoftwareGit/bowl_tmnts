@@ -6,12 +6,11 @@ import {
   minGames,
   maxGames,
   isNumber,
-  validPostId,
 } from "@/lib/validation";
 import { sanitizeCurrency } from "@/lib/sanitize";
 import { validMoney } from "@/lib/currency/validate";
 import { elimType, idTypes } from "@/lib/types/types";
-import { blankElim, initElim } from "@/lib/db/initVals";
+import { blankElim } from "@/lib/db/initVals";
 
 /**
  * checks if elim object has missing data - DOES NOT SANITIZE OR VALIDATE
@@ -20,9 +19,10 @@ import { blankElim, initElim } from "@/lib/db/initVals";
  * @returns {ErrorCode.MissingData | ErrorCode.None | ErrorCode.OtherError} - error code
  */
 const gotElimData = (elim: elimType): ErrorCode => {
-  try {
-    if (!elim) return ErrorCode.MissingData;
+  try {    
     if (
+      !elim ||
+      !elim.id ||
       !elim.div_id ||
       !elim.squad_id ||
       !validMoney(elim.fee, Number.MIN_SAFE_INTEGER, Number.MAX_SAFE_INTEGER) ||
@@ -79,6 +79,9 @@ export const validElimFkId = (FkId: string, idType: idTypes): boolean => {
 const validElimData = (elim: elimType): ErrorCode => {
   try {
     if (!elim) return ErrorCode.InvalidData;
+    if (!isValidBtDbId(elim.id, "elm")) {
+      return ErrorCode.InvalidData;
+    }
     if (!isValidBtDbId(elim.div_id, "div")) {
       return ErrorCode.InvalidData;
     }
@@ -117,7 +120,7 @@ export const sanitizeElim = (elim: elimType): elimType => {
     games: null as any,
     sort_order: null as any,
   };
-  if (elim.id === '' || isValidBtDbId(elim.id, "elm") || validPostId(elim.id, "elm")) {
+  if (isValidBtDbId(elim.id, "elm")) {
     sanitizedElim.id = elim.id;
   }
   if (validElimFkId(elim.div_id, "div")) {

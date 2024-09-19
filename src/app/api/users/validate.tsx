@@ -1,8 +1,10 @@
-import { ErrorCode, maxFirstNameLength, maxLastNameLength, isEmail, isPassword8to20, isValidBtDbId, validPostId } from "@/lib/validation";
+import { ErrorCode, maxFirstNameLength, maxLastNameLength, isEmail, isPassword8to20, isValidBtDbId, isValidRole } from "@/lib/validation";
 import { sanitize } from "@/lib/sanitize";
 import { userType } from "@/lib/types/types";
 import { phone as phoneChecking } from "phone";
-import { blankUser, initUser } from "@/lib/db/initVals";
+import { blankUser } from "@/lib/db/initVals";
+
+const validRoles = ["ADMIN", "DIRECTOR", "USER"]
 
 /**
  * checks for required data and returns error code if missing 
@@ -12,12 +14,15 @@ import { blankUser, initUser } from "@/lib/db/initVals";
  * @param checkPass - true if need to check password
  * @returns - {ErrorCode.MissingData, ErrorCode.None, ErrorCode.OtherError}
  */
-
 const gotUserData = (user: userType, checkPhone: boolean, checkPass: boolean): ErrorCode => {
   try {
-    if (!sanitize(user.first_name)
+    if (!user 
+        || !(user.id)
+        || !sanitize(user.first_name)
         || !sanitize(user.last_name)
-        || !(user.email)) {
+        || !(user.email)
+        || !(user.role))
+    {
       return ErrorCode.MissingData
     }
     if (checkPhone && !user.phone) {      
@@ -64,6 +69,10 @@ export const validUserPassword = (password: string): boolean => {
 const validUserData = (user: userType, checkPhone: boolean, checkPass: boolean): ErrorCode => {
   
   try {
+    if (!user) return ErrorCode.InvalidData
+    if (!isValidBtDbId(user.id, 'usr')) {
+      return ErrorCode.InvalidData
+    }
     if (!validUserFirstName(user.first_name)) {
       return ErrorCode.InvalidData
     }
@@ -79,6 +88,9 @@ const validUserData = (user: userType, checkPhone: boolean, checkPass: boolean):
     if (checkPass && !validUserPassword(user.password)) {
       return ErrorCode.InvalidData
     }    
+    if (!isValidRole(user.role)) {
+      return ErrorCode.InvalidData
+    }
     return ErrorCode.None
   } catch (error) {
     return ErrorCode.OtherError
@@ -96,7 +108,7 @@ const validUserData = (user: userType, checkPhone: boolean, checkPass: boolean):
 export const sanitizeUser = (user: userType): userType => {
   if (!user) return null as any;
   const sanitizedUser: userType = { ...blankUser }
-  if (user.id === '' || isValidBtDbId(user.id, 'usr') || validPostId(user.id, "usr")) {
+  if (isValidBtDbId(user.id, 'usr')) {
     sanitizedUser.id = user.id
   }  
   sanitizedUser.first_name = sanitize(user.first_name)
@@ -115,6 +127,9 @@ export const sanitizeUser = (user: userType): userType => {
       // DO NOT SANITIZE
       sanitizedUser.password = user.password
     }    
+  }
+  if (isValidRole(user.role)) {
+    sanitizedUser.role = user.role
   }
   return sanitizedUser
 }

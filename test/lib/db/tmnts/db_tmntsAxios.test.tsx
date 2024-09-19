@@ -1,12 +1,12 @@
 import axios, { AxiosError } from "axios";
 import { baseTmntsApi } from "@/lib/db/apiPaths";
 import { testBaseTmntsApi } from "../../../testApi";
-import { tmntType, YearObj } from "@/lib/types/types";
+import { tmntType } from "@/lib/types/types";
 import { initTmnt } from "@/lib/db/initVals";
-import { startOfTodayUTC } from "@/lib/dateTools";
 import { postTmnt } from "@/lib/db/tmnts/tmntsAxios";
-import { compareAsc } from "date-fns";
+import { compareAsc, startOfToday } from "date-fns";
 import { isValidBtDbId } from "@/lib/validation";
+import { startOfDayFromString } from "@/lib/dateTools";
 
 // before running this test, run the following commands in the terminal:
 // 1) clear and re-seed the database
@@ -26,24 +26,24 @@ import { isValidBtDbId } from "@/lib/validation";
 const url = testBaseTmntsApi.startsWith("undefined")
   ? baseTmntsApi
   : testBaseTmntsApi;
+const oneTmntUrl = url + "/tmnt/";
 
-describe("tmntsAxios", () => {
+describe("tmntsAxios", () => {  
   const user1Id = "usr_5bcefb5d314fff1ff5da6521a2fa7bde";
 
   describe("postTmnt", () => {
     const tmntToPost = {
-      ...initTmnt,
-      id: "",
+      ...initTmnt,      
       user_id: user1Id,
       tmnt_name: "Test Tournament",
       bowl_id: "bwl_561540bd64974da9abdd97765fdb3659",
-      start_date: startOfTodayUTC(),
-      end_date: startOfTodayUTC(),
+      start_date: startOfToday(),
+      end_date: startOfToday()
     };
 
-    let createdTmntId = "";
+    let createdTmnt = false;
 
-    beforeAll(async () => {
+    const deletePostedTmnt = async () => { 
       const response = await axios.get(url);
       const tmnts = response.data.tmnts;
       const toDel = tmnts.find(
@@ -54,35 +54,25 @@ describe("tmntsAxios", () => {
           const delResponse = await axios({
             method: "delete",
             withCredentials: true,
-            url: url + "/" + toDel.id,
+            url: oneTmntUrl + toDel.id,
           });
         } catch (err) {
           if (err instanceof AxiosError) console.log(err.message);
         }
       }
+    }
+
+    beforeAll(async () => {
+      await deletePostedTmnt();
     });
 
     beforeEach(() => {
-      createdTmntId = "";
+      createdTmnt = false;
     });
 
     afterEach(async () => {
-      if (createdTmntId) {
-        try {
-          const delResponse = await axios({
-            method: "delete",
-            withCredentials: true,
-            url: url + "/" + createdTmntId,
-          });
-          console.log("deleted tmnt " + createdTmntId);
-          createdTmntId = "";
-        } catch (err) {
-          if (err instanceof AxiosError) {
-            console.log(err.message);
-          } else {
-            console.log(err);
-          }
-        }
+      if (createdTmnt) {
+        await deletePostedTmnt();
       }
     });
 
@@ -91,12 +81,15 @@ describe("tmntsAxios", () => {
       expect(postedTmnt).not.toBeNull();
       if (!postedTmnt) return;
       expect(postedTmnt).not.toBeNull();
-      createdTmntId = postedTmnt.id;
+      createdTmnt = true;
+      expect(postedTmnt.id).toBe(tmntToPost.id);
       expect(postedTmnt.tmnt_name).toBe(tmntToPost.tmnt_name);
       expect(postedTmnt.user_id).toBe(tmntToPost.user_id);
       expect(postedTmnt.bowl_id).toBe(tmntToPost.bowl_id);
-      expect(compareAsc(postedTmnt.start_date, tmntToPost.start_date)).toBe(0);
-      expect(compareAsc(postedTmnt.end_date, tmntToPost.end_date)).toBe(0);
+      const postedStartDate = new Date(postedTmnt.start_date);      
+      expect(compareAsc(postedStartDate, tmntToPost.start_date)).toBe(0);
+      const postedEndDate = new Date(postedTmnt.end_date);
+      expect(compareAsc(postedEndDate, tmntToPost.end_date)).toBe(0);
       expect(isValidBtDbId(postedTmnt.id, "tmt")).toBeTruthy();
     });
 
@@ -111,17 +104,18 @@ describe("tmntsAxios", () => {
   });
 
   describe("putTmnt", () => {
+
     const tmntToPut = {
       ...initTmnt,
       id: "tmt_fd99387c33d9c78aba290286576ddce5",
       user_id: user1Id,
       tmnt_name: "Test Tournament",
       bowl_id: "bwl_8b4a5c35ad1247049532ff53a12def0a",
-      start_date: startOfTodayUTC(),
-      end_date: startOfTodayUTC(),
+      start_date: startOfToday(),
+      end_date: startOfToday(),
     };
 
-    const putUrl = url + "/" + tmntToPut.id;
+    const putUrl = oneTmntUrl + tmntToPut.id;
 
     describe("putTmnt - success", () => {
       const resetTmnt = {
@@ -130,8 +124,8 @@ describe("tmntsAxios", () => {
         user_id: "usr_5bcefb5d314fff1ff5da6521a2fa7bde",
         tmnt_name: "Gold Pin",
         bowl_id: "bwl_561540bd64974da9abdd97765fdb3659",
-        start_date: new Date(Date.UTC(2022, 9, 23)), // month is -1
-        end_date: new Date(Date.UTC(2022, 9, 23)), // month is -1
+        start_date: startOfDayFromString('2022-10-24') as Date,
+        end_date: startOfDayFromString('2022-10-24') as Date,
       };
 
       afterEach(async () => {
@@ -160,9 +154,11 @@ describe("tmntsAxios", () => {
         expect(compareAsc(tmnt.start_date, tmntToPut.start_date)).toBe(0);
         expect(compareAsc(tmnt.end_date, tmntToPut.end_date)).toBe(0);
       });
+
     });
 
     describe("putTmnt - invalid data", () => {
+
       it("should NOT put a tmnt with invalid data", async () => {        
         try {
           const invalidTmnt = {
@@ -185,6 +181,9 @@ describe("tmntsAxios", () => {
           }
         }  
       });
+
     });
+
   });
+
 });

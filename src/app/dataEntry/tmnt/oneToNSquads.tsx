@@ -31,7 +31,7 @@ interface AddOrDelButtonProps {
   sortOrder: number;
 }
 
-const defaultTabKey = "squad1";
+// const defaultTabKey = "squad1";
 
 const getSquadErrMsg = (squad: squadType): string => {
 
@@ -251,6 +251,9 @@ const OneToNSquads: React.FC<ChildProps> = ({
   setLanes,
   setAcdnErr,
 }) => {
+
+  const defaultTabKey = squads[0].id;
+
   const [modalObj, setModalObj] = useState(initModalObj);
   const [tabKey, setTabKey] = useState(defaultTabKey);
   const [squadId, setSquadId] = useState(1); // id # used in initSquads in form.tsx
@@ -598,7 +601,7 @@ const OneToNSquads: React.FC<ChildProps> = ({
         {squads.map((squad) => (
           <Tab
             key={squad.id}
-            eventKey={`squad${squad.id}`}
+            eventKey={`${squad.id}`}
             title={squad.tab_title}
             tabClassName={`${squad.errClassName}`}
           >

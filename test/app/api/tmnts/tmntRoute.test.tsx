@@ -3,10 +3,9 @@ import { baseTmntsApi } from "@/lib/db/apiPaths";
 import { testBaseTmntsApi } from "../../../testApi";
 import { tmntType, YearObj } from "@/lib/types/types";
 import { initTmnt } from "@/lib/db/initVals";
-import { postSecret } from "@/lib/tools";
 import { isValidBtDbId } from "@/lib/validation";
-import { compareAsc } from "date-fns";
-import { startOfTodayUTC } from "@/lib/dateTools";
+import { compareAsc, startOfToday } from "date-fns";
+import { startOfDayFromString } from "@/lib/dateTools";
 
 // before running this test, run the following commands in the terminal:
 // 1) clear and re-seed the database
@@ -26,8 +25,15 @@ import { startOfTodayUTC } from "@/lib/dateTools";
 const url = testBaseTmntsApi.startsWith("undefined")
   ? baseTmntsApi
   : testBaseTmntsApi;   
+const oneTmntUrl = url + "/tmnt/"
 
 describe('Tmnts - API: /api/tmnts', () => { 
+
+  const tmntId = "tmt_f4d563425ba04b7dac3a97c0a90fc2c9"; // not in database
+  const userId = "usr_5bcefb5d314fff1ff5da6521a2fa7bde";
+  const bowlId = "bwl_561540bd64974da9abdd97765fdb3659";
+
+  const testTmntName = "Test Tournament";
 
   const testTmnt: tmntType = {
     ...initTmnt,
@@ -35,13 +41,13 @@ describe('Tmnts - API: /api/tmnts', () => {
     user_id: "usr_5bcefb5d314fff1ff5da6521a2fa7bde",
     tmnt_name: "Gold Pin",
     bowl_id: "bwl_561540bd64974da9abdd97765fdb3659",
-    start_date: new Date(Date.UTC(2022, 9, 23)),  // month is -1
-    end_date: new Date(Date.UTC(2022, 9, 23)),    // month is -1
+    start_date: startOfDayFromString('2022-10-23') as Date, 
+    end_date: startOfDayFromString('2022-10-23') as Date,
   }
 
   const blankTmnt = {
-    id: "tmt_fd99387c33d9c78aba290286576ddce5",
-    user_id: "usr_5bcefb5d314fff1ff5da6521a2fa7bde",
+    id: testTmnt.id,
+    user_id: testTmnt.user_id,
   }
 
   const notFoundId = "tmt_01234567890123456789012345678901";
@@ -55,24 +61,38 @@ describe('Tmnts - API: /api/tmnts', () => {
   const user1Id = "usr_5bcefb5d314fff1ff5da6521a2fa7bde";
   const user2Id = "usr_516a113083983234fc316e31fb695b85";
     
-  describe('GET', () => { 
-
-    beforeAll(async () => {
-      // if row left over from post test, then delete it
-      const response = await axios.get(url);
-      const tmnts = response.data.tmnts;
-      const toDel = tmnts.find((t: tmntType) => t.tmnt_name === 'Test Tournament');
-      if (toDel) {
-        try {
-          const delResponse = await axios({
-            method: "delete",
-            withCredentials: true,
-            url: url + "/" + toDel.id
-          });
-        } catch (err) {
-          if (err instanceof AxiosError) console.log(err.message);
-        }
+  const deletePostedTmnt = async () => { 
+    const response = await axios.get(url);
+    const tmnts = response.data.tmnts;
+    const toDel = tmnts.find((t: tmntType) => t.tmnt_name === testTmntName);
+    if (toDel) {
+      try {
+        const delResponse = await axios({
+          method: "delete",
+          withCredentials: true,
+          url: oneTmntUrl + toDel.id          
+        });        
+      } catch (err) {
+        if (err instanceof AxiosError) console.log(err.message);
       }
+    }
+  }
+
+  const resetTmnt = async () => { 
+    // make sure test tmnt is reset in database
+    const tmntJSON = JSON.stringify(testTmnt);
+    const response = await axios({
+      method: "put",
+      data: tmntJSON,
+      withCredentials: true,
+      url: oneTmntUrl + testTmnt.id,
+    })
+  }
+
+  describe('GET', () => { 
+    
+    beforeAll(async () => {
+      await deletePostedTmnt();
     })
 
     it('should get all tmnts', async () => {
@@ -84,25 +104,12 @@ describe('Tmnts - API: /api/tmnts', () => {
 
   })
 
-  describe('GET tmnt lists by year - API: /api/tmnts/years/:year', () => {
+  describe('GET tmnt lists subsets', () => {  
 
     beforeAll(async () => {
       // if row left over from post test, then delete it
-      const response = await axios.get(url);
-      const tmnts = response.data.tmnts;
-      const toDel = tmnts.find((t: tmntType) => t.tmnt_name === 'Test Tournament');
-      if (toDel) {
-        try {
-          const delResponse = await axios({
-            method: "delete",
-            withCredentials: true,
-            url: url + "/" + toDel.id
-          });
-        } catch (err) {
-          if (err instanceof AxiosError) console.log(err.message);
-        }
-      }
-    })
+      await deletePostedTmnt();
+    })    
 
     it('should get array of years API: /api/tmnts/years/yyyy', async () => {
       const yearsUrl = url + "/years/2023";
@@ -140,7 +147,17 @@ describe('Tmnts - API: /api/tmnts', () => {
       // 3 rows for results in prisma/seed.ts for 2022
       expect(response.data.tmnts).toHaveLength(3);
     })
-
+    it('should get array of tmnt results by year API: /api/tmnts/results/yyyy', async () => {
+      const resultsUrl = url + "/results/2000";
+      const response = await axios({
+        method: "get",
+        withCredentials: true,
+        url: resultsUrl,
+      });
+      expect(response.status).toBe(200);
+      // 0 rows for results in prisma/seed.ts for 2022
+      expect(response.data.tmnts).toHaveLength(0);
+    })
     it('should get array of upcoming tmnts API: /api/tmnts/upcoming', async () => {
       const upcomingUrl = url + "/upcoming";
       const response = await axios({
@@ -151,56 +168,34 @@ describe('Tmnts - API: /api/tmnts', () => {
       expect(response.status).toBe(200);
       // 1 rows for upcoming in prisma/seed.ts
       expect(response.data.tmnts).toHaveLength(1);
-    })
-
+    }) 
+    
   })
 
   describe('POST', () => {
 
     const tmntToPost = {
-      ...initTmnt,
-      id: '',
+      ...initTmnt,      
       user_id: user1Id,
       tmnt_name: "Test Tournament",
-      bowl_id: "bwl_561540bd64974da9abdd97765fdb3659",
-      start_date: startOfTodayUTC(),
-      end_date: startOfTodayUTC(),
+      bowl_id: bowlId,
+      start_date: startOfToday(),
+      end_date: startOfToday(),
     }
 
-    let createdTmntId = '';
+    let createdTmnt = false;
 
     beforeAll(async () => {
-      const response = await axios.get(url);
-      const tmnts = response.data.tmnts;
-      const toDel = tmnts.find((t: tmntType) => t.tmnt_name === 'Test Tournament');
-      if (toDel) {
-        try {
-          const delResponse = await axios({
-            method: "delete",
-            withCredentials: true,
-            url: url + "/" + toDel.id
-          });
-        } catch (err) {
-          if (err instanceof AxiosError) console.log(err.message);
-        }
-      }
+      await deletePostedTmnt();
     })
 
     beforeEach(() => {
-      createdTmntId = '';
+      createdTmnt = false;
     })
 
     afterEach(async () => {
-      if (createdTmntId) {
-        try {
-          const delResponse = await axios({
-            method: "delete",
-            withCredentials: true,
-            url: url + "/" + createdTmntId
-          });
-        } catch (err) {
-          if (err instanceof AxiosError) console.log(err.message);
-        }
+      if (createdTmnt) {
+        await deletePostedTmnt();
       }
     })
 
@@ -214,30 +209,17 @@ describe('Tmnts - API: /api/tmnts', () => {
       });
       expect(response.status).toBe(201);
       const postedTmnt = response.data.tmnt;
-      createdTmntId = postedTmnt.id;
+      createdTmnt = true
       expect(postedTmnt.tmnt_name).toBe(tmntToPost.tmnt_name);
       expect(postedTmnt.user_id).toBe(tmntToPost.user_id);
       expect(postedTmnt.bowl_id).toBe(tmntToPost.bowl_id);
-      expect(compareAsc(postedTmnt.start_date, tmntToPost.start_date)).toBe(0);
-      expect(compareAsc(postedTmnt.end_date, tmntToPost.end_date)).toBe(0);
+      // postedTmnt.start_date is a string, convert it to date for comparison
+      const postedStartDate = new Date(postedTmnt.start_date);
+      expect(compareAsc(postedStartDate, tmntToPost.start_date)).toBe(0);    
+      // postedTmnt.end_date is a string, convert it to date for comparison
+      const postedEndDate = new Date(postedTmnt.end_date);
+      expect(compareAsc(postedEndDate, tmntToPost.end_date)).toBe(0);      
       expect(isValidBtDbId(postedTmnt.id, 'tmt')).toBeTruthy();
-    })
-    it('should create a new tmnt with provided tmnt_id', async () => { 
-      const supIdTmnt = {
-        ...tmntToPost,
-        id: postSecret + notFoundId, // use valid ID 
-      }
-      const tmntJSON = JSON.stringify(supIdTmnt);
-      const response = await axios({
-        method: "post",
-        data: tmntJSON,
-        withCredentials: true,
-        url: url,
-      })
-      expect(response.status).toBe(201);
-      const postedTmnt = response.data.tmnt;
-      createdTmntId = postedTmnt.id;
-      expect(postedTmnt.id).toBe(notFoundId);
     })
     it('should not create a new tmnt with bowl_id that does not exist', async () => { 
       const invalidTmnt = {
@@ -256,6 +238,50 @@ describe('Tmnts - API: /api/tmnts', () => {
       } catch (err) {
         if (err instanceof AxiosError) {
           expect(err.response?.status).toBe(404);
+        } else {
+          expect(true).toBeFalsy();
+        }
+      }
+    })
+    it('should not create a new tmnt with user_id that does not exist', async () => { 
+      const invalidTmnt = {
+        ...tmntToPost,
+        user_id: notFoundUserId,
+      }
+      const tmntJSON = JSON.stringify(invalidTmnt);
+      try {
+        const response = await axios({
+          method: "post",
+          data: tmntJSON,
+          withCredentials: true,
+          url: url,
+        })
+        expect(response.status).toBe(404);
+      } catch (err) {
+        if (err instanceof AxiosError) {
+          expect(err.response?.status).toBe(404);
+        } else {
+          expect(true).toBeFalsy();
+        }
+      }
+    })
+    it('should NOT create a new tmnt with missing id', async () => {
+      const invalidTmnt = {
+        ...tmntToPost,
+        id: "",
+      }
+      const tmntJSON = JSON.stringify(invalidTmnt);
+      try {
+        const response = await axios({
+          method: "post",
+          data: tmntJSON,
+          withCredentials: true,
+          url: url,
+        })
+        expect(response.status).toBe(422);
+      } catch (err) {
+        if (err instanceof AxiosError) {
+          expect(err.response?.status).toBe(422);
         } else {
           expect(true).toBeFalsy();
         }
@@ -287,6 +313,28 @@ describe('Tmnts - API: /api/tmnts', () => {
       const invalidTmnt = {
         ...tmntToPost,
         bowl_id: "",
+      }
+      const tmntJSON = JSON.stringify(invalidTmnt);
+      try {
+        const response = await axios({
+          method: "post",
+          data: tmntJSON,
+          withCredentials: true,
+          url: url,
+        })
+        expect(response.status).toBe(422);
+      } catch (err) {
+        if (err instanceof AxiosError) {
+          expect(err.response?.status).toBe(422);
+        } else {
+          expect(true).toBeFalsy();
+        }
+      }
+    })
+    it('should NOT create a new tmnt with missing user_id', async () => {
+      const invalidTmnt = {
+        ...tmntToPost,
+        user_id: "",
       }
       const tmntJSON = JSON.stringify(invalidTmnt);
       try {
@@ -418,7 +466,7 @@ describe('Tmnts - API: /api/tmnts', () => {
     it('should NOT create a new tmnt with invalid start_date', async () => {
       const invalidTmnt = {
         ...tmntToPost,
-        start_date: new Date(Date.UTC(1800, 0, 1)),  // month is -1
+        start_date: startOfDayFromString('1800-01-01') as Date,
       }
       const tmntJSON = JSON.stringify(invalidTmnt);
       try {
@@ -440,7 +488,7 @@ describe('Tmnts - API: /api/tmnts', () => {
     it('should NOT create a new tmnt with invalid end_date', async () => {
       const invalidTmnt = {
         ...tmntToPost,
-        end_date: new Date(Date.UTC(2300, 0, 1)),  // month is -1
+        end_date: startOfDayFromString('2300-01-01') as Date,
       }
       const tmntJSON = JSON.stringify(invalidTmnt);
       try {
@@ -605,7 +653,7 @@ describe('Tmnts - API: /api/tmnts', () => {
       })
       expect(response.status).toBe(201);
       const postedTmnt = response.data.tmnt;
-      createdTmntId = postedTmnt.id;
+      createdTmnt = true;
       expect(postedTmnt.tmnt_name).toBe(tmntToPost.tmnt_name);
       expect(compareAsc(postedTmnt.start_date, tmntToPost.start_date)).toBe(0);
       expect(compareAsc(postedTmnt.end_date, tmntToPost.end_date)).toBe(0);
@@ -614,12 +662,11 @@ describe('Tmnts - API: /api/tmnts', () => {
     
   })
 
-  describe('GET by ID - API: API: /api/tmnts/:id', () => {
-
+  describe('GET by ID - API: API: /api/tmnts/tmnt/:id', () => {
+    
     it('should get a tmnt by ID', async () => {
-
-      const urlToUse = url + "/" + testTmnt.id;
-
+      const urlToUse = oneTmntUrl + testTmnt.id;
+      // const urlToUse = url + '/' + testTmnt.id;
       const response = await axios.get(urlToUse);
       const tmnt = response.data.tmnt;
       expect(response.status).toBe(200);
@@ -627,12 +674,14 @@ describe('Tmnts - API: /api/tmnts', () => {
       expect(tmnt.tmnt_name).toBe(testTmnt.tmnt_name);
       expect(tmnt.bowl_id).toBe(testTmnt.bowl_id);
       expect(tmnt.user_id).toBe(testTmnt.user_id);
-      expect(compareAsc(tmnt.start_date, testTmnt.start_date)).toBe(0);
-      expect(compareAsc(tmnt.end_date, testTmnt.end_date)).toBe(0);
+      const gotStartDate = new Date(tmnt.start_date);
+      expect(compareAsc(gotStartDate, testTmnt.start_date)).toBe(0);
+      const gotEndDate = new Date(tmnt.start_date);
+      expect(compareAsc(gotEndDate, testTmnt.end_date)).toBe(0);
     })
     it('should NOT get a tmnt by ID when ID is invalid', async () => {
       try {
-        const response = await axios.get(url + "/" + 'test');
+        const response = await axios.get(oneTmntUrl + 'test');        
         expect(response.status).toBe(404);
       } catch (err) {
         if (err instanceof AxiosError) {
@@ -644,7 +693,8 @@ describe('Tmnts - API: /api/tmnts', () => {
     })
     it('should NOT get a tmnt by ID when ID is valid, but not a tmnt ID', async () => {
       try {
-        const response = await axios.get(url + "/" + nonTmntId);
+        const response = await axios.get(oneTmntUrl + nonTmntId);
+        // const response = await axios.get(url + '/' + nonTmntId);
         expect(response.status).toBe(404);
       } catch (err) {
         if (err instanceof AxiosError) {
@@ -656,7 +706,8 @@ describe('Tmnts - API: /api/tmnts', () => {
     })
     it('should NOT get a tmnt by ID when ID is not found', async () => {
       try {
-        const response = await axios.get(url + "/" + notFoundId);
+        const response = await axios.get(oneTmntUrl + notFoundId);
+        // const response = await axios.get(url + '/' + notFoundId);
         expect(response.status).toBe(404);
       } catch (err) {
         if (err instanceof AxiosError) {
@@ -669,50 +720,23 @@ describe('Tmnts - API: /api/tmnts', () => {
 
   })
 
-  describe('PUT by ID - API: API: /api/tmnts/:id', () => {
+  describe('PUT by ID - API: API: /api/tmnts/tmnt/:id', () => {
 
     const putTmnt = {
       ...testTmnt,
       tmnt_name: "Test Tournament",
       bowl_id: bowl2Id,
       user_id: user2Id,
-      start_date: new Date(Date.UTC(2022, 10, 1)),  // month is -1
-      end_date: new Date(Date.UTC(2022, 10, 1)),    // month is -1
-    }
-
-    const sampleTmnt = {
-      ...initTmnt,
-      id: '',
-      tmnt_name: "Sample Tournament",
-      bowl_id: bowl3Id,
-      user_id: user1Id,
-      start_date: new Date(Date.UTC(2022, 7, 1)),  // month is -1
-      end_date: new Date(Date.UTC(2022, 7, 1)),    // month is -1
+      start_date: startOfDayFromString('2022-11-01') as Date,
+      end_date: startOfDayFromString('2022-11-01') as Date,
     }
 
     beforeAll(async () => {
-      // make sure test tmnt is reset in database
-      const tmntJSON = JSON.stringify(testTmnt);
-      const putResponse = await axios({
-        method: "put",
-        data: tmntJSON,
-        withCredentials: true,
-        url: url + "/" + testTmnt.id,
-      })
+      await resetTmnt();
     })
 
     afterEach(async () => {
-      try {
-        const tmntJSON = JSON.stringify(testTmnt);
-        const putResponse = await axios({
-          method: "put",
-          data: tmntJSON,
-          withCredentials: true,
-          url: url + "/" + testTmnt.id,
-        })
-      } catch (err) {
-        if (err instanceof AxiosError) console.log(err.message);
-      }
+      await resetTmnt();
     })
 
     it('should update a tmnt by ID', async () => {
@@ -721,7 +745,7 @@ describe('Tmnts - API: /api/tmnts', () => {
         method: "put",
         data: tmntJSON,
         withCredentials: true,
-        url: url + "/" + testTmnt.id,
+        url: oneTmntUrl + testTmnt.id,
       })
       const tmnt = putResponse.data.tmnt;
       expect(putResponse.status).toBe(200);
@@ -729,7 +753,9 @@ describe('Tmnts - API: /api/tmnts', () => {
       expect(tmnt.bowl_id).toBe(putTmnt.bowl_id);
       // for user_id, compare to testTmnt.user_id
       expect(tmnt.user_id).toBe(testTmnt.user_id);
-      expect(compareAsc(tmnt.start_date, putTmnt.start_date)).toBe(0);
+      const puttedStartDate = new Date(tmnt.start_date);
+      expect(compareAsc(puttedStartDate, putTmnt.start_date)).toBe(0);
+      const puttedEndDate = new Date(tmnt.end_date);
       expect(compareAsc(tmnt.end_date, putTmnt.end_date)).toBe(0);
     })
     it('should NOT update a tmnt with when ID is invalid', async () => {
@@ -739,7 +765,7 @@ describe('Tmnts - API: /api/tmnts', () => {
           method: "put",
           data: tmntJSON,
           withCredentials: true,
-          url: url + "/" + 'test',
+          url: oneTmntUrl + 'test',
         })
         expect(putResponse.status).toBe(404);
       } catch (err) {
@@ -757,7 +783,7 @@ describe('Tmnts - API: /api/tmnts', () => {
           method: "put",
           data: tmntJSON,
           withCredentials: true,
-          url: url + "/" + nonTmntId,
+          url: oneTmntUrl + nonTmntId,
         })
         expect(putResponse.status).toBe(404);
       } catch (err) {
@@ -775,7 +801,7 @@ describe('Tmnts - API: /api/tmnts', () => {
           method: "put",
           data: tmntJSON,
           withCredentials: true,
-          url: url + "/" + notFoundId,
+          url: oneTmntUrl + notFoundId,
         })
         expect(putResponse.status).toBe(404);
       } catch (err) {
@@ -797,7 +823,7 @@ describe('Tmnts - API: /api/tmnts', () => {
           method: "put",
           data: tmntJSON,
           withCredentials: true,
-          url: url + "/" + testTmnt.id,
+          url: oneTmntUrl + testTmnt.id,          
         })
         expect(putResponse.status).toBe(422);
       } catch (err) {
@@ -819,7 +845,7 @@ describe('Tmnts - API: /api/tmnts', () => {
           method: "put",
           data: tmntJSON,
           withCredentials: true,
-          url: url + "/" + testTmnt.id,
+          url: oneTmntUrl + testTmnt.id,
         })
         expect(putResponse.status).toBe(422);
       } catch (err) {
@@ -841,7 +867,7 @@ describe('Tmnts - API: /api/tmnts', () => {
           method: "put",
           data: tmntJSON,
           withCredentials: true,
-          url: url + "/" + testTmnt.id,
+          url: oneTmntUrl + testTmnt.id,
         })
         expect(putResponse.status).toBe(422);
       } catch (err) {
@@ -863,7 +889,7 @@ describe('Tmnts - API: /api/tmnts', () => {
           method: "put",
           data: tmntJSON,
           withCredentials: true,
-          url: url + "/" + testTmnt.id,
+          url: oneTmntUrl + testTmnt.id,
         })
         expect(putResponse.status).toBe(422);
       } catch (err) {
@@ -885,7 +911,7 @@ describe('Tmnts - API: /api/tmnts', () => {
           method: "put",
           data: tmntJSON,
           withCredentials: true,
-          url: url + "/" + testTmnt.id,
+          url: oneTmntUrl + testTmnt.id,
         })
         expect(putResponse.status).toBe(422);
       } catch (err) {
@@ -907,7 +933,7 @@ describe('Tmnts - API: /api/tmnts', () => {
           method: "put",
           data: tmntJSON,
           withCredentials: true,
-          url: url + "/" + testTmnt.id,
+          url: oneTmntUrl + testTmnt.id,
         })
       }
       catch (err) {
@@ -921,8 +947,8 @@ describe('Tmnts - API: /api/tmnts', () => {
     it('should NOT update a tmnt by ID when start_date is after end_date', async () => {
       const invalidTmnt = {
         ...putTmnt,
-        start_date: new Date(Date.UTC(2022, 10, 4)),  // month is -1
-        end_date: new Date(Date.UTC(2022, 10, 2)),    // month is -1
+        start_date: startOfDayFromString('2022-11-04') as Date, 
+        end_date: startOfDayFromString('2022-11-02') as Date,
       }
       const tmntJSON = JSON.stringify(invalidTmnt);
       try {
@@ -930,7 +956,7 @@ describe('Tmnts - API: /api/tmnts', () => {
           method: "put",
           data: tmntJSON,
           withCredentials: true,
-          url: url + "/" + testTmnt.id,
+          url: oneTmntUrl + testTmnt.id,
         })
         expect(putResponse.status).toBe(422);
       } catch (err) {
@@ -952,7 +978,7 @@ describe('Tmnts - API: /api/tmnts', () => {
           method: "put",
           data: tmntJSON,
           withCredentials: true,
-          url: url + "/" + testTmnt.id,
+          url: oneTmntUrl + testTmnt.id,
         })
         expect(putResponse.status).toBe(422);
       } catch (err) {
@@ -974,7 +1000,7 @@ describe('Tmnts - API: /api/tmnts', () => {
           method: "put",
           data: tmntJSON,
           withCredentials: true,
-          url: url + "/" + testTmnt.id,
+          url: oneTmntUrl + testTmnt.id,
         })
         expect(putResponse.status).toBe(422);
       } catch (err) {
@@ -996,7 +1022,7 @@ describe('Tmnts - API: /api/tmnts', () => {
           method: "put",
           data: tmntJSON,
           withCredentials: true,
-          url: url + "/" + testTmnt.id,
+          url: oneTmntUrl + testTmnt.id,
         })
         expect(putResponse.status).toBe(404);
       } catch (err) {
@@ -1018,7 +1044,7 @@ describe('Tmnts - API: /api/tmnts', () => {
           method: "put",
           data: tmntJSON,
           withCredentials: true,
-          url: url + "/" + testTmnt.id,
+          url: oneTmntUrl + testTmnt.id,
         })
         expect(putResponse.status).toBe(422);
       } catch (err) {
@@ -1040,7 +1066,7 @@ describe('Tmnts - API: /api/tmnts', () => {
           method: "put",
           data: tmntJSON,
           withCredentials: true,
-          url: url + "/" + testTmnt.id,
+          url: oneTmntUrl + testTmnt.id,
         })
         expect(putResponse.status).toBe(422);
       } catch (err) {
@@ -1054,7 +1080,7 @@ describe('Tmnts - API: /api/tmnts', () => {
     it('should NOT update a tmnt by ID when start_date is invalid', async () => {
       const invalidTmnt = {
         ...putTmnt,
-        start_date: new Date(Date.UTC(1800, 10, 1)),  // month is -1
+        start_date: startOfDayFromString('1800-11-01') as Date,
       }
       const tmntJSON = JSON.stringify(invalidTmnt);
       try {
@@ -1062,7 +1088,7 @@ describe('Tmnts - API: /api/tmnts', () => {
           method: "put",
           data: tmntJSON,
           withCredentials: true,
-          url: url + "/" + testTmnt.id,
+          url: oneTmntUrl + testTmnt.id,
         })
         expect(putResponse.status).toBe(422);
       } catch (err) {
@@ -1076,7 +1102,7 @@ describe('Tmnts - API: /api/tmnts', () => {
     it('should NOT update a tmnt by ID when end_date is invalid', async () => {
       const invalidTmnt = {
         ...putTmnt,
-        end_date: new Date(Date.UTC(2300, 10, 1)),  // month is -1
+        end_date: startOfDayFromString('2300-11-01') as Date,
       }
       const tmntJSON = JSON.stringify(invalidTmnt);
       try {
@@ -1084,7 +1110,7 @@ describe('Tmnts - API: /api/tmnts', () => {
           method: "put",
           data: tmntJSON,
           withCredentials: true,
-          url: url + "/" + testTmnt.id,
+          url: oneTmntUrl + testTmnt.id,
         })
         expect(putResponse.status).toBe(422);
       } catch (err) {
@@ -1098,47 +1124,30 @@ describe('Tmnts - API: /api/tmnts', () => {
     it('should update a tmnt by ID with sanitized data', async () => {
       const toSanitizeTmnt = {
         ...putTmnt,
-        tmnt_name: "    <script>" + sampleTmnt.tmnt_name + "</script>   ",
+        tmnt_name: "    <script>Sample Tournament</script>   ",
       }
       const tmntJSON = JSON.stringify(toSanitizeTmnt);
       const response = await axios({
         method: "put",
         data: tmntJSON,
         withCredentials: true,
-        url: url + "/" + testTmnt.id,
+        url: oneTmntUrl + testTmnt.id,
       })
       expect(response.status).toBe(200);
       const puttedTmnt = response.data.tmnt;
-      expect(puttedTmnt.tmnt_name).toBe(sampleTmnt.tmnt_name);
+      expect(puttedTmnt.tmnt_name).toBe('Sample Tournament');
     })
 
   })
 
-  describe('PATCH by ID - API: API: /api/tmnts/:id', () => {
+  describe('PATCH by ID - API: API: /api/tmnts/tmnt/:id', () => {
 
     beforeAll(async () => {
-      // make sure test tmnt is reset in database
-      const tmntJSON = JSON.stringify(testTmnt);
-      const putResponse = await axios({
-        method: "put",
-        data: tmntJSON,
-        withCredentials: true,
-        url: url + "/" + testTmnt.id,
-      })
+      await resetTmnt();
     })
       
     afterEach(async () => {
-      try {
-        const tmntJSON = JSON.stringify(testTmnt);
-        const putResponse = await axios({
-          method: "put",
-          data: tmntJSON,
-          withCredentials: true,
-          url: url + "/" + testTmnt.id,
-        })
-      } catch (err) {
-        if (err instanceof AxiosError) console.log(err.message);
-      }
+      await resetTmnt();
     })
 
     it('should patch a tmnt tmnt_name by ID', async () => {
@@ -1151,7 +1160,7 @@ describe('Tmnts - API: /api/tmnts', () => {
         method: "patch",
         data: tmntJSON,
         withCredentials: true,
-        url: url + "/" + blankTmnt.id,
+        url: oneTmntUrl  + blankTmnt.id,
       })
       expect(patchResponse.status).toBe(200);
       const patchedTmnt = patchResponse.data.tmnt;
@@ -1167,43 +1176,45 @@ describe('Tmnts - API: /api/tmnts', () => {
         method: "patch",
         data: tmntJSON,
         withCredentials: true,
-        url: url + "/" + blankTmnt.id,
+        url: oneTmntUrl  + blankTmnt.id,
       })
-      expect(patchResponse.status).toBe(200);
-      const patchedTmnt = patchResponse.data.tmnt;
+      expect(patchResponse.status).toBe(200);    
+      const patchedTmnt = patchResponse.data.tmnt;      
       expect(patchedTmnt.bowl_id).toBe(patchTmnt.bowl_id);
     })
     it('should patch a tmnt start_date by ID', async () => {
       const patchTmnt = {
         ...blankTmnt,
-        start_date: new Date(Date.UTC(2022, 9, 22)),  // month is -1
+        start_date: startOfDayFromString('2022-08-22') as Date, 
       }
       const tmntJSON = JSON.stringify(patchTmnt);
       const patchResponse = await axios({
         method: "patch",
         data: tmntJSON,
         withCredentials: true,
-        url: url + "/" + blankTmnt.id,
+        url: oneTmntUrl  + blankTmnt.id,
       })
       expect(patchResponse.status).toBe(200);
       const patchedTmnt = patchResponse.data.tmnt;
-      expect(compareAsc(patchedTmnt.start_date, patchTmnt.start_date)).toBe(0);
+      const patchedStartDate = new Date(patchedTmnt.start_date);
+      expect(compareAsc(patchedStartDate, patchTmnt.start_date)).toBe(0);
     })
     it('should patch a tmnt end_date by ID', async () => {
       const patchTmnt = {
-        ...blankTmnt,
-        end_date: new Date(Date.UTC(2022, 9, 24)),  // month is -1
+        ...blankTmnt,        
+        end_date: startOfDayFromString('2022-10-26') as Date, 
       }
       const tmntJSON = JSON.stringify(patchTmnt);
       const patchResponse = await axios({
         method: "patch",
         data: tmntJSON,
         withCredentials: true,
-        url: url + "/" + blankTmnt.id,
+        url: oneTmntUrl  + blankTmnt.id,
       })
       expect(patchResponse.status).toBe(200);
       const patchedTmnt = patchResponse.data.tmnt;
-      expect(compareAsc(patchedTmnt.end_date, patchTmnt.end_date)).toBe(0);
+      const patchedEndDate = new Date(patchedTmnt.end_date);
+      expect(compareAsc(patchedEndDate, patchTmnt.end_date)).toBe(0);
     })
     it('should NOT patch a tmnt user_id by ID', async () => {
       const patchTmnt = {
@@ -1215,7 +1226,7 @@ describe('Tmnts - API: /api/tmnts', () => {
         method: "patch",
         data: tmntJSON,
         withCredentials: true,
-        url: url + "/" + blankTmnt.id,
+        url: oneTmntUrl  + blankTmnt.id,
       })
       expect(patchResponse.status).toBe(200);
       const patchedTmnt = patchResponse.data.tmnt;
@@ -1299,7 +1310,7 @@ describe('Tmnts - API: /api/tmnts', () => {
           method: "patch",
           data: tmntJSON,
           withCredentials: true,
-          url: url + "/" + blankTmnt.id,
+          url: oneTmntUrl  + blankTmnt.id,
         })
         expect(patchResponse.status).toBe(422);
       } catch (err) {
@@ -1321,7 +1332,7 @@ describe('Tmnts - API: /api/tmnts', () => {
           method: "patch",
           data: tmntJSON,
           withCredentials: true,
-          url: url + "/" + blankTmnt.id,
+          url: oneTmntUrl  + blankTmnt.id,
         })
         expect(patchResponse.status).toBe(422);
       } catch (err) {
@@ -1343,7 +1354,7 @@ describe('Tmnts - API: /api/tmnts', () => {
           method: "patch",
           data: tmntJSON,
           withCredentials: true,
-          url: url + "/" + blankTmnt.id,
+          url: oneTmntUrl  + blankTmnt.id,
         })
         expect(patchResponse.status).toBe(422);
       } catch (err) {
@@ -1365,7 +1376,7 @@ describe('Tmnts - API: /api/tmnts', () => {
           method: "patch",
           data: tmntJSON,
           withCredentials: true,
-          url: url + "/" + blankTmnt.id,
+          url: oneTmntUrl  + blankTmnt.id,
         })
         expect(patchResponse.status).toBe(422);
       } catch (err) {
@@ -1387,7 +1398,7 @@ describe('Tmnts - API: /api/tmnts', () => {
           method: "patch",
           data: tmntJSON,
           withCredentials: true,
-          url: url + "/" + blankTmnt.id,
+          url: oneTmntUrl  + blankTmnt.id,
         })
         expect(patchResponse.status).toBe(422);
       } catch (err) {
@@ -1409,7 +1420,7 @@ describe('Tmnts - API: /api/tmnts', () => {
           method: "patch",
           data: tmntJSON,
           withCredentials: true,
-          url: url + "/" + blankTmnt.id,
+          url: oneTmntUrl  + blankTmnt.id,
         })
         expect(patchResponse.status).toBe(422);
       } catch (err) {
@@ -1423,15 +1434,15 @@ describe('Tmnts - API: /api/tmnts', () => {
     it('should NOT patch a tmnt by ID when start_date is after end_date', async () => {
       try {
         const patchTmnt = {
-          ...blankTmnt,
-          start_date: new Date(Date.UTC(2022, 9, 24)),  // month is -1
+          ...blankTmnt,          
+          start_date: startOfDayFromString('2022-10-26') as Date, 
         }
         const tmntJSON = JSON.stringify(patchTmnt);
         const patchResponse = await axios({
           method: "patch",
           data: tmntJSON,
           withCredentials: true,
-          url: url + "/" + blankTmnt.id,
+          url: oneTmntUrl  + blankTmnt.id,
         })
         expect(patchResponse.status).toBe(422);
       } catch (err) {
@@ -1446,14 +1457,14 @@ describe('Tmnts - API: /api/tmnts', () => {
       try {
         const patchTmnt = {
           ...blankTmnt,
-          start_date: new Date(Date.UTC(1800, 9, 24)),  // month is -1
+          start_date: startOfDayFromString('1800-10-24') as Date,
         }
         const tmntJSON = JSON.stringify(patchTmnt);
         const patchResponse = await axios({
           method: "patch",
           data: tmntJSON,
           withCredentials: true,
-          url: url + "/" + blankTmnt.id,
+          url: oneTmntUrl  + blankTmnt.id,
         })
         expect(patchResponse.status).toBe(422);
       } catch (err) {
@@ -1468,14 +1479,14 @@ describe('Tmnts - API: /api/tmnts', () => {
       try {
         const patchTmnt = {
           ...blankTmnt,
-          end_date: new Date(Date.UTC(2300, 9, 24)),  // month is -1
+          end_date: startOfDayFromString('2300-10-24') as Date,
         }
         const tmntJSON = JSON.stringify(patchTmnt);
         const patchResponse = await axios({
           method: "patch",
           data: tmntJSON,
           withCredentials: true,
-          url: url + "/" + blankTmnt.id,
+          url: oneTmntUrl  + blankTmnt.id,
         })
         expect(patchResponse.status).toBe(422);
       } catch (err) {
@@ -1497,7 +1508,7 @@ describe('Tmnts - API: /api/tmnts', () => {
           method: "patch",
           data: tmntJSON,
           withCredentials: true,
-          url: url + "/" + blankTmnt.id,
+          url: oneTmntUrl  + blankTmnt.id,
         })
         expect(patchResponse.status).toBe(422);
       } catch (err) {
@@ -1519,7 +1530,7 @@ describe('Tmnts - API: /api/tmnts', () => {
           method: "patch",
           data: tmntJSON,
           withCredentials: true,
-          url: url + "/" + blankTmnt.id,
+          url: oneTmntUrl  + blankTmnt.id,
         })
         expect(patchResponse.status).toBe(422);
       } catch (err) {
@@ -1541,7 +1552,7 @@ describe('Tmnts - API: /api/tmnts', () => {
           method: "patch",
           data: tmntJSON,
           withCredentials: true,
-          url: url + "/" + blankTmnt.id,
+          url: oneTmntUrl  + blankTmnt.id,
         })
         expect(patchResponse.status).toBe(404);
       } catch (err) {
@@ -1563,7 +1574,7 @@ describe('Tmnts - API: /api/tmnts', () => {
           method: "patch",
           data: tmntJSON,
           withCredentials: true,
-          url: url + "/" + blankTmnt.id,
+          url: oneTmntUrl  + blankTmnt.id,
         })
         expect(patchResponse.status).toBe(422);
       } catch (err) {
@@ -1585,7 +1596,7 @@ describe('Tmnts - API: /api/tmnts', () => {
           method: "patch",
           data: tmntJSON,
           withCredentials: true,
-          url: url + "/" + blankTmnt.id,
+          url: oneTmntUrl  + blankTmnt.id,
         })
         expect(patchResponse.status).toBe(422);
       } catch (err) {
@@ -1606,7 +1617,7 @@ describe('Tmnts - API: /api/tmnts', () => {
         method: "patch",
         data: tmntJSON,
         withCredentials: true,
-        url: url + "/" + blankTmnt.id,
+        url: oneTmntUrl  + blankTmnt.id,
       })
       expect(patchResponse.status).toBe(200);
       const patchedTmnt = patchResponse.data.tmnt;
@@ -1615,42 +1626,50 @@ describe('Tmnts - API: /api/tmnts', () => {
 
   })
 
-  describe('DELETE by ID - API: API: /api/tmnts/:id', () => { 
+  describe('DELETE by ID - API: API: /api/tmnts/tmnt/:id', () => { 
 
     const toDelTmnt = {
       ...initTmnt,
-      id: "tmt_e134ac14c5234d708d26037ae812ac33",
+      id: "tmt_e134ac14c5234d708d26037ae812ac33",          
       user_id: "usr_5bcefb5d314fff1ff5da6521a2fa7bde",
       tmnt_name: "Gold Pin",
       bowl_id: "bwl_561540bd64974da9abdd97765fdb3659",
-      start_date: new Date(Date.UTC(2025, 7, 19)),  // month is -1
-      end_date: new Date(Date.UTC(2025, 7, 19)),    // month is -1
+      start_date: startOfDayFromString('2025-08-19') as Date,
+      end_date: startOfDayFromString('2025-08-19') as Date,
+    }
+
+    const repostTmnt = async () => {
+      const response = await axios.get(url);
+      const tmnts = response.data.tmnts;
+      const found = tmnts.find((t: tmntType) => t.id === toDelTmnt.id);
+      if (!found) {
+        try {
+          const tmntJSON = JSON.stringify(toDelTmnt);
+          const response = await axios({
+            method: 'post',
+            data: tmntJSON,
+            withCredentials: true,
+            url: url
+          })          
+        } catch (err) {
+          if (err instanceof AxiosError) console.log(err.message);
+        }
+      }  
     }
 
     let didDel = false
+
+    beforeAll(async () => {
+      await repostTmnt()
+    })
 
     beforeEach(() => {
       didDel = false;
     })
 
     afterEach(async () => {
-      if (!didDel) return ;
-      try {
-        const restoredTmnt = {
-          ...toDelTmnt,
-          id: postSecret + 'tmt_e134ac14c5234d708d26037ae812ac33',
-        }
-        const tmntJSON = JSON.stringify(restoredTmnt);
-        const response = await axios({
-          method: 'post',
-          data: tmntJSON,
-          withCredentials: true,
-          url: url
-        })
-        console.log('response.status: ', response.status)
-      } catch (err) {
-        if (err instanceof Error) console.log(err.message);
-      }
+      if (!didDel) return;
+      await repostTmnt()
     })
 
     it('should delete a tmnt by ID', async () => { 
@@ -1658,7 +1677,7 @@ describe('Tmnts - API: /api/tmnts', () => {
         const delResponse = await axios({
           method: "delete",
           withCredentials: true,
-          url: url + "/" + toDelTmnt.id,
+          url: oneTmntUrl + toDelTmnt.id,
         })  
         didDel = true;
         expect(delResponse.status).toBe(200);
@@ -1675,7 +1694,7 @@ describe('Tmnts - API: /api/tmnts', () => {
         const delResponse = await axios({
           method: "delete",
           withCredentials: true,
-          url: url + "/" + 'test',
+          url: oneTmntUrl + 'test',
         })  
         expect(delResponse.status).toBe(404);
       } catch (err) {
@@ -1691,7 +1710,7 @@ describe('Tmnts - API: /api/tmnts', () => {
         const delResponse = await axios({
           method: "delete",
           withCredentials: true,
-          url: url + "/" + notFoundId,
+          url: oneTmntUrl + notFoundId,
         })  
         expect(delResponse.status).toBe(404);
       } catch (err) {
@@ -1707,7 +1726,7 @@ describe('Tmnts - API: /api/tmnts', () => {
         const delResponse = await axios({
           method: "delete",
           withCredentials: true,
-          url: url + "/" + nonTmntId,
+          url: oneTmntUrl + nonTmntId,
         })  
         expect(delResponse.status).toBe(404);
       } catch (err) {
@@ -1723,7 +1742,7 @@ describe('Tmnts - API: /api/tmnts', () => {
         const delResponse = await axios({
           method: "delete",
           withCredentials: true,
-          url: url + "/" + testTmnt.id,
+          url: oneTmntUrl + testTmnt.id,
         })  
         expect(delResponse.status).toBe(409);
       } catch (err) {

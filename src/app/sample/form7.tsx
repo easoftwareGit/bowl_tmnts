@@ -1,6 +1,6 @@
 "use client";
 import React, { useState } from "react";
-import { findUserByEmail, findUserById } from "@/lib/db/users";
+import { findUserByEmail, findUserById } from "@/lib/db/users/users";
 import { User } from '@prisma/client'
 
 const initUser = {

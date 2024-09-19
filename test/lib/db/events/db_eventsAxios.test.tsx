@@ -5,7 +5,6 @@ import { eventType } from "@/lib/types/types";
 import { initEvent } from "@/lib/db/initVals";
 import { isValidBtDbId } from "@/lib/validation";
 import { deleteEvent, postEvent, putEvent } from "@/lib/db/events/eventsAxios";
-import { postSecret } from "@/lib/tools";
 
 // before running this test, run the following commands in the terminal:
 // 1) clear and re-seed the database
@@ -25,12 +24,30 @@ import { postSecret } from "@/lib/tools";
 const url = testBaseEventsApi.startsWith("undefined")
   ? baseEventsApi
   : testBaseEventsApi;
+const oneEventUrl = url + "/event/";  
 
 describe("eventsAxios", () => {
+
+  const deletePostedEvent = async () => {
+    const response = await axios.get(url);
+    const events = response.data.events;
+    const toDel = events.find((e: eventType) => e.event_name === 'Test Event');
+    if (toDel) {
+      try {
+        const delResponse = await axios({
+          method: "delete",
+          withCredentials: true,
+          url: oneEventUrl + toDel.id
+        });
+      } catch (err) {
+        if (err instanceof AxiosError) console.log(err.message);
+      }
+    }
+  }
+
   describe("postEvent", () => {
     const eventToPost = {
-      ...initEvent,
-      id: "",
+      ...initEvent,      
       tmnt_id: "tmt_e134ac14c5234d708d26037ae812ac33",
       event_name: "Test Event",
       team_size: 1,
@@ -45,40 +62,20 @@ describe("eventsAxios", () => {
       sort_order: 10,
     };
 
-    let createdEventId = "";
+    let createdEvent = false;
 
     beforeAll(async () => {
-      const response = await axios.get(url);
-      const events = response.data.events;
-      const toDel = events.find(
-        (e: eventType) => e.event_name === "Test Event"
-      );
-      if (toDel) {
-        try {
-          const delResponse = await axios({
-            method: "delete",
-            withCredentials: true,
-            url: url + "/" + toDel.id,
-          });
-        } catch (err) {
-          if (err instanceof AxiosError) console.log(err.message);
-        }
-      }
+      await deletePostedEvent();
     });
 
     beforeEach(() => {
-      createdEventId = "";
+      createdEvent = false;
     });
 
     afterEach(async () => {
-      if (createdEventId) {
-        const delResponse = await axios({
-          method: "delete",
-          withCredentials: true,
-          url: url + "/" + createdEventId,
-        });
+      if (createdEvent) {
+        await deletePostedEvent();
       }
-      createdEventId = "";
     });
 
     it("should post an event", async () => {
@@ -86,7 +83,7 @@ describe("eventsAxios", () => {
       expect(postedEvent).not.toBeNull();
       if (!postedEvent) return;
       expect(postedEvent).not.toBeNull();
-      createdEventId = postedEvent.id;
+      createdEvent = true;
       expect(postedEvent.tmnt_id).toEqual(eventToPost.tmnt_id);
       expect(postedEvent.event_name).toEqual(eventToPost.event_name);
       expect(postedEvent.team_size).toEqual(eventToPost.team_size);
@@ -128,7 +125,7 @@ describe("eventsAxios", () => {
       sort_order: 1,
     };
 
-    const putUrl = url + "/" + toPutEvent.id;
+    const putUrl = oneEventUrl + toPutEvent.id;
 
     describe("putEvent - success", () => {
       const resetEvent = {
@@ -200,31 +197,27 @@ describe("eventsAxios", () => {
       other: "2",
       expenses: "5",
       added_money: "0",
-      sort_order: 1,
       lpox: "80",
+      sort_order: 1,      
     };
 
-    const delUrl = url + "/" + toDelEvent.id;
+    const delUrl = oneEventUrl + toDelEvent.id;
 
     let didDel = false;
 
     const doRestore = async () => {
       try {
-        const restoreEvent = {
-          ...toDelEvent,
-          id: postSecret + "evt_bd63777a6aee43be8372e4d008c1d6d0",
-        };
-        const eventJSON = JSON.stringify(restoreEvent);
-        const postResponse = await axios({
+        const eventJSON = JSON.stringify(toDelEvent);
+        const response = await axios({
           method: "post",
           data: eventJSON,
           withCredentials: true,
           url: url,
-        });    
-        console.log("postResponse.status: ", postResponse.status);          
+        });
+        console.log('response.status: ', response.status)
       } catch (err) {
         if (err instanceof Error) console.log(err.message);
-      }    
+      }
     }
 
     beforeAll(async () => {     

@@ -6,6 +6,7 @@ import { initSquad } from "@/lib/db/initVals";
 import { isValidBtDbId } from "@/lib/validation";
 import { postSquad } from "@/lib/db/squads/squadsAxios";
 import { compareAsc } from "date-fns";
+import { startOfDayFromString } from "@/lib/dateTools";
 
 // before running this test, run the following commands in the terminal:
 // 1) clear and re-seed the database
@@ -25,15 +26,15 @@ import { compareAsc } from "date-fns";
 const url = testBaseSquadsApi.startsWith("undefined")
   ? baseSquadsApi
   : testBaseSquadsApi;   
+const oneSquadUrl = url + "/squad/"
 
 describe('postSquad', () => { 
 
   const squadToPost = {
-    ...initSquad,
-    id: '',
+    ...initSquad,    
     squad_name: 'Test Squad',
-    event_id: "evt_bd63777a6aee43be8372e4d008c1d6d0",    
-    squad_date: new Date(Date.UTC(2022, 7, 21)),  // month is -1 
+    event_id: "evt_c0b2bb31d647414a9bea003bd835f3a0",    
+    squad_date: startOfDayFromString('2022-08-21') as Date, 
     squad_time: '02:00 PM',
     games: 6,
     lane_count: 24, 
@@ -41,9 +42,9 @@ describe('postSquad', () => {
     sort_order: 1,
   }
 
-  let createdSquadId = '';
+  let createdSquad = false;
 
-  beforeAll(async () => { 
+  const deletePostedSquad = async () => {
     const response = await axios.get(url);
     const squads = response.data.squads;
     const toDel = squads.find((s: squadType) => s.squad_name === 'Test Squad');
@@ -52,37 +53,37 @@ describe('postSquad', () => {
         const delResponse = await axios({
           method: "delete",
           withCredentials: true,
-          url: url + "/" + toDel.id
-        });
+          url: oneSquadUrl + toDel.id
+        });        
       } catch (err) {
         if (err instanceof AxiosError) console.log(err.message);
       }
     }
+  } 
+
+  beforeAll(async () => { 
+    await deletePostedSquad();
   })
 
   beforeEach(() => {
-    createdSquadId = "";
+    createdSquad = false;
   })
 
   afterEach(async () => {
-    if (createdSquadId) {
-      const delResponse = await axios({
-        method: "delete",
-        withCredentials: true,
-        url: url + "/" + createdSquadId,
-      });
+    if (createdSquad) {
+      await deletePostedSquad();
     }
-    createdSquadId = "";
   })
 
   it('should post a squad', async () => { 
     const postedSquad = await postSquad(squadToPost);
     expect(postedSquad).not.toBeNull();
     if(!postedSquad) return;
-    createdSquadId = postedSquad.id;
+    createdSquad = true;
     expect(postedSquad.squad_name).toBe(squadToPost.squad_name);
     expect(postedSquad.event_id).toBe(squadToPost.event_id);
-    expect(compareAsc(postedSquad.squad_date, squadToPost.squad_date)).toBe(0);
+    const squadDate = new Date(postedSquad.squad_date);
+    expect(compareAsc(squadDate, squadToPost.squad_date)).toBe(0);
     expect(postedSquad.squad_time).toBe(squadToPost.squad_time);
     expect(postedSquad.games).toBe(squadToPost.games);
     expect(postedSquad.lane_count).toBe(squadToPost.lane_count);

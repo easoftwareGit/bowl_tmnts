@@ -4,13 +4,14 @@ import { mockPrimsmaEvents } from "../../../mocks/tmnts/twoDivs/mockEvent";
 import { mockEvents } from "../../../mocks/tmnts/singlesAndDoubles/mockEvents";
 import { ErrorCode } from "@/lib/validation";
 import { eventType } from "@/lib/types/types";
-import { postSecret } from "@/lib/tools";
 
 // in @/lib/db/events/events.ts, make sure to use correct prisma client
 // import { prisma } from "@/lib/prisma"  // for production & developemnt
 // import prisma from '../../../test/client'  // for testing
 //
 // switch the prisma client back after testing  
+
+const user_id = 'usr_9a58f0a486cb4e6c92ca3348702b1a62';
 
 describe('events', () => { 
 
@@ -63,16 +64,7 @@ describe('events', () => {
   describe('validateEvents', () => { 
 
     it('should validate events', async () => { 
-      const validEvents = [
-        {
-          ...mockEvents[0],
-          id: '',
-        },
-        {
-          ...mockEvents[1],          
-          id: '',
-        }
-      ]
+      const validEvents = [...mockEvents];
       const result = validateEvents(validEvents);
       expect(result).toEqual(ErrorCode.None);
     })
@@ -81,6 +73,19 @@ describe('events', () => {
         {
           ...mockEvents[0],
           event_name: ''
+        },
+        {
+          ...mockEvents[1],          
+        }
+      ]
+      const result = validateEvents(invalidEvents);
+      expect(result).toEqual(ErrorCode.MissingData);
+    })
+    it('should return ErroCode.MissingData when tmnt_id is not a valid tmnt id', async () => { 
+      const invalidEvents = [
+        {
+          ...mockEvents[0],
+          tmnt_id: user_id,
         },
         {
           ...mockEvents[1],          
@@ -102,58 +107,18 @@ describe('events', () => {
       const result = validateEvents(invalidEvents);
       expect(result).toEqual(ErrorCode.InvalidData);
     })
-    it('should return ErroCode.None when id is a valid id', async () => { 
+    it('should return ErroCode.MissingData when id is not a valid event id', async () => { 
       const invalidEvents = [
         {
           ...mockEvents[0],
-          id: 'evt_9a58f0a486cb4e6c92ca3348702b1a62',
+          id: user_id,
         },
         {
           ...mockEvents[1],          
         }
       ]
       const result = validateEvents(invalidEvents);
-      expect(result).toEqual(ErrorCode.None);
-    })
-    it('should return ErroCode.None when id is a valid temp id', async () => { 
-      const invalidEvents = [
-        {
-          ...mockEvents[0],
-          id: '1',
-        },
-        {
-          ...mockEvents[1],
-          id: '2',
-        }
-      ]
-      const result = validateEvents(invalidEvents);
-      expect(result).toEqual(ErrorCode.None);
-    })
-    it('should return ErroCode.None when id is postSecrent + valid id', async () => { 
-      const invalidEvents = [
-        {
-          ...mockEvents[0],
-          id: postSecret + 'evt_9a58f0a486cb4e6c92ca3348702b1a62',
-        },
-        {
-          ...mockEvents[1],          
-        }
-      ]
-      const result = validateEvents(invalidEvents);
-      expect(result).toEqual(ErrorCode.None);
-    })
-    it('should return ErroCode.invalidData when id is not a valid event id', async () => { 
-      const invalidEvents = [
-        {
-          ...mockEvents[0],
-          id: 'usr_9a58f0a486cb4e6c92ca3348702b1a62',
-        },
-        {
-          ...mockEvents[1],          
-        }
-      ]
-      const result = validateEvents(invalidEvents);
-      expect(result).toEqual(ErrorCode.InvalidData);
+      expect(result).toEqual(ErrorCode.MissingData);
     })
     it('should return ErrorCode.MissingData if empty array', async () => {
       const emptyArray: eventType[] = []

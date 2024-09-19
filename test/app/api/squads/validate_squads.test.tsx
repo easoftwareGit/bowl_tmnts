@@ -9,12 +9,12 @@ import {
   validSquadDate,
   validSquadTime,  
   validEventFkId,
-  exportedForTesting
+  exportedForTesting,
+  sanitizedTime
 } from "@/app/api/squads/validate";
 import { initSquad } from "@/lib/db/initVals";
-import { ErrorCode, maxEventLength, maxSortOrder, validPostId } from "@/lib/validation";
-import { postSecret } from "@/lib/tools";
-import { startOfTodayUTC, todayStr } from "@/lib/dateTools";
+import { ErrorCode, maxEventLength, maxSortOrder } from "@/lib/validation";
+import { startOfTodayUTC } from "@/lib/dateTools";
 import { compareAsc } from "date-fns";
 
 const { gotSquadData, validSquadData } = exportedForTesting;
@@ -241,7 +241,11 @@ describe('tests for squad validation', () => {
 
   describe('validSquadDate function', () => { 
     const tooPastDate = new Date(Date.UTC(1899, 11, 31, 0, 0, 0, 0)) // 1899-12-31
-    const tooFutureDate = new Date(Date.UTC(2201, 1, 1, 0, 0, 0, 0)) // 2200-02-01
+    const tooFutureDate = new Date(Date.UTC(2201, 1, 1, 0, 0, 0, 0)) // 2201-02-01
+
+    const tooPastDateStr = '1899-12-31'
+    const tooFutureDateStr = '2201-02-01';
+
 
     it('should return true when date is valid', () => {
       expect(validSquadDate(startOfTodayUTC())).toBe(true)
@@ -263,9 +267,11 @@ describe('tests for squad validation', () => {
     })
     it('should return false when date is in the future', () => { 
       expect(validSquadDate(tooFutureDate)).toBe(false)
+      expect(validSquadDate(tooFutureDateStr as any)).toBe(false)
     })
     it('should return false when date is in the past', () => { 
       expect(validSquadDate(tooPastDate)).toBe(false)
+      expect(validSquadDate(tooPastDateStr as any)).toBe(false)
     })
   })
 
@@ -300,6 +306,54 @@ describe('tests for squad validation', () => {
     })
   })
 
+  describe('sanitizedTime', () => {
+    it('should return the input string when it matches the 5-character time format', () => {
+      const input = '12:34';
+      const result = sanitizedTime(input);
+      expect(result).toBe(input);
+    });
+    it('should return an empty string when the time string has incorrect length', () => {
+      const input = '1234';
+      const result = sanitizedTime(input);
+      expect(result).toBe('');
+    });
+    it('should return the input string when it matches the 8-character time format', () => {
+        const input = '12:34 PM';
+        const result = sanitizedTime(input);
+        expect(result).toBe(input);
+    });
+    it('should return an empty string when the input is empty', () => {
+      const input = '';
+      const result = sanitizedTime(input);
+      expect(result).toBe('');
+    });
+    it('should return an empty string when the time string is empty', () => {
+      const input = '';
+      const result = sanitizedTime(input);
+      expect(result).toBe('');
+    });
+    it('should return an empty string when the time string is empty', () => {
+      const input = '';
+      const result = sanitizedTime(input);
+      expect(result).toBe('');
+    });
+    it('should return null when input is null', () => {
+      const input = null;
+      const result = sanitizedTime(input as any);
+      expect(result).toBe(null);
+    });
+    it('should return empty string when time format is partial', () => {
+      const input = '12:3';
+      const result = sanitizedTime(input);
+      expect(result).toBe('');
+    });
+    it('should return empty string when time has html code', () => {
+      const input = '<script>alert(1)</script>';
+      const result = sanitizedTime(input);
+      expect(result).toBe('');
+    });
+  });
+
   describe('validEventFkId function', () => { 
     it('should return true for valid event_id', () => {
       expect(validEventFkId(validSquad.event_id, 'evt')).toBe(true)
@@ -322,7 +376,7 @@ describe('tests for squad validation', () => {
   })  
 
   describe('validSquadData function', () => {
-    it('should return ErrorCode.NONE for valid squad data', () => {
+    it('should return ErrorCode.None for valid squad data', () => {
       expect(validSquadData(validSquad)).toBe(ErrorCode.None)
     })
     it('should return ErrorCode.None for missing squad_time', () => {
@@ -437,14 +491,6 @@ describe('tests for squad validation', () => {
       const sanitizedSquad = sanitizeSquad(testSquad)
       expect(sanitizedSquad.id).toEqual(squadId)
     })
-    it('should return a sanitized squad when squad has a post id', () => {
-      const testSquad = {
-        ...validSquad,
-        id: postSecret + squadId,
-      }
-      const sanitizedSquad = sanitizeSquad(testSquad)
-      expect(sanitizedSquad.id).toEqual(postSecret + squadId)
-    })
     it('should return a sanitized squad when squad has an invalid id', () => {
       const testSquad = {
         ...validSquad,
@@ -460,13 +506,13 @@ describe('tests for squad validation', () => {
         event_id: 'abc_123',
         squad_name: '  Test Squad**  ',
         squad_date: new Date(Date.UTC(2022, 13, 32, 0, 0, 0, 0)),  // month - 1 
-        squad_time: '24:00',
+        squad_time: '23:59',
       }
       const sanitizedSquad = sanitizeSquad(testSquad)
       expect(sanitizedSquad.event_id).toEqual('')
       expect(sanitizedSquad.squad_name).toEqual('Test Squad')
       expect(compareAsc(sanitizedSquad.squad_date, new Date(Date.UTC(2022, 13, 32, 0, 0, 0, 0)))).toEqual(0)
-      expect(sanitizedSquad.squad_time).toEqual('')
+      expect(sanitizedSquad.squad_time).toEqual('23:59')
     })
     it('should return a sanitized squad when numerical values are null', () => {
       const testSquad = {
@@ -663,7 +709,7 @@ describe('tests for squad validation', () => {
       it('should return ErrorCode.InvalidData when passed a squad with invalid squad_date', () => {
         const invalidSquad = {
           ...validSquad,
-          squad_date: '2022-13-30T12:34:56.123Z' as any,  
+          squad_date: '2022-13-30' as any,  
         }
         expect(validateSquad(invalidSquad)).toBe(ErrorCode.InvalidData)
       })
@@ -684,31 +730,4 @@ describe('tests for squad validation', () => {
     })
   })
 
-  describe('validPostId function', () => { 
-    const testId = "sqd_7116ce5f80164830830a7157eb093396"
-    it('should return testId when id starts with post Secret and follows with a valid squad id', () => { 
-      const validId = postSecret + testId;
-      expect(validPostId(validId, 'sqd')).toBe(testId)
-    })
-    it('should return "" when id starts with postSecret but does idType does not match idtype in postId', () => {
-      const invalidId = postSecret + testId;
-      expect(validPostId(invalidId, 'usr')).toBe('');
-    });
-    it('should return "" when id starts with postSecret but does idType is invalid', () => {
-      const invalidId = postSecret + testId;
-      expect(validPostId(invalidId, '123' as any)).toBe('');
-    });
-    it('should return "" when id starts with postSecret but does not follow with valid BtDb idType', () => {
-      const invalidId = postSecret + 'abc_a1b2c3d4e5f678901234567890abcdef';
-      expect(validPostId(invalidId, 'sqd')).toBe('');
-    });
-    it('should return "" when id starts with postSecret but does not follow with a valid BtDb id', () => {
-      const invalidId = process.env.POST_SECRET + 'sqd_invalidid';
-      expect(validPostId(invalidId, 'sqd')).toBe('');
-    });
-    it('should return "" when id does not start with postSecret', () => {
-      const invalidId = testId;
-      expect(validPostId(invalidId, 'sqd')).toBe('');
-    });
-  })
 })

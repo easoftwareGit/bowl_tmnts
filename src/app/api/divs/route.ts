@@ -1,7 +1,7 @@
 import { NextResponse, NextRequest } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { validateDiv, sanitizeDiv } from "./validate";
-import { ErrorCode, validPostId } from "@/lib/validation";
+import { ErrorCode } from "@/lib/validation";
 import { divType, HdcpForTypes } from "@/lib/types/types";
 import { initDiv } from "@/lib/db/initVals";
 
@@ -35,6 +35,7 @@ export async function POST(request: Request) {
       await request.json();
     const toCheck: divType = {
       ...initDiv,
+      id,
       tmnt_id,
       div_name,
       hdcp_per,
@@ -61,26 +62,19 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: errMsg }, { status: 422 });
     }
 
-    let postId = "";
-    if (id) {
-      postId = validPostId(id, "div");
-      if (!postId) {
-        return NextResponse.json({ error: "invalid post id" }, { status: 422 });
-      }
-    }
-
     const toPost = sanitizeDiv(toCheck);
     type divDataType = {
+      id: string;
       tmnt_id: string;
       div_name: string;
       hdcp_per: number;
       hdcp_from: number;
       int_hdcp: boolean;
       hdcp_for: HdcpForTypes;
-      sort_order: number;
-      id?: string;
+      sort_order: number;      
     };
     let divData: divDataType = {
+      id: toPost.id,
       tmnt_id: toPost.tmnt_id,
       div_name: toPost.div_name,
       hdcp_per: toPost.hdcp_per,
@@ -89,9 +83,6 @@ export async function POST(request: Request) {
       hdcp_for: toPost.hdcp_for,
       sort_order: toPost.sort_order,
     };
-    if (postId) {
-      divData.id = postId;
-    }
     const div = await prisma.div.create({
       data: divData,
     });
@@ -101,10 +92,10 @@ export async function POST(request: Request) {
     let errStatus: number;
     switch (err.code) {
       case "P2002": // Unique constraint
-        errStatus = 422;
+        errStatus = 404;
         break;
       case "P2003": // Foreign key constraint
-        errStatus = 422;
+        errStatus = 404;
         break;
       default:
         errStatus = 500;

@@ -3,9 +3,9 @@ import { baseSquadsApi } from "@/lib/db/apiPaths";
 import { testBaseSquadsApi } from "../../../testApi";
 import { squadType } from "@/lib/types/types";
 import { initSquad } from "@/lib/db/initVals";
-import { postSecret } from "@/lib/tools";
 import { isValidBtDbId } from "@/lib/validation";
 import { compareAsc } from "date-fns";
+import { startOfDayFromString } from "@/lib/dateTools";
 
 // before running this test, run the following commands in the terminal:
 // 1) clear and re-seed the database
@@ -25,6 +25,7 @@ import { compareAsc } from "date-fns";
 const url = testBaseSquadsApi.startsWith("undefined")
   ? baseSquadsApi
   : testBaseSquadsApi;   
+const oneSquadUrl = url + "/squad/"
 
 const notFoundId = "sqd_01234567890123456789012345678901";
 const notfoundEventId = "evt_01234567890123456789012345678901";
@@ -33,44 +34,58 @@ const squad4Id = 'sqd_796c768572574019a6fa79b3b1c8fa57';
 const event2Id = 'evt_dadfd0e9c11a4aacb87084f1609a0afd';
 const event3Id = 'evt_06055deb80674bd592a357a4716d8ef2';
 
-describe('Squads - API: /api/squads', () => { 
+const testSquad: squadType = {
+  ...initSquad,
+  id: "sqd_7116ce5f80164830830a7157eb093396",
+  event_id: "evt_cb97b73cb538418ab993fc867f860510",
+  squad_name: "Squad 1",
+  squad_date: startOfDayFromString('2022-09-23') as Date,
+  squad_time: null,
+  games: 6,
+  lane_count: 12,
+  starting_lane: 29,
+  sort_order: 1,
+}  
 
-  const testSquad: squadType = {
-    ...initSquad,
-    id: "sqd_7116ce5f80164830830a7157eb093396",
-    event_id: "evt_cb97b73cb538418ab993fc867f860510",
-    squad_name: "Squad 1",
-    squad_date: new Date(Date.UTC(2022, 9, 23)),  // month is -1 
-    squad_time: null,
-    games: 6,
-    lane_count: 12,
-    starting_lane: 29,
-    sort_order: 1,
-  }  
+const blankSquad = {
+  id: testSquad.id,
+  event_id: testSquad.event_id,
+}
 
-  const blankSquad = {
-    id: "sqd_7116ce5f80164830830a7157eb093396",
-    event_id: "evt_cb97b73cb538418ab993fc867f860510",
+const deletePostedSquad = async () => {
+  const response = await axios.get(url);
+  const squads = response.data.squads;
+  const toDel = squads.find((s: squadType) => s.squad_name === 'Test Squad');
+  if (toDel) {
+    try {
+      const delResponse = await axios({
+        method: "delete",
+        withCredentials: true,
+        url: oneSquadUrl + toDel.id
+      });        
+    } catch (err) {
+      if (err instanceof AxiosError) console.log(err.message);
+    }
   }
+}
+
+const resetSquad = async () => { 
+  // make sure test user is reset in database
+  const squadJSON = JSON.stringify(testSquad);
+  const response = await axios({
+    method: "put",
+    data: squadJSON,
+    withCredentials: true,
+    url: oneSquadUrl + testSquad.id,
+  })
+}
+
+describe('Squads - API: /api/squads', () => { 
 
   describe('GET', () => { 
 
     beforeAll(async () => {
-      // if row left over from post test, then delete it
-      const response = await axios.get(url);
-      const squads = response.data.squads;
-      const toDel = squads.find((s: squadType) => s.squad_name === 'Test Squad');
-      if (toDel) {
-        try {
-          const delResponse = await axios({
-            method: "delete",
-            withCredentials: true,
-            url: url + "/" + toDel.id
-          });
-        } catch (err) {
-          if (err instanceof AxiosError) console.log(err.message);
-        }
-      }
+      await deletePostedSquad();
     })
 
     it('should get all squads', async () => { 
@@ -84,22 +99,8 @@ describe('Squads - API: /api/squads', () => {
 
   describe('GET squad lists API: /api/squads/event/:id', () => { 
 
-    beforeAll(async () => {          
-      // if row left over from post test, then delete it
-      const response = await axios.get(url);
-      const squads = response.data.squads;
-      const toDel = squads.find((s: squadType) => s.squad_name === 'Test Squad');
-      if (toDel) {
-        try {
-          const delResponse = await axios({
-            method: "delete",
-            withCredentials: true,
-            url: url + "/" + toDel.id
-          });
-        } catch (err) {
-          if (err instanceof AxiosError) console.log(err.message);
-        }
-      }
+    beforeAll(async () => {  
+      await deletePostedSquad();
     })
 
     it('should get all squads for an event', async () => { 
@@ -128,11 +129,10 @@ describe('Squads - API: /api/squads', () => {
   describe('POST', () => {
 
     const squadToPost: squadType = {
-      ...initSquad,
-      id: "",
+      ...initSquad,      
       event_id: "evt_c0b2bb31d647414a9bea003bd835f3a0",
       squad_name: "Test Squad",
-      squad_date: new Date(Date.UTC(2023, 1, 2)),  // month is -1
+      squad_date: startOfDayFromString('2023-02-02') as Date,
       squad_time: '09:00 AM',
       games: 8,
       lane_count: 20,
@@ -140,40 +140,19 @@ describe('Squads - API: /api/squads', () => {
       sort_order: 1,
     }
 
-    let createdSquadId = "";
+    let createdSquad = false;
 
     beforeAll(async () => {
-      const response = await axios.get(url);
-      const squads = response.data.squads;
-      const toDel = squads.find((s: squadType) => s.squad_name === 'Test Squad');
-      if (toDel) {
-        try {
-          const delResponse = await axios({
-            method: "delete",
-            withCredentials: true,
-            url: url + "/" + toDel.id
-          });
-        } catch (err) {
-          if (err instanceof AxiosError) console.log(err.message);
-        }
-      }
+      await deletePostedSquad();
     })
 
     beforeEach(() => {
-      createdSquadId = '';
+      createdSquad = false;
     })
 
     afterEach(async () => {
-      if (createdSquadId) {
-        try {
-          const delResponse = await axios({
-            method: "delete",
-            withCredentials: true,
-            url: url + "/" + createdSquadId
-          });
-        } catch (err) {
-          if (err instanceof AxiosError) console.log(err.message);
-        }
+      if (createdSquad) {
+        await deletePostedSquad();
       }
     })
 
@@ -187,32 +166,17 @@ describe('Squads - API: /api/squads', () => {
       });
       expect(response.status).toBe(201);
       const postedSquad = response.data.squad;
-      createdSquadId = postedSquad.id;
+      createdSquad = true;
       expect(postedSquad.event_id).toBe(squadToPost.event_id);
       expect(postedSquad.squad_name).toBe(squadToPost.squad_name);
       expect(postedSquad.games).toBe(squadToPost.games);
+      const squadDate = new Date(postedSquad.squad_date);
+      expect(compareAsc(squadDate, squadToPost.squad_date)).toBe(0);
       expect(postedSquad.lane_count).toBe(squadToPost.lane_count);
       expect(postedSquad.starting_lane).toBe(squadToPost.starting_lane);
       expect(postedSquad.sort_order).toBe(squadToPost.sort_order);
       expect(isValidBtDbId(postedSquad.id, 'sqd')).toBeTruthy();
     })      
-    it('should create a new squad with the provided squad id', async () => { 
-      const supIdSquad = {
-        ...squadToPost,
-        id: postSecret + notFoundId, // use valid ID 
-      }
-      const squadJSON = JSON.stringify(supIdSquad);
-      const response = await axios({
-        method: "post",
-        data: squadJSON,
-        withCredentials: true,
-        url: url
-      })
-      expect(response.status).toBe(201);
-      const postedSquad = response.data.squad;
-      createdSquadId = postedSquad.id;
-      expect(postedSquad.id).toBe(notFoundId);
-    })
     it('should create a new squad without a squad time', async () => { 
       const noTimeSuqd = {
         ...squadToPost,
@@ -227,10 +191,32 @@ describe('Squads - API: /api/squads', () => {
       })
       expect(response.status).toBe(201);
       const postedSquad = response.data.squad;
-      createdSquadId = postedSquad.id;
+      createdSquad = true;
       expect(postedSquad.squad_time).toBe('');
     })
-    it('should NOT create a new squad when event_id is empty', async () => { 
+    it('should NOT create a new squad when id is blank', async () => { 
+      const invalidSquad = {
+        ...squadToPost,
+        id: '',        
+      }
+      const squadJSON = JSON.stringify(invalidSquad);
+      try {
+        const response = await axios({
+          method: "post",
+          data: squadJSON,
+          withCredentials: true,
+          url: url
+        })
+        expect(response.status).toBe(422);
+      } catch (err) {
+        if (err instanceof AxiosError) {
+          expect(err.response?.status).toBe(422);
+        } else {
+          expect(true).toBeFalsy();
+        }
+      }
+    })
+    it('should NOT create a new squad when event_id is blank', async () => { 
       const invalidSquad = {
         ...squadToPost,
         event_id: '',        
@@ -252,7 +238,7 @@ describe('Squads - API: /api/squads', () => {
         }
       }
     })
-    it('should NOT create a new squad when squad_name is empty', async () => { 
+    it('should NOT create a new squad when squad_name is blank', async () => { 
       const invalidSquad = {
         ...squadToPost,
         squad_name: '',        
@@ -274,7 +260,7 @@ describe('Squads - API: /api/squads', () => {
         }
       }
     })
-    it('should NOT create a new squad when squad_date is empty', async () => { 
+    it('should NOT create a new squad when squad_date is blank', async () => { 
       const invalidSquad = {
         ...squadToPost,
         squad_date: null as any,        
@@ -296,7 +282,7 @@ describe('Squads - API: /api/squads', () => {
         }
       }
     })
-    it('should NOT create a new squad when games is empty', async () => { 
+    it('should NOT create a new squad when games is null', async () => { 
       const invalidSquad = {
         ...squadToPost,
         games: null as any,        
@@ -318,7 +304,7 @@ describe('Squads - API: /api/squads', () => {
         }
       }
     })
-    it('should NOT create a new squad when lane_count is empty', async () => {
+    it('should NOT create a new squad when lane_count is null', async () => {
       const invalidSquad = {
         ...squadToPost,
         lane_count: null as any,                
@@ -340,7 +326,7 @@ describe('Squads - API: /api/squads', () => {
         }
       }
     })
-    it('should NOT create a new squad when starting_lane is empty', async () => { 
+    it('should NOT create a new squad when starting_lane is null', async () => { 
       const invalidSquad = {
         ...squadToPost,
         starting_lane: null as any,        
@@ -362,10 +348,54 @@ describe('Squads - API: /api/squads', () => {
         }
       }
     })
-    it('should NOT create a new squad when sort_order is empty', async () => { 
+    it('should NOT create a new squad when sort_order is null', async () => { 
       const invalidSquad = {
         ...squadToPost,
         sort_order: null as any,        
+      }
+      const squadJSON = JSON.stringify(invalidSquad);
+      try {
+        const response = await axios({
+          method: "post",
+          data: squadJSON,
+          withCredentials: true,
+          url: url
+        })
+        expect(response.status).toBe(422);
+      } catch (err) {
+        if (err instanceof AxiosError) {
+          expect(err.response?.status).toBe(422);
+        } else {
+          expect(true).toBeFalsy();
+        }
+      }
+    })
+    it('should NOT create a new squad when id is invalid', async () => { 
+      const invalidSquad = {
+        ...squadToPost,
+        id: 'invalid',
+      }
+      const squadJSON = JSON.stringify(invalidSquad);
+      try {
+        const response = await axios({
+          method: "post",
+          data: squadJSON,
+          withCredentials: true,
+          url: url
+        })
+        expect(response.status).toBe(422);
+      } catch (err) {
+        if (err instanceof AxiosError) {
+          expect(err.response?.status).toBe(422);
+        } else {
+          expect(true).toBeFalsy();
+        }
+      }
+    })
+    it('should NOT create a new squad when id is valid, but not a squad id', async () => { 
+      const invalidSquad = {
+        ...squadToPost,
+        id: nonSquadId,
       }
       const squadJSON = JSON.stringify(invalidSquad);
       try {
@@ -444,7 +474,7 @@ describe('Squads - API: /api/squads', () => {
         expect(response.status).toBe(404);
       } catch (err) {
         if (err instanceof AxiosError) {
-          expect(err.response?.status).toBe(422);
+          expect(err.response?.status).toBe(404);
         } else {
           expect(true).toBeFalsy();
         }
@@ -475,7 +505,7 @@ describe('Squads - API: /api/squads', () => {
     it('should NOT create a new squad when squad_date it too far in the past', async () => { 
       const invalidSquad = {
         ...squadToPost,
-        squad_date: new Date(Date.UTC(1800, 10, 1)),  // month is -1   
+        squad_date: startOfDayFromString('1800-11-01') as Date,
       }
       const squadJSON = JSON.stringify(invalidSquad);
       try {
@@ -497,7 +527,7 @@ describe('Squads - API: /api/squads', () => {
     it('should NOT create a new squad when squad_date is too far in the future', async () => { 
       const invalidSquad = {
         ...squadToPost,
-        squad_date: new Date(Date.UTC(2300, 10, 1)),  // month is -1   
+        squad_date: startOfDayFromString('2300-11-01') as Date,
       }
       const squadJSON = JSON.stringify(invalidSquad);
       try {
@@ -838,10 +868,10 @@ describe('Squads - API: /api/squads', () => {
           withCredentials: true,
           url: url
         })
-        expect(response.status).toBe(422);
+        expect(response.status).toBe(404);
       } catch (err) {
         if (err instanceof AxiosError) {
-          expect(err.response?.status).toBe(422);
+          expect(err.response?.status).toBe(404);
         } else {
           expect(true).toBeFalsy();
         }
@@ -861,22 +891,23 @@ describe('Squads - API: /api/squads', () => {
       })
       expect(response.status).toBe(201);
       const postedSquad = response.data.squad;
-      createdSquadId = postedSquad.id;      
+      createdSquad = true;
       expect(postedSquad.squad_name).toBe(squadToPost.squad_name);
     })
 
   })
 
-  describe('GET by ID - API: /api/squads/[id]', () => { 
+  describe('GET by ID - API: /api/squads/squad/[id]', () => { 
 
     it('should get squad by ID', async () => { 
-      const response = await axios.get(url + "/" + testSquad.id);
+      const response = await axios.get(oneSquadUrl + testSquad.id);
       const squad = response.data.squad;
       expect(response.status).toBe(200);
       expect(squad.id).toBe(testSquad.id);
       expect(squad.event_id).toBe(testSquad.event_id);
       expect(squad.squad_name).toBe(testSquad.squad_name);
-      expect(compareAsc(squad.squad_date, testSquad.squad_date)).toBe(0);      
+      const squadDate = new Date(testSquad.squad_date);
+      expect(compareAsc(squadDate, testSquad.squad_date)).toBe(0);      
       expect(squad.squad_time).toBe(null);
       expect(squad.games).toBe(testSquad.games);      
       expect(squad.lane_count).toBe(testSquad.lane_count);
@@ -885,7 +916,7 @@ describe('Squads - API: /api/squads', () => {
     })
     it('should NOT get a squad by ID when ID is invalid', async () => {
       try {
-        const response = await axios.get(url + "/" + 'test');
+        const response = await axios.get(oneSquadUrl + 'test');
         expect(response.status).toBe(404);
       } catch (err) {
         if (err instanceof AxiosError) {
@@ -897,7 +928,7 @@ describe('Squads - API: /api/squads', () => {
     })
     it('should NOT get a squad by ID when ID is valid, but not a squad ID', async () => {
       try {
-        const response = await axios.get(url + "/" + nonSquadId);
+        const response = await axios.get(oneSquadUrl + nonSquadId);
         expect(response.status).toBe(404);
       } catch (err) {
         if (err instanceof AxiosError) {
@@ -909,7 +940,7 @@ describe('Squads - API: /api/squads', () => {
     })
     it('should NOT get a squad by ID when ID is not found', async () => {
       try {
-        const response = await axios.get(url + "/" + notFoundId);
+        const response = await axios.get(oneSquadUrl + notFoundId);
         expect(response.status).toBe(404);
       } catch (err) {
         if (err instanceof AxiosError) {
@@ -922,13 +953,13 @@ describe('Squads - API: /api/squads', () => {
 
   })
 
-  describe('PUT by ID - API: /api/squads/[id]', () => { 
+  describe('PUT by ID - API: /api/squads/squad/[id]', () => { 
 
     const putSquad = {
       ...testSquad,      
       event_id: "evt_06055deb80674bd592a357a4716d8ef2",
       squad_name: "Test Squad",
-      squad_date: new Date(Date.UTC(2022, 6, 7)),  // month is -1 
+      squad_date: startOfDayFromString('2022-07-07') as Date,
       squad_time: '11:00 AM',
       games: 5,
       lane_count: 20,
@@ -940,7 +971,7 @@ describe('Squads - API: /api/squads', () => {
       ...initSquad,
       event_id: "evt_06055deb80674bd592a357a4716d8ef2",
       squad_name: "Test Squad",
-      squad_date: new Date(Date.UTC(2022, 5, 6)),  // month is -1 
+      squad_date: startOfDayFromString('2022-06-06') as Date,
       squad_time: '09:00 AM',
       games: 8,
       lane_count: 16,
@@ -949,28 +980,11 @@ describe('Squads - API: /api/squads', () => {
     }
 
     beforeAll(async () => {
-      // make sure test squad is reset in database
-      const squadJSON = JSON.stringify(testSquad);
-      const putResponse = await axios({
-        method: "put",
-        data: squadJSON,
-        withCredentials: true,
-        url: url + "/" + testSquad.id,
-      })
+      await resetSquad();
     })
 
     afterEach(async () => {
-      try {
-        const squadJSON = JSON.stringify(testSquad);
-        const putResponse = await axios({
-          method: "put",
-          data: squadJSON,
-          withCredentials: true,
-          url: url + "/" + testSquad.id,
-        })
-      } catch (err) {
-        if (err instanceof AxiosError) console.log(err.message);
-      }
+      await resetSquad();
     })
 
     it('should update a squad by ID', async () => {
@@ -979,7 +993,7 @@ describe('Squads - API: /api/squads', () => {
         method: "put",
         data: squadJSON,
         withCredentials: true,
-        url: url + "/" + testSquad.id,
+        url: oneSquadUrl + testSquad.id,
       })
       expect(putResponse.status).toBe(200);
       const squad = putResponse.data.squad;
@@ -1004,7 +1018,7 @@ describe('Squads - API: /api/squads', () => {
         method: "put",
         data: squadJSON,
         withCredentials: true,
-        url: url + "/" + testSquad.id,
+        url: oneSquadUrl + testSquad.id,
       })
       expect(putResponse.status).toBe(200);
       const squad = putResponse.data.squad;
@@ -1017,7 +1031,7 @@ describe('Squads - API: /api/squads', () => {
           method: "put",
           data: squadJSON,
           withCredentials: true,
-          url: url + "/" + 'test',
+          url: oneSquadUrl + 'test',
         })
         expect(putResponse.status).toBe(404);
       } catch (err) {
@@ -1035,7 +1049,7 @@ describe('Squads - API: /api/squads', () => {
           method: "put",
           data: squadJSON,
           withCredentials: true,
-          url: url + "/" + nonSquadId,
+          url: oneSquadUrl + nonSquadId,
         })
         expect(putResponse.status).toBe(404);
       } catch (err) {
@@ -1053,7 +1067,7 @@ describe('Squads - API: /api/squads', () => {
           method: "put",
           data: squadJSON,
           withCredentials: true,
-          url: url + "/" + notFoundId,
+          url: oneSquadUrl + notFoundId,
         })
         expect(putResponse.status).toBe(404);
       } catch (err) {
@@ -1075,7 +1089,7 @@ describe('Squads - API: /api/squads', () => {
           method: "put",
           data: squadJSON,
           withCredentials: true,
-          url: url + "/" + testSquad.id,
+          url: oneSquadUrl + testSquad.id,
         })
         expect(putResponse.status).toBe(422);
       } catch (err) {
@@ -1097,7 +1111,7 @@ describe('Squads - API: /api/squads', () => {
           method: "put",
           data: squadJSON,
           withCredentials: true,
-          url: url + "/" + testSquad.id,
+          url: oneSquadUrl + testSquad.id,
         })
         expect(putResponse.status).toBe(422);
       } catch (err) {
@@ -1119,7 +1133,7 @@ describe('Squads - API: /api/squads', () => {
           method: "put",
           data: squadJSON,
           withCredentials: true,
-          url: url + "/" + testSquad.id,
+          url: oneSquadUrl + testSquad.id,
         })
         expect(putResponse.status).toBe(422);
       } catch (err) {
@@ -1141,7 +1155,7 @@ describe('Squads - API: /api/squads', () => {
           method: "put",
           data: squadJSON,
           withCredentials: true,
-          url: url + "/" + testSquad.id,
+          url: oneSquadUrl + testSquad.id,
         })
         expect(putResponse.status).toBe(422);
       } catch (err) {
@@ -1163,7 +1177,7 @@ describe('Squads - API: /api/squads', () => {
           method: "put",
           data: squadJSON,
           withCredentials: true,
-          url: url + "/" + testSquad.id,
+          url: oneSquadUrl + testSquad.id,
         })
         expect(putResponse.status).toBe(422);
       } catch (err) {
@@ -1185,7 +1199,7 @@ describe('Squads - API: /api/squads', () => {
           method: "put",
           data: squadJSON,
           withCredentials: true,
-          url: url + "/" + testSquad.id,
+          url: oneSquadUrl + testSquad.id,
         })
         expect(putResponse.status).toBe(422);
       } catch (err) {
@@ -1207,7 +1221,7 @@ describe('Squads - API: /api/squads', () => {
           method: "put",
           data: squadJSON,
           withCredentials: true,
-          url: url + "/" + testSquad.id,
+          url: oneSquadUrl + testSquad.id,
         })
         expect(putResponse.status).toBe(422);
       } catch (err) {
@@ -1229,7 +1243,7 @@ describe('Squads - API: /api/squads', () => {
           method: "put",
           data: squadJSON,
           withCredentials: true,
-          url: url + "/" + testSquad.id,
+          url: oneSquadUrl + testSquad.id,
         })
         expect(putResponse.status).toBe(422);
       } catch (err) {
@@ -1251,7 +1265,7 @@ describe('Squads - API: /api/squads', () => {
           method: "put",
           data: squadJSON,
           withCredentials: true,
-          url: url + "/" + testSquad.id,
+          url: oneSquadUrl + testSquad.id,
         })
         expect(putResponse.status).toBe(422);
       } catch (err) {
@@ -1273,7 +1287,7 @@ describe('Squads - API: /api/squads', () => {
           method: "put",
           data: squadJSON,
           withCredentials: true,
-          url: url + "/" + testSquad.id,
+          url: oneSquadUrl + testSquad.id,
         })  
         expect(putResponse.status).toBe(422);
       } catch (err) {
@@ -1295,7 +1309,7 @@ describe('Squads - API: /api/squads', () => {
           method: "put",
           data: squadJSON,
           withCredentials: true,
-          url: url + "/" + testSquad.id,
+          url: oneSquadUrl + testSquad.id,
         })
         expect(putResponse.status).toBe(422);
       } catch (err) {
@@ -1317,7 +1331,7 @@ describe('Squads - API: /api/squads', () => {
           method: "put",
           data: squadJSON,
           withCredentials: true,
-          url: url + "/" + testSquad.id,
+          url: oneSquadUrl + testSquad.id,
         })
         expect(putResponse.status).toBe(422);
       } catch (err) {
@@ -1339,7 +1353,7 @@ describe('Squads - API: /api/squads', () => {
           method: "put",
           data: squadJSON,
           withCredentials: true,
-          url: url + "/" + testSquad.id,
+          url: oneSquadUrl + testSquad.id,
         })
         expect(putResponse.status).toBe(422);
       } catch (err) {
@@ -1361,7 +1375,7 @@ describe('Squads - API: /api/squads', () => {
           method: "put",
           data: squadJSON,
           withCredentials: true,
-          url: url + "/" + testSquad.id,
+          url: oneSquadUrl + testSquad.id,
         })
         expect(putResponse.status).toBe(422);
       } catch (err) {
@@ -1383,7 +1397,7 @@ describe('Squads - API: /api/squads', () => {
           method: "put",
           data: squadJSON,
           withCredentials: true,
-          url: url + "/" + testSquad.id,
+          url: oneSquadUrl + testSquad.id,
         })
         expect(putResponse.status).toBe(422);
       } catch (err) {
@@ -1405,7 +1419,7 @@ describe('Squads - API: /api/squads', () => {
           method: "put",
           data: squadJSON,
           withCredentials: true,
-          url: url + "/" + testSquad.id,
+          url: oneSquadUrl + testSquad.id,
         })
         expect(putResponse.status).toBe(422);
       } catch (err) {
@@ -1427,7 +1441,7 @@ describe('Squads - API: /api/squads', () => {
           method: "put",
           data: squadJSON,
           withCredentials: true,
-          url: url + "/" + testSquad.id,
+          url: oneSquadUrl + testSquad.id,
         })
         expect(putResponse.status).toBe(422);
       } catch (err) {
@@ -1449,7 +1463,7 @@ describe('Squads - API: /api/squads', () => {
           method: "put",
           data: squadJSON,
           withCredentials: true,
-          url: url + "/" + testSquad.id,
+          url: oneSquadUrl + testSquad.id,
         })
         expect(putResponse.status).toBe(422);
       } catch (err) {
@@ -1471,7 +1485,7 @@ describe('Squads - API: /api/squads', () => {
           method: "put",
           data: squadJSON,
           withCredentials: true,
-          url: url + "/" + testSquad.id,
+          url: oneSquadUrl + testSquad.id,
         })
         expect(putResponse.status).toBe(422);
       } catch (err) {
@@ -1493,7 +1507,7 @@ describe('Squads - API: /api/squads', () => {
           method: "put",
           data: squadJSON,
           withCredentials: true,
-          url: url + "/" + testSquad.id,
+          url: oneSquadUrl + testSquad.id,
         })
         expect(putResponse.status).toBe(422);
       } catch (err) {
@@ -1515,7 +1529,7 @@ describe('Squads - API: /api/squads', () => {
           method: "put",
           data: squadJSON,
           withCredentials: true,
-          url: url + "/" + testSquad.id,
+          url: oneSquadUrl + testSquad.id,
         })
         expect(putResponse.status).toBe(422);
       } catch (err) {
@@ -1537,7 +1551,7 @@ describe('Squads - API: /api/squads', () => {
           method: "put",
           data: squadJSON,
           withCredentials: true,
-          url: url + "/" + testSquad.id,
+          url: oneSquadUrl + testSquad.id,
         })
         expect(putResponse.status).toBe(422);
       } catch (err) {
@@ -1559,7 +1573,7 @@ describe('Squads - API: /api/squads', () => {
           method: "put",
           data: squadJSON,
           withCredentials: true,
-          url: url + "/" + testSquad.id,
+          url: oneSquadUrl + testSquad.id,
         })
         expect(putResponse.status).toBe(422);
       } catch (err) {
@@ -1583,7 +1597,7 @@ describe('Squads - API: /api/squads', () => {
           method: "put",
           data: squadJSON,
           withCredentials: true,
-          url: url + "/" + invalidSquad.id,
+          url: oneSquadUrl + invalidSquad.id,
         })
         expect(response.status).toBe(422);
       } catch (err) {
@@ -1604,7 +1618,7 @@ describe('Squads - API: /api/squads', () => {
         method: "put",
         data: squadJSON,
         withCredentials: true,
-        url: url + "/" + testSquad.id,
+        url: oneSquadUrl + testSquad.id,
       })
       expect(putResponse.status).toBe(200);
       expect(putResponse.data.squad.squad_name).toBe(sampleSquad.squad_name);
@@ -1612,31 +1626,14 @@ describe('Squads - API: /api/squads', () => {
 
   })
 
-  describe('PATCH by ID - API: /api/squads/:id', () => { 
+  describe('PATCH by ID - API: /api/squads/squad//:id', () => { 
 
     beforeAll(async () => {
-      // make sure test squad is reset in database
-      const squadJSON = JSON.stringify(testSquad);
-      const putResponse = await axios({
-        method: "put",
-        data: squadJSON,
-        withCredentials: true,
-        url: url + "/" + testSquad.id,
-      })
+      await resetSquad();
     })
       
     afterEach(async () => {
-      try {
-        const squadJSON = JSON.stringify(testSquad);
-        const putResponse = await axios({
-          method: "put",
-          data: squadJSON,
-          withCredentials: true,
-          url: url + "/" + testSquad.id,
-        })
-      } catch (err) {
-        if (err instanceof AxiosError) console.log(err.message);
-      }
+      await resetSquad();
     })
 
     it('should patch squad_name in a squad by ID', async () => {
@@ -1649,7 +1646,7 @@ describe('Squads - API: /api/squads', () => {
         method: "patch",
         data: squadJSON,
         withCredentials: true,
-        url: url + "/" + blankSquad.id,
+        url: oneSquadUrl + blankSquad.id,
       })
       expect(patchResponse.status).toBe(200);
       const patchedSquad = patchResponse.data.squad;
@@ -1658,14 +1655,14 @@ describe('Squads - API: /api/squads', () => {
     it('should patch squad_date in a squad by ID', async () => {
       const patchSquad = {
         ...blankSquad,
-        squad_date: new Date(Date.UTC(2022, 9, 22)),  // month is -1
+        squad_date: startOfDayFromString('2022-08-22') as Date,
       }
       const squadJSON = JSON.stringify(patchSquad);
       const patchResponse = await axios({
         method: "patch",
         data: squadJSON,
         withCredentials: true,
-        url: url + "/" + blankSquad.id,
+        url: oneSquadUrl + blankSquad.id,
       })
       expect(patchResponse.status).toBe(200);
       const patchedSquad = patchResponse.data.squad;
@@ -1681,7 +1678,7 @@ describe('Squads - API: /api/squads', () => {
         method: "patch",
         data: squadJSON,
         withCredentials: true,
-        url: url + "/" + blankSquad.id,
+        url: oneSquadUrl + blankSquad.id,
       })
       expect(patchResponse.status).toBe(200);
       const patchedSquad = patchResponse.data.squad;
@@ -1697,7 +1694,7 @@ describe('Squads - API: /api/squads', () => {
         method: "patch",
         data: squadJSON,
         withCredentials: true,
-        url: url + "/" + blankSquad.id,
+        url: oneSquadUrl + blankSquad.id,
       })
       expect(patchResponse.status).toBe(200);
       const patchedSquad = patchResponse.data.squad;
@@ -1713,7 +1710,7 @@ describe('Squads - API: /api/squads', () => {
         method: "patch",
         data: squadJSON,
         withCredentials: true,
-        url: url + "/" + blankSquad.id,
+        url: oneSquadUrl + blankSquad.id,
       })
       expect(patchResponse.status).toBe(200);
       const patchedSquad = patchResponse.data.squad;
@@ -1729,7 +1726,7 @@ describe('Squads - API: /api/squads', () => {
         method: "patch",
         data: squadJSON,
         withCredentials: true,
-        url: url + "/" + blankSquad.id,
+        url: oneSquadUrl + blankSquad.id,
       })
       expect(patchResponse.status).toBe(200);
       const patchedSquad = patchResponse.data.squad;
@@ -1745,7 +1742,7 @@ describe('Squads - API: /api/squads', () => {
         method: "patch",
         data: squadJSON,
         withCredentials: true,
-        url: url + "/" + blankSquad.id,
+        url: oneSquadUrl + blankSquad.id,
       })
       expect(patchResponse.status).toBe(200);
       const patchedSquad = patchResponse.data.squad;
@@ -1761,7 +1758,7 @@ describe('Squads - API: /api/squads', () => {
         method: "patch",
         data: squadJSON,
         withCredentials: true,
-        url: url + "/" + blankSquad.id,
+        url: oneSquadUrl + blankSquad.id,
       })
       expect(patchResponse.status).toBe(200);
       const patchedSquad = patchResponse.data.squad;
@@ -1779,7 +1776,7 @@ describe('Squads - API: /api/squads', () => {
           method: "patch",
           data: tmntJSON,
           withCredentials: true,
-          url: url + "/" + 'test',
+          url: oneSquadUrl + 'test',
         })
         expect(patchResponse.status).toBe(404);
       } catch (err) {
@@ -1801,7 +1798,7 @@ describe('Squads - API: /api/squads', () => {
           method: "patch",
           data: squadJSON,
           withCredentials: true,
-          url: url + "/" + notFoundId,
+          url: oneSquadUrl + notFoundId,
         })
         expect(patchResponse.status).toBe(404);
       } catch (err) {
@@ -1823,7 +1820,7 @@ describe('Squads - API: /api/squads', () => {
           method: "patch",
           data: squadJSON,
           withCredentials: true,
-          url: url + "/" + nonSquadId,
+          url: oneSquadUrl + nonSquadId,
         })
         expect(patchResponse.status).toBe(404);
       } catch (err) {
@@ -1845,7 +1842,7 @@ describe('Squads - API: /api/squads', () => {
           method: "patch",
           data: squadJSON,
           withCredentials: true,
-          url: url + "/" + blankSquad.id,
+          url: oneSquadUrl + blankSquad.id,
         })
         expect(patchResponse.status).toBe(422);
       } catch (err) {
@@ -1867,7 +1864,7 @@ describe('Squads - API: /api/squads', () => {
           method: "patch",
           data: squadJSON,
           withCredentials: true,
-          url: url + "/" + blankSquad.id,
+          url: oneSquadUrl + blankSquad.id,
         })
         expect(patchResponse.status).toBe(422);
       } catch (err) {
@@ -1889,7 +1886,7 @@ describe('Squads - API: /api/squads', () => {
           method: "patch",
           data: squadJSON,
           withCredentials: true,
-          url: url + "/" + blankSquad.id,
+          url: oneSquadUrl + blankSquad.id,
         })
         expect(patchResponse.status).toBe(422);
       } catch (err) {
@@ -1911,7 +1908,7 @@ describe('Squads - API: /api/squads', () => {
           method: "patch",
           data: squadJSON,
           withCredentials: true,
-          url: url + "/" + blankSquad.id,
+          url: oneSquadUrl + blankSquad.id,
         })
         expect(patchResponse.status).toBe(422);
       } catch (err) {
@@ -1933,7 +1930,7 @@ describe('Squads - API: /api/squads', () => {
           method: "patch",
           data: squadJSON,
           withCredentials: true,
-          url: url + "/" + blankSquad.id,
+          url: oneSquadUrl + blankSquad.id,
         })
         expect(patchResponse.status).toBe(422);
       } catch (err) {
@@ -1955,7 +1952,7 @@ describe('Squads - API: /api/squads', () => {
           method: "patch",
           data: squadJSON,
           withCredentials: true,
-          url: url + "/" + blankSquad.id,
+          url: oneSquadUrl + blankSquad.id,
         })
         expect(patchResponse.status).toBe(422);
       } catch (err) {
@@ -1977,7 +1974,7 @@ describe('Squads - API: /api/squads', () => {
           method: "patch",
           data: squadJSON,
           withCredentials: true,
-          url: url + "/" + blankSquad.id,
+          url: oneSquadUrl + blankSquad.id,
         })
         expect(patchResponse.status).toBe(422);
       } catch (err) {
@@ -1999,7 +1996,7 @@ describe('Squads - API: /api/squads', () => {
           method: "patch",
           data: squadJSON,
           withCredentials: true,
-          url: url + "/" + blankSquad.id,
+          url: oneSquadUrl + blankSquad.id,
         })
         expect(patchResponse.status).toBe(422);
       } catch (err) {
@@ -2014,14 +2011,14 @@ describe('Squads - API: /api/squads', () => {
       try {
         const patchSquad = {
           ...blankSquad,
-          squad_date: new Date(Date.UTC(1800, 2, 2)),  // month is -1 ,
+          squad_date: startOfDayFromString('1800-03-02') as Date, 
         }
         const squadJSON = JSON.stringify(patchSquad);
         const patchResponse = await axios({
           method: "patch",
           data: squadJSON,
           withCredentials: true,
-          url: url + "/" + blankSquad.id,
+          url: oneSquadUrl + blankSquad.id,
         })
         expect(patchResponse.status).toBe(422);
       } catch (err) {
@@ -2036,14 +2033,14 @@ describe('Squads - API: /api/squads', () => {
       try {
         const patchSquad = {
           ...blankSquad,
-          squad_date: new Date(Date.UTC(2300, 2, 2)),  // month is -1 ,
+          squad_date: startOfDayFromString('2300-03-02') as Date,
         }
         const squadJSON = JSON.stringify(patchSquad);
         const patchResponse = await axios({
           method: "patch",
           data: squadJSON,
           withCredentials: true,
-          url: url + "/" + blankSquad.id,
+          url: oneSquadUrl + blankSquad.id,
         })
         expect(patchResponse.status).toBe(422);
       } catch (err) {
@@ -2065,7 +2062,7 @@ describe('Squads - API: /api/squads', () => {
           method: "patch",
           data: squadJSON,
           withCredentials: true,
-          url: url + "/" + blankSquad.id,
+          url: oneSquadUrl + blankSquad.id,
         })
         expect(patchResponse.status).toBe(422);
       } catch (err) {
@@ -2087,7 +2084,7 @@ describe('Squads - API: /api/squads', () => {
           method: "patch",
           data: squadJSON,
           withCredentials: true,
-          url: url + "/" + blankSquad.id,
+          url: oneSquadUrl + blankSquad.id,
         })
         expect(patchResponse.status).toBe(422);
       } catch (err) {
@@ -2109,7 +2106,7 @@ describe('Squads - API: /api/squads', () => {
           method: "patch",
           data: squadJSON,
           withCredentials: true,
-          url: url + "/" + blankSquad.id,
+          url: oneSquadUrl + blankSquad.id,
         })
         expect(patchResponse.status).toBe(422);
       } catch (err) {
@@ -2131,7 +2128,7 @@ describe('Squads - API: /api/squads', () => {
           method: "patch",
           data: squadJSON,
           withCredentials: true,
-          url: url + "/" + blankSquad.id,
+          url: oneSquadUrl + blankSquad.id,
         })
         expect(patchResponse.status).toBe(422);
       } catch (err) {
@@ -2153,7 +2150,7 @@ describe('Squads - API: /api/squads', () => {
           method: "patch",
           data: squadJSON,
           withCredentials: true,
-          url: url + "/" + blankSquad.id,
+          url: oneSquadUrl + blankSquad.id,
         })
         expect(patchResponse.status).toBe(422);
       } catch (err) {
@@ -2175,7 +2172,7 @@ describe('Squads - API: /api/squads', () => {
           method: "patch",
           data: squadJSON,
           withCredentials: true,
-          url: url + "/" + blankSquad.id,
+          url: oneSquadUrl + blankSquad.id,
         })
         expect(patchResponse.status).toBe(422);
       } catch (err) {
@@ -2197,7 +2194,7 @@ describe('Squads - API: /api/squads', () => {
           method: "patch",
           data: squadJSON,
           withCredentials: true,
-          url: url + "/" + blankSquad.id,
+          url: oneSquadUrl + blankSquad.id,
         })
         expect(patchResponse.status).toBe(422);
       } catch (err) {
@@ -2219,7 +2216,7 @@ describe('Squads - API: /api/squads', () => {
           method: "patch",
           data: squadJSON,
           withCredentials: true,
-          url: url + "/" + blankSquad.id,
+          url: oneSquadUrl + blankSquad.id,
         })
         expect(patchResponse.status).toBe(422);
       } catch (err) {
@@ -2241,7 +2238,7 @@ describe('Squads - API: /api/squads', () => {
           method: "patch",
           data: squadJSON,
           withCredentials: true,
-          url: url + "/" + blankSquad.id,
+          url: oneSquadUrl + blankSquad.id,
         })
         expect(patchResponse.status).toBe(422);
       } catch (err) {
@@ -2263,7 +2260,7 @@ describe('Squads - API: /api/squads', () => {
           method: "patch",
           data: squadJSON,
           withCredentials: true,
-          url: url + "/" + blankSquad.id,
+          url: oneSquadUrl + blankSquad.id,
         })
         expect(patchResponse.status).toBe(422);
       } catch (err) {
@@ -2285,7 +2282,7 @@ describe('Squads - API: /api/squads', () => {
           method: "patch",
           data: squadJSON,
           withCredentials: true,
-          url: url + "/" + blankSquad.id,
+          url: oneSquadUrl + blankSquad.id,
         })
         expect(patchResponse.status).toBe(422);
       } catch (err) {
@@ -2307,7 +2304,7 @@ describe('Squads - API: /api/squads', () => {
           method: "patch",
           data: squadJSON,
           withCredentials: true,
-          url: url + "/" + blankSquad.id,
+          url: oneSquadUrl + blankSquad.id,
         })
         expect(patchResponse.status).toBe(422);
       } catch (err) {
@@ -2329,7 +2326,7 @@ describe('Squads - API: /api/squads', () => {
           method: "patch",
           data: squadJSON,
           withCredentials: true,
-          url: url + "/" + blankSquad.id,
+          url: oneSquadUrl + blankSquad.id,
         })
         expect(patchResponse.status).toBe(422);
       } catch (err) {
@@ -2351,7 +2348,7 @@ describe('Squads - API: /api/squads', () => {
           method: "patch",
           data: squadJSON,
           withCredentials: true,
-          url: url + "/" + blankSquad.id,
+          url: oneSquadUrl + blankSquad.id,
         })
         expect(patchResponse.status).toBe(422);
       } catch (err) {
@@ -2373,7 +2370,7 @@ describe('Squads - API: /api/squads', () => {
           method: "patch",
           data: squadJSON,
           withCredentials: true,
-          url: url + "/" + blankSquad.id,
+          url: oneSquadUrl + blankSquad.id,
         })
         expect(patchResponse.status).toBe(422);
       } catch (err) {
@@ -2397,7 +2394,7 @@ describe('Squads - API: /api/squads', () => {
           method: "patch",
           data: squadJSON,
           withCredentials: true,
-          url: url + "/" + invalidSquad.id,
+          url: oneSquadUrl + invalidSquad.id,
         })
         expect(response.status).toBe(422);
       } catch (err) {
@@ -2418,7 +2415,7 @@ describe('Squads - API: /api/squads', () => {
         method: "patch",
         data: tmntJSON,
         withCredentials: true,
-        url: url + "/" + blankSquad.id,
+        url: oneSquadUrl + blankSquad.id,
       })
       expect(patchResponse.status).toBe(200);
       const patchedSquad = patchResponse.data.squad;
@@ -2434,7 +2431,7 @@ describe('Squads - API: /api/squads', () => {
         method: "patch",
         data: tmntJSON,
         withCredentials: true,
-        url: url + "/" + blankSquad.id,
+        url: oneSquadUrl + blankSquad.id,
       })
       expect(patchResponse.status).toBe(200);
       const patchedSquad = patchResponse.data.squad;
@@ -2443,20 +2440,20 @@ describe('Squads - API: /api/squads', () => {
 
   })
 
-  describe('DELETE by ID - API: /api/squads/:id', () => { 
+  describe('DELETE by ID - API: /api/squads/squad/:id', () => { 
 
     const toDelDiv = {
       ...initSquad,
       id: "sqd_3397da1adc014cf58c44e07c19914f72",
       event_id: "evt_9a58f0a486cb4e6c92ca3348702b1a62",
-      squad_name: "Squad 1",
-      squad_date: new Date(Date.UTC(2023, 8, 16)),  // month is -1
-      squad_time: '01:00 PM',
+      squad_name: "Squad 3",
+      squad_date: startOfDayFromString('2023-09-16') as Date, 
+      squad_time: '02:00 PM',
       games: 6,
       lane_count: 24,
       starting_lane: 1,
       sort_order: 1,
-    }
+  }
 
     let didDel = false
 
@@ -2467,11 +2464,7 @@ describe('Squads - API: /api/squads', () => {
     afterEach(async () => {
       if (!didDel) return;
       try {
-        const restoredDiv = {
-          ...toDelDiv,
-          id: postSecret + 'sqd_3397da1adc014cf58c44e07c19914f72',
-        }
-        const divJSON = JSON.stringify(restoredDiv);
+        const divJSON = JSON.stringify(toDelDiv);
         const response = await axios({
           method: 'post',
           data: divJSON,
@@ -2489,7 +2482,7 @@ describe('Squads - API: /api/squads', () => {
         const response = await axios({
           method: 'delete',
           withCredentials: true,
-          url: url + "/" + toDelDiv.id
+          url: oneSquadUrl + toDelDiv.id
         })
         expect(response.status).toBe(200);
         didDel = true;
@@ -2506,7 +2499,7 @@ describe('Squads - API: /api/squads', () => {
         const response = await axios({
           method: 'delete',
           withCredentials: true,
-          url: url + "/" + "invalid"
+          url: oneSquadUrl + "invalid"
         })
         expect(response.status).toBe(404);
       } catch (err) {
@@ -2522,7 +2515,7 @@ describe('Squads - API: /api/squads', () => {
         const response = await axios({
           method: 'delete',
           withCredentials: true,
-          url: url + "/" + notFoundId
+          url: oneSquadUrl + notFoundId
         })
         expect(response.status).toBe(404);
       } catch (err) {
@@ -2538,7 +2531,7 @@ describe('Squads - API: /api/squads', () => {
         const response = await axios({
           method: 'delete',
           withCredentials: true,
-          url: url + "/" + nonSquadId
+          url: oneSquadUrl + nonSquadId
         })
         expect(response.status).toBe(404);
       } catch (err) {
@@ -2554,7 +2547,7 @@ describe('Squads - API: /api/squads', () => {
         const response = await axios({
           method: 'delete',
           withCredentials: true,
-          url: url + "/" + testSquad.id
+          url: oneSquadUrl + testSquad.id
         })
         expect(response.status).toBe(409);
       } catch (err) {

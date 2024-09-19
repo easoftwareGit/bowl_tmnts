@@ -1,7 +1,7 @@
-import { ErrorCode, isValidBtDbId, maxBowlNameLemgth, maxCityLength, maxStateLength, maxUrlLength, validPostId, validSortOrder } from "@/lib/validation";
+import { ErrorCode, isValidBtDbId, maxBowlNameLemgth, maxCityLength, maxStateLength, maxUrlLength } from "@/lib/validation";
 import { sanitize, sanitizeUrl } from "@/lib/sanitize";
 import { bowlType } from "@/lib/types/types";
-import { blankBowl, initBowl } from "@/lib/db/initVals";
+import { blankBowl } from "@/lib/db/initVals";
 
 /**
  * checks for required data and returns error code if missing 
@@ -12,10 +12,12 @@ import { blankBowl, initBowl } from "@/lib/db/initVals";
 const gotBowlData = (bowl: bowlType): ErrorCode => {   
   try {
     if (!bowl
+        || !(bowl.id)
         || !sanitize(bowl.bowl_name)
         || !sanitize(bowl.city)
         || !sanitize(bowl.state)
-        || !sanitizeUrl(bowl.url)) {
+        || !sanitizeUrl(bowl.url))    
+    {
       return ErrorCode.MissingData
     }
     return ErrorCode.None
@@ -49,6 +51,10 @@ export const validUrl = (url: string): boolean => {
  */
 const validBowlData = (bowl: bowlType): ErrorCode => { 
   try {
+    if (!bowl) return ErrorCode.InvalidData
+    if (!isValidBtDbId(bowl.id, 'bwl')) {
+      return ErrorCode.InvalidData
+    }
     if (!validBowlName(bowl.bowl_name)) {
       return ErrorCode.InvalidData
     }
@@ -76,11 +82,11 @@ const validBowlData = (bowl: bowlType): ErrorCode => {
  *   - sanitized url 
  */
 export const sanitizeBowl = (bowl: bowlType): bowlType => { 
+  if (!bowl) return null as any;
   const sanitizedBowl: bowlType = { ...blankBowl }
-  if (bowl.id === '' || isValidBtDbId(bowl.id, "bwl") || validPostId(bowl.id, "bwl")) {
+  if (isValidBtDbId(bowl.id, "bwl")) {
     sanitizedBowl.id = bowl.id;
   }
-
   sanitizedBowl.bowl_name = sanitize(bowl.bowl_name)
   sanitizedBowl.city = sanitize(bowl.city)
   sanitizedBowl.state = sanitize(bowl.state)

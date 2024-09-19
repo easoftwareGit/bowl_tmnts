@@ -4,7 +4,6 @@ import { testBaseUsersApi } from "../../../testApi";
 import { userType } from "@/lib/types/types";
 import { initUser } from "@/lib/db/initVals";
 import { User } from "@prisma/client";
-import { postSecret } from "@/lib/tools";
 import { isValidBtDbId } from "@/lib/validation";
 
 // before running this test, run the following commands in the terminal:
@@ -25,9 +24,10 @@ import { isValidBtDbId } from "@/lib/validation";
 const url = testBaseUsersApi.startsWith("undefined")
   ? baseUsersApi
   : testBaseUsersApi;    
+const oneUserUrl = url + "/user/"
 
 describe('Users - API: /api/users', () => { 
-  
+    
   const testUser: userType = {
     ...initUser,
     id: "usr_5bcefb5d314fff1ff5da6521a2fa7bde",
@@ -44,24 +44,38 @@ describe('Users - API: /api/users', () => {
   const user2Id = "usr_516a113083983234fc316e31fb695b85";
   const user2Email = "chad@email.com"
 
+  const deletePostedUser = async () => {
+    const response = await axios.get(url);
+    const users = response.data.users;
+    const toDel = users.find((u: userType) => u.email === 'test@email.com');
+    if (toDel) {
+      try {
+        const delResponse = await axios({
+          method: "delete",
+          withCredentials: true,
+          url: oneUserUrl + toDel.id
+        });        
+      } catch (err) {
+        if (err instanceof AxiosError) console.log(err.message);
+      }
+    }
+  }
+
+  const resetUser = async () => { 
+    // make sure test user is reset in database
+    const userJSON = JSON.stringify(testUser);
+    const response = await axios({
+      method: "put",
+      data: userJSON,
+      withCredentials: true,
+      url: oneUserUrl + testUser.id,
+    })
+  }
+
   describe('GET', () => { 
 
     beforeAll(async () => {
-      // if row left over from post test, then delete it
-      const response = await axios.get(url);
-      const users = response.data.users;
-      const toDel = users.find((u: userType) => u.email === 'test@email.com');
-      if (toDel) {
-        try {
-          const delResponse = await axios({
-            method: "delete",
-            withCredentials: true,
-            url: url + "/" + toDel.id
-          });
-        } catch (err) {
-          if (err instanceof AxiosError) console.log(err.message);
-        }
-      }
+      await deletePostedUser();
     })
 
     it('should get all users', async () => {
@@ -70,13 +84,13 @@ describe('Users - API: /api/users', () => {
       // 6 rows in prisma/seed.ts 
       expect(response.data.users).toHaveLength(6) 
     })
+  
   })
 
   describe('POST', () => {
 
     const userToPost: userType = {
-      ...initUser,
-      id: "",
+      ...initUser,      
       email: "test@email.com",
       password: "Test123!",
       first_name: "Test",
@@ -84,38 +98,20 @@ describe('Users - API: /api/users', () => {
       phone: "+18005551212",
     };
   
-    let createdUserId = "";
+    let createdUser = false;
 
     beforeAll(async () => {
-      const response = await axios.get(url);
-      const users = response.data.users;
-      const toDel = users.find((u: userType) => u.email === 'test@email.com');
-      if (toDel) {
-        try {
-          const delResponse = await axios({
-            method: "delete",
-            withCredentials: true,
-            url: url + "/" + toDel.id
-          });
-        } catch (err) {
-          if (err instanceof AxiosError) console.log(err.message);
-        }
-      }
+      await deletePostedUser();
     })
 
     beforeEach(() => {
-      createdUserId = "";
+      createdUser = false;
     })
 
     afterEach(async () => {
-      if (createdUserId) {
-        const delResponse = await axios({
-          method: "delete",
-          withCredentials: true,
-          url: url + "/" + createdUserId,
-        });
+      if (createdUser) {
+        await deletePostedUser();
       }
-      createdUserId = "";
     })
 
     it('should create a new user', async () => {
@@ -128,12 +124,34 @@ describe('Users - API: /api/users', () => {
       });
       expect(response.status).toBe(201);
       const postedUser: userType = response.data.user;
-      createdUserId = postedUser.id;
+      createdUser = true;
       expect(postedUser.first_name).toEqual(userToPost.first_name);
       expect(postedUser.last_name).toEqual(userToPost.last_name);
       expect(postedUser.email).toEqual(userToPost.email);
       expect(postedUser.phone).toEqual(userToPost.phone);
       expect(isValidBtDbId(postedUser.id, 'usr')).toBeTruthy();
+    })
+    it('should NOT create a new user when missing id', async () => {
+      const invalidUser = {
+        ...userToPost,
+        id: "",
+      }
+      const userJSON = JSON.stringify(invalidUser);      
+      try {
+        const response = await axios({
+          method: "post",
+          data: userJSON,
+          withCredentials: true,
+          url: url,
+        });
+        expect(response.status).toBe(422);
+      } catch (err) {
+        if (err instanceof AxiosError) {
+          expect(err.response?.status).toBe(422);
+        } else {
+          expect(true).toBeFalsy();
+        }
+      }
     })
     it('should NOT create a new user when missing first name', async () => {
       const invalidUser = {
@@ -245,6 +263,50 @@ describe('Users - API: /api/users', () => {
         }
       }
     })
+    it('should NOT create a new user with invalid id', async () => {
+      const invalidUser = {
+        ...userToPost,
+        id: "test",
+      }
+      const userJSON = JSON.stringify(invalidUser);      
+      try {
+        const response = await axios({
+          method: "post",
+          data: userJSON,
+          withCredentials: true,
+          url: url,
+        })
+        expect(response.status).toBe(422);
+      } catch (err) {
+        if (err instanceof AxiosError) {
+          expect(err.response?.status).toBe(422);
+        } else {
+          expect(true).toBeFalsy();
+        }
+      }
+    })
+    it('should NOT create a new user with valid id but not a user id', async () => {
+      const invalidUser = {
+        ...userToPost,
+        id: nonUserId,
+      }
+      const userJSON = JSON.stringify(invalidUser);      
+      try {
+        const response = await axios({
+          method: "post",
+          data: userJSON,
+          withCredentials: true,
+          url: url,
+        })
+        expect(response.status).toBe(422);
+      } catch (err) {
+        if (err instanceof AxiosError) {
+          expect(err.response?.status).toBe(422);
+        } else {
+          expect(true).toBeFalsy();
+        }
+      }
+    })
     it('should NOT create a new user with invalid email', async () => {
       const invalidUser = {
         ...userToPost,
@@ -347,7 +409,7 @@ describe('Users - API: /api/users', () => {
         url: url,
       });
       const postedUser: userType = response.data.user;
-      createdUserId = postedUser.id;
+      createdUser = true;
       expect(response.status).toBe(201);
       expect(postedUser.first_name).toEqual(userToPost.first_name);
       expect(postedUser.last_name).toEqual(userToPost.last_name);
@@ -355,12 +417,13 @@ describe('Users - API: /api/users', () => {
       expect(postedUser.phone).toEqual(userToPost.phone);
       expect(isValidBtDbId(postedUser.id, 'usr')).toBeTruthy();
     })
+  
   })
   
-  describe('GET by ID - API: API: /api/users/:id', () => {
+  describe('GET by ID - API: API: /api/users/user/:id', () => {
 
     it('should get a user by ID', async () => {
-      const response = await axios.get(url + "/" + testUser.id);
+      const response = await axios.get(oneUserUrl + testUser.id);
       const user = response.data.user;
       expect(response.status).toBe(200);      
       expect(user.first_name).toEqual(testUser.first_name);
@@ -371,7 +434,7 @@ describe('Users - API: /api/users', () => {
 
     it('should NOT get a user by ID when ID is invalid', async () => {
       try {
-        const response = await axios.get(url + "/" + "test");
+        const response = await axios.get(oneUserUrl + "test");
         expect(response.status).toBe(404);
       } catch (err) {
         if (err instanceof AxiosError) {
@@ -383,7 +446,7 @@ describe('Users - API: /api/users', () => {
     })
     it('should NOT get a user by ID when ID is valid, but not a user ID', async () => {
       try {
-        const response = await axios.get(url + "/" + nonUserId);
+        const response = await axios.get(oneUserUrl + nonUserId);
         expect(response.status).toBe(404);
       } catch (err) {
         if (err instanceof AxiosError) {
@@ -395,7 +458,7 @@ describe('Users - API: /api/users', () => {
     })
     it('should NOT get a user by ID when ID is not found', async () => {
       try {
-        const response = await axios.get(url + "/" + notFoundId);
+        const response = await axios.get(oneUserUrl + notFoundId);
         expect(response.status).toBe(404);
       } catch (err) {
         if (err instanceof AxiosError) {
@@ -407,9 +470,10 @@ describe('Users - API: /api/users', () => {
         }
       }
     })
+
   })
 
-  describe("PUT by ID - API: API: /api/users/:id", () => {
+  describe("PUT by ID - API: API: /api/users/user/:id", () => {
 
     const putUser = {
       ...testUser,
@@ -438,28 +502,11 @@ describe('Users - API: /api/users', () => {
       const users = response.data.users;
       user2 = users.find((u: userType) => u.id === user2Id);
 
-      // make sure test user is reset in database
-      const userJSON = JSON.stringify(testUser);
-      const putResponse = await axios({
-        method: "put",
-        data: userJSON,
-        withCredentials: true,
-        url: url + "/" + testUser.id,
-      })
+      await resetUser();
     })
 
     afterEach(async () => {
-      try {
-        const userJSON = JSON.stringify(testUser);
-        const putResponse = await axios({
-          method: "put",
-          data: userJSON,
-          withCredentials: true,
-          url: url + "/" + testUser.id,
-        })
-      } catch (err) {
-        if (err instanceof AxiosError) console.log(err.message);
-      }
+      await resetUser();
     })
 
     it('should update a user by ID', async () => {
@@ -468,7 +515,7 @@ describe('Users - API: /api/users', () => {
         method: "put",
         data: userJSON,
         withCredentials: true,
-        url: url + "/" + testUser.id,
+        url: oneUserUrl + testUser.id,
       });
       const user = response.data.user;
       expect(response.status).toBe(200);      
@@ -487,7 +534,7 @@ describe('Users - API: /api/users', () => {
           method: "put",
           data: userJSON,
           withCredentials: true,
-          url: url + "/" + 'test'
+          url: oneUserUrl + 'test'
         });
         expect(response.status).toBe(404);
       } catch (err) {
@@ -505,7 +552,7 @@ describe('Users - API: /api/users', () => {
           method: "put",
           data: userJSON,
           withCredentials: true,
-          url: url + "/" + nonUserId
+          url: oneUserUrl + nonUserId
         });
         expect(response.status).toBe(404);
       } catch (err) {
@@ -523,7 +570,7 @@ describe('Users - API: /api/users', () => {
           method: "put",
           data: userJSON,
           withCredentials: true,
-          url: url + "/" + notFoundId
+          url: oneUserUrl + notFoundId
         });
         expect(response.status).toBe(404);
       } catch (err) {
@@ -545,7 +592,7 @@ describe('Users - API: /api/users', () => {
           method: "put",
           data: userJSON,
           withCredentials: true,
-          url: url + "/" + testUser.id,
+          url: oneUserUrl + testUser.id,
         });
         expect(response.status).toBe(422);
       } catch (err) {
@@ -567,7 +614,7 @@ describe('Users - API: /api/users', () => {
           method: "put",
           data: userJSON,
           withCredentials: true,
-          url: url + "/" + testUser.id,
+          url: oneUserUrl + testUser.id,
         });
         expect(response.status).toBe(422);
       } catch (err) {
@@ -589,7 +636,7 @@ describe('Users - API: /api/users', () => {
           method: "put",
           data: userJSON,
           withCredentials: true,
-          url: url + "/" + testUser.id,
+          url: oneUserUrl + testUser.id,
         });
         expect(response.status).toBe(422);
       } catch (err) {
@@ -611,7 +658,7 @@ describe('Users - API: /api/users', () => {
           method: "put",
           data: userJSON,
           withCredentials: true,
-          url: url + "/" + testUser.id,
+          url: oneUserUrl + testUser.id,
         });
         expect(response.status).toBe(422);
       } catch (err) {
@@ -633,7 +680,7 @@ describe('Users - API: /api/users', () => {
           method: "put",
           data: userJSON,
           withCredentials: true,
-          url: url + "/" + testUser.id,
+          url: oneUserUrl + testUser.id,
         });
         expect(response.status).toBe(422);
       } catch (err) {
@@ -655,7 +702,7 @@ describe('Users - API: /api/users', () => {
           method: "put",
           data: userJSON,
           withCredentials: true,
-          url: url + "/" + testUser.id,
+          url: oneUserUrl + testUser.id,
         });
         expect(response.status).toBe(422);
       } catch (err) {
@@ -677,7 +724,7 @@ describe('Users - API: /api/users', () => {
           method: "put",
           data: userJSON,
           withCredentials: true,
-          url: url + "/" + testUser.id,
+          url: oneUserUrl + testUser.id,
         });
         expect(response.status).toBe(422);
       } catch (err) {
@@ -699,7 +746,7 @@ describe('Users - API: /api/users', () => {
           method: "put",
           data: userJSON,
           withCredentials: true,
-          url: url + "/" + testUser.id,
+          url: oneUserUrl + testUser.id,
         });
         expect(response.status).toBe(422);
       } catch (err) {
@@ -721,7 +768,7 @@ describe('Users - API: /api/users', () => {
           method: "put",
           data: userJSON,
           withCredentials: true,
-          url: url + "/" + testUser.id,
+          url: oneUserUrl + testUser.id,
         });
         expect(response.status).toBe(409);
       } catch (err) {
@@ -743,16 +790,17 @@ describe('Users - API: /api/users', () => {
         method: "put",
         data: userJSON,
         withCredentials: true,
-        url: url + "/" + testUser.id,
+        url: oneUserUrl + testUser.id,
       })
       expect(response.status).toBe(200);
       const puttedUser = response.data.user;
       expect(puttedUser.first_name).toEqual(sampleUser.first_name);
       expect(puttedUser.last_name).toEqual(sampleUser.last_name);
     })
+
   })
 
-  describe('PATCH by ID - API: API: /api/users/:id', () => { 
+  describe('PATCH by ID - API: API: /api/users/user/:id', () => { 
 
     let user2: User;
 
@@ -768,7 +816,7 @@ describe('Users - API: /api/users', () => {
         method: "put",
         data: userJSON,
         withCredentials: true,
-        url: url + "/" + testUser.id,
+        url: oneUserUrl + testUser.id,
       })
     })
 
@@ -779,7 +827,7 @@ describe('Users - API: /api/users', () => {
           method: "put",
           data: userJSON,
           withCredentials: true,
-          url: url + "/" + testUser.id,
+          url: oneUserUrl + testUser.id,
         })
       } catch (err) {
         if (err instanceof AxiosError) console.log(err.message);
@@ -796,7 +844,7 @@ describe('Users - API: /api/users', () => {
         method: "patch",
         data: userJSON,
         withCredentials: true,
-        url: url + "/" + testUser.id,
+        url: oneUserUrl + testUser.id,
       })
       const patchedUser = response.data.user;
       expect(response.status).toBe(200);      
@@ -811,7 +859,7 @@ describe('Users - API: /api/users', () => {
         method: "patch",
         data: userJSON,
         withCredentials: true,
-        url: url + "/" + testUser.id,
+        url: oneUserUrl + testUser.id,
       })
       const patchedUser = response.data.user;
       expect(response.status).toBe(200);      
@@ -826,7 +874,7 @@ describe('Users - API: /api/users', () => {
         method: "patch",
         data: userJSON,
         withCredentials: true,
-        url: url + "/" + testUser.id,
+        url: oneUserUrl + testUser.id,
       })
       const patchedUser = response.data.user;
       expect(response.status).toBe(200);      
@@ -841,7 +889,7 @@ describe('Users - API: /api/users', () => {
         method: "patch",
         data: userJSON,
         withCredentials: true,
-        url: url + "/" + testUser.id,
+        url: oneUserUrl + testUser.id,
       })
       const patchedUser = response.data.user;
       expect(response.status).toBe(200);      
@@ -856,7 +904,7 @@ describe('Users - API: /api/users', () => {
         method: "patch",
         data: userJSON,
         withCredentials: true,
-        url: url + "/" + testUser.id,
+        url: oneUserUrl + testUser.id,
       })
       const patchedUser = response.data.user;
       expect(response.status).toBe(200);      
@@ -872,7 +920,7 @@ describe('Users - API: /api/users', () => {
           method: "patch",
           data: userJSON,
           withCredentials: true,
-          url: url + "/" + 'test',
+          url: oneUserUrl + 'test',
         })
         expect(response.status).toBe(404);
       } catch (err) {
@@ -893,7 +941,7 @@ describe('Users - API: /api/users', () => {
           method: "patch",
           data: userJSON,
           withCredentials: true,
-          url: url + "/" + notFoundId,
+          url: oneUserUrl + notFoundId,
         })
         expect(response.status).toBe(404);
       } catch (err) {
@@ -914,7 +962,7 @@ describe('Users - API: /api/users', () => {
           method: "patch",
           data: userJSON,
           withCredentials: true,
-          url: url + "/" + nonUserId,
+          url: oneUserUrl + nonUserId,
         })
         expect(response.status).toBe(404);
       } catch (err) {
@@ -936,7 +984,7 @@ describe('Users - API: /api/users', () => {
           method: "patch",
           data: userJSON,
           withCredentials: true,
-          url: url + "/" + testUser.id,
+          url: oneUserUrl + testUser.id,
         })
         expect(response.status).toBe(422);
       } catch (err) { 
@@ -958,7 +1006,7 @@ describe('Users - API: /api/users', () => {
           method: "patch",
           data: userJSON,
           withCredentials: true,
-          url: url + "/" + testUser.id,
+          url: oneUserUrl + testUser.id,
         })
         expect(response.status).toBe(422);
       } catch (err) { 
@@ -980,7 +1028,7 @@ describe('Users - API: /api/users', () => {
           method: "patch",
           data: userJSON,
           withCredentials: true,
-          url: url + "/" + testUser.id,
+          url: oneUserUrl + testUser.id,
         })
         expect(response.status).toBe(422);
       } catch (err) { 
@@ -1002,7 +1050,7 @@ describe('Users - API: /api/users', () => {
           method: "patch",
           data: userJSON,
           withCredentials: true,
-          url: url + "/" + testUser.id,
+          url: oneUserUrl + testUser.id,
         })
         expect(response.status).toBe(422);
       } catch (err) {
@@ -1024,7 +1072,7 @@ describe('Users - API: /api/users', () => {
           method: "patch",
           data: userJSON,
           withCredentials: true,
-          url: url + "/" + testUser.id,
+          url: oneUserUrl + testUser.id,
         })
         expect(response.status).toBe(422);
       } catch (err) { 
@@ -1046,7 +1094,7 @@ describe('Users - API: /api/users', () => {
           method: "patch",
           data: userJSON,
           withCredentials: true,
-          url: url + "/" + testUser.id,
+          url: oneUserUrl + testUser.id,
         })
         expect(response.status).toBe(422);
       } catch (err) {
@@ -1068,7 +1116,7 @@ describe('Users - API: /api/users', () => {
           method: "patch",
           data: userJSON,
           withCredentials: true,
-          url: url + "/" + testUser.id,
+          url: oneUserUrl + testUser.id,
         })
         expect(response.status).toBe(422);
       } catch (err) {
@@ -1090,7 +1138,7 @@ describe('Users - API: /api/users', () => {
           method: "patch",
           data: userJSON,
           withCredentials: true,
-          url: url + "/" + testUser.id,
+          url: oneUserUrl + testUser.id,
         })
         expect(response.status).toBe(422);
       } catch (err) {
@@ -1112,7 +1160,7 @@ describe('Users - API: /api/users', () => {
           method: "patch",
           data: userJSON,
           withCredentials: true,
-          url: url + "/" + testUser.id,
+          url: oneUserUrl + testUser.id,
         })
         expect(response.status).toBe(422);
       } catch (err) {
@@ -1133,7 +1181,7 @@ describe('Users - API: /api/users', () => {
           method: "patch",
           data: userJSON,
           withCredentials: true,
-          url: url + "/" + testUser.id,
+          url: oneUserUrl + testUser.id,
         })
         expect(response.status).toBe(409);
       } catch (err) { 
@@ -1153,7 +1201,7 @@ describe('Users - API: /api/users', () => {
         method: "patch",
         data: userJSON,
         withCredentials: true,
-        url: url + "/" + testUser.id,
+        url: oneUserUrl + testUser.id,
       })
       const patchedUser = response.data.user;
       expect(response.status).toBe(200);      
@@ -1168,15 +1216,16 @@ describe('Users - API: /api/users', () => {
         method: "patch",
         data: userJSON,
         withCredentials: true,
-        url: url + "/" + testUser.id,
+        url: oneUserUrl + testUser.id,
       })
       const patchedUser = response.data.user;
       expect(response.status).toBe(200);      
       expect(patchedUser.last_name).toEqual("Jones");
     })
+
   })
 
-  describe('DELETE by ID - API: API: /api/users/:id', () => {     
+  describe('DELETE by ID - API: API: /api/users/user/:id', () => {     
         
     const toDelUser = {
       ...initUser,      
@@ -1198,11 +1247,7 @@ describe('Users - API: /api/users', () => {
       if (!didDel) return;
       // if deleted user, add user back
       try {
-        const restoreUser = {
-          ...toDelUser,
-          id: postSecret + "usr_07de11929565179487c7a04759ff9866",
-        }
-        const userJSON = JSON.stringify(restoreUser);
+        const userJSON = JSON.stringify(toDelUser);
         const response = await axios({
           method: "post",
           data: userJSON,
@@ -1220,7 +1265,7 @@ describe('Users - API: /api/users', () => {
         const delResponse = await axios({
           method: "delete",
           withCredentials: true,
-          url: url + "/" + toDelUser.id
+          url: oneUserUrl + toDelUser.id
         });
         didDel = true;
         expect(delResponse.status).toBe(200);                                    
@@ -1237,7 +1282,7 @@ describe('Users - API: /api/users', () => {
         const delResponse = await axios({
           method: "delete",
           withCredentials: true,
-          url: url + "/" + "test"
+          url: oneUserUrl + "test"
         });
         expect(delResponse.status).toBe(404);
       } catch (err) {
@@ -1253,7 +1298,7 @@ describe('Users - API: /api/users', () => {
         const delResponse = await axios({
           method: "delete",
           withCredentials: true,
-          url: url + "/" + notFoundId
+          url: oneUserUrl + notFoundId
         });
         expect(delResponse.status).toBe(404);
       } catch (err) {
@@ -1269,7 +1314,7 @@ describe('Users - API: /api/users', () => {
         const delResponse = await axios({
           method: "delete",
           withCredentials: true,
-          url: url + "/" + nonUserId
+          url: oneUserUrl + nonUserId
         });
         expect(delResponse.status).toBe(404);
       } catch (err) {
@@ -1285,7 +1330,7 @@ describe('Users - API: /api/users', () => {
         const delResponse = await axios({
           method: "delete",
           withCredentials: true,
-          url: url + "/" + testUser.id
+          url: oneUserUrl + testUser.id
         });
         expect(delResponse.status).toBe(409);
       } catch (err) {
@@ -1296,6 +1341,7 @@ describe('Users - API: /api/users', () => {
         }
       }
     })
+
   })
 
 })  

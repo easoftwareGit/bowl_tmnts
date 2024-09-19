@@ -1,7 +1,7 @@
 import { NextResponse, NextRequest } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { validateEvent, sanitizeEvent } from "@/app/api/events/validate";
-import { ErrorCode, validPostId } from "@/lib/validation";
+import { ErrorCode } from "@/lib/validation";
 import { eventDataType, eventType } from "@/lib/types/types";
 import { initEvent } from "@/lib/db/initVals";
 
@@ -39,6 +39,7 @@ export async function POST(request: Request) {
       entry_fee, lineage, prize_fund, other, expenses, lpox, sort_order } = await request.json()    
     const toCheck: eventType = {
       ...initEvent,
+      id,
       tmnt_id,      
       event_name,
       team_size,
@@ -73,19 +74,9 @@ export async function POST(request: Request) {
         { status: 422 }
       );
     }
-    
-    let postId = '';
-    if (id) { 
-      postId = validPostId(id, 'evt');
-      if (!postId) {
-        return NextResponse.json(
-          { error: "invalid data" },
-          { status: 422 }
-        );
-      }
-    }    
-        
+            
     let eventData: eventDataType = {
+      id: toPost.id,
       tmnt_id: toPost.tmnt_id,
       event_name: toPost.event_name,
       team_size: toPost.team_size,
@@ -97,9 +88,6 @@ export async function POST(request: Request) {
       expenses: toPost.expenses,
       added_money: toPost.added_money,      
       sort_order: toPost.sort_order,          
-    }
-    if (postId) {
-      eventData.id = postId
     }
     const postedEvent = await prisma.event.create({
       data: eventData

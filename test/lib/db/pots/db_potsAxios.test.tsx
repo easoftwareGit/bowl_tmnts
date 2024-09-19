@@ -24,12 +24,29 @@ import { postPot } from "@/lib/db/pots/potsAxios";
 const url = testBasePotsApi.startsWith("undefined")
   ? basePotsApi
   : testBasePotsApi;   
+const onePotUrl = url + "/pot/";    
 
 describe('postPot', () => { 
 
+  const deletePostedPot = async () => { 
+    const response = await axios.get(url);
+    const pots = response.data.pots;
+    const toDel = pots.find((p: potType) => p.sort_order === 13);
+    if (toDel) {
+      try {
+        const delResponse = await axios({
+          method: "delete",
+          withCredentials: true,
+          url: onePotUrl + toDel.id          
+        });        
+      } catch (err) {
+        if (err instanceof AxiosError) console.log(err.message);
+      }
+    }
+  }
+
   const potToPost = {
-    ...initPot,
-    id: '',
+    ...initPot,    
     squad_id: "sqd_3397da1adc014cf58c44e07c19914f72",
     div_id: "div_66d39a83d7a84a8c85d28d8d1b2c7a90",
     sort_order: 1,
@@ -37,45 +54,27 @@ describe('postPot', () => {
     pot_type: "Game" as PotCategories,
   }
 
-  let createdPotId = '';
+  let createdPot = false;
 
   beforeAll(async () => { 
-    const response = await axios.get(url);
-    const pots = response.data.pots;
-    const toDel = pots.find((p: potType) => p.fee === '13');
-    if (toDel) {
-      try {
-        const delResponse = await axios({
-          method: "delete",
-          withCredentials: true,
-          url: url + "/" + toDel.id
-        });
-      } catch (err) {
-        if (err instanceof AxiosError) console.log(err.message);
-      }
-    }
+    await deletePostedPot();
   })
 
   beforeEach(() => {
-    createdPotId = "";
+    createdPot = false;
   })
 
   afterEach(async () => {
-    if (createdPotId) {
-      const delResponse = await axios({
-        method: "delete",
-        withCredentials: true,
-        url: url + "/" + createdPotId,
-      });
+    if (createdPot) {
+      await deletePostedPot();
     }
-    createdPotId = "";
   })
 
   it('should post a pot', async () => { 
     const postedPot = await postPot(potToPost);
     expect(postedPot).not.toBeNull();
     if (!postedPot) return;
-    createdPotId = postedPot.id;
+    createdPot = true;
     expect(postedPot.squad_id).toBe(potToPost.squad_id);
     expect(postedPot.div_id).toBe(potToPost.div_id);
     expect(postedPot.fee).toBe(potToPost.fee);

@@ -198,7 +198,7 @@ export const findTmntById = async (id: string) => {
   }
 };
 
-// export const exportedForTesting = {
-//   getTmntsForYear,
-//   getUpcomingTmnts
-// }
+export const exportedForTesting = {
+  getTmntsForYear,
+  getUpcomingTmnts
+}

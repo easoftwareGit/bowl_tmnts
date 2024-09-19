@@ -24,59 +24,58 @@ import { postElim } from "@/lib/db/elims/elimsAxios";
 const url = testBaseElimsApi.startsWith("undefined")
   ? baseElimsApi
   : testBaseElimsApi;
-
+const oneElimUrl = url + "/elim/";
+  
 describe('postElim', () => {
 
   const elimToPost = {
-    ...initElim,
-    id: '',
+    ...initElim,    
     squad_id: 'sqd_3397da1adc014cf58c44e07c19914f72',
     div_id: 'div_66d39a83d7a84a8c85d28d8d1b2c7a90',
     start: 1,
     games: 3,
-    fee: '11',
-    sort_order: 1
+    fee: '13',
+    sort_order: 13
   }
 
-  let createdElimId = '';
+  let createdElim = false;
 
-  beforeAll(async () => { 
+  const deletePostedElim = async () => { 
     const response = await axios.get(url);
     const elims = response.data.elims;
-    const toDel = elims.find((e: elimType) => e.fee === '11');
+    const toDel = elims.find((e: elimType) => e.sort_order === 13);
     if (toDel) {
       try {
         const delResponse = await axios({
           method: "delete",
           withCredentials: true,
-          url: url + "/" + toDel.id
-        });
+          url: oneElimUrl + toDel.id          
+        });               
       } catch (err) {
         if (err instanceof AxiosError) console.log(err.message);
       }
     }
+  }
+
+  beforeAll(async () => { 
+    await deletePostedElim();
   })
 
   beforeEach(() => {
-    createdElimId = "";
+    createdElim = false;
   })
 
   afterEach(async () => {
-    if (createdElimId) {
-      const delResponse = await axios({
-        method: "delete",
-        withCredentials: true,
-        url: url + "/" + createdElimId,
-      });
+    if (createdElim) {
+      await deletePostedElim();
     }
-    createdElimId = "";
   })
 
   it('should post an elim', async () => { 
     const postedElim = await postElim(elimToPost);
     expect(postedElim).not.toBeNull();
     if(!postedElim) return;
-    createdElimId = postedElim.id;
+    createdElim = true
     expect(postedElim.squad_id).toBe(elimToPost.squad_id);
     expect(postedElim.div_id).toBe(elimToPost.div_id);    
     expect(postedElim.start).toBe(elimToPost.start);

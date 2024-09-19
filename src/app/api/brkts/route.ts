@@ -1,7 +1,7 @@
 import { NextResponse, NextRequest } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { validateBrkt, sanitizeBrkt } from "./validate";
-import { ErrorCode, validPostId } from "@/lib/validation";
+import { ErrorCode } from "@/lib/validation";
 import { brktType } from "@/lib/types/types";
 import { initBrkt } from "@/lib/db/initVals";
 
@@ -48,6 +48,7 @@ export async function POST(request: Request) {
     } = await request.json();
     const toCheck: brktType = {
       ...initBrkt,
+      id,
       div_id,
       squad_id,
       fee,
@@ -78,14 +79,6 @@ export async function POST(request: Request) {
       }
       return NextResponse.json({ error: errMsg }, { status: 422 });
     }
-
-    let postId = "";
-    if (id) {
-      postId = validPostId(id, "brk");
-      if (!postId) {
-        return NextResponse.json({ error: "invalid data" }, { status: 422 });
-      }
-    }
     
     // NO fsa in eventDataType
     type brktDataType = {
@@ -102,6 +95,7 @@ export async function POST(request: Request) {
       id?: string;
     };
     let brktData: brktDataType = {
+      id: toPost.id,
       div_id: toPost.div_id,
       squad_id: toPost.squad_id,
       fee: toPost.fee,
@@ -113,9 +107,6 @@ export async function POST(request: Request) {
       admin: toPost.admin,
       sort_order: toPost.sort_order,
     };
-    if (postId) {
-      brktData.id = postId;
-    }
     const postedBrkt = await prisma.brkt.create({
       data: brktData,
     });

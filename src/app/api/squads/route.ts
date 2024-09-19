@@ -1,9 +1,10 @@
 import { NextResponse, NextRequest } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { sanitizeSquad, validateSquad } from "./validate";
-import { ErrorCode, validPostId } from "@/lib/validation";
+import { ErrorCode } from "@/lib/validation";
 import { squadType } from "@/lib/types/types";
 import { initSquad } from "@/lib/db/initVals";
+import { removeTimeFromISODateStr, startOfDayFromString } from "@/lib/dateTools";
 
 // routes /api/squads
 
@@ -31,19 +32,24 @@ export async function GET(request: NextRequest) {
 export async function POST(request: Request) {
   try {
     const { id, event_id, squad_name, games, starting_lane, lane_count, squad_date, squad_time, sort_order } = await request.json()    
+
+    const squadDateStr = removeTimeFromISODateStr(squad_date);
+    
     const toCheck: squadType = {
       ...initSquad,
+      id,
       event_id,
       squad_name,
       games,
       starting_lane,
       lane_count,
-      squad_date,
+      squad_date: startOfDayFromString(squadDateStr) as Date,
       squad_time,      
       sort_order
     }
-    // convert date strings to date objects    
-    const errCode = validateSquad(toCheck);
+
+    const toPost = sanitizeSquad(toCheck);    
+    const errCode = validateSquad(toPost);
     if (errCode !== ErrorCode.None) {
       let errMsg: string;
       switch (errCode) {
@@ -62,20 +68,9 @@ export async function POST(request: Request) {
         { status: 422 }
       );
     }
-
-    let postId = '';
-    if (id) { 
-      postId = validPostId(id, 'sqd');
-      if (!postId) {
-        return NextResponse.json(
-          { error: "invalid data" },
-          { status: 422 }
-        );
-      }
-    }    
-
-    const toPost = sanitizeSquad(toCheck);
+    
     type squadDataType = {
+      id: string,
       event_id: string,            
       squad_name: string,      
       games: number,        
@@ -83,10 +78,10 @@ export async function POST(request: Request) {
       starting_lane: number,      
       squad_date: Date,      
       squad_time: string | null,       
-      sort_order: number,
-      id?: string
+      sort_order: number,      
     }
     let squadData: squadDataType = {
+      id: toPost.id,
       event_id: toPost.event_id,            
       squad_name: toPost.squad_name,      
       games: toPost.games,        
@@ -95,9 +90,6 @@ export async function POST(request: Request) {
       squad_date: toPost.squad_date,      
       squad_time: toPost.squad_time,      
       sort_order: toPost.sort_order
-    }
-    if (postId) {
-      squadData.id = postId
     }
 
     const squad = await prisma.squad.create({
@@ -108,10 +100,10 @@ export async function POST(request: Request) {
     let errStatus: number
     switch (err.code) {
       case 'P2002': // Unique constraint
-        errStatus = 422 
+        errStatus = 404 
         break;
       case 'P2003': // Foreign key constraint
-        errStatus = 422
+        errStatus = 404
         break;    
       default:
         errStatus = 500

@@ -12,10 +12,12 @@ import {
   testDateType,
 } from "../types/types";
 import { User, Bowl, Tmnt } from "@prisma/client";
-import { startOfDayFromString, startOfTodayUTC, todayStr } from "@/lib/dateTools";
+import { startOfDayFromString, todayStr } from "@/lib/dateTools";
+import { btDbUuid } from "../uuid";
+import { startOfToday } from "date-fns";
 
 export const initUser: userType = {
-  id: "1",  
+  id: btDbUuid('usr'),
   email: "",  
   password: "",
   password_hash: "",
@@ -43,7 +45,7 @@ export const initPrismaUser: User = {
 }
 
 export const initBowl: bowlType = {
-  id: "1",
+  id: btDbUuid('bwl'),  
   bowl_name: "",
   city: "",
   state: "",
@@ -66,15 +68,15 @@ export const initPrismaBowl: Bowl = {
 }
 
 export const initTmnt: tmntType = {
-  id: "1",
+  id: btDbUuid('tmt'),
   user_id: "",
   tmnt_name: "",
   tmnt_name_err: "",
   bowl_id: "",
   bowl_id_err: "",
-  start_date: startOfDayFromString(todayStr) as Date,     
+  start_date: startOfToday(),
   start_date_err: "",
-  end_date: startOfDayFromString(todayStr) as Date,    
+  end_date: startOfToday(),
   end_date_err: "",
   bowls: {
     bowl_name: "",
@@ -94,15 +96,14 @@ export const initPrismaTmnt: Tmnt = {
   user_id: "",
   tmnt_name: "",  
   bowl_id: "",  
-  start_date: startOfDayFromString(todayStr) as Date,  
-  end_date: startOfDayFromString(todayStr) as Date,    
+  start_date: startOfToday(),
+  end_date: startOfToday(),
   createdAt: new Date(),
   updatedAt: new Date(),
 }
 
 export const initEvent: eventType = {
-  id: "1",
-  sort_order: 1,
+  id: btDbUuid('evt'),  
   tmnt_id: "1",
   tab_title: "Singles",
   event_name: "Singles",
@@ -127,6 +128,7 @@ export const initEvent: eventType = {
   lpox_valid: "",
   lpox_err: "",
   errClassName: "",
+  sort_order: 1,
 };
 
 export const blankEvent: eventType = {
@@ -140,7 +142,7 @@ export const blankEvent: eventType = {
 export const defaultHdcpPer = 1.0;
 export const defaultHdcpFrom = 230;
 export const initDiv: divType = {
-  id: "1",
+  id: btDbUuid('div'),
   tmnt_id: "1",
   div_name: "Division 1",
   div_name_err: "",
@@ -151,9 +153,9 @@ export const initDiv: divType = {
   hdcp_from: defaultHdcpFrom,
   hdcp_from_err: "",
   int_hdcp: true,
-  hdcp_for: "Game",
-  sort_order: 1,
+  hdcp_for: "Game",  
   errClassName: "",
+  sort_order: 1,
 };
 
 export const blankDiv: divType = {
@@ -167,7 +169,7 @@ export const blankDiv: divType = {
 export const defaultStartingLane = 1;
 export const defaultLaneCount = 2;
 export const initSquad: squadType = {
-  id: "1",
+  id: btDbUuid('sqd'),
   event_id: "1",
   event_id_err: "",
   tab_title: "Squad 1",
@@ -179,7 +181,7 @@ export const initSquad: squadType = {
   starting_lane_err: "",
   lane_count: defaultLaneCount,
   lane_count_err: "",
-  squad_date: startOfDayFromString(todayStr) as Date,  
+  squad_date: startOfToday(),
   squad_date_str: todayStr,
   squad_date_err: "",
   squad_time: "",
@@ -192,12 +194,13 @@ export const blankSquad: squadType = {
   ...initSquad,
   id: "",
   event_id: "",
+  squad_date: null as any,
   squad_name: "",
   tab_title: "",
 };
 
 export const initLane: laneType = {
-  id: "1",
+  id: btDbUuid('lan'),
   squad_id: "1",
   lane_number: 1,
 };
@@ -209,7 +212,7 @@ export const blankLane: laneType = {
 };
 
 export const initPot: potType = {
-  id: "1",
+  id: btDbUuid('pot'),
   div_id: "",
   squad_id: "",
   pot_type: "",
@@ -232,7 +235,7 @@ export const blankPot: potType = {
 export const defaultBrktGames = 3;
 export const defaultBrktPlayers = 8;
 export const initBrkt: brktType = {
-  id: "1",
+  id: btDbUuid('brk'),
   div_id: "",
   squad_id: "",
   div_name: "",
@@ -267,7 +270,7 @@ export const blankBrkt: brktType = {
 
 export const defaultElimGames = 3;
 export const initElim: elimType = {
-  id: "1",
+  id: btDbUuid('elm'),
   div_id: "",
   squad_id: "",
   div_name: "",
@@ -309,14 +312,14 @@ export const initSquads: squadType[] = [
 
 export const initLanes: laneType[] = [
   {
-    id: "1",
+    id: btDbUuid('lan'),
     lane_number: 1,
-    squad_id: "1",
+    squad_id: "",
   },
   {
-    id: "2",
+    id: btDbUuid('lan'),
     lane_number: 2,
-    squad_id: "1",
+    squad_id: "",
   },
 ];
 
@@ -325,6 +328,9 @@ export const initPots: potType[] = [
     ...initPot,
   },
 ];
+
+// export const initPots: potType[] = [];
+
 
 export const initBrkts: brktType[] = [
   {

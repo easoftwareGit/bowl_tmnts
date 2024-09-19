@@ -3,7 +3,6 @@ import { baseDivsApi } from "@/lib/db/apiPaths";
 import { testBaseDivsApi } from "../../../testApi";
 import { divType } from "@/lib/types/types";
 import { initDiv } from "@/lib/db/initVals";
-import { postSecret } from "@/lib/tools";
 import { isValidBtDbId } from "@/lib/validation";
 
 // before running this test, run the following commands in the terminal:
@@ -24,6 +23,7 @@ import { isValidBtDbId } from "@/lib/validation";
 const url = testBaseDivsApi.startsWith("undefined")
   ? baseDivsApi
   : testBaseDivsApi;   
+const oneDivUrl = url + "/div/"
 
 const notFoundId = "div_01234567890123456789012345678901";
 const notfoundTmntId = "tmt_01234567890123456789012345678901";
@@ -51,24 +51,38 @@ describe('Divs - API: /api/divs', () => {
     tmnt_id: "tmt_fd99387c33d9c78aba290286576ddce5",
   }
 
+  const deletePostedDiv = async () => {
+    const response = await axios.get(url);
+    const divs = response.data.divs;
+    const toDel = divs.find((d: divType) => d.div_name === 'Test Div');
+    if (toDel) {
+      try {
+        const delResponse = await axios({
+          method: "delete",
+          withCredentials: true,
+          url: oneDivUrl + toDel.id
+        });
+      } catch (err) {
+        if (err instanceof AxiosError) console.log(err.message);
+      }
+    }
+  }
+
+  const resetDiv = async () => { 
+    // make sure test div is reset in database
+    const divJSON = JSON.stringify(testDiv);
+    const response = await axios({
+      method: "put",
+      data: divJSON,
+      withCredentials: true,
+      url: oneDivUrl + testDiv.id,
+    })
+  }
+
   describe('GET', () => { 
 
     beforeAll(async () => {
-      // if row left over from post test, then delete it
-      const response = await axios.get(url);
-      const divs = response.data.divs;
-      const toDel = divs.find((d: divType) => d.div_name === 'Test Div');
-      if (toDel) {
-        try {
-          const delResponse = await axios({
-            method: "delete",
-            withCredentials: true,
-            url: url + "/" + toDel.id
-          });
-        } catch (err) {
-          if (err instanceof AxiosError) console.log(err.message);
-        }
-      }
+      await deletePostedDiv();
     })
 
     it('should get all divs', async () => { 
@@ -83,21 +97,7 @@ describe('Divs - API: /api/divs', () => {
   describe('GET div lists API: /api/divs/tmnt/:id', () => {
 
     beforeAll(async () => {
-      // if row left over from post test, then delete it
-      const response = await axios.get(url);
-      const divs = response.data.divs;
-      const toDel = divs.find((d: divType) => d.div_name === 'Test Div');
-      if (toDel) {
-        try {
-          const delResponse = await axios({
-            method: "delete",
-            withCredentials: true,
-            url: url + "/" + toDel.id
-          });
-        } catch (err) {
-          if (err instanceof AxiosError) console.log(err.message);
-        }
-      }
+      await deletePostedDiv();
     })
 
     it('should get all divs for a tournament', async () => { 
@@ -126,8 +126,7 @@ describe('Divs - API: /api/divs', () => {
   describe('POST', () => { 
 
     const divToPost: divType = {
-      ...initDiv,
-      id: "",
+      ...initDiv,      
       tmnt_id: "tmt_e134ac14c5234d708d26037ae812ac33",
       div_name: "Test Div",
       hdcp_per: .9,
@@ -137,40 +136,19 @@ describe('Divs - API: /api/divs', () => {
       sort_order: 1,
     }
   
-    let createdDivId = "";
+    let createdDiv = false;
 
     beforeAll(async () => {
-      const response = await axios.get(url);
-      const divs = response.data.divs;
-      const toDel = divs.find((d: divType) => d.div_name === 'Test Div');
-      if (toDel) {
-        try {
-          const delResponse = await axios({
-            method: "delete",
-            withCredentials: true,
-            url: url + "/" + toDel.id
-          });
-        } catch (err) {
-          if (err instanceof AxiosError) console.log(err.message);
-        }
-      }
+      await deletePostedDiv();
     })
 
     beforeEach(() => {
-      createdDivId = '';
+      createdDiv = false;
     })
 
     afterEach(async () => {
-      if (createdDivId) {
-        try {
-          const delResponse = await axios({
-            method: "delete",
-            withCredentials: true,
-            url: url + "/" + createdDivId
-          });
-        } catch (err) {
-          if (err instanceof AxiosError) console.log(err.message);
-        }
+      if (createdDiv) {
+        await deletePostedDiv();
       }
     })
 
@@ -183,8 +161,8 @@ describe('Divs - API: /api/divs', () => {
         url: url
       })
       expect(response.status).toBe(201);      
-      const postedDiv = response.data.div;
-      createdDivId = postedDiv.id;
+      createdDiv = true
+      const postedDiv = response.data.div;      
       expect(postedDiv.tmnt_id).toBe(divToPost.tmnt_id);
       expect(postedDiv.div_name).toBe(divToPost.div_name);
       expect(postedDiv.hdcp_per).toBe(divToPost.hdcp_per);
@@ -193,23 +171,6 @@ describe('Divs - API: /api/divs', () => {
       expect(postedDiv.hdcp_for).toBe(divToPost.hdcp_for);
       expect(postedDiv.sort_order).toBe(divToPost.sort_order);
       expect(isValidBtDbId(postedDiv.id, 'div')).toBeTruthy();
-    })
-    it('should create a new div with the provided div id', async () => { 
-      const supIdDiv = {
-        ...divToPost,
-        id: postSecret + notFoundId, // use valid ID 
-      }
-      const divJSON = JSON.stringify(supIdDiv);
-      const response = await axios({
-        method: "post",
-        data: divJSON,
-        withCredentials: true,
-        url: url
-      })
-      expect(response.status).toBe(201);
-      const postedDiv = response.data.div;
-      createdDivId = postedDiv.id;
-      expect(postedDiv.id).toBe(notFoundId);
     })
     it('should create a new div with hdcp_for as "Series"', async () => { 
       const seriesDiv = {
@@ -223,9 +184,9 @@ describe('Divs - API: /api/divs', () => {
         withCredentials: true,
         url: url
       })
-      expect(response.status).toBe(201);      
-      const postedDiv = response.data.div;
-      createdDivId = postedDiv.id;
+      expect(response.status).toBe(201);
+      createdDiv = true;
+      const postedDiv = response.data.div;      
       expect(postedDiv.hdcp_for).toBe(seriesDiv.hdcp_for);
     })
     it('should NOT create a new div when tmnt_id that does not exist', async () => { 
@@ -241,10 +202,10 @@ describe('Divs - API: /api/divs', () => {
           withCredentials: true,
           url: url
         })
-        expect(response.status).toBe(422);
+        expect(response.status).toBe(404);
       } catch (err) {
         if (err instanceof AxiosError) {
-          expect(err.response?.status).toBe(422);
+          expect(err.response?.status).toBe(404);
         } else {
           expect(true).toBeFalsy();
         }
@@ -770,10 +731,10 @@ describe('Divs - API: /api/divs', () => {
           withCredentials: true,
           url: url
         })
-        expect(response.status).toBe(422);
+        expect(response.status).toBe(404);
       } catch (err) {
         if (err instanceof AxiosError) {
-          expect(err.response?.status).toBe(422);
+          expect(err.response?.status).toBe(404);
         } else {
           expect(true).toBeFalsy();
         } 
@@ -792,17 +753,17 @@ describe('Divs - API: /api/divs', () => {
         url: url
       })
       expect(response.status).toBe(201);
-      const postedDiv = response.data.div;
-      createdDivId = postedDiv.id;      
+      createdDiv = true
+      const postedDiv = response.data.div;      
       expect(postedDiv.div_name).toBe(divToPost.div_name);
     })
 
   })
 
-  describe('GET by ID - API: API: /api/divs/:id', () => { 
+  describe('GET by ID - API: API: /api/divs/div/:id', () => { 
 
     it('should get a div by ID', async () => {
-      const response = await axios.get(url + "/" + testDiv.id);
+      const response = await axios.get(oneDivUrl + testDiv.id);
       const div = response.data.div;
       expect(response.status).toBe(200);
       expect(div.id).toBe(testDiv.id);
@@ -815,7 +776,7 @@ describe('Divs - API: /api/divs', () => {
     })
     it('should NOT get a div by ID when ID is invalid', async () => {
       try {
-        const response = await axios.get(url + "/" + 'test');
+        const response = await axios.get(oneDivUrl + 'test');
         expect(response.status).toBe(404);
       } catch (err) {
         if (err instanceof AxiosError) {
@@ -827,7 +788,7 @@ describe('Divs - API: /api/divs', () => {
     })
     it('should NOT get a div by ID when ID is valid, but not a div ID', async () => {
       try {
-        const response = await axios.get(url + "/" + nonDivId);
+        const response = await axios.get(oneDivUrl + nonDivId);
         expect(response.status).toBe(404);
       } catch (err) {
         if (err instanceof AxiosError) {
@@ -839,7 +800,7 @@ describe('Divs - API: /api/divs', () => {
     })
     it('should NOT get a div by ID when ID is not found', async () => {
       try {
-        const response = await axios.get(url + "/" + notFoundId);
+        const response = await axios.get(oneDivUrl + notFoundId);
         expect(response.status).toBe(404);
       } catch (err) {
         if (err instanceof AxiosError) {
@@ -852,7 +813,7 @@ describe('Divs - API: /api/divs', () => {
 
   })
 
-  describe('PUT by ID - API: API: /api/divs/:id', () => { 
+  describe('PUT by ID - API: API: /api/divs/div/:id', () => { 
 
     const putDiv = {
       ...testDiv,
@@ -878,28 +839,32 @@ describe('Divs - API: /api/divs', () => {
     }
 
     beforeAll(async () => {
+      await resetDiv();
+
       // make sure test div is reset in database
-      const divJSON = JSON.stringify(testDiv);
-      const putResponse = await axios({
-        method: "put",
-        data: divJSON,
-        withCredentials: true,
-        url: url + "/" + testDiv.id,
-      })
+
+      // const divJSON = JSON.stringify(testDiv);
+      // const putResponse = await axios({
+      //   method: "put",
+      //   data: divJSON,
+      //   withCredentials: true,
+      //   url: oneDivUrl + testDiv.id,
+      // })
     })
 
     afterEach(async () => {
-      try {
-        const divJSON = JSON.stringify(testDiv);
-        const putResponse = await axios({
-          method: "put",
-          data: divJSON,
-          withCredentials: true,
-          url: url + "/" + testDiv.id,
-        })
-      } catch (err) {
-        if (err instanceof AxiosError) console.log(err.message);
-      }
+      await resetDiv();
+      // try {
+      //   const divJSON = JSON.stringify(testDiv);
+      //   const putResponse = await axios({
+      //     method: "put",
+      //     data: divJSON,
+      //     withCredentials: true,
+      //     url: oneDivUrl + testDiv.id,
+      //   })
+      // } catch (err) {
+      //   if (err instanceof AxiosError) console.log(err.message);
+      // }
     })
 
     it('should update a div by ID', async () => { 
@@ -908,7 +873,7 @@ describe('Divs - API: /api/divs', () => {
         method: "put",
         data: divJSON,
         withCredentials: true,
-        url: url + "/" + testDiv.id,
+        url: oneDivUrl + testDiv.id,
       })
       const div = putResponse.data.div;
       expect(putResponse.status).toBe(200);
@@ -929,7 +894,7 @@ describe('Divs - API: /api/divs', () => {
           method: "put",
           data: divJSON,
           withCredentials: true,
-          url: url + "/" + 'test',
+          url: oneDivUrl + 'test',
         })
         expect(putResponse.status).toBe(404);
       } catch (err) {
@@ -947,7 +912,7 @@ describe('Divs - API: /api/divs', () => {
           method: "put",
           data: divJSON,
           withCredentials: true,
-          url: url + "/" + nonDivId,
+          url: oneDivUrl + nonDivId,
         })
         expect(putResponse.status).toBe(404);
       } catch (err) {
@@ -965,7 +930,7 @@ describe('Divs - API: /api/divs', () => {
           method: "put",
           data: divJSON,
           withCredentials: true,
-          url: url + "/" + notFoundId,
+          url: oneDivUrl + notFoundId,
         })
         expect(putResponse.status).toBe(404);
       } catch (err) {
@@ -987,7 +952,7 @@ describe('Divs - API: /api/divs', () => {
           method: "put",
           data: divJSON,
           withCredentials: true,
-          url: url + "/" + testDiv.id,
+          url: oneDivUrl + testDiv.id,
         })
         expect(response.status).toBe(422);
       } catch (err) {
@@ -1009,7 +974,7 @@ describe('Divs - API: /api/divs', () => {
           method: "put",
           data: divJSON,
           withCredentials: true,
-          url: url + "/" + testDiv.id,
+          url: oneDivUrl + testDiv.id,
         })
         expect(response.status).toBe(422);
       } catch (err) {
@@ -1031,7 +996,7 @@ describe('Divs - API: /api/divs', () => {
           method: "put",
           data: divJSON,
           withCredentials: true,
-          url: url + "/" + testDiv.id,
+          url: oneDivUrl + testDiv.id,
         })
         expect(response.status).toBe(422);
       } catch (err) {
@@ -1053,7 +1018,7 @@ describe('Divs - API: /api/divs', () => {
           method: "put",
           data: divJSON,
           withCredentials: true,
-          url: url + "/" + testDiv.id,
+          url: oneDivUrl + testDiv.id,
         })
         expect(response.status).toBe(422);
       } catch (err) {
@@ -1075,7 +1040,7 @@ describe('Divs - API: /api/divs', () => {
           method: "put",
           data: divJSON,
           withCredentials: true,
-          url: url + "/" + testDiv.id,
+          url: oneDivUrl + testDiv.id,
         })
         expect(response.status).toBe(422);
       } catch (err) {
@@ -1097,7 +1062,7 @@ describe('Divs - API: /api/divs', () => {
           method: "put",
           data: divJSON,
           withCredentials: true,
-          url: url + "/" + testDiv.id,
+          url: oneDivUrl + testDiv.id,
         })
         expect(response.status).toBe(422);
       } catch (err) {
@@ -1119,7 +1084,7 @@ describe('Divs - API: /api/divs', () => {
           method: "put",
           data: divJSON,
           withCredentials: true,
-          url: url + "/" + testDiv.id,
+          url: oneDivUrl + testDiv.id,
         })
         expect(response.status).toBe(422);
       } catch (err) {
@@ -1141,7 +1106,7 @@ describe('Divs - API: /api/divs', () => {
           method: "put",
           data: divJSON,
           withCredentials: true,
-          url: url + "/" + testDiv.id,
+          url: oneDivUrl + testDiv.id,
         })
         expect(response.status).toBe(422);
       } catch (err) {
@@ -1163,7 +1128,7 @@ describe('Divs - API: /api/divs', () => {
           method: "put",
           data: divJSON,
           withCredentials: true,
-          url: url + "/" + testDiv.id,
+          url: oneDivUrl + testDiv.id,
         })
         expect(response.status).toBe(422);
       } catch (err) {
@@ -1185,7 +1150,7 @@ describe('Divs - API: /api/divs', () => {
           method: "put",
           data: divJSON,
           withCredentials: true,
-          url: url + "/" + testDiv.id,
+          url: oneDivUrl + testDiv.id,
         })
         expect(response.status).toBe(422);
       } catch (err) {
@@ -1207,7 +1172,7 @@ describe('Divs - API: /api/divs', () => {
           method: "put",
           data: divJSON,
           withCredentials: true,
-          url: url + "/" + testDiv.id,
+          url: oneDivUrl + testDiv.id,
         })
         expect(response.status).toBe(422);
       } catch (err) {
@@ -1229,7 +1194,7 @@ describe('Divs - API: /api/divs', () => {
           method: "put",
           data: divJSON,
           withCredentials: true,
-          url: url + "/" + testDiv.id,
+          url: oneDivUrl + testDiv.id,
         })
         expect(response.status).toBe(422);
       } catch (err) {
@@ -1251,7 +1216,7 @@ describe('Divs - API: /api/divs', () => {
           method: "put",
           data: divJSON,
           withCredentials: true,
-          url: url + "/" + testDiv.id,
+          url: oneDivUrl + testDiv.id,
         })
         expect(response.status).toBe(422);
       } catch (err) {
@@ -1273,7 +1238,7 @@ describe('Divs - API: /api/divs', () => {
           method: "put",
           data: divJSON,
           withCredentials: true,
-          url: url + "/" + testDiv.id,
+          url: oneDivUrl + testDiv.id,
         })
         expect(response.status).toBe(422);
       } catch (err) {
@@ -1295,7 +1260,7 @@ describe('Divs - API: /api/divs', () => {
           method: "put",
           data: divJSON,
           withCredentials: true,
-          url: url + "/" + testDiv.id,
+          url: oneDivUrl + testDiv.id,
         })
         expect(response.status).toBe(422);
       } catch (err) {
@@ -1317,7 +1282,7 @@ describe('Divs - API: /api/divs', () => {
           method: "put",
           data: divJSON,
           withCredentials: true,
-          url: url + "/" + testDiv.id,
+          url: oneDivUrl + testDiv.id,
         })
         expect(response.status).toBe(422);
       } catch (err) {
@@ -1339,7 +1304,7 @@ describe('Divs - API: /api/divs', () => {
           method: "put",
           data: divJSON,
           withCredentials: true,
-          url: url + "/" + testDiv.id,
+          url: oneDivUrl + testDiv.id,
         })
         expect(response.status).toBe(422);
       } catch (err) {
@@ -1361,7 +1326,7 @@ describe('Divs - API: /api/divs', () => {
           method: "put",
           data: divJSON,
           withCredentials: true,
-          url: url + "/" + testDiv.id,
+          url: oneDivUrl + testDiv.id,
         })
         expect(response.status).toBe(422);
       } catch (err) {
@@ -1383,7 +1348,7 @@ describe('Divs - API: /api/divs', () => {
           method: "put",
           data: divJSON,
           withCredentials: true,
-          url: url + "/" + testDiv.id,
+          url: oneDivUrl + testDiv.id,
         })
         expect(response.status).toBe(422);
       } catch (err) { 
@@ -1407,12 +1372,12 @@ describe('Divs - API: /api/divs', () => {
           method: "put",
           data: divJSON,
           withCredentials: true,
-          url: url + "/" + invalidDiv.id,
+          url: oneDivUrl + invalidDiv.id,
         })
-        expect(response.status).toBe(422);
+        expect(response.status).toBe(404);
       } catch (err) { 
         if (err instanceof AxiosError) {
-          expect(err.response?.status).toBe(422);
+          expect(err.response?.status).toBe(404);
         } else {
           expect(true).toBeFalsy();
         } 
@@ -1428,7 +1393,7 @@ describe('Divs - API: /api/divs', () => {
         method: "put",
         data: divJSON,
         withCredentials: true,
-        url: url + "/" + testDiv.id,
+        url: oneDivUrl + testDiv.id,
       })
       expect(response.status).toBe(200);
       const puttedDiv = response.data.div;
@@ -1437,7 +1402,7 @@ describe('Divs - API: /api/divs', () => {
 
   })
 
-  describe('PATCH by ID - API: /api/divs/:id', () => { 
+  describe('PATCH by ID - API: /api/divs/div/:id', () => { 
 
     beforeAll(async () => {
       // make sure test div is reset in database
@@ -1446,7 +1411,7 @@ describe('Divs - API: /api/divs', () => {
         method: "put",
         data: divJSON,
         withCredentials: true,
-        url: url + "/" + testDiv.id,
+        url: oneDivUrl + testDiv.id,
       })
     })
       
@@ -1457,7 +1422,7 @@ describe('Divs - API: /api/divs', () => {
           method: "put",
           data: divJSON,
           withCredentials: true,
-          url: url + "/" + testDiv.id,
+          url: oneDivUrl + testDiv.id,
         })
       } catch (err) {
         if (err instanceof AxiosError) console.log(err.message);
@@ -1474,7 +1439,7 @@ describe('Divs - API: /api/divs', () => {
         method: "patch",
         data: divJSON,
         withCredentials: true,
-        url: url + "/" + blankDiv.id,
+        url: oneDivUrl + blankDiv.id,
       })
       expect(response.status).toBe(200);
       const patchedDiv = response.data.div;
@@ -1490,7 +1455,7 @@ describe('Divs - API: /api/divs', () => {
         method: "patch",
         data: divJSON,
         withCredentials: true,
-        url: url + "/" + blankDiv.id,
+        url: oneDivUrl + blankDiv.id,
       })
       expect(response.status).toBe(200);
       const patchedDiv = response.data.div;
@@ -1506,7 +1471,7 @@ describe('Divs - API: /api/divs', () => {
         method: "patch",
         data: divJSON,
         withCredentials: true,
-        url: url + "/" + blankDiv.id,
+        url: oneDivUrl + blankDiv.id,
       })
       expect(response.status).toBe(200);
       const patchedDiv = response.data.div;
@@ -1522,7 +1487,7 @@ describe('Divs - API: /api/divs', () => {
         method: "patch",
         data: divJSON,
         withCredentials: true,
-        url: url + "/" + blankDiv.id,
+        url: oneDivUrl + blankDiv.id,
       })
       expect(response.status).toBe(200);
       const patchedDiv = response.data.div;
@@ -1538,7 +1503,7 @@ describe('Divs - API: /api/divs', () => {
         method: "patch",
         data: divJSON,
         withCredentials: true,
-        url: url + "/" + blankDiv.id,
+        url: oneDivUrl + blankDiv.id,
       })
       expect(response.status).toBe(200);
       const patchedDiv = response.data.div;
@@ -1554,7 +1519,7 @@ describe('Divs - API: /api/divs', () => {
         method: "patch",
         data: divJSON,
         withCredentials: true,
-        url: url + "/" + blankDiv.id,
+        url: oneDivUrl + blankDiv.id,
       })
       expect(response.status).toBe(200);
       const patchedDiv = response.data.div;
@@ -1570,7 +1535,7 @@ describe('Divs - API: /api/divs', () => {
         method: "patch",
         data: divJSON,
         withCredentials: true,
-        url: url + "/" + blankDiv.id,
+        url: oneDivUrl + blankDiv.id,
       })
       expect(response.status).toBe(200);
       const patchedDiv = response.data.div;
@@ -1588,7 +1553,7 @@ describe('Divs - API: /api/divs', () => {
           method: "patch",
           data: tmntJSON,
           withCredentials: true,
-          url: url + "/" + 'test',
+          url: oneDivUrl + 'test',
         })
         expect(patchResponse.status).toBe(404);
       } catch (err) {
@@ -1610,7 +1575,7 @@ describe('Divs - API: /api/divs', () => {
           method: "patch",
           data: tmntJSON,
           withCredentials: true,
-          url: url + "/" + notFoundId,
+          url: oneDivUrl + notFoundId,
         })
         expect(patchResponse.status).toBe(404);
       } catch (err) {
@@ -1632,7 +1597,7 @@ describe('Divs - API: /api/divs', () => {
           method: "patch",
           data: tmntJSON,
           withCredentials: true,
-          url: url + "/" + nonDivId,
+          url: oneDivUrl + nonDivId,
         })
         expect(patchResponse.status).toBe(404);
       } catch (err) {
@@ -1654,7 +1619,7 @@ describe('Divs - API: /api/divs', () => {
           method: "patch",
           data: tmntJSON,
           withCredentials: true,
-          url: url + "/" + blankDiv.id,
+          url: oneDivUrl + blankDiv.id,
         })
         expect(patchResponse.status).toBe(422);
       } catch (err) {
@@ -1676,7 +1641,7 @@ describe('Divs - API: /api/divs', () => {
           method: "patch",
           data: tmntJSON,
           withCredentials: true,
-          url: url + "/" + blankDiv.id,
+          url: oneDivUrl + blankDiv.id,
         })
         expect(patchResponse.status).toBe(422);
       } catch (err) {
@@ -1698,7 +1663,7 @@ describe('Divs - API: /api/divs', () => {
           method: "patch",
           data: tmntJSON,
           withCredentials: true,
-          url: url + "/" + blankDiv.id,
+          url: oneDivUrl + blankDiv.id,
         })
         expect(patchResponse.status).toBe(422);
       } catch (err) {
@@ -1720,7 +1685,7 @@ describe('Divs - API: /api/divs', () => {
           method: "patch",
           data: tmntJSON,
           withCredentials: true,
-          url: url + "/" + blankDiv.id,
+          url: oneDivUrl + blankDiv.id,
         })
         expect(patchResponse.status).toBe(422);
       } catch (err) {
@@ -1742,7 +1707,7 @@ describe('Divs - API: /api/divs', () => {
           method: "patch",
           data: tmntJSON,
           withCredentials: true,
-          url: url + "/" + blankDiv.id,
+          url: oneDivUrl + blankDiv.id,
         })
         expect(patchResponse.status).toBe(422);
       } catch (err) {
@@ -1764,7 +1729,7 @@ describe('Divs - API: /api/divs', () => {
           method: "patch",
           data: tmntJSON,
           withCredentials: true,
-          url: url + "/" + blankDiv.id,
+          url: oneDivUrl + blankDiv.id,
         })
         expect(patchResponse.status).toBe(422);
       } catch (err) {
@@ -1786,7 +1751,7 @@ describe('Divs - API: /api/divs', () => {
           method: "patch",
           data: tmntJSON,
           withCredentials: true,
-          url: url + "/" + blankDiv.id,
+          url: oneDivUrl + blankDiv.id,
         })
         expect(patchResponse.status).toBe(422);
       } catch (err) {
@@ -1808,7 +1773,7 @@ describe('Divs - API: /api/divs', () => {
           method: "patch",
           data: tmntJSON,
           withCredentials: true,
-          url: url + "/" + blankDiv.id,
+          url: oneDivUrl + blankDiv.id,
         })
         expect(patchResponse.status).toBe(422);
       } catch (err) {
@@ -1830,7 +1795,7 @@ describe('Divs - API: /api/divs', () => {
           method: "patch",
           data: tmntJSON,
           withCredentials: true,
-          url: url + "/" + blankDiv.id,
+          url: oneDivUrl + blankDiv.id,
         })
         expect(patchResponse.status).toBe(422);
       } catch (err) {
@@ -1852,7 +1817,7 @@ describe('Divs - API: /api/divs', () => {
           method: "patch",
           data: tmntJSON,
           withCredentials: true,
-          url: url + "/" + blankDiv.id,
+          url: oneDivUrl + blankDiv.id,
         })
         expect(patchResponse.status).toBe(422);
       } catch (err) {
@@ -1874,7 +1839,7 @@ describe('Divs - API: /api/divs', () => {
           method: "patch",
           data: tmntJSON,
           withCredentials: true,
-          url: url + "/" + blankDiv.id,
+          url: oneDivUrl + blankDiv.id,
         })
         expect(patchResponse.status).toBe(422);
       } catch (err) {
@@ -1896,7 +1861,7 @@ describe('Divs - API: /api/divs', () => {
           method: "patch",
           data: tmntJSON,
           withCredentials: true,
-          url: url + "/" + blankDiv.id,
+          url: oneDivUrl + blankDiv.id,
         })
         expect(patchResponse.status).toBe(422);
       } catch (err) {
@@ -1918,7 +1883,7 @@ describe('Divs - API: /api/divs', () => {
           method: "patch",
           data: tmntJSON,
           withCredentials: true,
-          url: url + "/" + blankDiv.id,
+          url: oneDivUrl + blankDiv.id,
         })
         expect(patchResponse.status).toBe(422);
       } catch (err) {
@@ -1940,7 +1905,7 @@ describe('Divs - API: /api/divs', () => {
           method: "patch",
           data: tmntJSON,
           withCredentials: true,
-          url: url + "/" + blankDiv.id,
+          url: oneDivUrl + blankDiv.id,
         })
         expect(patchResponse.status).toBe(422);
       } catch (err) {
@@ -1962,7 +1927,7 @@ describe('Divs - API: /api/divs', () => {
           method: "patch",
           data: tmntJSON,
           withCredentials: true,
-          url: url + "/" + blankDiv.id,
+          url: oneDivUrl + blankDiv.id,
         })
         expect(patchResponse.status).toBe(422);
       } catch (err) {
@@ -1984,7 +1949,7 @@ describe('Divs - API: /api/divs', () => {
           method: "patch",
           data: tmntJSON,
           withCredentials: true,
-          url: url + "/" + blankDiv.id,
+          url: oneDivUrl + blankDiv.id,
         })
         expect(patchResponse.status).toBe(422);
       } catch (err) {
@@ -2006,7 +1971,7 @@ describe('Divs - API: /api/divs', () => {
           method: "patch",
           data: tmntJSON,
           withCredentials: true,
-          url: url + "/" + blankDiv.id,
+          url: oneDivUrl + blankDiv.id,
         })
         expect(patchResponse.status).toBe(422);
       } catch (err) {
@@ -2028,7 +1993,7 @@ describe('Divs - API: /api/divs', () => {
           method: "patch",
           data: tmntJSON,
           withCredentials: true,
-          url: url + "/" + blankDiv.id,
+          url: oneDivUrl + blankDiv.id,
         })
         expect(patchResponse.status).toBe(422);
       } catch (err) {
@@ -2050,7 +2015,7 @@ describe('Divs - API: /api/divs', () => {
           method: "patch",
           data: tmntJSON,
           withCredentials: true,
-          url: url + "/" + blankDiv.id,
+          url: oneDivUrl + blankDiv.id,
         })
         expect(patchResponse.status).toBe(422);
       } catch (err) {
@@ -2072,7 +2037,7 @@ describe('Divs - API: /api/divs', () => {
           method: "patch",
           data: tmntJSON,
           withCredentials: true,
-          url: url + "/" + blankDiv.id,
+          url: oneDivUrl + blankDiv.id,
         })
         expect(patchResponse.status).toBe(422);
       } catch (err) {
@@ -2096,12 +2061,12 @@ describe('Divs - API: /api/divs', () => {
           method: "patch",
           data: tmntJSON,
           withCredentials: true,
-          url: url + "/" + patchTmnt.id,
+          url: oneDivUrl + patchTmnt.id,
         })
-        expect(patchResponse.status).toBe(422);
+        expect(patchResponse.status).toBe(404);
       } catch (err) {
         if (err instanceof AxiosError) {
-          expect(err.response?.status).toBe(422);
+          expect(err.response?.status).toBe(404);
         } else {
           expect(true).toBeFalsy();
         }
@@ -2117,7 +2082,7 @@ describe('Divs - API: /api/divs', () => {
         method: "patch",
         data: tmntJSON,
         withCredentials: true,
-        url: url + "/" + blankDiv.id,
+        url: oneDivUrl + blankDiv.id,
       })
       expect(patchResponse.status).toBe(200);
       const patchedDiv = patchResponse.data.div;
@@ -2133,7 +2098,7 @@ describe('Divs - API: /api/divs', () => {
         method: "patch",
         data: tmntJSON,
         withCredentials: true,
-        url: url + "/" + blankDiv.id,
+        url: oneDivUrl + blankDiv.id,
       })
       expect(patchResponse.status).toBe(200);
       const patchedDiv = patchResponse.data.div;
@@ -2142,7 +2107,7 @@ describe('Divs - API: /api/divs', () => {
 
   })
 
-  describe('DELETE by id - API: /api/divs/:id', () => {
+  describe('DELETE by id - API: /api/divs/div/:id', () => {
 
     const toDelDiv = {
       ...initDiv,
@@ -2165,11 +2130,7 @@ describe('Divs - API: /api/divs', () => {
     afterEach(async () => {
       if (!didDel) return;
       try {
-        const restoredDiv = {
-          ...toDelDiv,
-          id: postSecret + 'div_66d39a83d7a84a8c85d28d8d1b2c7a90',
-        }
-        const divJSON = JSON.stringify(restoredDiv);
+        const divJSON = JSON.stringify(toDelDiv);
         const response = await axios({
           method: 'post',
           data: divJSON,
@@ -2187,7 +2148,7 @@ describe('Divs - API: /api/divs', () => {
         const delResponse = await axios({
           method: "delete",
           withCredentials: true,
-          url: url + "/" + toDelDiv.id,
+          url: oneDivUrl + toDelDiv.id,
         })  
         didDel = true;
         expect(delResponse.status).toBe(200);
@@ -2204,7 +2165,7 @@ describe('Divs - API: /api/divs', () => {
         const delResponse = await axios({
           method: "delete",
           withCredentials: true,
-          url: url + "/" + 'test',
+          url: oneDivUrl + 'test',
         })  
         expect(delResponse.status).toBe(404);
       } catch (err) {
@@ -2220,7 +2181,7 @@ describe('Divs - API: /api/divs', () => {
         const delResponse = await axios({
           method: "delete",
           withCredentials: true,
-          url: url + "/" + notFoundId,
+          url: oneDivUrl + notFoundId,
         })  
         expect(delResponse.status).toBe(404);
       } catch (err) {
@@ -2236,7 +2197,7 @@ describe('Divs - API: /api/divs', () => {
         const delResponse = await axios({
           method: "delete",
           withCredentials: true,
-          url: url + "/" + nonDivId
+          url: oneDivUrl + nonDivId
         })  
         expect(delResponse.status).toBe(404);
       } catch (err) {
@@ -2252,7 +2213,7 @@ describe('Divs - API: /api/divs', () => {
         const delResponse = await axios({
           method: "delete",
           withCredentials: true,
-          url: url + "/" + testDiv.id
+          url: oneDivUrl + testDiv.id
         })  
         expect(delResponse.status).toBe(409);
       } catch (err) {

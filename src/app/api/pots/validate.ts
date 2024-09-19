@@ -1,4 +1,4 @@
-import { isValidBtDbId, ErrorCode, maxMoney, validSortOrder, isNumber, validPostId } from "@/lib/validation";
+import { isValidBtDbId, ErrorCode, maxMoney, validSortOrder, isNumber } from "@/lib/validation";
 import { sanitize, sanitizeCurrency } from "@/lib/sanitize";
 import { validMoney } from "@/lib/currency/validate";
 import { potType, PotCategories, idTypes } from "@/lib/types/types";
@@ -11,14 +11,14 @@ import { blankPot, initPot } from "@/lib/db/initVals";
  * @returns {ErrorCode.MissingData | ErrorCode.None | ErrorCode.OtherError} - error code
  */
 const gotPotData = (pot: potType): ErrorCode => {
-  try {
-    if (!pot) return ErrorCode.MissingData;
-    if (
-      !pot.div_id ||
-      !pot.squad_id ||
-      !sanitize(pot.pot_type) ||
-      !validMoney(pot.fee, Number.MIN_SAFE_INTEGER, Number.MAX_SAFE_INTEGER) ||
-      typeof pot.sort_order !== "number"
+  try {    
+    if (!pot
+      || !pot.id
+      || !pot.div_id
+      || !pot.squad_id
+      || !sanitize(pot.pot_type)
+      || !validMoney(pot.fee, Number.MIN_SAFE_INTEGER, Number.MAX_SAFE_INTEGER)
+      || typeof pot.sort_order !== "number"
     ) {
       return ErrorCode.MissingData;
     }
@@ -35,7 +35,7 @@ export const validPotType = (pot_type: PotCategories): boolean => {
   return (sanitized === 'Game' || sanitized === 'Last Game' || sanitized === 'Series');  
 }
 export const validPotMoney = (moneyStr: string): boolean => {
-  if (!moneyStr) return false;
+  if (!moneyStr) return false;  
   return validMoney(moneyStr, 1, maxMoney);
 };
 
@@ -62,6 +62,9 @@ export const validPotFkId = (FkId: string, idType: idTypes): boolean => {
 const validPotData = (pot: potType): ErrorCode => {
   try {
     if (!pot) return ErrorCode.InvalidData;
+    if (!isValidBtDbId(pot.id, "pot")) {
+      return ErrorCode.InvalidData;
+    }
     if (!isValidBtDbId(pot.div_id, "div")) {
       return ErrorCode.InvalidData;
     }
@@ -95,7 +98,7 @@ export const sanitizePot = (pot: potType): potType => {
     ... blankPot,
     sort_order: null as any,
   };    
-  if (pot.id === '' || isValidBtDbId(pot.id, "pot") || validPostId(pot.id, "pot")) {
+  if (isValidBtDbId(pot.id, "pot")) {
     sanitizedPot.id = pot.id;
   }
   if (validPotFkId(pot.div_id, "div")) {

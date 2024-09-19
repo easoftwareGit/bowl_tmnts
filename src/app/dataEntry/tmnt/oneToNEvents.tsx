@@ -37,7 +37,7 @@ interface AddOrDelButtonProps {
   sortOrder: number;
 }
 
-const defaultTabKey = "event1";
+// const defaultTabKey = "event1";
 
 const amountFields = [
   "entry_fee",
@@ -260,6 +260,9 @@ const OneToNEvents: React.FC<ChildProps> = ({
   setSquads,
   setAcdnErr,
 }) => {
+
+  const defaultTabKey = events[0].id;
+
   const [confModalObj, setConfModalObj] = useState(initModalObj);
   const [errModalObj, setErrModalObj] = useState(initModalObj);
   const [tabKey, setTabKey] = useState(defaultTabKey);
@@ -680,7 +683,7 @@ const OneToNEvents: React.FC<ChildProps> = ({
         {events.map((event) => (
           <Tab
             key={event.id}
-            eventKey={`event${event.id}`}
+            eventKey={`${event.id}`}
             title={event.tab_title}
             tabClassName={`${event.errClassName}`}            
           >

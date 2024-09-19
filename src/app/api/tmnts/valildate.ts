@@ -1,9 +1,9 @@
-import { isValidBtDbId, maxTmntNameLength, ErrorCode, minDate, maxDate, validPostId } from "@/lib/validation";
+import { isValidBtDbId, maxTmntNameLength, ErrorCode, minDate, maxDate } from "@/lib/validation";
 import { sanitize } from "@/lib/sanitize";
 import { isValid, compareAsc } from "date-fns";
 import { idTypes, tmntType } from "@/lib/types/types";
-import { blankTmnt, initTmnt } from "@/lib/db/initVals";
-import { validFullDateISOString } from "@/lib/dateTools";
+import { blankTmnt } from "@/lib/db/initVals";
+import { startOfDayFromString, validDateString } from "@/lib/dateTools";
 
 /**
  * checks for required data and returns error code if missing 
@@ -13,11 +13,14 @@ import { validFullDateISOString } from "@/lib/dateTools";
  */
 const gotTmntData = (tmnt: tmntType): ErrorCode => { 
   try {
-    if (!sanitize(tmnt.tmnt_name)
+    if (!tmnt 
+      || !tmnt.id
+      || !sanitize(tmnt.tmnt_name)
       || (!tmnt.start_date) 
       || (!tmnt.end_date)  
       || !tmnt.bowl_id
-      || !tmnt.user_id) {
+      || !tmnt.user_id)
+    {
       return ErrorCode.MissingData
     }
     return ErrorCode.None    
@@ -45,14 +48,14 @@ export const validTmntDates = (startDate: Date, endDate: Date): boolean => {
     return false
   }
   if (typeof startDate === 'string') {
-    if (validFullDateISOString(startDate)) {
+    if (validDateString(startDate)) {
       startDate = new Date(startDate)
     } else {
       return false
     }
   }
   if (typeof endDate === 'string') {
-    if (validFullDateISOString(endDate)) {
+    if (validDateString(endDate)) {
       endDate = new Date(endDate)
     } else {
       return false
@@ -96,7 +99,8 @@ export const validTmntFkId = (FkId: string, idType: idTypes): boolean => {
 const validTmntData = (tmnt: tmntType): ErrorCode => { 
 
   try {           
-    if (!tmnt) {
+    if (!tmnt) return ErrorCode.InvalidData    
+    if (!isValidBtDbId(tmnt.id, 'tmt')) {
       return ErrorCode.InvalidData
     }
     if (!validTmntName(tmnt.tmnt_name)) {
@@ -124,19 +128,19 @@ const validTmntData = (tmnt: tmntType): ErrorCode => {
  * @returns tmnt object with sanitized data
  */
 export const sanitizeTmnt = (tmnt: tmntType): tmntType => { 
+  if (!tmnt) return null as any;
   const sanditizedTmnt: tmntType = {
     ...blankTmnt,      
     start_date: null as any,
     end_date: null as any
   }  
-  if (tmnt.id === '' || isValidBtDbId(tmnt.id, "tmt") || validPostId(tmnt.id, "tmt")) {
-    sanditizedTmnt.id = tmnt.id;
+  if (isValidBtDbId(tmnt.id, 'tmt')) {
+    sanditizedTmnt.id = tmnt.id
   }
-  sanditizedTmnt.tmnt_name = sanitize(tmnt.tmnt_name)
-  
+  sanditizedTmnt.tmnt_name = sanitize(tmnt.tmnt_name) 
   if (typeof tmnt.start_date === 'string') {
-    if (validFullDateISOString(tmnt.start_date)) {    
-      sanditizedTmnt.start_date = new Date(tmnt.start_date)
+    if (validDateString(tmnt.start_date)) {    
+      sanditizedTmnt.start_date = startOfDayFromString(tmnt.start_date) as Date
     } 
   } else {
     if (isValid(tmnt.start_date)) {
@@ -145,16 +149,13 @@ export const sanitizeTmnt = (tmnt: tmntType): tmntType => {
   }
 
   if (typeof tmnt.end_date === 'string') {
-    if (validFullDateISOString(tmnt.end_date)) {    
-      sanditizedTmnt.end_date = new Date(tmnt.end_date)
+    if (validDateString(tmnt.end_date)) {          
+      sanditizedTmnt.end_date = startOfDayFromString(tmnt.end_date) as Date
     } 
   } else {
     if (isValid(tmnt.end_date)) {
       sanditizedTmnt.end_date = tmnt.end_date
     } 
-  }
-  if (tmnt.id && (isValidBtDbId(tmnt.id, 'tmt') || validPostId(tmnt.id, 'tmt')) ) {
-    sanditizedTmnt.id = tmnt.id
   }
   if (isValidBtDbId(tmnt.bowl_id, 'bwl')) {    
     sanditizedTmnt.bowl_id = tmnt.bowl_id  

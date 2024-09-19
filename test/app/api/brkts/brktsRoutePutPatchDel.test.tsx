@@ -3,8 +3,6 @@ import { baseBrktsApi } from "@/lib/db/apiPaths";
 import { testBaseBrktsApi } from "../../../testApi";
 import { brktType } from "@/lib/types/types";
 import { initBrkt } from "@/lib/db/initVals";
-import { postSecret } from "@/lib/tools";
-import { isValidBtDbId } from "@/lib/validation";
 
 // before running this test, run the following commands in the terminal:
 // 1) clear and re-seed the database
@@ -24,13 +22,14 @@ import { isValidBtDbId } from "@/lib/validation";
 const url = testBaseBrktsApi.startsWith("undefined")
   ? baseBrktsApi
   : testBaseBrktsApi;   
+const oneBrktUrl = url + "/brkt/";    
 
 const notFoundId = "brk_01234567890123456789012345678901";
 const nonBrktId = "usr_01234567890123456789012345678901";
 const squad2Id = 'sqd_1a6c885ee19a49489960389193e8f819';
 const div2Id = "div_1f42042f9ef24029a0a2d48cc276a087";
 
-describe('Brkts - PUT, PATCH, DELETE API: /api/brkts', () => { 
+describe('Brkts - PUT, PATCH, DELETE API: /api/brkts/brkt/:id', () => { 
 
   const testBrkt: brktType = {
     ...initBrkt,
@@ -54,7 +53,18 @@ describe('Brkts - PUT, PATCH, DELETE API: /api/brkts', () => {
     div_id: "div_f30aea2c534f4cfe87f4315531cef8ef",
   }
 
-  describe('PUT by ID - API: /api/brkts/:id', () => {
+  const resetBrkt = async () => { 
+    // make sure test brkt is reset in database
+    const brktJSON = JSON.stringify(testBrkt);
+    const response = await axios({
+      method: "put",
+      data: brktJSON,
+      withCredentials: true,
+      url: oneBrktUrl + testBrkt.id,
+    })
+  }
+
+  describe('PUT by ID - API: /api/brkts/brkt/:id', () => {
 
     const testBrkt: brktType = {
       ...initBrkt,
@@ -72,12 +82,6 @@ describe('Brkts - PUT, PATCH, DELETE API: /api/brkts', () => {
       sort_order: 1,
     }
 
-    const blankBrkt = {
-      id: "brk_5109b54c2cc44ff9a3721de42c80c8c1",
-      squad_id: "sqd_7116ce5f80164830830a7157eb093396",
-      div_id: "div_f30aea2c534f4cfe87f4315531cef8ef",
-    }
-
     describe('PUT by ID - API: /api/brkts/:id', () => {
 
       const putBrkt = {
@@ -92,42 +96,12 @@ describe('Brkts - PUT, PATCH, DELETE API: /api/brkts', () => {
         sort_order: 1,
       }
 
-      const sampleBrkt = {
-        ...initBrkt,
-        id: '',
-        squad_id: 'sqd_3397da1adc014cf58c44e07c19914f72',
-        div_id: 'div_29b9225d8dd44a4eae276f8bde855729',
-        fee: '10',
-        first: '50',
-        second: '20',
-        admin: '10',
-        fsa: '80',
-        sort_order: 11,
-      }
-
       beforeAll(async () => {
-        // make sure test div is reset in database
-        const brktJSON = JSON.stringify(testBrkt);
-        const putResponse = await axios({
-          method: "put",
-          data: brktJSON,
-          withCredentials: true,
-          url: url + "/" + testBrkt.id,
-        })
+        await resetBrkt();
       })
 
       afterEach(async () => {
-        try {
-          const brktJSON = JSON.stringify(testBrkt);
-          const putResponse = await axios({
-            method: "put",
-            data: brktJSON,
-            withCredentials: true,
-            url: url + "/" + testBrkt.id,
-          })
-        } catch (err) {
-          if (err instanceof AxiosError) console.log(err.message);
-        }
+        await resetBrkt();
       })
 
       it('should update brkt by ID', async () => {
@@ -136,16 +110,14 @@ describe('Brkts - PUT, PATCH, DELETE API: /api/brkts', () => {
           method: "put",
           data: brktJSON,
           withCredentials: true,
-          url: url + "/" + testBrkt.id,
+          url: oneBrktUrl + testBrkt.id,
         })
         expect(putResponse.status).toBe(200);
-        const brkt = putResponse.data.brkt;
-        // do not update squad_id or div_id
-        expect(brkt.squad_id).toEqual(testBrkt.squad_id);
-        expect(brkt.div_id).toEqual(testBrkt.div_id);
-        // all other fields should be updated
-        expect(brkt.start).toBe(testBrkt.start);
-        expect(brkt.games).toBe(testBrkt.games);
+        const brkt = putResponse.data.brkt;        
+        expect(brkt.squad_id).toEqual(putBrkt.squad_id);
+        expect(brkt.div_id).toEqual(putBrkt.div_id);        
+        expect(brkt.start).toBe(putBrkt.start);
+        expect(brkt.games).toBe(putBrkt.games);
         expect(brkt.players).toBe(putBrkt.players);
         expect(brkt.fee).toBe(putBrkt.fee);
         expect(brkt.first).toBe(putBrkt.first);
@@ -161,7 +133,7 @@ describe('Brkts - PUT, PATCH, DELETE API: /api/brkts', () => {
             method: "put",
             data: brktJSON,
             withCredentials: true,
-            url: url + "/" + 'test',
+            url: oneBrktUrl + 'test',
           })
           expect(putResponse.status).toBe(404);
         } catch (err) {
@@ -179,7 +151,7 @@ describe('Brkts - PUT, PATCH, DELETE API: /api/brkts', () => {
             method: "put",
             data: brktJSON,
             withCredentials: true,
-            url: url + "/" + nonBrktId,
+            url: oneBrktUrl + nonBrktId,
           })
           expect(putResponse.status).toBe(404);
         } catch (err) {
@@ -197,7 +169,7 @@ describe('Brkts - PUT, PATCH, DELETE API: /api/brkts', () => {
             method: "put",
             data: brktJSON,
             withCredentials: true,
-            url: url + "/" + notFoundId,
+            url: oneBrktUrl + notFoundId,
           })
           expect(putResponse.status).toBe(404);
         } catch (err) {
@@ -219,7 +191,7 @@ describe('Brkts - PUT, PATCH, DELETE API: /api/brkts', () => {
             method: "put",
             data: brktJSON,
             withCredentials: true,
-            url: url + "/" + testBrkt.id,
+            url: oneBrktUrl + testBrkt.id,
           })
           expect(putResponse.status).toBe(422);
         } catch (err) {
@@ -241,7 +213,7 @@ describe('Brkts - PUT, PATCH, DELETE API: /api/brkts', () => {
             method: "put",
             data: brktJSON,
             withCredentials: true,
-            url: url + "/" + testBrkt.id,
+            url: oneBrktUrl + testBrkt.id,
           })
           expect(putResponse.status).toBe(422);
         } catch (err) {
@@ -263,7 +235,7 @@ describe('Brkts - PUT, PATCH, DELETE API: /api/brkts', () => {
             method: "put",
             data: brktJSON,
             withCredentials: true,
-            url: url + "/" + testBrkt.id,
+            url: oneBrktUrl + testBrkt.id,
           })
           expect(putResponse.status).toBe(422);
         } catch (err) {
@@ -285,7 +257,7 @@ describe('Brkts - PUT, PATCH, DELETE API: /api/brkts', () => {
             method: "put",
             data: brktJSON,
             withCredentials: true,
-            url: url + "/" + testBrkt.id,
+            url: oneBrktUrl + testBrkt.id,
           })
           expect(putResponse.status).toBe(422);
         } catch (err) {
@@ -307,7 +279,7 @@ describe('Brkts - PUT, PATCH, DELETE API: /api/brkts', () => {
             method: "put",
             data: brktJSON,
             withCredentials: true,
-            url: url + "/" + testBrkt.id,
+            url: oneBrktUrl + testBrkt.id,
           })
           expect(putResponse.status).toBe(422);
         } catch (err) {
@@ -329,7 +301,7 @@ describe('Brkts - PUT, PATCH, DELETE API: /api/brkts', () => {
             method: "put",
             data: brktJSON,
             withCredentials: true,
-            url: url + "/" + testBrkt.id,
+            url: oneBrktUrl + testBrkt.id,
           })
           expect(putResponse.status).toBe(422);
         } catch (err) {
@@ -351,7 +323,7 @@ describe('Brkts - PUT, PATCH, DELETE API: /api/brkts', () => {
             method: "put",
             data: brktJSON,
             withCredentials: true,
-            url: url + "/" + testBrkt.id,
+            url: oneBrktUrl + testBrkt.id,
           })
           expect(putResponse.status).toBe(422);
         } catch (err) {
@@ -373,7 +345,7 @@ describe('Brkts - PUT, PATCH, DELETE API: /api/brkts', () => {
             method: "put",
             data: brktJSON,
             withCredentials: true,
-            url: url + "/" + testBrkt.id,
+            url: oneBrktUrl + testBrkt.id,
           })
           expect(putResponse.status).toBe(422);
         } catch (err) {
@@ -395,7 +367,7 @@ describe('Brkts - PUT, PATCH, DELETE API: /api/brkts', () => {
             method: "put",
             data: brktJSON,
             withCredentials: true,
-            url: url + "/" + testBrkt.id,
+            url: oneBrktUrl + testBrkt.id,
           })
           expect(putResponse.status).toBe(422);
         } catch (err) {
@@ -417,7 +389,7 @@ describe('Brkts - PUT, PATCH, DELETE API: /api/brkts', () => {
             method: "put",
             data: brktJSON,
             withCredentials: true,
-            url: url + "/" + testBrkt.id,
+            url: oneBrktUrl + testBrkt.id,
           })
           expect(putResponse.status).toBe(422);
         } catch (err) {
@@ -439,7 +411,7 @@ describe('Brkts - PUT, PATCH, DELETE API: /api/brkts', () => {
             method: "put",
             data: brktJSON,
             withCredentials: true,
-            url: url + "/" + testBrkt.id,
+            url: oneBrktUrl + testBrkt.id,
           })
           expect(putResponse.status).toBe(422);
         } catch (err) {
@@ -461,7 +433,7 @@ describe('Brkts - PUT, PATCH, DELETE API: /api/brkts', () => {
             method: "put",
             data: brktJSON,
             withCredentials: true,
-            url: url + "/" + testBrkt.id,
+            url: oneBrktUrl + testBrkt.id,
           })
           expect(putResponse.status).toBe(422);
         } catch (err) {
@@ -483,7 +455,7 @@ describe('Brkts - PUT, PATCH, DELETE API: /api/brkts', () => {
             method: "put",
             data: brktJSON,
             withCredentials: true,
-            url: url + "/" + testBrkt.id,
+            url: oneBrktUrl + testBrkt.id,
           })
           expect(putResponse.status).toBe(422);
         } catch (err) {
@@ -505,7 +477,7 @@ describe('Brkts - PUT, PATCH, DELETE API: /api/brkts', () => {
             method: "put",
             data: brktJSON,
             withCredentials: true,
-            url: url + "/" + testBrkt.id,
+            url: oneBrktUrl + testBrkt.id,
           })
           expect(putResponse.status).toBe(422);
         } catch (err) {
@@ -527,7 +499,7 @@ describe('Brkts - PUT, PATCH, DELETE API: /api/brkts', () => {
             method: "put",
             data: brktJSON,
             withCredentials: true,
-            url: url + "/" + testBrkt.id,
+            url: oneBrktUrl + testBrkt.id,
           })
           expect(putResponse.status).toBe(422);
         } catch (err) {
@@ -549,7 +521,7 @@ describe('Brkts - PUT, PATCH, DELETE API: /api/brkts', () => {
             method: "put",
             data: brktJSON,
             withCredentials: true,
-            url: url + "/" + testBrkt.id,
+            url: oneBrktUrl + testBrkt.id,
           })
           expect(putResponse.status).toBe(422);
         } catch (err) {
@@ -571,7 +543,7 @@ describe('Brkts - PUT, PATCH, DELETE API: /api/brkts', () => {
             method: "put",
             data: brktJSON,
             withCredentials: true,
-            url: url + "/" + testBrkt.id,
+            url: oneBrktUrl + testBrkt.id,
           })
           expect(putResponse.status).toBe(422);
         } catch (err) {
@@ -593,7 +565,7 @@ describe('Brkts - PUT, PATCH, DELETE API: /api/brkts', () => {
             method: "put",
             data: brktJSON,
             withCredentials: true,
-            url: url + "/" + testBrkt.id,
+            url: oneBrktUrl + testBrkt.id,
           })
           expect(putResponse.status).toBe(422);
         } catch (err) {
@@ -615,7 +587,7 @@ describe('Brkts - PUT, PATCH, DELETE API: /api/brkts', () => {
             method: "put",
             data: brktJSON,
             withCredentials: true,
-            url: url + "/" + testBrkt.id,
+            url: oneBrktUrl + testBrkt.id,
           })
           expect(putResponse.status).toBe(422);
         } catch (err) {
@@ -637,7 +609,7 @@ describe('Brkts - PUT, PATCH, DELETE API: /api/brkts', () => {
             method: "put",
             data: brktJSON,
             withCredentials: true,
-            url: url + "/" + testBrkt.id,
+            url: oneBrktUrl + testBrkt.id,
           })
           expect(putResponse.status).toBe(422);
         } catch (err) {
@@ -659,7 +631,7 @@ describe('Brkts - PUT, PATCH, DELETE API: /api/brkts', () => {
             method: "put",
             data: brktJSON,
             withCredentials: true,
-            url: url + "/" + testBrkt.id,
+            url: oneBrktUrl + testBrkt.id,
           })
           expect(putResponse.status).toBe(422);
         } catch (err) {
@@ -681,7 +653,7 @@ describe('Brkts - PUT, PATCH, DELETE API: /api/brkts', () => {
             method: "put",
             data: brktJSON,
             withCredentials: true,
-            url: url + "/" + testBrkt.id,
+            url: oneBrktUrl + testBrkt.id,
           })
           expect(putResponse.status).toBe(422);
         } catch (err) {
@@ -703,7 +675,7 @@ describe('Brkts - PUT, PATCH, DELETE API: /api/brkts', () => {
             method: "put",
             data: brktJSON,
             withCredentials: true,
-            url: url + "/" + testBrkt.id,
+            url: oneBrktUrl + testBrkt.id,
           })
           expect(putResponse.status).toBe(422);
         } catch (err) {
@@ -725,7 +697,7 @@ describe('Brkts - PUT, PATCH, DELETE API: /api/brkts', () => {
             method: "put",
             data: brktJSON,
             withCredentials: true,
-            url: url + "/" + testBrkt.id,
+            url: oneBrktUrl + testBrkt.id,
           })
           expect(putResponse.status).toBe(422);
         } catch (err) {
@@ -747,7 +719,7 @@ describe('Brkts - PUT, PATCH, DELETE API: /api/brkts', () => {
             method: "put",
             data: brktJSON,
             withCredentials: true,
-            url: url + "/" + testBrkt.id,
+            url: oneBrktUrl + testBrkt.id,
           })
           expect(putResponse.status).toBe(422);
         } catch (err) {
@@ -769,7 +741,7 @@ describe('Brkts - PUT, PATCH, DELETE API: /api/brkts', () => {
             method: "put",
             data: brktJSON,
             withCredentials: true,
-            url: url + "/" + testBrkt.id,
+            url: oneBrktUrl + testBrkt.id,
           })
           expect(putResponse.status).toBe(422);
         } catch (err) {
@@ -791,7 +763,7 @@ describe('Brkts - PUT, PATCH, DELETE API: /api/brkts', () => {
             method: "put",
             data: brktJSON,
             withCredentials: true,
-            url: url + "/" + testBrkt.id,
+            url: oneBrktUrl + testBrkt.id,
           })
           expect(putResponse.status).toBe(422);
         } catch (err) {
@@ -813,7 +785,7 @@ describe('Brkts - PUT, PATCH, DELETE API: /api/brkts', () => {
             method: "put",
             data: brktJSON,
             withCredentials: true,
-            url: url + "/" + testBrkt.id,
+            url: oneBrktUrl + testBrkt.id,
           })
           expect(putResponse.status).toBe(422);
         } catch (err) {
@@ -835,7 +807,7 @@ describe('Brkts - PUT, PATCH, DELETE API: /api/brkts', () => {
             method: "put",
             data: brktJSON,
             withCredentials: true,
-            url: url + "/" + testBrkt.id,
+            url: oneBrktUrl + testBrkt.id,
           })
           expect(putResponse.status).toBe(422);
         } catch (err) {
@@ -857,7 +829,7 @@ describe('Brkts - PUT, PATCH, DELETE API: /api/brkts', () => {
             method: "put",
             data: brktJSON,
             withCredentials: true,
-            url: url + "/" + testBrkt.id,
+            url: oneBrktUrl + testBrkt.id,
           })
           expect(putResponse.status).toBe(422);
         } catch (err) {
@@ -879,7 +851,7 @@ describe('Brkts - PUT, PATCH, DELETE API: /api/brkts', () => {
             method: "put",
             data: brktJSON,
             withCredentials: true,
-            url: url + "/" + testBrkt.id,
+            url: oneBrktUrl + testBrkt.id,
           })
           expect(putResponse.status).toBe(422);
         } catch (err) {
@@ -901,7 +873,7 @@ describe('Brkts - PUT, PATCH, DELETE API: /api/brkts', () => {
             method: "put",
             data: brktJSON,
             withCredentials: true,
-            url: url + "/" + testBrkt.id,
+            url: oneBrktUrl + testBrkt.id,
           })
           expect(putResponse.status).toBe(422);
         } catch (err) {
@@ -923,7 +895,7 @@ describe('Brkts - PUT, PATCH, DELETE API: /api/brkts', () => {
             method: "put",
             data: brktJSON,
             withCredentials: true,
-            url: url + "/" + testBrkt.id,
+            url: oneBrktUrl + testBrkt.id,
           })
           expect(putResponse.status).toBe(422);
         } catch (err) {
@@ -945,7 +917,7 @@ describe('Brkts - PUT, PATCH, DELETE API: /api/brkts', () => {
             method: "put",
             data: brktJSON,
             withCredentials: true,
-            url: url + "/" + testBrkt.id,
+            url: oneBrktUrl + testBrkt.id,
           })
           expect(putResponse.status).toBe(422);
         } catch (err) {
@@ -967,7 +939,7 @@ describe('Brkts - PUT, PATCH, DELETE API: /api/brkts', () => {
             method: "put",
             data: brktJSON,
             withCredentials: true,
-            url: url + "/" + testBrkt.id,
+            url: oneBrktUrl + testBrkt.id,
           })
           expect(putResponse.status).toBe(422);
         } catch (err) {
@@ -989,7 +961,7 @@ describe('Brkts - PUT, PATCH, DELETE API: /api/brkts', () => {
             method: "put",
             data: brktJSON,
             withCredentials: true,
-            url: url + "/" + testBrkt.id,
+            url: oneBrktUrl + testBrkt.id,
           })
           expect(putResponse.status).toBe(422);
         } catch (err) {
@@ -1011,7 +983,7 @@ describe('Brkts - PUT, PATCH, DELETE API: /api/brkts', () => {
             method: "put",
             data: brktJSON,
             withCredentials: true,
-            url: url + "/" + testBrkt.id,
+            url: oneBrktUrl + testBrkt.id,
           })
           expect(putResponse.status).toBe(422);
         } catch (err) {
@@ -1033,7 +1005,7 @@ describe('Brkts - PUT, PATCH, DELETE API: /api/brkts', () => {
             method: "put",
             data: brktJSON,
             withCredentials: true,
-            url: url + "/" + testBrkt.id,
+            url: oneBrktUrl + testBrkt.id,
           })
           expect(putResponse.status).toBe(422);
         } catch (err) {
@@ -1055,7 +1027,7 @@ describe('Brkts - PUT, PATCH, DELETE API: /api/brkts', () => {
             method: "put",
             data: brktJSON,
             withCredentials: true,
-            url: url + "/" + testBrkt.id,
+            url: oneBrktUrl + testBrkt.id,
           })
           expect(putResponse.status).toBe(422);
         } catch (err) {
@@ -1077,7 +1049,7 @@ describe('Brkts - PUT, PATCH, DELETE API: /api/brkts', () => {
             method: "put",
             data: brktJSON,
             withCredentials: true,
-            url: url + "/" + testBrkt.id,
+            url: oneBrktUrl + testBrkt.id,
           })
           expect(putResponse.status).toBe(422);
         } catch (err) {
@@ -1099,7 +1071,7 @@ describe('Brkts - PUT, PATCH, DELETE API: /api/brkts', () => {
           const response = await axios({
             method: "put",
             withCredentials: true,
-            url: url + "/" + testBrkt.id,
+            url: oneBrktUrl + testBrkt.id,
             data: brktJSON
           })
           expect(response.status).toBe(422);
@@ -1124,7 +1096,7 @@ describe('Brkts - PUT, PATCH, DELETE API: /api/brkts', () => {
           const response = await axios({
             method: "put",
             withCredentials: true,
-            url: url + "/" + testBrkt.id,
+            url: oneBrktUrl + testBrkt.id,
             data: brktJSON
           })
           expect(response.status).toBe(422);
@@ -1148,7 +1120,7 @@ describe('Brkts - PUT, PATCH, DELETE API: /api/brkts', () => {
           const response = await axios({
             method: "put",
             withCredentials: true,
-            url: url + "/" + testBrkt.id,
+            url: oneBrktUrl + testBrkt.id,
             data: brktJSON
           })
           expect(response.status).toBe(422);
@@ -1173,7 +1145,7 @@ describe('Brkts - PUT, PATCH, DELETE API: /api/brkts', () => {
         const response = await axios({
           method: "put",
           withCredentials: true,
-          url: url + "/" + testBrkt.id,
+          url: oneBrktUrl + testBrkt.id,
           data: brktJSON
         })
         expect(response.status).toBe(200);
@@ -1189,31 +1161,14 @@ describe('Brkts - PUT, PATCH, DELETE API: /api/brkts', () => {
 
   });
 
-  describe('PATCH by ID - API: /api/brkts/:id', () => {
+  describe('PATCH by ID - API: /api/brkts/brkt/:id', () => {
 
     beforeAll(async () => {
-      // make sure test brkt is reset in database
-      const brktJSON = JSON.stringify(testBrkt);
-      const putResponse = await axios({
-        method: "put",
-        data: brktJSON,
-        withCredentials: true,
-        url: url + "/" + testBrkt.id,
-      })
+      await resetBrkt();
     })
       
     afterEach(async () => {
-      try {
-        const brktJSON = JSON.stringify(testBrkt);
-        const putResponse = await axios({
-          method: "put",
-          data: brktJSON,
-          withCredentials: true,
-          url: url + "/" + testBrkt.id,
-        })
-      } catch (err) {
-        if (err instanceof AxiosError) console.log(err.message);
-      }
+      await resetBrkt();
     })
 
     it('should patch start for a brkt by ID', async () => {
@@ -1226,7 +1181,7 @@ describe('Brkts - PUT, PATCH, DELETE API: /api/brkts', () => {
         method: "patch",
         data: brktJSON,
         withCredentials: true,
-        url: url + "/" + patchBrkt.id,
+        url: oneBrktUrl + patchBrkt.id,
       })
       expect(response.status).toBe(200);
       const patchedBrkt = response.data.brkt;
@@ -1248,7 +1203,7 @@ describe('Brkts - PUT, PATCH, DELETE API: /api/brkts', () => {
         method: "patch",
         data: brktJSON,
         withCredentials: true,
-        url: url + "/" + patchBrkt.id,
+        url: oneBrktUrl + patchBrkt.id,
       })
       expect(response.status).toBe(200);
       const patchedBrkt = response.data.brkt;
@@ -1269,7 +1224,7 @@ describe('Brkts - PUT, PATCH, DELETE API: /api/brkts', () => {
           method: "patch",
           data: brktJSON,
           withCredentials: true,
-          url: url + "/" + patchBrkt.id,
+          url: oneBrktUrl + patchBrkt.id,
         })
         expect(response.status).toBe(404);
       } catch (err) {
@@ -1291,7 +1246,7 @@ describe('Brkts - PUT, PATCH, DELETE API: /api/brkts', () => {
           method: "patch",
           data: brktJSON,
           withCredentials: true,
-          url: url + "/" + patchBrkt.id,
+          url: oneBrktUrl + patchBrkt.id,
         })
         expect(response.status).toBe(404);
       } catch (err) {
@@ -1313,7 +1268,7 @@ describe('Brkts - PUT, PATCH, DELETE API: /api/brkts', () => {
           method: "patch",
           data: brktJSON,
           withCredentials: true,
-          url: url + "/" + patchBrkt.id,
+          url: oneBrktUrl + patchBrkt.id,
         })
         expect(response.status).toBe(404);
       } catch (err) {
@@ -1335,7 +1290,7 @@ describe('Brkts - PUT, PATCH, DELETE API: /api/brkts', () => {
           method: "patch",
           data: brktJSON,
           withCredentials: true,
-          url: url + "/" + patchBrkt.id,
+          url: oneBrktUrl + patchBrkt.id,
         })
         expect(response.status).toBe(422);
       } catch (err) {
@@ -1357,7 +1312,7 @@ describe('Brkts - PUT, PATCH, DELETE API: /api/brkts', () => {
           method: "patch",
           data: brktJSON,
           withCredentials: true,
-          url: url + "/" + patchBrkt.id,
+          url: oneBrktUrl + patchBrkt.id,
         })
         expect(response.status).toBe(422);
       } catch (err) {
@@ -1379,7 +1334,7 @@ describe('Brkts - PUT, PATCH, DELETE API: /api/brkts', () => {
           method: "patch",
           data: brktJSON,
           withCredentials: true,
-          url: url + "/" + patchBrkt.id,
+          url: oneBrktUrl + patchBrkt.id,
         })
         expect(response.status).toBe(422);
       } catch (err) {
@@ -1401,7 +1356,7 @@ describe('Brkts - PUT, PATCH, DELETE API: /api/brkts', () => {
           method: "patch",
           data: brktJSON,
           withCredentials: true,
-          url: url + "/" + patchBrkt.id,
+          url: oneBrktUrl + patchBrkt.id,
         })
         expect(response.status).toBe(422);
       } catch (err) {
@@ -1423,7 +1378,7 @@ describe('Brkts - PUT, PATCH, DELETE API: /api/brkts', () => {
           method: "patch",
           data: brktJSON,
           withCredentials: true,
-          url: url + "/" + patchBrkt.id,
+          url: oneBrktUrl + patchBrkt.id,
         })
         expect(response.status).toBe(422);
       } catch (err) {
@@ -1445,7 +1400,7 @@ describe('Brkts - PUT, PATCH, DELETE API: /api/brkts', () => {
           method: "patch",
           data: brktJSON,
           withCredentials: true,
-          url: url + "/" + patchBrkt.id,
+          url: oneBrktUrl + patchBrkt.id,
         })
         expect(response.status).toBe(422);
       } catch (err) {
@@ -1467,7 +1422,7 @@ describe('Brkts - PUT, PATCH, DELETE API: /api/brkts', () => {
           method: "patch",
           data: brktJSON,
           withCredentials: true,
-          url: url + "/" + patchBrkt.id,
+          url: oneBrktUrl + patchBrkt.id,
         })
         expect(response.status).toBe(422);
       } catch (err) {
@@ -1489,7 +1444,7 @@ describe('Brkts - PUT, PATCH, DELETE API: /api/brkts', () => {
           method: "patch",
           data: brktJSON,
           withCredentials: true,
-          url: url + "/" + patchBrkt.id,
+          url: oneBrktUrl + patchBrkt.id,
         })
         expect(response.status).toBe(422);
       } catch (err) {
@@ -1511,7 +1466,7 @@ describe('Brkts - PUT, PATCH, DELETE API: /api/brkts', () => {
           method: "patch",
           data: brktJSON,
           withCredentials: true,
-          url: url + "/" + patchBrkt.id,
+          url: oneBrktUrl + patchBrkt.id,
         })
         expect(response.status).toBe(422);
       } catch (err) {
@@ -1533,7 +1488,7 @@ describe('Brkts - PUT, PATCH, DELETE API: /api/brkts', () => {
           method: "patch",
           data: brktJSON,
           withCredentials: true,
-          url: url + "/" + patchBrkt.id,
+          url: oneBrktUrl + patchBrkt.id,
         })
         expect(response.status).toBe(422);
       } catch (err) {
@@ -1555,7 +1510,7 @@ describe('Brkts - PUT, PATCH, DELETE API: /api/brkts', () => {
           method: "patch",
           data: brktJSON,
           withCredentials: true,
-          url: url + "/" + patchBrkt.id,
+          url: oneBrktUrl + patchBrkt.id,
         })
         expect(response.status).toBe(422);
       } catch (err) {
@@ -1577,7 +1532,7 @@ describe('Brkts - PUT, PATCH, DELETE API: /api/brkts', () => {
           method: "patch",
           data: brktJSON,
           withCredentials: true,
-          url: url + "/" + patchBrkt.id,
+          url: oneBrktUrl + patchBrkt.id,
         })
         expect(response.status).toBe(422);
       } catch (err) {
@@ -1599,7 +1554,7 @@ describe('Brkts - PUT, PATCH, DELETE API: /api/brkts', () => {
           method: "patch",
           data: brktJSON,
           withCredentials: true,
-          url: url + "/" + patchBrkt.id,
+          url: oneBrktUrl + patchBrkt.id,
         })
         expect(response.status).toBe(422);
       } catch (err) {
@@ -1621,7 +1576,7 @@ describe('Brkts - PUT, PATCH, DELETE API: /api/brkts', () => {
           method: "patch",
           data: brktJSON,
           withCredentials: true,
-          url: url + "/" + patchBrkt.id,
+          url: oneBrktUrl + patchBrkt.id,
         })
         expect(response.status).toBe(422);
       } catch (err) {
@@ -1643,7 +1598,7 @@ describe('Brkts - PUT, PATCH, DELETE API: /api/brkts', () => {
           method: "patch",
           data: brktJSON,
           withCredentials: true,
-          url: url + "/" + patchBrkt.id,
+          url: oneBrktUrl + patchBrkt.id,
         })
         expect(response.status).toBe(422);
       } catch (err) {
@@ -1665,7 +1620,7 @@ describe('Brkts - PUT, PATCH, DELETE API: /api/brkts', () => {
           method: "patch",
           data: brktJSON,
           withCredentials: true,
-          url: url + "/" + patchBrkt.id,
+          url: oneBrktUrl + patchBrkt.id,
         })
         expect(response.status).toBe(422);
       } catch (err) {
@@ -1687,7 +1642,7 @@ describe('Brkts - PUT, PATCH, DELETE API: /api/brkts', () => {
           method: "patch",
           data: brktJSON,
           withCredentials: true,
-          url: url + "/" + patchBrkt.id,
+          url: oneBrktUrl + patchBrkt.id,
         })
         expect(response.status).toBe(422);
       } catch (err) {
@@ -1709,7 +1664,7 @@ describe('Brkts - PUT, PATCH, DELETE API: /api/brkts', () => {
           method: "patch",
           data: brktJSON,
           withCredentials: true,
-          url: url + "/" + patchBrkt.id,
+          url: oneBrktUrl + patchBrkt.id,
         })
         expect(response.status).toBe(422);
       } catch (err) {
@@ -1731,7 +1686,7 @@ describe('Brkts - PUT, PATCH, DELETE API: /api/brkts', () => {
           method: "patch",
           data: brktJSON,
           withCredentials: true,
-          url: url + "/" + patchBrkt.id,
+          url: oneBrktUrl + patchBrkt.id,
         })
         expect(response.status).toBe(422);
       } catch (err) {
@@ -1753,7 +1708,7 @@ describe('Brkts - PUT, PATCH, DELETE API: /api/brkts', () => {
           method: "patch",
           data: brktJSON,
           withCredentials: true,
-          url: url + "/" + patchBrkt.id,
+          url: oneBrktUrl + patchBrkt.id,
         })
         expect(response.status).toBe(422);
       } catch (err) {
@@ -1775,7 +1730,7 @@ describe('Brkts - PUT, PATCH, DELETE API: /api/brkts', () => {
           method: "patch",
           data: brktJSON,
           withCredentials: true,
-          url: url + "/" + patchBrkt.id,
+          url: oneBrktUrl + patchBrkt.id,
         })
         expect(response.status).toBe(422);
       } catch (err) {
@@ -1797,7 +1752,7 @@ describe('Brkts - PUT, PATCH, DELETE API: /api/brkts', () => {
           method: "patch",
           data: brktJSON,
           withCredentials: true,
-          url: url + "/" + patchBrkt.id,
+          url: oneBrktUrl + patchBrkt.id,
         })
         expect(response.status).toBe(422);
       } catch (err) {
@@ -1819,7 +1774,7 @@ describe('Brkts - PUT, PATCH, DELETE API: /api/brkts', () => {
           method: "patch",
           data: brktJSON,
           withCredentials: true,
-          url: url + "/" + patchBrkt.id,
+          url: oneBrktUrl + patchBrkt.id,
         })
         expect(response.status).toBe(422);
       } catch (err) {
@@ -1841,7 +1796,7 @@ describe('Brkts - PUT, PATCH, DELETE API: /api/brkts', () => {
           method: "patch",
           data: brktJSON,
           withCredentials: true,
-          url: url + "/" + patchBrkt.id,
+          url: oneBrktUrl + patchBrkt.id,
         })
         expect(response.status).toBe(422);
       } catch (err) {
@@ -1863,7 +1818,7 @@ describe('Brkts - PUT, PATCH, DELETE API: /api/brkts', () => {
           method: "patch",
           data: brktJSON,
           withCredentials: true,
-          url: url + "/" + patchBrkt.id,
+          url: oneBrktUrl + patchBrkt.id,
         })
         expect(response.status).toBe(422);
       } catch (err) {
@@ -1885,7 +1840,7 @@ describe('Brkts - PUT, PATCH, DELETE API: /api/brkts', () => {
           method: "patch",
           data: brktJSON,
           withCredentials: true,
-          url: url + "/" + patchBrkt.id,
+          url: oneBrktUrl + patchBrkt.id,
         })
         expect(response.status).toBe(422);
       } catch (err) {
@@ -1907,7 +1862,7 @@ describe('Brkts - PUT, PATCH, DELETE API: /api/brkts', () => {
           method: "patch",
           data: brktJSON,
           withCredentials: true,
-          url: url + "/" + patchBrkt.id,
+          url: oneBrktUrl + patchBrkt.id,
         })
         expect(response.status).toBe(422);
       } catch (err) {
@@ -1929,7 +1884,7 @@ describe('Brkts - PUT, PATCH, DELETE API: /api/brkts', () => {
           method: "patch",
           data: brktJSON,
           withCredentials: true,
-          url: url + "/" + patchBrkt.id,
+          url: oneBrktUrl + patchBrkt.id,
         })
         expect(response.status).toBe(422);
       } catch (err) {
@@ -1951,7 +1906,7 @@ describe('Brkts - PUT, PATCH, DELETE API: /api/brkts', () => {
           method: "patch",
           data: brktJSON,
           withCredentials: true,
-          url: url + "/" + patchBrkt.id,
+          url: oneBrktUrl + patchBrkt.id,
         })
         expect(response.status).toBe(422);
       } catch (err) {
@@ -1973,7 +1928,7 @@ describe('Brkts - PUT, PATCH, DELETE API: /api/brkts', () => {
           method: "patch",
           data: brktJSON,
           withCredentials: true,
-          url: url + "/" + patchBrkt.id,
+          url: oneBrktUrl + patchBrkt.id,
         })
         expect(response.status).toBe(422);
       } catch (err) {
@@ -1995,7 +1950,7 @@ describe('Brkts - PUT, PATCH, DELETE API: /api/brkts', () => {
           method: "patch",
           data: brktJSON,
           withCredentials: true,
-          url: url + "/" + patchBrkt.id,
+          url: oneBrktUrl + patchBrkt.id,
         })
         expect(response.status).toBe(422);
       } catch (err) {
@@ -2017,7 +1972,7 @@ describe('Brkts - PUT, PATCH, DELETE API: /api/brkts', () => {
           method: "patch",
           data: brktJSON,
           withCredentials: true,
-          url: url + "/" + patchBrkt.id,
+          url: oneBrktUrl + patchBrkt.id,
         })
         expect(response.status).toBe(422);
       } catch (err) {
@@ -2039,7 +1994,7 @@ describe('Brkts - PUT, PATCH, DELETE API: /api/brkts', () => {
           method: "patch",
           data: brktJSON,
           withCredentials: true,
-          url: url + "/" + patchBrkt.id,
+          url: oneBrktUrl + patchBrkt.id,
         })
         expect(response.status).toBe(422);
       } catch (err) {
@@ -2061,7 +2016,7 @@ describe('Brkts - PUT, PATCH, DELETE API: /api/brkts', () => {
           method: "patch",
           data: brktJSON,
           withCredentials: true,
-          url: url + "/" + patchBrkt.id,
+          url: oneBrktUrl + patchBrkt.id,
         })
         expect(response.status).toBe(422);
       } catch (err) {
@@ -2083,7 +2038,7 @@ describe('Brkts - PUT, PATCH, DELETE API: /api/brkts', () => {
           method: "patch",
           data: brktJSON,
           withCredentials: true,
-          url: url + "/" + patchBrkt.id,
+          url: oneBrktUrl + patchBrkt.id,
         })
         expect(response.status).toBe(422);
       } catch (err) {
@@ -2105,7 +2060,7 @@ describe('Brkts - PUT, PATCH, DELETE API: /api/brkts', () => {
           method: "patch",
           data: brktJSON,
           withCredentials: true,
-          url: url + "/" + patchBrkt.id,
+          url: oneBrktUrl + patchBrkt.id,
         })
         expect(response.status).toBe(422);
       } catch (err) {
@@ -2128,7 +2083,7 @@ describe('Brkts - PUT, PATCH, DELETE API: /api/brkts', () => {
         const response = await axios({
           method: "patch",
           withCredentials: true,
-          url: url + "/" + testBrkt.id,
+          url: oneBrktUrl + testBrkt.id,
           data: brktJSON
         })
         expect(response.status).toBe(422);
@@ -2153,7 +2108,7 @@ describe('Brkts - PUT, PATCH, DELETE API: /api/brkts', () => {
       const response = await axios({
         method: "patch",
         withCredentials: true,
-        url: url + "/" + testBrkt.id,
+        url: oneBrktUrl + testBrkt.id,
         data: brktJSON
       })
       expect(response.status).toBe(200);
@@ -2168,7 +2123,7 @@ describe('Brkts - PUT, PATCH, DELETE API: /api/brkts', () => {
     
   });
 
-  describe('DELETE by ID - API: /api/brkts/:id', () => { 
+  describe('DELETE by ID - API: /api/brkts/brkt/:id', () => { 
 
     const toDelBrkt = {
       ...initBrkt,
@@ -2195,11 +2150,7 @@ describe('Brkts - PUT, PATCH, DELETE API: /api/brkts', () => {
     afterEach(async () => {
       if (!didDel) return;
       try {
-        const restoredDiv = {
-          ...toDelBrkt,
-          id: postSecret + 'brk_400737cab3584ab7a59b7a4411da4474',
-        }
-        const brktJSON = JSON.stringify(restoredDiv);
+        const brktJSON = JSON.stringify(toDelBrkt);
         const response = await axios({
           method: 'post',
           data: brktJSON,
@@ -2216,7 +2167,7 @@ describe('Brkts - PUT, PATCH, DELETE API: /api/brkts', () => {
         const delResponse = await axios({
           method: "delete",
           withCredentials: true,
-          url: url + "/" + toDelBrkt.id,
+          url: oneBrktUrl + toDelBrkt.id,
         })  
         didDel = true;
         expect(delResponse.status).toBe(200);
@@ -2233,7 +2184,7 @@ describe('Brkts - PUT, PATCH, DELETE API: /api/brkts', () => {
         const delResponse = await axios({
           method: "delete",
           withCredentials: true,
-          url: url + "/" + 'test',
+          url: oneBrktUrl + 'test',
         })  
         expect(delResponse.status).toBe(404);
       } catch (err) {
@@ -2249,7 +2200,7 @@ describe('Brkts - PUT, PATCH, DELETE API: /api/brkts', () => {
         const delResponse = await axios({
           method: "delete",
           withCredentials: true,
-          url: url + "/" + notFoundId,
+          url: oneBrktUrl + notFoundId,
         })  
         expect(delResponse.status).toBe(404);
       } catch (err) {
@@ -2265,7 +2216,7 @@ describe('Brkts - PUT, PATCH, DELETE API: /api/brkts', () => {
         const delResponse = await axios({
           method: "delete",
           withCredentials: true,
-          url: url + "/" + nonBrktId
+          url: oneBrktUrl + nonBrktId
         })  
         expect(delResponse.status).toBe(404);
       } catch (err) {
@@ -2276,12 +2227,13 @@ describe('Brkts - PUT, PATCH, DELETE API: /api/brkts', () => {
         }
       }
     })
+    
     // it('should NOT delete a brkt by ID when brkt has child rows', async () => { 
     //   try {
     //     const delResponse = await axios({
     //       method: "delete",
     //       withCredentials: true,
-    //       url: url + "/" + testBrkt.id
+    //       url: oneBrktUrl + testBrkt.id
     //     })  
     //     expect(delResponse.status).toBe(409);
     //   } catch (err) {
@@ -2292,8 +2244,6 @@ describe('Brkts - PUT, PATCH, DELETE API: /api/brkts', () => {
     //     }
     //   }
     // })
-
-
 
   })
   

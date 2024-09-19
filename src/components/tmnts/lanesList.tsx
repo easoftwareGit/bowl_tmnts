@@ -152,11 +152,11 @@ const LanesList: FC<LanesListProps> = (props) => {
       {/* style width is in pixels */}
       <div
         className="d-flex justify-content-start lanes_table"
-        style={{ width: 150 }}
+        style={{ width: 175 }}
       >
         <table className="table table-striped table-hover w-100">
           <thead>
-            <tr>
+            <tr className="lanes-header-row">
               <th scope="col">
                 Lanes
               </th>

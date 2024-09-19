@@ -5,6 +5,7 @@ import {
   todayStr,
   dateTo_UTC_yyyyMMdd,
   dateTo_yyyyMMdd,
+  dateTo_UTC_MMddyyyy,
   startOfDayFromString,
   nowOnDayFromString,
   endOfDayFromString,
@@ -168,6 +169,14 @@ export const Form6: React.FC = () => {
           <input
             type="text"
             className="form-control"
+            id="dateTo_UTC_MMddyyyy"
+            name="dateTo_UTC_MMddyyyy"
+            value={"dateTo_UTC_MMddyyyy()"}
+            readOnly
+          />
+          <input
+            type="text"
+            className="form-control"
             id="startOfDayUTC"
             name="startofTodayUTC"
             value={"startofTodayUTC()"}
@@ -240,6 +249,14 @@ export const Form6: React.FC = () => {
             id="soddateTo_yyyyMMdd"
             name="soddateTo_yyyyMMdd"
             value={dateTo_yyyyMMdd(formData.sod)}
+            readOnly
+          />
+          <input
+            type="text"
+            className="form-control"
+            id="soddateTo_UTC_MMddyyyy"
+            name="soddateTo_UTC_MMddyyyy"
+            value={dateTo_UTC_MMddyyyy(formData.sod)}
             readOnly
           />
           <input
@@ -322,6 +339,14 @@ export const Form6: React.FC = () => {
           <input
             type="text"
             className="form-control"
+            id="eoddateTo_UTC_MMddyyyy"
+            name="eoddateTo_UTC_MMddyyyy"
+            value={dateTo_UTC_MMddyyyy(formData.eod)}
+            readOnly
+          />
+          <input
+            type="text"
+            className="form-control"
             id="startOfTodayUTCeod"
             name="startOfTodayUTCeod"
             value={startOfTodayUTC().toString()}
@@ -394,6 +419,14 @@ export const Form6: React.FC = () => {
             id="nddateTo_yyyyMMdd"
             name="nddateTo_yyyyMMdd"
             value={dateTo_yyyyMMdd(formData.nd)}
+            readOnly
+          />
+          <input
+            type="text"
+            className="form-control"
+            id="nddateTo_UTC_MMddyyyy"
+            name="nddateTo_UTC_MMddyyyy"
+            value={dateTo_UTC_MMddyyyy(formData.nd)}
             readOnly
           />
           <input

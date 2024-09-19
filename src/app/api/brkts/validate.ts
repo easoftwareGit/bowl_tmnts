@@ -6,7 +6,6 @@ import {
   minGames,
   maxGames,
   isNumber,
-  validPostId,
 } from "@/lib/validation";
 import { sanitizeCurrency } from "@/lib/sanitize";
 import { validMoney } from "@/lib/currency/validate";
@@ -20,9 +19,9 @@ import { blankBrkt, defaultBrktGames, defaultBrktPlayers } from "@/lib/db/initVa
  * @returns {ErrorCode.MissingData | ErrorCode.None | ErrorCode.OtherError} - error code
  */
 const gotBrktData = (brkt: brktType): ErrorCode => {
-  try {
-    if (!brkt) return ErrorCode.MissingData;
-    if (
+  try {    
+    if (!brkt ||
+      !brkt.id ||
       !brkt.div_id ||
       !brkt.squad_id ||
       typeof brkt.start !== "number" ||
@@ -143,6 +142,9 @@ export const validBrktFkId = (FkId: string, idType: idTypes): boolean => {
 const validBrktData = (brkt: brktType): ErrorCode => {
   try {
     if (!brkt) return ErrorCode.InvalidData;
+    if (!isValidBtDbId(brkt.id, 'brk')) {
+      return ErrorCode.InvalidData
+    }
     if (!isValidBtDbId(brkt.div_id, "div")) {
       return ErrorCode.InvalidData;
     }
@@ -200,7 +202,7 @@ export const sanitizeBrkt = (brkt: brktType): brktType => {
     players: null as any,
     sort_order: null as any,
   };
-  if (brkt.id === '' || isValidBtDbId(brkt.id, "brk") || validPostId(brkt.id, "brk")) {
+  if (isValidBtDbId(brkt.id, "brk")) {
     sanitizedBrkt.id = brkt.id;
   }
   if (validBrktFkId(brkt.div_id, "div")) {

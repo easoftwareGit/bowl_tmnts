@@ -11,30 +11,6 @@ import { mockPrismaBowls } from "../../../mocks/bowls/mockBowls";
 
 describe('bowls.tsx', () => { 
 
-  // describe('getBowlsPrisma()', () => { 
-  //   it('should return all bowls data', async () => {
-  //     prismaMock.bowl.findMany.mockResolvedValue(mockPrismaBowls);
-  //     const result = await getBowls();
-  //     expect(result).toEqual(mockPrismaBowls);
-  //     expect(prismaMock.bowl.findMany).toHaveBeenCalled();
-  //   });
-  //   it('should return and empty array when no data to return', async () => {
-  //     prismaMock.bowl.findMany.mockResolvedValue([]);
-  //     const result = await getBowls();
-  //     expect(result).toEqual([]);
-  //     expect(prismaMock.bowl.findMany).toHaveBeenCalled();
-  //   });
-  //   it('should return error when network or server issues cause a request failure', async () => {
-  //     prismaMock.bowl.findMany.mockRejectedValue(new Error('Network Error'));
-  //     try {
-  //       const result = await getBowls();
-  //       expect(result).toEqual([]);
-  //     } catch (error: any) {
-  //       expect(error.message).toEqual('Network Error');
-  //     }
-  //   });
-  // })
-
   describe('findBowlByIdPrisma()', () => { 
     // do NOT test if findUserByIdPrisma finds the bowl,
     // test if findUserByIdPrisma uses prisma findUnique

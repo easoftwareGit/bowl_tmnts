@@ -10,10 +10,10 @@ import {
 } from "@/app/api/users/validate";
 import { userType } from "@/lib/types/types";
 import { mockUser } from "../../../mocks/tmnts/mockTmnt";
-import { ErrorCode, validPostId } from "@/lib/validation";
-import { postSecret } from "@/lib/tools";
+import { ErrorCode } from "@/lib/validation";
 
 const userId = 'usr_5bcefb5d314fff1ff5da6521a2fa7bde';
+const nonUserId = 'bwl_5bcefb5d314fff1ff5da6521a2fa7bde';
 
 const { gotUserData, validUserData } = exportedForTesting;
 
@@ -95,7 +95,13 @@ describe("user table data validation", () => {
       };
       expect(gotUserData(testUser, false, true)).toBe(ErrorCode.MissingData);
     });
-        
+    it("should return ErrorCode.MissingData when no role", () => {
+      const testUser: userType = {
+        ...mockUser,
+        role: "" as any,
+      };
+      expect(gotUserData(testUser, true, true)).toBe(ErrorCode.MissingData);
+    });        
   });
 
   describe('validUserFirstName function', () => {
@@ -212,7 +218,7 @@ describe("user table data validation", () => {
     })
   });
 
-  describe('valueUserPassword function', () => { 
+  describe('validUserPassword function', () => { 
     it('should return true when password is valid', () => { 
       expect(validUserPassword("Test123!")).toBe(true);
     });
@@ -314,6 +320,14 @@ describe("user table data validation", () => {
       expect(validUserPassword(testUser.password)).toBe(false);
       expect(validUserData(testUser, true, true)).toBe(ErrorCode.InvalidData);
     });
+    it("should return ErrorCode.InvalidData when role is invalid", () => {
+      const testUser: userType = {
+        ...mockUser,        
+        role: "Test" as any,
+      };            
+      expect(validUserData(testUser, false, false)).toBe(ErrorCode.InvalidData);
+    });
+
   });
 
   describe('validateUser function, test both gotUserData AND validUserData', () => {
@@ -332,6 +346,13 @@ describe("user table data validation", () => {
         password_hash: "",
       };
       expect(validateUser(testUser, false, false)).toBe(ErrorCode.None);
+    });
+    it("should return ErrorCode.MissingData when user is missing id", () => {
+      const testUser: userType = {
+        ...mockUser,
+        id: "",
+      };
+      expect(validateUser(testUser, true, true)).toBe(ErrorCode.MissingData);
     });
     it("should return ErrorCode.MissingData when user is missing first name", () => {
       const testUser: userType = {
@@ -376,7 +397,6 @@ describe("user table data validation", () => {
       };
       expect(validateUser(testUser, true, true)).toBe(ErrorCode.MissingData);
     })
-
     it("should return ErrorCode.InvalidData when user has invalid first name", () => {
       const testUser: userType = {
         ...mockUser,
@@ -424,35 +444,39 @@ describe("user table data validation", () => {
     //   email: "john.doe@example.com",
     //   phone: "(800) 555-1234",
     //   password: "Test123!",
+    //   role: "USER",
     // };
     it("should return a sanitized user object - no sanitizing", () => {
       const testUser: userType = {
         ...mockUser,
-        id: '',
+        id: userId,
         first_name: "John-Paul",
         last_name: "Jones Doe",
         phone: "1+8005551234",
       };
       const sanitized = sanitizeUser(testUser);
-      expect(sanitized.id).toEqual("");
+      expect(sanitized.id).toEqual(userId);
       expect(sanitized.first_name).toEqual("John-Paul");
       expect(sanitized.last_name).toEqual("Jones Doe");
       expect(sanitized.phone).toEqual("+18005551234");
+      expect(sanitized.email).toEqual(mockUser.email);
+      expect(sanitized.role).toEqual(mockUser.role);
     });
-    it('should return a sanitized user when user has an id', () => { 
-      const testUser: userType = {
-        ...mockUser,        
-      };
-      const sanitized = sanitizeUser(testUser);
-      expect(sanitized.id).toEqual(mockUser.id);
-    })
-    it('should return a sanitized user when user has a post id', () => { 
+    it('should return a sanitized user when user id is invalid', () => { 
       const testUser: userType = {
         ...mockUser,
-        id: postSecret + userId,
+        id: "<script>alert(1)</script>",
       };
       const sanitized = sanitizeUser(testUser);
-      expect(sanitized.id).toEqual(postSecret + userId);
+      expect(sanitized.id).toEqual("");
+    })
+    it('should return a sanitized user when user id is a valid id, but not a user id', () => { 
+      const testUser: userType = {
+        ...mockUser,
+        id: nonUserId,
+      };
+      const sanitized = sanitizeUser(testUser);
+      expect(sanitized.id).toEqual("");
     })
     it('should return a sanitized user when user has an invalid id', () => { 
       const testUser: userType = {
@@ -500,32 +524,15 @@ describe("user table data validation", () => {
       const sanitized = sanitizeUser(testUser);
       expect(sanitized.phone).toEqual("");
     })
+    it('should return a sanitized user when role is invalid', () => { 
+      const testUser: userType = {
+        ...mockUser,
+        role: "<script>alert(1)</script>" as any,
+      };
+      const sanitized = sanitizeUser(testUser);
+      expect(sanitized.role).toEqual("USER");
+    })
 
   });
-
-  describe("validate validPostId function", () => { 
-    const testUserId = 'usr_a1b2c3d4e5f678901234567890abcdef'
-    it('should return true when id starts with postSecret and follows with a valid BtDb id', () => {
-      const validId = postSecret + testUserId;
-      expect(validPostId(validId, 'usr')).toBe(testUserId);
-    });
-    it('should return false when id starts with postSecret but does idType does not match idtype in postId', () => {
-      const invalidId = postSecret + testUserId;
-      expect(validPostId(invalidId, 'bwl')).toBe('');
-    });
-    it('should return false when id starts with postSecret but does idType is invalid', () => {
-      const invalidId = postSecret + testUserId;
-      expect(validPostId(invalidId, '123' as any)).toBe('');
-    });
-    it('should return false when id starts with postSecret but does not follow with valid BtDb idType', () => {
-      const invalidId = postSecret + 'abc_a1b2c3d4e5f678901234567890abcdef';
-      expect(validPostId(invalidId, 'usr')).toBe('');
-    });
-    it('should return false when id does not start with postSecret', () => {
-      const invalidId = testUserId;
-      expect(validPostId(invalidId, 'usr')).toBe('');
-    });
-
-  })
 
 });

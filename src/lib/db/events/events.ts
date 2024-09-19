@@ -9,14 +9,10 @@ import { prisma } from "@/lib/prisma"; // for production & developemnt
 
 import {
   ErrorCode,
-  isValidBtDbId,
-  validPositiveInt,
-  validPostId,
+  isValidBtDbId,  
 } from "@/lib/validation";
-import { eventDataType, eventType } from "@/lib//types/types";
-import { initEvent } from "../initVals";
+import { eventType } from "@/lib//types/types";
 import { sanitizeEvent, validateEvent } from "@/app/api/events/validate";
-import { postSecret } from "@/lib/tools";
 
 /**
  * finds one event by searching for a matching event id
@@ -65,17 +61,7 @@ export const validateEvents = (events: eventType[]): ErrorCode => {
     const errCode = validateEvent(toPost);
     if (errCode !== ErrorCode.None) {
       return errCode;
-    }
-    // all events must have a blank id, temp init id, valid id or postSecret + valid id
-    if (
-      events[i].id === "" ||
-      validPositiveInt(events[i].id) ||
-      isValidBtDbId(events[i].id, "evt") ||
-      validPostId(events[i].id, "evt") !== ""
-    ) {
-      return ErrorCode.None;
-    }
-    return ErrorCode.InvalidData;
+    }    
     i++;
   }
   return ErrorCode.None;

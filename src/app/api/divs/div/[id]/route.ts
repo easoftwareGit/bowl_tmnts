@@ -1,10 +1,9 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { ErrorCode, isValidBtDbId } from "@/lib/validation";
-import { sanitizeDiv, validateDiv } from "../validate";
+import { sanitizeDiv, validateDiv } from "../../validate";
 import { divType, HdcpForTypes } from "@/lib/types/types";
 import { initDiv } from "@/lib/db/initVals";
-import { findDivById } from "@/lib/db/divs/divs";
 
 // routes /api/divs/:id
 
@@ -109,10 +108,10 @@ export async function PUT(
     let errStatus: number;
     switch (err.code) {
       case "P2002": // unique constraint
-        errStatus = 422;
+        errStatus = 404;
         break;
       case "P2003": // foreign key constraint
-        errStatus = 422;
+        errStatus = 404;
         break;
       case "P2025": // record not found
         errStatus = 404;
@@ -138,14 +137,18 @@ export async function PATCH(
       return NextResponse.json({ error: "not found" }, { status: 404 });
     }
 
-    const json = await request.json();
-    // populate toCheck with json
-    const jsonProps = Object.getOwnPropertyNames(json);
-
-    const currentDiv = await findDivById(id);
+    const currentDiv = await prisma.div.findUnique({
+      where: {
+        id: id,
+      },
+    });    
     if (!currentDiv) {
       return NextResponse.json({ error: "not found" }, { status: 404 });
     }
+
+    const json = await request.json();
+    // populate toCheck with json
+    const jsonProps = Object.getOwnPropertyNames(json);    
     const toCheck: divType = {
       ...initDiv,
       tmnt_id: currentDiv.tmnt_id, 
@@ -247,10 +250,10 @@ export async function PATCH(
     let errStatus: number;
     switch (err.code) {
       case "P2002": // unique constraint
-        errStatus = 422;
+        errStatus = 404;
         break;
       case "P2003": // foreign key constraint
-        errStatus = 422;
+        errStatus = 404;
         break;
       default:
         errStatus = 500;

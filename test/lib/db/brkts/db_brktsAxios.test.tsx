@@ -24,12 +24,12 @@ import { postBrkt } from "@/lib/db/brkts/brktsAxios";
 const url = testBaseBrktsApi.startsWith("undefined")
   ? baseBrktsApi
   : testBaseBrktsApi;    
+const oneBrktUrl = url + "/brkt/";    
 
 describe('postDiv', () => { 
 
   const brktToPost = {
-    ...initBrkt,
-    id: '',
+    ...initBrkt,    
     squad_id: "sqd_3397da1adc014cf58c44e07c19914f72",
     div_id: "div_66d39a83d7a84a8c85d28d8d1b2c7a90",
     sort_order: 1,    
@@ -43,45 +43,44 @@ describe('postDiv', () => {
     fsa: '32',
   }
 
-  let createdBrktId = '';
+  let createdBrkt = false;
 
-  beforeAll(async () => { 
+  const deletePostedBrbkt = async () => { 
     const response = await axios.get(url);
     const brkts = response.data.brkts;
-    const toDel = brkts.find((b: brktType) => b.fee === '4');
+    const toDel = brkts.find((b: brktType) => b.fee === '3');
     if (toDel) {
       try {
         const delResponse = await axios({
           method: "delete",
           withCredentials: true,
-          url: url + "/" + toDel.id
-        });
+          url: oneBrktUrl + toDel.id          
+        });        
       } catch (err) {
         if (err instanceof AxiosError) console.log(err.message);
       }
     }
+  }
+
+  beforeAll(async () => { 
+    await deletePostedBrbkt();
   })
 
   beforeEach(() => {
-    createdBrktId = "";
+    createdBrkt = false;
   })
 
   afterEach(async () => {
-    if (createdBrktId) {
-      const delResponse = await axios({
-        method: "delete",
-        withCredentials: true,
-        url: url + "/" + createdBrktId,
-      });
+    if (createdBrkt) {
+      await deletePostedBrbkt();
     }
-    createdBrktId = "";
   })
 
   it('should post a brkt', async () => { 
     const postedBrkt = await postBrkt(brktToPost);
     expect(postedBrkt).not.toBeNull();
     if(!postedBrkt) return;
-    createdBrktId = postedBrkt.id;
+    createdBrkt = true;
     expect(postedBrkt.squad_id).toBe(brktToPost.squad_id);
     expect(postedBrkt.div_id).toBe(brktToPost.div_id);    
     expect(postedBrkt.start).toBe(brktToPost.start);
@@ -101,6 +100,5 @@ describe('postDiv', () => {
     const postedDiv = await postBrkt(invalidBrkt);
     expect(postedDiv).toBeNull();
   })
-
 
 })

@@ -73,8 +73,14 @@ export function sanitizeUrl(url: string): string {
 }
 
 export function sanitizeCurrency(currency: string): string {
-
   if (!currency) return "";
+  if (typeof currency !== "string") {
+    if (typeof currency === "number") {
+      currency = (currency as number).toString();
+    } else {
+      return "";
+    }
+  }
   
   // Regular expression to match a number with 0, 1, or 2 digits after an optional decimal point
   const regex = /^\d+(\.\d{1,2})?$/;

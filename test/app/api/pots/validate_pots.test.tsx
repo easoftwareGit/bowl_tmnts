@@ -8,8 +8,7 @@ import {
 } from "@/app/api/pots/validate";
 import { initPot } from "@/lib/db/initVals";
 import { PotCategories, potType } from "@/lib/types/types";
-import { ErrorCode, validPostId } from "@/lib/validation";
-import { postSecret } from "@/lib/tools";
+import { ErrorCode } from "@/lib/validation";
 
 const { gotPotData, validPotData } = exportedForTesting;
 
@@ -102,7 +101,8 @@ describe("tests for pot validation", () => {
       expect(validPotMoney('')).toBe(false);
       expect(validPotMoney('0')).toBe(false);
       expect(validPotMoney('0.99')).toBe(false);
-      expect(validPotMoney('0.0005')).toBe(false);      
+      expect(validPotMoney('0.0005')).toBe(false);
+      expect(validPotMoney('1.0005')).toBe(true);
       expect(validPotMoney('1234567890')).toBe(false);
       expect(validPotMoney('$5.55')).toBe(false);
       expect(validPotMoney('5,55')).toBe(false);
@@ -113,6 +113,10 @@ describe("tests for pot validation", () => {
       expect(validPotMoney('(5.55)')).toBe(false)
       expect(validPotMoney('abc')).toBe(false);
       expect(validPotMoney('<script>alert(1)</script>' as any)).toBe(false);
+      expect(validPotMoney(10 as any)).toBe(true);
+      expect(validPotMoney(10.1 as any)).toBe(true);
+      expect(validPotMoney(10.12 as any)).toBe(true);
+      expect(validPotMoney(10.123 as any)).toBe(true);
     })
     it('should return false when passed null', () => {
       expect(validPotMoney(null as any)).toBe(false);
@@ -239,14 +243,6 @@ describe("tests for pot validation", () => {
       }
       const sanitizedPot = sanitizePot(testPot)
       expect(sanitizedPot.id).toEqual(potId)
-    })
-    it('should return sanitized pot when pot has a post id', () => {
-      const testPot = {
-        ...validPot,
-        id: postSecret + potId,
-      }
-      const sanitizedPot = sanitizePot(testPot)
-      expect(sanitizedPot.id).toEqual(postSecret + potId)
     })
     it('should return sanitized pot when pot has an invalidid', () => {
       const testPot = {
@@ -406,33 +402,5 @@ describe("tests for pot validation", () => {
       })
     })
   })
-
-  describe("validPostId function", () => {
-    const testPotId = "pot_cb97b73cb538418ab993fc867f860510";
-    it("should return testPotId when id starts with post Secret and follows with a valid pot id", () => {
-      const validId = postSecret + testPotId;
-      expect(validPostId(validId, "pot")).toBe(testPotId);
-    });
-    it('should return "" when id starts with postSecret but does idType does not match idtype in postId', () => {
-      const invalidId = postSecret + testPotId;
-      expect(validPostId(invalidId, "usr")).toBe("");
-    });
-    it('should return "" when id starts with postSecret but does idType is invalid', () => {
-      const invalidId = postSecret + testPotId;
-      expect(validPostId(invalidId, "123" as any)).toBe("");
-    });
-    it('should return "" when id starts with postSecret but does not follow with valid BtDb idType', () => {
-      const invalidId = postSecret + "abc_a1b2c3d4e5f678901234567890abcdef";
-      expect(validPostId(invalidId, "pot")).toBe("");
-    });
-    it('should return "" when id starts with postSecret but does not follow with a valid BtDb id', () => {
-      const invalidId = postSecret + "evt_invalidid";
-      expect(validPostId(invalidId, "pot")).toBe("");
-    });
-    it('should return "" when id does not start with postSecret', () => {
-      const invalidId = testPotId;
-      expect(validPostId(invalidId, "pot")).toBe("");
-    });
-  });
 
 })

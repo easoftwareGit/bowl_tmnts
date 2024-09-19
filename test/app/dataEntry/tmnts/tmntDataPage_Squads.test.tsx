@@ -797,7 +797,7 @@ describe('TmntDataPage - Squads Component', () => {
 
     beforeAll(() => {
       mockFullTmnt.squads[0].games = 0;
-      mockFullTmnt.squads[1].squad_date = new Date(Date.UTC(3000, 0, 1));  // month is -1 
+      mockFullTmnt.squads[1].squad_date = startOfDayFromString('3000-01-01') as Date
     })
 
     afterAll(() => {

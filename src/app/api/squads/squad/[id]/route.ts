@@ -4,7 +4,7 @@ import { ErrorCode, isValidBtDbId } from "@/lib/validation";
 import { sanitizeSquad, validateSquad } from "@/app/api/squads/validate";
 import { squadType } from "@/lib/types/types";
 import { initSquad } from "@/lib/db/initVals";
-import { findSquadById } from "@/lib/db/squads/squads";
+import { removeTimeFromISODateStr, startOfDayFromString } from "@/lib/dateTools";
 
 // routes /api/squads/:id
 
@@ -51,6 +51,9 @@ export async function PUT(
       squad_time,
       sort_order,
     } = await request.json();
+
+    const squadDateStr = removeTimeFromISODateStr(squad_date);
+
     const toCheck: squadType = {
       ...initSquad,
       event_id,
@@ -58,12 +61,13 @@ export async function PUT(
       games,
       starting_lane,
       lane_count,
-      squad_date,
+      squad_date: startOfDayFromString(squadDateStr) as Date,
       squad_time,
       sort_order,
     };
 
-    const errCode = validateSquad(toCheck);
+    const toPut = sanitizeSquad(toCheck);
+    const errCode = validateSquad(toPut);
     if (errCode !== ErrorCode.None) {
       let errMsg: string;
       switch (errCode) {
@@ -79,8 +83,7 @@ export async function PUT(
       }
       return NextResponse.json({ error: errMsg }, { status: 422 });
     }
-
-    const toPut = sanitizeSquad(toCheck);
+    
     const squad = await prisma.squad.update({
       where: {
         id: id,
@@ -133,8 +136,12 @@ export async function PATCH(
     const json = await request.json();
     // populate toCheck with json
     const jsonProps = Object.getOwnPropertyNames(json);
-
-    const currentSquad = await findSquadById(id);
+    
+    const currentSquad = await prisma.squad.findUnique({
+      where: {
+        id: id,
+      },
+    });    
     if (!currentSquad) {
       return NextResponse.json({ error: "not found" }, { status: 404 });
     }
@@ -167,7 +174,8 @@ export async function PATCH(
       toCheck.lane_count = json.lane_count;
     }
     if (jsonProps.includes("squad_date")) {
-      toCheck.squad_date = json.squad_date;
+      const squadDateStr = removeTimeFromISODateStr(json.squad_date);
+      toCheck.squad_date = startOfDayFromString(squadDateStr) as Date;
     }
     if (jsonProps.includes("squad_time")) {
       toCheck.squad_time = json.squad_time;
@@ -176,7 +184,8 @@ export async function PATCH(
       toCheck.sort_order = json.sort_order;
     }
 
-    const errCode = validateSquad(toCheck);
+    const toBePatched = sanitizeSquad(toCheck);
+    const errCode = validateSquad(toBePatched);
     if (errCode !== ErrorCode.None) {
       let errMsg: string;
       switch (errCode) {
@@ -192,8 +201,7 @@ export async function PATCH(
       }
       return NextResponse.json({ error: errMsg }, { status: 422 });
     }
-
-    const toBePatched = sanitizeSquad(toCheck);
+    
     let gotSquadTime = undefined;
     const toPatch = {      
       event_id: "", 

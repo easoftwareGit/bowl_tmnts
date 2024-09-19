@@ -8,17 +8,17 @@ import {
   exportedForTesting,   
 } from "@/app/api/bowls/validate";
 import { initBowl } from "@/lib/db/initVals";
-import { postSecret } from "@/lib/tools";
 import { bowlType } from "@/lib/types/types";
-import { ErrorCode, maxUrlLength, validPostId } from "@/lib/validation";
+import { ErrorCode, maxUrlLength } from "@/lib/validation";
 
 const { gotBowlData, validBowlData } = exportedForTesting;
 
 const bowlId = 'bwl_561540bd64974da9abdd97765fdb3659';
+const userId = 'use_561540bd64974da9abdd97765fdb365a';
 
 const validBowl = {
   ...initBowl,
-  id: '1',
+  id: bowlId,
   bowl_name: 'Valid Bowl Name',
   city: 'Valid City',
   state: 'VS',
@@ -33,104 +33,74 @@ describe("bowl table data validation", () => {
       expect(result).toBe(ErrorCode.None);
     });
 
+    it('should return ErrorCode.MissingData when id is an empty string', () => {
+      const invalidBowl = {
+        ...validBowl,
+        id: '',
+      }
+      const result = gotBowlData(invalidBowl);
+      expect(result).toBe(ErrorCode.MissingData);
+    });
     it('should return ErrorCode.MissingData when bowl_name is an empty string', () => {
       const invalidBowl = {
-        ...initBowl,
-        id: '1',
+        ...validBowl,
         bowl_name: '',
-        city: 'Valid City',
-        state: 'VS',
-        url: 'https://valid.com'
       }
       const result = gotBowlData(invalidBowl);
       expect(result).toBe(ErrorCode.MissingData);
-    });
-            
+    });            
     it('should return ErrorCode.MissingData when city is an empty string', () => {
       const invalidBowl = {
-        ...initBowl,
-        id: '1',
-        bowl_name: 'Valid Bowl Name',
+        ...validBowl,
         city: '',
-        state: 'VS',
-        url: 'https://valid.com'
       }
       const result = gotBowlData(invalidBowl);
       expect(result).toBe(ErrorCode.MissingData);
-    });
-    
+    });    
     it('should return ErrorCode.MissingData when state is an empty string', () => {
       const invalidBowl = {
-        ...initBowl,
-        id: '1',
-        bowl_name: 'Valid Bowl Name',
-        city: 'Valid City',
+        ...validBowl,
         state: '',
-        url: 'https://valid.com'
       }
       const result = gotBowlData(invalidBowl);
       expect(result).toBe(ErrorCode.MissingData);
-    });
-    
+    });    
     it('should return ErrorCode.MissingData when URL is an empty string', () => {
       const invalidBowl = {
-        ...initBowl,
-        id: '1',
-        bowl_name: 'Valid Bowl Name',
-        city: 'Valid City',
-        state: 'VS',
+        ...validBowl,
         url: ''
       }
       const result = gotBowlData(invalidBowl);
       expect(result).toBe(ErrorCode.MissingData);
-    });
-    
+    });    
     it('should return ErrorCode.MissingData when bowl_name contains only special characters', () => {
       const invalidBowl = {
-        ...initBowl,
-        id: '1',
+        ...validBowl,
+        id: bowlId,
         bowl_name: '!!!',
-        city: 'Valid City',
-        state: 'VS',
-        url: 'https://valid.com'
       }
       const result = gotBowlData(invalidBowl);
       expect(result).toBe(ErrorCode.MissingData);
-    });
-    
+    });    
     it('should return ErrorCode.MissingData when city contains only special characters', () => {
       const invalidBowl = {
-        ...initBowl,
-        id: '1',
-        bowl_name: 'Valid Bowl Name',
+        ...validBowl,
         city: '***',
-        state: 'VS',
-        url: 'https://valid.com'
       }
       const result = gotBowlData(invalidBowl);
       expect(result).toBe(ErrorCode.MissingData);
     });
-
     it('should return ErrorCode.MissingData when state contains only special characters', () => {
       const invalidBowl = {
-        ...initBowl,
-        id: '1',
-        bowl_name: 'Valid Bowl Name',
-        city: 'Valid City',
+        ...validBowl,
         state: '!$%^&',
-        url: 'https://valid.com'
       }
       const result = gotBowlData(invalidBowl);
       expect(result).toBe(ErrorCode.MissingData);
     });
-
     it('should return ErrorCode.MissingData when URL contains invalid URL', () => {
       const invalidBowl = {
-        ...initBowl,
-        id: '1',
-        bowl_name: 'Valid Bowl Name',
-        city: 'Valid City',
-        state: 'VS',
+        ...validBowl,
         url: 'invalidUrl'
       }
       const result = gotBowlData(invalidBowl);
@@ -144,7 +114,7 @@ describe("bowl table data validation", () => {
 
     it('should return ErrorCode.None when all fields are properly sanitized', () => {
       const validBowl: bowlType = {
-        id: '1',
+        id: bowlId,
         bowl_name: ' Valid Bowl Name ',
         city: ' Valid City ',
         state: ' VS ',
@@ -162,55 +132,46 @@ describe("bowl table data validation", () => {
       const result = validBowlName(validName);
       expect(result).toBe(true);
     });
-
     it('should return false for empty string', () => {
       const emptyName = "";
       const result = validBowlName(emptyName);
       expect(result).toBe(false);
     });
-
     it('should return false for bowl name exceeding max length', () => {
       const invalidName = "This is a very long bowl name that exceeds the maximum length allowed";
       const result = validBowlName(invalidName);
       expect(result).toBe(false);
     });
-
     it('should return true with special characters removed', () => {
       const validName = "Valid Bowl Name!@#$";
       const result = validBowlName(validName);
       expect(result).toBe(true);
     });
-
     it('should return true for bowl name with spaces trimmed', () => {
       const validName = "  Valid Bowl Name ";
       const result = validBowlName(validName);
       expect(result).toBe(true);
-    });
-    
+    });    
     it('should return true for valid bowl name with URL encoded characters decoded', () => {
       const validName = "Valid%20Bowl%20Name";
       const result = validBowlName(validName);
       expect(result).toBe(true);
-    });
-    
+    });    
     it('should return true when bowl name string contains HTML tags (tags removed)', () => {
       const validName = "<script>alert('hello')</script>";
       const result = validBowlName(validName);
       expect(result).toBe(true);
-    });
-    
+    });    
     it('should return true when state string contains newline characters (newline characters removed)', () => {
       const validName = "Test\nbowl";
       const result = validBowlName(validName);
       expect(result).toBe(true);
     });
-
     it('should return false for bowl name with only spaces', () => {
       const invalidName = "     ";
       const result = validBowlName(invalidName);
       expect(result).toBe(false);
-    });
-    
+    });    
     it('should return false for null input', () => {
       const result = validBowlName(null as any);
       expect(result).toBe(false);
@@ -223,38 +184,32 @@ describe("bowl table data validation", () => {
       const city = "San Francisco";
       const result = validCity(city);
       expect(result).toBe(true);
-    });
-    
+    });    
     it('should return false when city name is empty', () => {
       const city = "";
       const result = validCity(city);
       expect(result).toBe(false);
     });
-
     it('should return false when city name exceeds max length limit with a longer city name', () => {
       const city = "A very long city name that exceeds the limit";
       const result = validCity(city);
       expect(result).toBe(false);
     });
-
     it('should return true when city name with special characters removed', () => {
       const city = "San Francisco!";
       const result = validCity(city);
       expect(result).toBe(true);
     });
-    
     it('should return true when city name is within length limit and leading/trailing spaces are trimmed', () => {
       const city = "  New York  ";
       const result = validCity(city);
       expect(result).toBe(true);
-    });
-    
+    });    
     it('should return true when city name with URL-encoded characters decoded is within length limit', () => {
       const city = "San%20Francisco";
       const result = validCity(city);
       expect(result).toBe(true);
     });
-
     it('should return true when city string contains HTML tags (tags removed)', () => {
       const city = "<script>alert('hello')</script>";       
       const result = validCity(city); // sanitized to alert'hello'
@@ -266,13 +221,11 @@ describe("bowl table data validation", () => {
       const result = validCity(city);
       expect(result).toBe(true);
     });
-
     it('should return false when city name has only spaces', () => {
       const city = "     ";
       const result = validCity(city);
       expect(result).toBe(false);
-    });
-        
+    });        
     it('should return false when city is null', () => {      
       const result = validCity(null as any);
       expect(result).toBe(false);
@@ -284,67 +237,56 @@ describe("bowl table data validation", () => {
       const state = "Texas";
       const result = validState(state);
       expect(result).toBe(true);
-    });
-    
+    });    
     it('should return false when state string is empty', () => {
       const state = "";
       const result = validState(state);
       expect(result).toBe(false);
-    });
-    
+    });    
     it('should return true when state string is exactly at max length', () => {
       const state = "Texas";
       const result = validState(state);
       expect(result).toBe(true);
     });
-
     it('should return false when state string exceeds max length', () => {
       const state = "CaliforniaLong";
       const result = validState(state);
       expect(result).toBe(false);
     });
-
     it('should return true with special characters removed', () => {
       const state = "VS!@#$";
       const result = validState(state);
       expect(result).toBe(true);
     });
-
     it('should return true when state string has leading/trailing spaces', () => {
       const state = "   VS   ";
       const result = validState(state);
       expect(result).toBe(true);
     });
-
     it('should return true for state with URL encoded characters decoded', () => {
       const state = "%20VS%20";
       const result = validState(state);
       expect(result).toBe(true);
     });
-    
     it('should return false when state string contains HTML tags', () => {
       const state = "<script>alert('hello')</script>";
       const result = validState(state);
       expect(result).toBe(false); // over max length
-    });
-    
+    });    
     it('should return true when state string contains newline characters', () => {
       const state = "N\nY";
       const result = validState(state);
       expect(result).toBe(true);
     });
-
     it('should return false when state string contains only spaces', () => {
       const state = "     ";
       const result = validState(state);
       expect(result).toBe(false);
     });
-
     it('should return false for null input', () => {
       const result = validState(null as any);
       expect(result).toBe(false);
     });    
-
   })
 
   describe('validUrl function', () => { 
@@ -353,168 +295,143 @@ describe("bowl table data validation", () => {
       const result = validUrl(url);
       expect(result).toBe(true);
     });
-
     it('should return false for empty URL', () => {
       const url = '';
       const result = validUrl(url);
       expect(result).toBe(false);
     });
-
     it('should return false for URL exceeding max length', () => {
       const url = 'http://example.com/' + 'a'.repeat(maxUrlLength);
       const result = validUrl(url);
       expect(result).toBe(false);
-    });
-    
+    });  
     it('should return true for valid HTTP URL within max length after sanitization', () => {
       const url = 'http://example.com?a=1&b=2';
       const result = validUrl(url);
       expect(result).toBe(true);
     });
-    
     it('should return true for valid HTTP URL with fragment within max length', () => {
       const url = '  http://example.com  ';
       const result = validUrl(url);
       expect(result).toBe(true);
-    });    
-    
+    });
     it('should return false for URL with only domain and no protocol', () => {
       const url = 'example.com';
       const result = validUrl(url);
       expect(result).toBe(false);
     });
-
     it('should return false for malformed URL', () => {
       const url = 'invalidurl';
       const result = validUrl(url);
       expect(result).toBe(false);
     });
-
     it('should return false for url with only spaces', () => {
       const url = "     ";
       const result = validUrl(url);
       expect(result).toBe(false);
     });
-    
     it('should return false for null input', () => {
       const result = validUrl(null as any);
       expect(result).toBe(false);
     });    
-
   })
   
   describe('validBowlData function', () => { 
     it('should return ErrorCode.None when all bowl data fields are within maximum lengths', () => {
-      const validBowl = {
-        id: '1',
-        bowl_name: 'Valid Bowl',
-        city: 'Valid City',
-        state: 'VS',
-        url: 'http://valid.url'
-      };
       const result = validBowlData(validBowl);
       expect(result).toBe(ErrorCode.None);
     });
-    
+    it('should return ErrorCode.InvalidData when id is empty', () => {
+      const invalidBowl = {
+        ...validBowl,
+        id: '',        
+      };
+      const result = validBowlData(invalidBowl);
+      expect(result).toBe(ErrorCode.InvalidData);
+    });
     it('should return ErrorCode.InvalidData when bowl name is empty', () => {
       const invalidBowl = {
-        id: '1',
+        ...validBowl,
         bowl_name: '',
-        city: 'Valid City',
-        state: 'VS',
-        url: 'http://valid.url'
       };
       const result = validBowlData(invalidBowl);
       expect(result).toBe(ErrorCode.InvalidData);
-    });
-    
+    });    
     it('should return ErrorCode.InvalidData when bowl name exceeds max length', () => {
       const invalidBowl = {
-        id: '1',
+        ...validBowl,
         bowl_name: 'This bowl name is way too long and should exceed the maximum length allowed',
-        city: 'Valid City',
-        state: 'VS',
-        url: 'http://valid.url'
       };
       const result = validBowlData(invalidBowl);
       expect(result).toBe(ErrorCode.InvalidData);
-    });
-    
+    });    
     it('should return ErrorCode.InvalidData when city is empty', () => {
       const invalidBowl = {
-        id: '1',
-        bowl_name: 'Invalid Bowl',
+        ...validBowl,
         city: '',
-        state: 'VS',
-        url: 'http://invalid.url'
       };
       const result = validBowlData(invalidBowl);
       expect(result).toBe(ErrorCode.InvalidData);
-    });
-    
+    });    
     it('should return ErrorCode.InvalidData when city length exceeds maximum allowed', () => {
       const invalidCityLengthBowl = {
-        id: '1',
-        bowl_name: 'Invalid Bowl',
+        ...validBowl,
         city: 'City Name Exceeding Maximum Length',
-        state: 'VS',
-        url: 'http://valid.url'
       };
       const result = validBowlData(invalidCityLengthBowl);
       expect(result).toBe(ErrorCode.InvalidData);
-    });
-    
+    });    
     it('should return ErrorCode.InvalidData when state is empty', () => {
       const invalidBowl = {
-        id: '1',
-        bowl_name: 'Invalid Bowl',
-        city: 'Invalid City',
+        ...validBowl,
         state: '',
-        url: 'http://invalid.url'
       };
       const result = validBowlData(invalidBowl);
       expect(result).toBe(ErrorCode.InvalidData);
     });
-
     it('should return ErrorCode.InvalidData when state exceeds max length', () => {
       const invalidBowl = {
-        id: '1',
-        bowl_name: 'Invalid Bowl',
-        city: 'Invalid City',
+        ...validBowl,
         state: 'ThisStateNameIsTooLongAndExceedsTheMaximumAllowedLength',
-        url: 'http://invalid.url'
       };
       const result = validBowlData(invalidBowl);
       expect(result).toBe(ErrorCode.InvalidData);
-    });
-   
+    });   
     it('should return ErrorCode.InvalidData when url is empty', () => {
       const invalidBowl = {
-        id: '1',
-        bowl_name: 'Invalid Bowl',
-        city: 'Invalid City',
-        state: 'VS',
+        ...validBowl,
         url: ''
       };
       const result = validBowlData(invalidBowl);
       expect(result).toBe(ErrorCode.InvalidData);
-    });
-        
+    });        
     it('should return ErrorCode.InvalidData when url exceeds max length', () => {
-      const invalidUrl = 'http://'.repeat(maxUrlLength); // creating a url that exceeds max length
+      const invalidUrl = 'http://' + 'a'.repeat(maxUrlLength) + '.com'; // creating a url that exceeds max length
       const invalidBowl = {
-        id: '1',
-        bowl_name: 'Valid Bowl',
-        city: 'Valid City',
-        state: 'VS',
+        ...validBowl,
         url: invalidUrl
       };
       const result = validBowlData(invalidBowl);
       expect(result).toBe(ErrorCode.InvalidData);
     });
-
-    it('should return ErrorCode.InvalidData when bowl_name is missing', () => {
+    it('should return ErrorCode.MissingData when id is invalid', () => {
       const invalidBowl = {
+        ...validBowl,
+        id: 'test',
+      }
+      const result = validBowlData(invalidBowl);
+      expect(result).toBe(ErrorCode.InvalidData);
+    });
+    it('should return ErrorCode.MissingData when id is valid, but not a bowl id', () => {
+      const invalidBowl = {
+        ...validBowl,
+        id: userId,
+      }
+      const result = validBowlData(invalidBowl);
+      expect(result).toBe(ErrorCode.InvalidData);
+    });
+    it('should return ErrorCode.InvalidData when bowl_name is missing', () => {
+      const invalidBowl = {        
         id: '1',
         city: 'Valid City',
         state: 'VS',
@@ -526,11 +443,8 @@ describe("bowl table data validation", () => {
 
     it('should return ErrorCode.None when bowl name contains special characters, but still ok length', () => {
       const invalidBowl = {
-        id: '1',
+        ...validBowl,
         bowl_name: 'Invalid Bowl$',
-        city: 'Valid City',
-        state: 'VS',
-        url: 'http://valid.url'
       };
       const result = validBowlData(invalidBowl);
       expect(result).toBe(ErrorCode.None);
@@ -540,32 +454,14 @@ describe("bowl table data validation", () => {
   describe('sanitizeBowl function', () => { 
     it('should make not changed to bowl object when all properties are already sanitized', () => { 
       const testBowl = {
-        ...validBowl,
-        id: '',
-        url: 'https://valid.com'
+        ...validBowl,                
       }
       const sanitizedBowl = sanitizeBowl(testBowl);
-      expect(sanitizedBowl.id).toEqual('');
+      expect(sanitizedBowl.id).toEqual(bowlId);
       expect(sanitizedBowl.bowl_name).toEqual('Valid Bowl Name');
       expect(sanitizedBowl.city).toEqual('Valid City');
       expect(sanitizedBowl.state).toEqual('VS');
       expect(sanitizedBowl.url).toEqual('https://valid.com');
-    })
-    it('should return a sanitized bowl when bowl has an id', () => { 
-      const testBowl = {
-        ...validBowl,
-        id: bowlId,
-      }
-      const sanitizedBowl = sanitizeBowl(testBowl);
-      expect(sanitizedBowl.id).toEqual(bowlId);
-    })
-    it('should return a sanitized bowl when bowl has a post id', () => { 
-      const testBowl = {
-        ...validBowl,
-        id: postSecret + bowlId,
-      }
-      const sanitizedBowl = sanitizeBowl(testBowl);
-      expect(sanitizedBowl.id).toEqual(postSecret + bowlId);
     })
     it('should return a sanitized bowl when bowl has an invalid id', () => { 
       const testBowl = {
@@ -577,14 +473,14 @@ describe("bowl table data validation", () => {
     })
     it('should remove unwanted characters from bowl_name, city, and state', () => {
       const testBowl = {    
-        id: '1',
+        ...validBowl,
         bowl_name: 'Test<bowl>',
         city: 'City<script>',
         state: 'State<alert>',
         url: 'http://example.com'
       };
       const sanitizedBowl = sanitizeBowl(testBowl);      
-      expect(sanitizedBowl.id).toBe('');
+      expect(sanitizedBowl.id).toBe(bowlId);
       expect(sanitizedBowl.bowl_name).toBe('Test');
       expect(sanitizedBowl.city).toBe('City');
       expect(sanitizedBowl.state).toBe('State');
@@ -592,10 +488,7 @@ describe("bowl table data validation", () => {
     });    
     it('should sanitize a valid URL when calling sanitizeBowl', () => {
       const testBowl = {
-        id: '1',
-        bowl_name: 'Test Bowl',
-        city: 'City',
-        state: 'State',
+        ...validBowl,
         url: 'http://example.com'
       };
       const sanitizedBowl = sanitizeBowl(testBowl);
@@ -604,28 +497,30 @@ describe("bowl table data validation", () => {
     
     it('should return a bowl object with the same structure as the input', () => {
       const testBowl = {
-        id: '1',
+        ...validBowl,
         bowl_name: 'Test<bowl>',
         city: 'City<script>',
         state: 'State<alert>',
         url: 'http://example.com'
       };
       const sanitizedBowl = sanitizeBowl(testBowl);
+      expect(sanitizedBowl.id).toBe(bowlId);
       expect(sanitizedBowl.bowl_name).toBe('Test');
       expect(sanitizedBowl.city).toBe('City');
       expect(sanitizedBowl.state).toBe('State');
       expect(sanitizedBowl.url).toBe('http://example.com');
     });
     
-    it('should handle empty strings in bowl_name, city, state, and url gracefully', () => {
+    it('should handle empty strings in id, bowl_name, city, state, and url gracefully', () => {
       const testBowl = {
-        id: '1',
+        id: '',
         bowl_name: '',
         city: '',
         state: '',
         url: ''
       };
       const sanitizedBowl = sanitizeBowl(testBowl);
+      expect(sanitizedBowl.id).toBe('');
       expect(sanitizedBowl.bowl_name).toBe('');
       expect(sanitizedBowl.city).toBe('');
       expect(sanitizedBowl.state).toBe('');
@@ -634,7 +529,7 @@ describe("bowl table data validation", () => {
 
     it('should handle strings with HTML tags in bowl_name, city, and state', () => {
       const testBowl = {
-        id: '1',
+        ...validBowl,
         bowl_name: 'Test<bowl>',
         city: 'City<script>',
         state: 'State<alert>',
@@ -648,7 +543,7 @@ describe("bowl table data validation", () => {
     
     it('should handle strings with special characters like parentheses, asterisks, and plus signs', () => {
       const testBowl = {
-        id: '1',
+        ...validBowl,
         bowl_name: 'Test(bowl)*&',
         city: 'City(bowl)*@',
         state: 'S(T)*#',
@@ -662,7 +557,7 @@ describe("bowl table data validation", () => {
     });
     it('should sanitize url', () => {
       const testBowl = {
-        id: '1',
+        ...validBowl,
         bowl_name: 'Testbowl',
         city: 'Citybowl',
         state: 'ST',
@@ -684,19 +579,19 @@ describe("bowl table data validation", () => {
         expect(result).toBe(ErrorCode.None);
       });
       it('should return ErrorCode.None when all fields are properly sanitized', () => {
-        const validBowl: bowlType = {
-          id: '1',
+        const testBowl: bowlType = {
+          ...validBowl,
           bowl_name: ' Valid Bowl Name ',
           city: ' Valid City ',
           state: ' VS ',
           url: ' https://valid.url '
         };
-        const result = validateBowl(validBowl);
+        const result = validateBowl(testBowl);
         expect(result).toBe(ErrorCode.None);
       });  
       it('should return ErrorCode.None when bowl name contains special characters, but still ok length', () => {
         const invalidBowl = {
-          id: '1',
+          ...validBowl,
           bowl_name: 'Invalid Bowl$',
           city: 'Valid City',
           state: 'VS',
@@ -704,15 +599,12 @@ describe("bowl table data validation", () => {
         };
         const result = validateBowl(invalidBowl);
         expect(result).toBe(ErrorCode.None);
-      });
-  
+      });  
     })
-
     describe('validateBowl function - missing data', () => {
       it('should return ErrorCode.MissingData when bowl_name is an empty string', () => {
         const invalidBowl = {
-          ...initBowl,
-          id: '1',
+          ...validBowl,          
           bowl_name: '',
           city: 'Valid City',
           state: 'VS',
@@ -720,12 +612,10 @@ describe("bowl table data validation", () => {
         }
         const result = validateBowl(invalidBowl);
         expect(result).toBe(ErrorCode.MissingData);
-      });
-              
+      });              
       it('should return ErrorCode.MissingData when city is an empty string', () => {
         const invalidBowl = {
-          ...initBowl,
-          id: '1',
+          ...validBowl,          
           bowl_name: 'Valid Bowl Name',
           city: '',
           state: 'VS',
@@ -733,12 +623,10 @@ describe("bowl table data validation", () => {
         }
         const result = validateBowl(invalidBowl);
         expect(result).toBe(ErrorCode.MissingData);
-      });
-      
+      });      
       it('should return ErrorCode.MissingData when state is an empty string', () => {
         const invalidBowl = {
-          ...initBowl,
-          id: '1',
+          ...validBowl,          
           bowl_name: 'Valid Bowl Name',
           city: 'Valid City',
           state: '',
@@ -747,11 +635,9 @@ describe("bowl table data validation", () => {
         const result = validateBowl(invalidBowl);
         expect(result).toBe(ErrorCode.MissingData);
       });
-      
       it('should return ErrorCode.MissingData when URL is an empty string', () => {
         const invalidBowl = {
-          ...initBowl,
-          id: '1',
+          ...validBowl,          
           bowl_name: 'Valid Bowl Name',
           city: 'Valid City',
           state: 'VS',
@@ -760,11 +646,9 @@ describe("bowl table data validation", () => {
         const result = validateBowl(invalidBowl);
         expect(result).toBe(ErrorCode.MissingData);
       });
-      
       it('should return ErrorCode.MissingData when bowl_name contains only special characters', () => {
         const invalidBowl = {
-          ...initBowl,
-          id: '1',
+          ...validBowl,          
           bowl_name: '!!!',
           city: 'Valid City',
           state: 'VS',
@@ -772,12 +656,10 @@ describe("bowl table data validation", () => {
         }
         const result = validateBowl(invalidBowl);
         expect(result).toBe(ErrorCode.MissingData);
-      });
-      
+      });      
       it('should return ErrorCode.MissingData when city contains only special characters', () => {
         const invalidBowl = {
-          ...initBowl,
-          id: '1',
+          ...validBowl,          
           bowl_name: 'Valid Bowl Name',
           city: '***',
           state: 'VS',
@@ -786,11 +668,9 @@ describe("bowl table data validation", () => {
         const result = validateBowl(invalidBowl);
         expect(result).toBe(ErrorCode.MissingData);
       });
-
       it('should return ErrorCode.MissingData when state contains only special characters', () => {
         const invalidBowl = {
-          ...initBowl,
-          id: '1',
+          ...validBowl,          
           bowl_name: 'Valid Bowl Name',
           city: 'Valid City',
           state: '!$%^&',
@@ -799,11 +679,9 @@ describe("bowl table data validation", () => {
         const result = validateBowl(invalidBowl);
         expect(result).toBe(ErrorCode.MissingData);
       });
-
       it('should return ErrorCode.MissingData when URL contains invalid URL', () => {
         const invalidBowl = {
-          ...initBowl,
-          id: '1',
+          ...validBowl,          
           bowl_name: 'Valid Bowl Name',
           city: 'Valid City',
           state: 'VS',
@@ -811,20 +689,18 @@ describe("bowl table data validation", () => {
         }
         const result = validateBowl(invalidBowl);
         expect(result).toBe(ErrorCode.MissingData);
-      });
-      
+      });      
       it('should return ErrorCode.MissingData when bowl object is null', () => {
         const result = validateBowl(null as any);
         expect(result).toBe(ErrorCode.MissingData);
-      });
-      
+      });      
     })
 
     describe('validateBowl function - invalid data', () => { 
 
       it('should return ErrorCode.InvalidData when bowl name exceeds max length', () => {
         const invalidBowl = {
-          id: '1',
+          ...validBowl,
           bowl_name: 'This bowl name is way too long and should exceed the maximum length allowed',
           city: 'Valid City',
           state: 'VS',
@@ -832,11 +708,10 @@ describe("bowl table data validation", () => {
         };
         const result = validateBowl(invalidBowl);
         expect(result).toBe(ErrorCode.InvalidData);
-      });
-  
+      });  
       it('should return ErrorCode.InvalidData when city length exceeds maximum allowed', () => {
         const invalidCityLengthBowl = {
-          id: '1',
+          ...validBowl,
           bowl_name: 'Invalid Bowl',
           city: 'City Name Exceeding Maximum Length',
           state: 'VS',
@@ -844,11 +719,10 @@ describe("bowl table data validation", () => {
         };
         const result = validateBowl(invalidCityLengthBowl);
         expect(result).toBe(ErrorCode.InvalidData);
-      });
-  
+      });  
       it('should return ErrorCode.InvalidData when state exceeds max length', () => {
         const invalidBowl = {
-          id: '1',
+          ...validBowl,
           bowl_name: 'Invalid Bowl',
           city: 'Invalid City',
           state: 'ThisStateNameIsTooLongAndExceedsTheMaximumAllowedLength',
@@ -856,12 +730,11 @@ describe("bowl table data validation", () => {
         };
         const result = validateBowl(invalidBowl);
         expect(result).toBe(ErrorCode.InvalidData);
-      });
-  
+      });  
       it('should return ErrorCode.MissingData when url exceeds max length', () => {
         const invalidUrl = 'http://test.com/' + 'a'.repeat(maxUrlLength); // creating a url that exceeds max length
         const invalidBowl = {
-          id: '',
+          ...validBowl,
           bowl_name: 'Valid Bowl',
           city: 'Valid City',
           state: 'VS',
@@ -874,31 +747,4 @@ describe("bowl table data validation", () => {
     })
   })
 
-  describe("validPostId function", () => { 
-    const testBowlId = 'bwl_a1b2c3d4e5f678901234567890abcdef'
-    it('should return testBowlId when id starts with postSecret and follows with a valid BtDb id', () => {
-      const validId = postSecret + testBowlId;
-      expect(validPostId(validId, 'bwl')).toBe(testBowlId);
-    });
-    it('should return false when id starts with postSecret but does idType does not match idtype in postId', () => {
-      const invalidId = postSecret + testBowlId;
-      expect(validPostId(invalidId, 'usr')).toBe('');
-    });
-    it('should return false when id starts with postSecret but does idType is invalid', () => {
-      const invalidId = postSecret + testBowlId;
-      expect(validPostId(invalidId, '123' as any)).toBe('');
-    });
-    it('should return false when id starts with postSecret but does not follow with valid BtDb idType', () => {
-      const invalidId = postSecret + 'abc_a1b2c3d4e5f678901234567890abcdef';
-      expect(validPostId(invalidId, 'bwl')).toBe('');
-    });
-    it('should return false when id starts with postSecret but does not follow with a valid BtDb id', () => {
-      const invalidId = process.env.POST_SECRET + 'bwl_invalidid';
-      expect(validPostId(invalidId, 'bwl')).toBe('');
-    });
-    it('should return false when id does not start with postSecret', () => {
-      const invalidId = testBowlId;
-      expect(validPostId(invalidId, 'bwl')).toBe('');
-    });
-  })
 })

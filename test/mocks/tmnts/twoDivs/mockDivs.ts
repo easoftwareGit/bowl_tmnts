@@ -1,9 +1,10 @@
 import { divType, squadType, potType, brktType, elimType } from "@/lib/types/types";
 import { defaultBrktGames, defaultBrktPlayers, defaultElimGames, initElim } from "@/lib/db/initVals";
 import { initPot, initBrkt } from "@/lib/db/initVals";
-import { startOfDayFromString, todayStr } from "@/lib/dateTools";
+import { todayStr } from "@/lib/dateTools";
 import { Div, Pot, Brkt, Elim } from "@prisma/client";
 import { Decimal } from "@prisma/client/runtime/library";
+import { startOfToday } from "date-fns";
 
 export const mockDivs: divType[] = [
   {
@@ -81,7 +82,7 @@ export const mockSquads: squadType[] = [
     lane_count_err: "",
     starting_lane: 1,
     starting_lane_err: "",
-    squad_date: startOfDayFromString(todayStr) as Date, 
+    squad_date: startOfToday(),
     squad_date_str: todayStr,
     squad_date_err: "",
     squad_time: "10:00",

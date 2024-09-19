@@ -5,6 +5,7 @@ import { tmntSaveTmnt, exportedForTesting } from "@/app/dataEntry/tmnt/saveTmnt"
 import { mockTmnt } from "../../../mocks/tmnts/twoDivs/mockTmnt"; 
 import { initEvents, initDivs, initTmnt } from "@/lib/db/initVals";
 import {  tmntType } from "@/lib/types/types";
+import { startOfDayFromString } from "@/lib/dateTools";
 
 const { tmntPutTmnt } = exportedForTesting;
 
@@ -185,8 +186,8 @@ describe('saveTmnt', () => {
         user_id: "usr_5bcefb5d314fff1ff5da6521a2fa7bde",
         tmnt_name: "Gold Pin",
         bowl_id: "bwl_561540bd64974da9abdd97765fdb3659",
-        start_date: new Date(Date.UTC(2022, 9, 23)),  // month is -1
-        end_date: new Date(Date.UTC(2022, 9, 23)),    // month is -1
+        start_date: startOfDayFromString('2022-10-23') as Date,
+        end_date: startOfDayFromString('2022-10-23') as Date,
       }
 
       let puttedId = '';
@@ -215,8 +216,8 @@ describe('saveTmnt', () => {
           ...resetTmnt,                
           tmnt_name: 'Test Tournament',
           bowl_id: 'bwl_8b4a5c35ad1247049532ff53a12def0a',
-          start_date: new Date(Date.UTC(2021, 8, 22)),  // month is -1
-          end_date: new Date(Date.UTC(2021, 8, 22)),    // month is -1  
+          start_date: startOfDayFromString('2021-09-22') as Date,
+          end_date: startOfDayFromString('2021-09-22') as Date,
         }
         const didPut = await tmntPutTmnt(toPutTmnt);
         expect(didPut).toBe(true);

@@ -7,8 +7,7 @@ import {
   maxGames,
   ErrorCode,
   maxMoney,
-  validSortOrder,
-  validPostId,
+  validSortOrder,  
 } from "@/lib/validation";
 import { sanitize, sanitizeCurrency } from "@/lib/sanitize";
 import { validMoney } from "@/lib/currency/validate";
@@ -26,6 +25,7 @@ const gotEventData = (event: eventType): ErrorCode => {
   try {
     if (!event) return ErrorCode.MissingData;
     if (
+      !event.id ||
       !event.tmnt_id ||
       !sanitize(event.event_name) ||
       typeof event.team_size !== "number" ||
@@ -180,7 +180,7 @@ export const sanitizeEvent = (event: eventType): eventType => {
     games: null as any,
     sort_order: null as any,
   };
-  if (event.id === '' || isValidBtDbId(event.id, "evt") || validPostId(event.id, "evt")) {
+  if (isValidBtDbId(event.id, "evt")) {
     sanitizedEvent.id = event.id;
   }
   if (validEventFkId(event.tmnt_id, "tmt")) {

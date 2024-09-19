@@ -13,6 +13,7 @@ import {
   validSortOrder,
   maxSortOrder,
   validPositiveInt,
+  isValidRole,
 } from "@/lib/validation";
 import { initDiv, initEvent } from "@/lib/db/initVals";
 
@@ -202,6 +203,35 @@ describe("tests for validation functions", () => {
       ).toBe(false);
     });
   });
+
+  describe('isValidRole function', () => { 
+    it('should return true when the input string is a valid role', () => {
+      const result = isValidRole('ADMIN');
+      expect(result).toBe(true);
+    });    
+    it('should return false when the input string is empty', () => {      
+      const result = isValidRole('');
+      expect(result).toBe(false);
+    });
+    it('should return false when the input string is an invalid role', () => {
+        const result = isValidRole('invalid');
+        expect(result).toBe(false);
+    });
+    it('should return false when the input string is null', () => {
+      const result = isValidRole(null as any);
+      expect(result).toBe(false);
+    });
+    // input string is in a different case (e.g., uppercase vs lowercase)
+    it('should return false when the input string is a valid role in different case', () => {      
+      const result = isValidRole('Admin');
+      expect(result).toBe(false);
+    });
+    // input string has leading or trailing spaces
+    it('should return true when the input string has leading spaces', () => {
+      const result = isValidRole('  ADMIN');
+      expect(result).toBe(false);
+    });
+  })
 
   describe("validPostId function", () => {
     const testUserId = "usr_1234567890abcdef1234567890abcdef";
