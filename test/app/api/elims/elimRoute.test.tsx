@@ -194,13 +194,13 @@ describe("Elims - API: /api/elims", () => {
       expect(response.status).toBe(201);
       const postedElim = response.data.elim;
       createdElim = true;
+      expect(postedElim.div_id).toBe(elimToPost.div_id);
       expect(postedElim.squad_id).toBe(elimToPost.squad_id);
       expect(postedElim.div_id).toBe(elimToPost.div_id);
       expect(postedElim.start).toBe(elimToPost.start);
       expect(postedElim.games).toBe(elimToPost.games);
       expect(postedElim.fee).toBe(elimToPost.fee);
       expect(postedElim.sort_order).toBe(elimToPost.sort_order);
-      expect(isValidBtDbId(postedElim.id, "elm")).toBeTruthy();
     });
     it("should NOT create a new elim when squad_id is blank", async () => {
       const invalidElim = {

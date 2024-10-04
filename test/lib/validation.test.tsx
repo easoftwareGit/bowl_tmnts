@@ -8,8 +8,7 @@ import {
   isValidBtDbType,
   isOdd,
   isEven,
-  isNumber,
-  validPostId,
+  isNumber,  
   validSortOrder,
   maxSortOrder,
   validPositiveInt,
@@ -232,47 +231,6 @@ describe("tests for validation functions", () => {
       expect(result).toBe(false);
     });
   })
-
-  describe("validPostId function", () => {
-    const testUserId = "usr_1234567890abcdef1234567890abcdef";
-    const validPostUserId = postSecret + testUserId;
-    it("should return postId when id starts with postSecret and ends with valid BtDb id", () => {
-      expect(validPostId(validPostUserId, "usr")).toBe(testUserId);
-    });
-    it("should return empty string when id is an empty string", () => {
-      expect(validPostId("", "usr")).toBe("");
-    });
-    it("should return empty string when id does not start with postSecret", () => {
-      const invalidId = "invalidSecret_abc_1234567890abcdef1234567890abcdef";
-      expect(validPostId(invalidId, "usr")).toBe("");
-    });
-    it("should return empty string when id starts with postSecret but ends with invalid BtDb id", () => {
-      const invalidId = `${postSecret}abc_invalidid`;
-      expect(validPostId(invalidId, "usr")).toBe("");
-    });
-    it("should return empty string when id starts with postSecret but idType not in postId", () => {
-      const invalidId = `${postSecret}abc_1234567890abcdef1234567890abcdef`;
-      expect(validPostId(invalidId, "usr")).toBe("");
-    });
-    it("should return empty string when id is blank", () => {
-      expect(validPostId("", "usr")).toBe("");
-    });
-    it("should return empty string when id is null", () => {
-      expect(validPostId(null as any, "usr")).toBe("");
-    });
-    it("should return empty string when id is undefined", () => {
-      expect(validPostId(undefined as any, "usr")).toBe("");
-    });
-    it("should return empty string when idType is blank", () => {
-      expect(validPostId(validPostUserId, "" as any)).toBe("");
-    });
-    it("should return empty string when id is null", () => {
-      expect(validPostId(validPostUserId, null as any)).toBe("");
-    });
-    it("should return empty string when id is undefined", () => {
-      expect(validPostId(validPostUserId, undefined as any)).toBe("");
-    });
-  });
 
   describe("validYear", () => {
     it("valid year should return true", () => {

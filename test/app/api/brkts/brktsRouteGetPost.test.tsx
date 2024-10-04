@@ -4,6 +4,8 @@ import { testBaseBrktsApi } from "../../../testApi";
 import { brktType } from "@/lib/types/types";
 import { initBrkt } from "@/lib/db/initVals";
 import { isValidBtDbId } from "@/lib/validation";
+import { sanitize } from "@/lib/sanitize";
+import { btDbUuid } from "@/lib/uuid";
 
 // before running this test, run the following commands in the terminal:
 // 1) clear and re-seed the database
@@ -180,14 +182,14 @@ describe('Brkts - GET and POST API: /api/brkts', () => {
       expect(response.status).toBe(201);
       const postedBrkt = response.data.brkt;
       createdBrkt = true;
+      expect(postedBrkt.id).toBe(brktToPost.id);
       expect(postedBrkt.squad_id).toBe(brktToPost.squad_id);
       expect(postedBrkt.div_id).toBe(brktToPost.div_id);
       expect(postedBrkt.fee).toBe(brktToPost.fee);
       expect(postedBrkt.first).toBe(brktToPost.first);
       expect(postedBrkt.second).toBe(brktToPost.second);
       expect(postedBrkt.admin).toBe(brktToPost.admin);
-      expect(postedBrkt.sort_order).toBe(brktToPost.sort_order);
-      expect(isValidBtDbId(postedBrkt.id, 'brk')).toBeTruthy();
+      expect(postedBrkt.sort_order).toBe(brktToPost.sort_order);      
     })
     it('should NOT create a new brkt when squad id is blank', async () => {
       const invalidBrkt: brktType = {
@@ -1232,6 +1234,7 @@ describe('Brkts - GET and POST API: /api/brkts', () => {
     it('should create a new brkt with sanitzed data', async () => { 
       const toSanitizeBrkt: brktType = {
         ...brktToPost,
+        id: btDbUuid('brk'),
         fee: '3.001',
         first: '15.002',
         second: '6.003',
@@ -1248,14 +1251,14 @@ describe('Brkts - GET and POST API: /api/brkts', () => {
       expect(response.status).toBe(201);
       const postedBrkt = response.data.brkt;
       createdBrkt = true;
+      expect(postedBrkt.id).toBe(toSanitizeBrkt.id); // use toSanitizedbrkt.id
       expect(postedBrkt.squad_id).toBe(brktToPost.squad_id);
       expect(postedBrkt.div_id).toBe(brktToPost.div_id);
       expect(postedBrkt.fee).toBe(brktToPost.fee);
       expect(postedBrkt.first).toBe(brktToPost.first);
       expect(postedBrkt.second).toBe(brktToPost.second);
       expect(postedBrkt.admin).toBe(brktToPost.admin);
-      expect(postedBrkt.sort_order).toBe(brktToPost.sort_order);
-      expect(isValidBtDbId(postedBrkt.id, 'brk')).toBeTruthy();
+      expect(postedBrkt.sort_order).toBe(brktToPost.sort_order);      
     })
 
   })

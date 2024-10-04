@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { ErrorCode, isValidBtDbId } from "@/lib/validation";
-import { sanitizeEvent, validateEvent } from "@/app/api/events/validate";
+import { allEventMoneyValid, sanitizeEvent, validateEvent } from "@/app/api/events/validate";
 import { eventType } from "@/lib/types/types";
 import { initEvent } from "@/lib/db/initVals";
 
@@ -74,7 +74,10 @@ export async function PUT(
       lpox,
       sort_order,
     };
-
+    
+    if (!allEventMoneyValid(toCheck)) {
+      return NextResponse.json({ error: "invalid data" }, { status: 422 });
+    }
     const toPut = sanitizeEvent(toCheck);
     const errCode = validateEvent(toPut);
     if (errCode !== ErrorCode.None) {
@@ -181,44 +184,59 @@ export async function PATCH(
       sort_order: currentEvent.sort_order,
     };
 
+    let gotDataToPatch = false;
     if (jsonProps.includes("event_name")) {
       toCheck.event_name = json.event_name;
-    }
-    if(jsonProps.includes("tmnt_id")) {
-      toCheck.tmnt_id = json.tmnt_id;
+      gotDataToPatch = true;
     }
     if (jsonProps.includes("team_size")) {
       toCheck.team_size = json.team_size;
+      gotDataToPatch = true;
     }
     if (jsonProps.includes("games")) {
       toCheck.games = json.games;
+      gotDataToPatch = true;
     }
     if (jsonProps.includes("added_money")) {
       toCheck.added_money = json.added_money;
+      gotDataToPatch = true;
     }
     if (jsonProps.includes("entry_fee")) {
       toCheck.entry_fee = json.entry_fee;
       toCheck.lpox = json.entry_fee;
+      gotDataToPatch = true;
     }
     if (jsonProps.includes("lineage")) {
       toCheck.lineage = json.lineage;
+      gotDataToPatch = true;
     }
     if (jsonProps.includes("prize_fund")) {
       toCheck.prize_fund = json.prize_fund;
+      gotDataToPatch = true;
     }
     if (jsonProps.includes("other")) {
       toCheck.other = json.other;
+      gotDataToPatch = true;
     }
     if (jsonProps.includes("expenses")) {
       toCheck.expenses = json.expenses;
+      gotDataToPatch = true;
     }
     if (jsonProps.includes("lpox")) {
       toCheck.lpox = json.lpox;
+      gotDataToPatch = true;
     }
     if (jsonProps.includes("sort_order")) {
       toCheck.sort_order = json.sort_order;
+      gotDataToPatch = true;
     }
 
+    if (!gotDataToPatch) {
+      return NextResponse.json({ event: currentEvent }, { status: 200 });
+    }
+    if (!allEventMoneyValid(toCheck)) {
+      return NextResponse.json({ error: "invalid data" }, { status: 422 });
+    }
     const toBePatched = sanitizeEvent(toCheck);
     const errCode = validateEvent(toBePatched);
     if (errCode !== ErrorCode.None) {
@@ -241,9 +259,9 @@ export async function PATCH(
     if (jsonProps.includes("event_name")) {
       toPatch.event_name = toBePatched.event_name;
     }
-    if(jsonProps.includes("tmnt_id")) {
-      toPatch.tmnt_id = toBePatched.tmnt_id;
-    }
+    // if(jsonProps.includes("tmnt_id")) {
+    //   toPatch.tmnt_id = toBePatched.tmnt_id;
+    // }
     if (jsonProps.includes("team_size")) {
       toPatch.team_size = toBePatched.team_size;
     } else {

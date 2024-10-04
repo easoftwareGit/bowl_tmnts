@@ -72,9 +72,9 @@ describe('postLane', () => {
     expect(postedLane).not.toBeNull();
     if (!postedLane) return;
     createdLane = true;
+    expect(postedLane.id).toBe(laneToPost.id);
     expect(postedLane.squad_id).toBe(laneToPost.squad_id);
-    expect(postedLane.lane_number).toBe(laneToPost.lane_number);
-    expect(isValidBtDbId(postedLane.id, 'lan')).toBeTruthy();
+    expect(postedLane.lane_number).toBe(laneToPost.lane_number);    
   })
   it('should NOT post a lane with invalid data', async () => { 
     const invalidLane = {

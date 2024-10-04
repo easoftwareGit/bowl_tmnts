@@ -192,12 +192,12 @@ describe('Pots - API: /api/pots', () => {
       expect(response.status).toBe(201);
       const postedPot = response.data.pot;
       createdPot = true;
+      expect(postedPot.id).toBe(potToPost.id);
       expect(postedPot.div_id).toBe(potToPost.div_id);
       expect(postedPot.squad_id).toBe(potToPost.squad_id);
       expect(postedPot.fee).toBe(potToPost.fee);
       expect(postedPot.pot_type).toBe(potToPost.pot_type);
-      expect(postedPot.sort_order).toBe(potToPost.sort_order);
-      expect(isValidBtDbId(postedPot.id, 'pot')).toBeTruthy();
+      expect(postedPot.sort_order).toBe(potToPost.sort_order);      
     })
     it('should create a new pot with a pot_type of "Last Game"', async () => {
       const lgPot = {

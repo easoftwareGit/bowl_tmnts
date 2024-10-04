@@ -2,7 +2,6 @@ import React from 'react';
 import { render, fireEvent, screen } from '@testing-library/react';
 import '@testing-library/jest-dom/extend-expect';
 import { Form8 } from '@/app/sample/form8';
-import { postTmnt } from '../../../src/lib/db/tmnts/tmntsAxios';
 
 // Mock the postTmnt function
 jest.mock('../../../src/lib/db/tmnts/tmntsAxios', () => ({

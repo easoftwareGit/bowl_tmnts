@@ -130,6 +130,8 @@ export const sanitizeDiv = (div: divType): divType => {
     ...blankDiv,
     hdcp_per: null as any,
     hdcp_from: null as any,
+    int_hdcp: null as any,
+    hdcp_for: "" as any,
     sort_order: null as any
   }
   if (isValidBtDbId(div.id, "div")) {

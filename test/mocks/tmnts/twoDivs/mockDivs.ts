@@ -1,5 +1,5 @@
 import { divType, squadType, potType, brktType, elimType } from "@/lib/types/types";
-import { defaultBrktGames, defaultBrktPlayers, defaultElimGames, initElim } from "@/lib/db/initVals";
+import { defaultBrktGames, defaultBrktPlayers, defaultElimGames, initDiv, initElim } from "@/lib/db/initVals";
 import { initPot, initBrkt } from "@/lib/db/initVals";
 import { todayStr } from "@/lib/dateTools";
 import { Div, Pot, Brkt, Elim } from "@prisma/client";
@@ -68,6 +68,68 @@ export const mockPrismaDivs: Div[] = [
   }
 ]
 
+export const tmntToDelId = 'tmt_e134ac14c5234d708d26037ae812ac33';
+export const mockDivsToPost: divType[] = [
+  {
+    ...initDiv,
+    id: "div_1f42042f9ef24029a0a2d48cc276a088", // changed last digit to make unique
+    tmnt_id: tmntToDelId,
+    div_name: "Scratch",
+    hdcp_per: 0,
+    hdcp_from: 230,
+    int_hdcp: true, 
+    hdcp_for: 'Game',
+    sort_order: 11,
+  },
+  {
+    ...initDiv,
+    id: "div_29b9225d8dd44a4eae276f8bde855728", // changed last digit to make unique
+    tmnt_id: tmntToDelId,
+    div_name: "50+ Scratch",
+    hdcp_per: 0,
+    hdcp_from: 230,
+    int_hdcp: true, 
+    hdcp_for: 'Game',
+    sort_order: 12,
+  }
+]
+
+export const mockDivsToEdit: divType[] = [
+  {
+    ...initDiv,
+    id: "div_578834e04e5e4885bbae79229d8b96e8",
+    tmnt_id: "tmt_fe8ac53dad0f400abe6354210a8f4cd1",
+    div_name: "Scratch",
+    hdcp_per: 0,
+    hdcp_from: 230,
+    int_hdcp: true, 
+    hdcp_for: 'Game',
+    sort_order: 1,
+  },
+  {
+    ...initDiv,
+    id: "div_24b1cd5dee0542038a1244fc2978e862",
+    tmnt_id: "tmt_fe8ac53dad0f400abe6354210a8f4cd1",
+    div_name: "Hdcp",
+    hdcp_per: 0.90,
+    hdcp_from: 230,
+    int_hdcp: true, 
+    hdcp_for: 'Game',
+    sort_order: 2,
+  },
+  {
+    ...initDiv,
+    id: "div_fe72ab97edf8407186c8e6df7f7fb741",
+    tmnt_id: "tmt_fe8ac53dad0f400abe6354210a8f4cd1",
+    div_name: "Hdcp 50+",
+    hdcp_per: 0.90,
+    hdcp_from: 230,
+    int_hdcp: true, 
+    hdcp_for: 'Game',
+    sort_order: 3,
+  }    
+]
+
 export const mockSquads: squadType[] = [
   {
     id: "sqd_e214ede16c5c46a4950e9a48bfeef61a",
@@ -94,15 +156,11 @@ export const mockSquads: squadType[] = [
 
 export const mockPots: potType[] = [
   {
-    ...initPot,
-  },
-  {
     id: 'pot_f7935dec9e8b46148d6f1a6637daebf5',
     div_id: "div_578834e04e5e4885bbae79229d8b96e8",
     squad_id: '1',
     pot_type: 'Game',
-    pot_type_err: '',
-    div_name: 'Scratch',
+    pot_type_err: '',    
     div_err: '',
     fee: '20',
     fee_err: '',
@@ -114,8 +172,7 @@ export const mockPots: potType[] = [
     div_id: "div_578834e04e5e4885bbae79229d8b96e8",
     squad_id: '1',
     pot_type: 'Last Game',
-    pot_type_err: '',
-    div_name: 'Scratch',
+    pot_type_err: '',    
     div_err: '',
     fee: '10',
     fee_err: '',
@@ -127,8 +184,7 @@ export const mockPots: potType[] = [
     div_id: "div_24b1cd5dee0542038a1244fc2978e862",
     squad_id: '1',
     pot_type: 'Game',
-    pot_type_err: '',
-    div_name: 'Hdcp',
+    pot_type_err: '',    
     div_err: '',
     fee: '20',
     fee_err: '',
@@ -140,8 +196,7 @@ export const mockPots: potType[] = [
     div_id: "div_24b1cd5dee0542038a1244fc2978e862",
     squad_id: '1',
     pot_type: 'Series',
-    pot_type_err: '',
-    div_name: 'Hdcp',
+    pot_type_err: '',    
     div_err: '',
     fee: '10',
     fee_err: '',
@@ -195,13 +250,9 @@ export const mockPrismaPots: Pot[] = [
 
 export const mockBrkts: brktType[] = [
   {
-    ...initBrkt,
-  },
-  {
     id: "brk_4ecc214095784c39a913137bd42737b6",
     div_id: "div_578834e04e5e4885bbae79229d8b96e8",  
-    squad_id: '',
-    div_name: 'Scratch',  
+    squad_id: '',    
     div_err: '',
     start: 1,
     start_err: '',
@@ -226,8 +277,7 @@ export const mockBrkts: brktType[] = [
   {
     id: "brk_6c972ea92dea41b79bc36e35ee7f63ea",
     div_id: "div_578834e04e5e4885bbae79229d8b96e8",  
-    squad_id: '',
-    div_name: 'Scratch',  
+    squad_id: '',    
     div_err: '',
     start: 4,
     start_err: '',
@@ -252,8 +302,7 @@ export const mockBrkts: brktType[] = [
   {
     id: "brk_a8886a6ef4ff4824aea699485a685bd2",
     div_id: "div_24b1cd5dee0542038a1244fc2978e862",
-    squad_id: '',
-    div_name: 'Hdcp',  
+    squad_id: '',    
     div_err: '',
     start: 1,
     start_err: '',
@@ -278,8 +327,7 @@ export const mockBrkts: brktType[] = [
   {
     id: "brk_8f4c85855b9a4576ba09435962bd3714",
     div_id: "div_24b1cd5dee0542038a1244fc2978e862",
-    squad_id: '',
-    div_name: 'Hdcp',  
+    squad_id: '',      
     div_err: '',
     start: 4,
     start_err: '',
@@ -365,13 +413,9 @@ export const mockPrismaBrkts: Brkt[] = [
 
 export const mockElims: elimType[] = [
   {
-    ...initElim,
-  },
-  {
     id: 'elm_8fe7ef034c8e4516993a49d7ab7df269',
     div_id: "div_578834e04e5e4885bbae79229d8b96e8",    
-    squad_id: '',
-    div_name: 'Scratch',  
+    squad_id: '',     
     div_err: '',
     fee: '10',
     fee_err: '',
@@ -385,8 +429,7 @@ export const mockElims: elimType[] = [
   {
     id: 'elm_d8fe96f2dab34bff9a60c3997cfacc02',
     div_id: "div_578834e04e5e4885bbae79229d8b96e8",    
-    squad_id: '',
-    div_name: 'Scratch',  
+    squad_id: '',    
     div_err: '',
     fee: '10',
     fee_err: '',
@@ -400,8 +443,7 @@ export const mockElims: elimType[] = [
   {
     id: 'elm_c6ac61110e1c46fe925911243fb89334',
     div_id: "div_24b1cd5dee0542038a1244fc2978e862",    
-    squad_id: '',
-    div_name: 'Hdcp',  
+    squad_id: '',      
     div_err: '',
     fee: '10',
     fee_err: '',
@@ -415,8 +457,7 @@ export const mockElims: elimType[] = [
   {
     id: 'elm_e32c25a2bf1340f5a76adf59157adcba',
     div_id: "div_24b1cd5dee0542038a1244fc2978e862",    
-    squad_id: '',
-    div_name: 'Hdcp',  
+    squad_id: '',     
     div_err: '',
     fee: '10',
     fee_err: '',

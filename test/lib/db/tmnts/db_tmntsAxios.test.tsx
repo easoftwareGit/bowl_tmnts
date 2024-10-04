@@ -3,9 +3,8 @@ import { baseTmntsApi } from "@/lib/db/apiPaths";
 import { testBaseTmntsApi } from "../../../testApi";
 import { tmntType } from "@/lib/types/types";
 import { initTmnt } from "@/lib/db/initVals";
-import { postTmnt } from "@/lib/db/tmnts/tmntsAxios";
+import { deleteTmnt, postTmnt, putTmnt } from "@/lib/db/tmnts/tmntsAxios";
 import { compareAsc, startOfToday } from "date-fns";
-import { isValidBtDbId } from "@/lib/validation";
 import { startOfDayFromString } from "@/lib/dateTools";
 
 // before running this test, run the following commands in the terminal:
@@ -89,8 +88,7 @@ describe("tmntsAxios", () => {
       const postedStartDate = new Date(postedTmnt.start_date);      
       expect(compareAsc(postedStartDate, tmntToPost.start_date)).toBe(0);
       const postedEndDate = new Date(postedTmnt.end_date);
-      expect(compareAsc(postedEndDate, tmntToPost.end_date)).toBe(0);
-      expect(isValidBtDbId(postedTmnt.id, "tmt")).toBeTruthy();
+      expect(compareAsc(postedEndDate, tmntToPost.end_date)).toBe(0);      
     });
 
     it("should NOT post a tmnt with invalid data", async () => {
@@ -104,7 +102,6 @@ describe("tmntsAxios", () => {
   });
 
   describe("putTmnt", () => {
-
     const tmntToPut = {
       ...initTmnt,
       id: "tmt_fd99387c33d9c78aba290286576ddce5",
@@ -116,74 +113,125 @@ describe("tmntsAxios", () => {
     };
 
     const putUrl = oneTmntUrl + tmntToPut.id;
+    
+    const resetTmnt = {
+      ...initTmnt,
+      id: "tmt_fd99387c33d9c78aba290286576ddce5",
+      user_id: "usr_5bcefb5d314fff1ff5da6521a2fa7bde",
+      tmnt_name: "Gold Pin",
+      bowl_id: "bwl_561540bd64974da9abdd97765fdb3659",
+      start_date: startOfDayFromString('2022-10-24') as Date,
+      end_date: startOfDayFromString('2022-10-24') as Date,
+    };
 
-    describe("putTmnt - success", () => {
-      const resetTmnt = {
-        ...initTmnt,
-        id: "tmt_fd99387c33d9c78aba290286576ddce5",
-        user_id: "usr_5bcefb5d314fff1ff5da6521a2fa7bde",
-        tmnt_name: "Gold Pin",
-        bowl_id: "bwl_561540bd64974da9abdd97765fdb3659",
-        start_date: startOfDayFromString('2022-10-24') as Date,
-        end_date: startOfDayFromString('2022-10-24') as Date,
-      };
-
-      afterEach(async () => {
-        const tmntJSON = JSON.stringify(resetTmnt);
-        const response = await axios({
-          method: "put",
-          data: tmntJSON,
-          withCredentials: true,
-          url: putUrl,
-        });
+    const doResetTmnt = async () => {
+      const tmntJSON = JSON.stringify(resetTmnt);
+      const response = await axios({
+        method: "put",
+        data: tmntJSON,
+        withCredentials: true,
+        url: putUrl,
       });
+    };
 
-      it("should put a tmnt", async () => {
-        const tmntJSON = JSON.stringify(tmntToPut);
-        const putResponse = await axios({
-          method: "put",
-          data: tmntJSON,
-          withCredentials: true,
-          url: putUrl,
-        });
-        const tmnt = putResponse.data.tmnt;
-        expect(putResponse.status).toBe(200);
-        expect(tmnt.tmnt_name).toBe(tmntToPut.tmnt_name);
-        expect(tmnt.bowl_id).toBe(tmntToPut.bowl_id);
-        expect(tmnt.user_id).toBe(tmntToPut.user_id);
-        expect(compareAsc(tmnt.start_date, tmntToPut.start_date)).toBe(0);
-        expect(compareAsc(tmnt.end_date, tmntToPut.end_date)).toBe(0);
-      });
+    let didPut = false;
 
+    beforeAll(async () => {
+      await doResetTmnt();
     });
 
-    describe("putTmnt - invalid data", () => {
+    beforeEach = () => {
+      didPut = false;
+    };
 
-      it("should NOT put a tmnt with invalid data", async () => {        
-        try {
-          const invalidTmnt = {
-            ...tmntToPut,
-            tmnt_name: "  ",
-          };
-          const tmntJSON = JSON.stringify(invalidTmnt);          
-          const putResponse = await axios({
-            method: "put",
-            data: tmntJSON,
-            withCredentials: true,
-            url: putUrl,
-          });
-          expect(putResponse.status).toBe(422);
-        } catch (err) {
-          if (err instanceof AxiosError) {
-            expect(err.response?.status).toBe(422);
-          } else {
-            expect(true).toBeFalsy();
-          }
-        }  
-      });
+    afterEach(async () => {
+      if (didPut) {
+        await doResetTmnt();
+      }
+    });
 
+    it("should put a tmnt", async () => {
+      const puttedTmnt = await putTmnt(tmntToPut);
+      expect(puttedTmnt).not.toBeNull();
+      if (!puttedTmnt) return;
+      didPut = true;
+      expect(puttedTmnt.tmnt_name).toBe(tmntToPut.tmnt_name);
+      expect(puttedTmnt.bowl_id).toBe(tmntToPut.bowl_id);
+      expect(puttedTmnt.user_id).toBe(tmntToPut.user_id);
+      expect(compareAsc(puttedTmnt.start_date, tmntToPut.start_date)).toBe(0);
+      expect(compareAsc(puttedTmnt.end_date, tmntToPut.end_date)).toBe(0);
+    });
+
+    it("should NOT put a tmnt with invalid data", async () => {
+      const invalidTmnt = {
+        ...tmntToPut,
+        tmnt_name: "",
+      };
+      const puttedTmnt = await putTmnt(invalidTmnt);
+      expect(puttedTmnt).toBeNull();
     });
 
   });
+
+  describe('deleteTmnt', () => {     
+    // toDel is data from prisma/seeds.ts    
+    const toDel = {
+      ...initTmnt,
+      id: "tmt_e134ac14c5234d708d26037ae812ac33",
+      user_id: "usr_5bcefb5d314fff1ff5da6521a2fa7bde",
+      tmnt_name: "Gold Pin",
+      bowl_id: "bwl_561540bd64974da9abdd97765fdb3659",
+      start_date: startOfDayFromString('2025-08-19') as Date,
+      end_date: startOfDayFromString('2025-08-19') as Date,
+    }                         
+    const nonFoundId = "tmt_00000000000000000000000000000000";
+
+    const rePostToDel = async () => {
+      const response = await axios.get(url);
+      const tmnts = response.data.tmnts;
+      const foundToDel = tmnts.find(
+        (t: tmntType) => t.id === toDel.id
+      );
+      if (!foundToDel) {
+        try {
+          const tmntJSON = JSON.stringify(toDel);
+          const rePostedResponse = await axios({
+            method: "post",
+            data: tmntJSON,
+            withCredentials: true,
+            url: url,
+          });          
+        } catch (err) {
+          if (err instanceof AxiosError) console.log(err.message);
+        }
+      }
+    }
+
+    let didDel = false;
+
+    beforeAll(async () => {
+      await rePostToDel();
+    });
+
+    beforeEach = () => {
+      didDel = false;
+    };
+
+    afterEach(async () => {
+      if (didDel) {
+        await rePostToDel();
+      } 
+    });
+
+    it('should delete a tmnt by ID', async () => {
+      const deletedTmnt = await deleteTmnt(toDel.id);
+      expect(deletedTmnt).toBe(true);
+      didDel = true;
+    });
+    it('should NOT delete a tmnt that does not exist', async () => {
+      const deletedTmnt = await deleteTmnt(nonFoundId);  
+      expect(deletedTmnt).toBe(false);
+    })
+  })
 
 });

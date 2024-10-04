@@ -1,12 +1,12 @@
 import axios, { AxiosError } from "axios";
-import { baseSquadsApi } from "@/lib/db/apiPaths";
-import { testBaseSquadsApi } from "../../../testApi";
-import { squadType } from "@/lib/types/types";
-import { initSquad } from "@/lib/db/initVals";
-import { isValidBtDbId } from "@/lib/validation";
-import { postSquad } from "@/lib/db/squads/squadsAxios";
+import { baseSquadsApi, baseEventsApi } from "@/lib/db/apiPaths";
+import { testBaseSquadsApi, testBaseEventsApi } from "../../../testApi";
+import { eventType, squadType } from "@/lib/types/types";
+import { initEvent, initSquad } from "@/lib/db/initVals";
+import { deleteAllEventSquads, deleteAllTmntSquads, deleteSquad, postSquad, putSquad } from "@/lib/db/squads/squadsAxios";
 import { compareAsc } from "date-fns";
 import { startOfDayFromString } from "@/lib/dateTools";
+import { mockSquadsToPost } from "../../../mocks/tmnts/singlesAndDoubles/mockSquads";
 
 // before running this test, run the following commands in the terminal:
 // 1) clear and re-seed the database
@@ -27,76 +27,508 @@ const url = testBaseSquadsApi.startsWith("undefined")
   ? baseSquadsApi
   : testBaseSquadsApi;   
 const oneSquadUrl = url + "/squad/"
+const urlForEvents = testBaseEventsApi.startsWith("undefined")
+  ? baseEventsApi
+  : testBaseEventsApi;   
+const oneEventUrl = urlForEvents + "/event/"  
 
-describe('postSquad', () => { 
+describe('squadsAxios', () => { 
 
-  const squadToPost = {
-    ...initSquad,    
-    squad_name: 'Test Squad',
-    event_id: "evt_c0b2bb31d647414a9bea003bd835f3a0",    
-    squad_date: startOfDayFromString('2022-08-21') as Date, 
-    squad_time: '02:00 PM',
-    games: 6,
-    lane_count: 24, 
-    starting_lane: 1,
-    sort_order: 1,
-  }
+  const rePostSquad = async (squad: squadType) => {
+    try {
+      // if squad alread in database, then don't re-post
+      const getResponse = await axios.get(oneSquadUrl + squad.id);
+      const found = getResponse.data.squad;
+      if (found) return;
+    } catch (err) {
+      if (err instanceof AxiosError) { 
+        if (err.status !== 404) {
+          console.log(err.message);
+          return;
+        }
+      }
+    }
+    try {
+      // if not in database, then re-post
+      const squadJSON = JSON.stringify(squad);
+      const response = await axios({
+        method: "post",
+        withCredentials: true,
+        url: url,
+        data: squadJSON
+      });    
+    } catch (err) {
+      if (err instanceof AxiosError) console.log(err.message);
+    }
+  }  
 
-  let createdSquad = false;
+  describe('postSquad', () => { 
 
-  const deletePostedSquad = async () => {
-    const response = await axios.get(url);
-    const squads = response.data.squads;
-    const toDel = squads.find((s: squadType) => s.squad_name === 'Test Squad');
-    if (toDel) {
+    const squadToPost = {
+      ...initSquad,    
+      squad_name: 'Test Squad',
+      event_id: "evt_c0b2bb31d647414a9bea003bd835f3a0",    
+      squad_date: startOfDayFromString('2022-08-21') as Date, 
+      squad_time: '02:00 PM',
+      games: 6,
+      lane_count: 24, 
+      starting_lane: 1,
+      sort_order: 1,
+    }
+
+    let createdSquad = false;
+
+    const deletePostedSquad = async () => {
+      const response = await axios.get(url);
+      const squads = response.data.squads;
+      const toDel = squads.find((s: squadType) => s.squad_name === 'Test Squad');
+      if (toDel) {
+        try {
+          const delResponse = await axios({
+            method: "delete",
+            withCredentials: true,
+            url: oneSquadUrl + toDel.id
+          });        
+        } catch (err) {
+          if (err instanceof AxiosError) console.log(err.message);
+        }
+      }
+    } 
+
+    beforeAll(async () => { 
+      await deletePostedSquad();
+    })
+
+    beforeEach(() => {
+      createdSquad = false;
+    })
+
+    afterEach(async () => {
+      if (createdSquad) {
+        await deletePostedSquad();
+      }
+    })
+
+    it('should post a squad', async () => { 
+      const postedSquad = await postSquad(squadToPost);
+      expect(postedSquad).not.toBeNull();
+      if(!postedSquad) return;
+      createdSquad = true;
+      expect(postedSquad.id).toBe(squadToPost.id);
+      expect(postedSquad.squad_name).toBe(squadToPost.squad_name);
+      expect(postedSquad.event_id).toBe(squadToPost.event_id);
+      const squadDate = new Date(postedSquad.squad_date);
+      expect(compareAsc(squadDate, squadToPost.squad_date)).toBe(0);
+      expect(postedSquad.squad_time).toBe(squadToPost.squad_time);
+      expect(postedSquad.games).toBe(squadToPost.games);
+      expect(postedSquad.lane_count).toBe(squadToPost.lane_count);
+      expect(postedSquad.starting_lane).toBe(squadToPost.starting_lane);
+      expect(postedSquad.sort_order).toBe(squadToPost.sort_order);    
+    })
+    it('should NOT post a squad with invalid data', async () => { 
+      const invalidSquad = {
+        ...squadToPost,
+        squad_name: '',      
+      }
+      const postedSquad = await postSquad(invalidSquad);
+      expect(postedSquad).toBeNull();
+    })
+
+  })  
+
+  describe('postSquads', () => {
+
+    const squadToPost = {
+      ...initSquad,
+      id: "sqd_7116ce5f80164830830a7157eb093396",
+      event_id: "evt_cb97b73cb538418ab993fc867f860510",
+      squad_name: "Test Squad",
+      squad_date: startOfDayFromString('2022-11-23') as Date,
+      squad_time: '02:00 PM',
+      games: 5,
+      lane_count: 14,
+      starting_lane: 29,
+      sort_order: 1,
+    }
+
+    const putUrl = oneSquadUrl + squadToPost.id;
+
+    const resetSquad = {
+      ...initSquad,
+      id: "sqd_7116ce5f80164830830a7157eb093396",
+      event_id: "evt_cb97b73cb538418ab993fc867f860510",
+      squad_name: "Squad 1",
+      squad_date: startOfDayFromString('2022-10-23') as Date,
+      squad_time: null,
+      games: 6,
+      lane_count: 12,
+      starting_lane: 29,
+      sort_order: 1,
+    }
+
+    const doReset = async () => {
       try {
-        const delResponse = await axios({
-          method: "delete",
+        const squadJSON = JSON.stringify(resetSquad);
+        const response = await axios({
+          method: "put",
+          data: squadJSON,
           withCredentials: true,
-          url: oneSquadUrl + toDel.id
-        });        
+          url: putUrl,
+        });
+      } catch (err) {
+        if (err instanceof AxiosError) console.log(err.message);
+      }
+    };
+
+    let didPut = false;
+
+    beforeAll(async () => {
+      await doReset();
+    });
+
+    beforeEach(() => {
+      didPut = false;
+    });
+
+    afterEach(async () => {
+    if (!didPut) return;
+      await doReset();
+    });
+
+    it('should put a squad', async () => {
+      const puttedSquad = await putSquad(squadToPost);
+      expect(puttedSquad).not.toBeNull();
+      if (!puttedSquad) return;
+      didPut = true;
+      expect(puttedSquad.id).toEqual(squadToPost.id);
+      expect(puttedSquad.event_id).toEqual(squadToPost.event_id);
+      expect(puttedSquad.squad_name).toEqual(squadToPost.squad_name);      
+      const squadDate = new Date(puttedSquad.squad_date);
+      expect(compareAsc(squadDate, squadToPost.squad_date)).toBe(0);
+      expect(puttedSquad.squad_time).toEqual(squadToPost.squad_time);
+      expect(puttedSquad.games).toEqual(squadToPost.games);
+      expect(puttedSquad.lane_count).toEqual(squadToPost.lane_count);
+      expect(puttedSquad.starting_lane).toEqual(squadToPost.starting_lane);
+      expect(puttedSquad.sort_order).toEqual(squadToPost.sort_order);    
+    })  
+    it('should NOT put a squad with invalid data', async () => {
+      const invalidSquad = {
+        ...squadToPost,
+        squad_name: '',
+      }      
+      const puttedSquad = await putSquad(invalidSquad);
+      expect(puttedSquad).toBeNull();
+    })
+
+  })
+
+  describe('deleteSquad', () => {
+
+    // toDel is data from prisma/seeds.ts
+    const toDel = {
+      ...initSquad,
+      id: "sqd_3397da1adc014cf58c44e07c19914f72",
+      event_id: "evt_9a58f0a486cb4e6c92ca3348702b1a62",
+      squad_name: "Squad 3",
+      squad_date: startOfDayFromString('2023-09-16') as Date, 
+      squad_time: '02:00 PM',
+      games: 6,
+      lane_count: 24,
+      starting_lane: 1,
+      sort_order: 3,
+    }
+    const nonFoundId = "sqd_00000000000000000000000000000000";
+    
+    let didDel = false;
+
+    beforeAll(async () => {     
+      await rePostSquad(toDel);
+    });
+
+    beforeEach(() => {
+      didDel = false;
+    });
+
+    afterEach(async () => {
+      if (!didDel) {
+        await rePostSquad(toDel);
+      }
+    });
+
+    it("should delete a squad", async () => {
+      const deleted = await deleteSquad(toDel.id);      
+      expect(deleted).toBe(1);
+      didDel = true;
+    });
+    it("should NOT delete a squad when ID is not found", async () => {
+      const deleted = await deleteSquad(nonFoundId);
+      expect(deleted).toBe(-1);
+    });
+    it("should NOT delete a squad when ID is invalid", async () => {
+      const deleted = await deleteSquad('test');
+      expect(deleted).toBe(-1);
+    });
+    it('should NOT delete a squad when ID is valid, but not a squad ID', async () => { 
+      const deleted = await deleteSquad(mockSquadsToPost[0].event_id);
+      expect(deleted).toBe(-1);
+    })
+    it('should not delete a squad when ID is blank', async () => {
+      const deleted = await deleteSquad('');
+      expect(deleted).toBe(-1);
+    })
+    it('should not delete a squad when ID is null', async () => {
+      const deleted = await deleteSquad(null as any);
+      expect(deleted).toBe(-1);
+    })
+
+  })
+
+  describe('deleteAllEventSquads', () => { 
+
+    const multiSquads = [...mockSquadsToPost]
+
+    const rePostToDel = async () => {
+      const response = await axios.get(url);
+      const squads = response.data.squads;
+      const foundToDel = squads.find(
+        (s: squadType) => s.id === multiSquads[0].id
+      );
+      if (!foundToDel) {
+        try {
+          const postedSquads: squadType[] = [];
+          for await (const squad of multiSquads) {
+            const postedSquad = await postSquad(squad);
+            if (!postedSquad) return
+            postedSquads.push(postedSquad);
+          }
+        } catch (err) {
+          if (err instanceof AxiosError) console.log(err.message);
+        }
+      }
+    }
+
+    let didDel = false;
+
+    beforeAll(async () => {
+      await rePostToDel();
+    });
+
+    beforeEach(async () => {
+      if (didDel) {
+        await rePostToDel();
+      }
+    });
+
+    afterEach(async () => {
+      didDel = false;
+    });
+
+    afterAll(async () => {
+      await deleteAllEventSquads(multiSquads[0].event_id);
+    });
+
+    it('should delete all squads for an event', async () => {
+      const deleted = await deleteAllEventSquads(multiSquads[0].event_id);
+      expect(deleted).toBe(2);
+      didDel = true;
+    })
+    it('should NOT delete all squads for an event when ID is invalid', async () => {
+      const deleted = await deleteAllEventSquads('test');
+      expect(deleted).toBe(-1);
+    })
+    it('should NOT delete all squads for an event when ID is not found', async () => {
+      const deleted = await deleteAllEventSquads('tmt_00000000000000000000000000000000');
+      expect(deleted).toBe(-1);
+    })
+    it('should NOT delete all squads for an event when ID is valid, but not an event ID', async () => {
+      const deleted = await deleteAllEventSquads(mockSquadsToPost[0].id);
+      expect(deleted).toBe(-1);
+    })
+    
+  })
+
+  describe('deleteAllTmntSquads', () => { 
+
+    const toDelEvents = [
+      {
+        ...initEvent,
+        id: "evt_ad63777a6aee43be8372e4d008c1d6d0",
+        tmnt_id: "tmt_e134ac14c5234d708d26037ae812ac33",
+        event_name: "Event X",
+        team_size: 1,
+        games: 6,
+        entry_fee: '80',
+        lineage: '18',
+        prize_fund: '55',
+        other: '2',
+        expenses: '5',
+        added_money: '0',
+        lpox: '80',
+        sort_order: 1,
+      },
+      {
+        ...initEvent,
+        id: "evt_cd63777a6aee43be8372e4d008c1d6d0",
+        tmnt_id: "tmt_e134ac14c5234d708d26037ae812ac33",
+        event_name: "Event Y",
+        team_size: 1,
+        games: 6,
+        entry_fee: '80',
+        lineage: '18',
+        prize_fund: '55',
+        other: '2',
+        expenses: '5',
+        added_money: '0',
+        lpox: '80',
+        sort_order: 2,
+      }
+    ]
+    const toDelSquads = [
+      {
+        ...initSquad,
+        id: "sqd_5397da1adc014cf58c44e07c19914f72",
+        event_id: "evt_ad63777a6aee43be8372e4d008c1d6d0",
+        squad_name: "Squad X",
+        squad_date: startOfDayFromString('2023-09-16') as Date,
+        squad_time: '10:00 AM',
+        games: 6,
+        lane_count: 24,
+        starting_lane: 1,
+        sort_order: 1,
+      },
+      {
+        ...initSquad,
+        id: "sqd_6397da1adc014cf58c44e07c19914f72",
+        event_id: "evt_ad63777a6aee43be8372e4d008c1d6d0",
+        squad_name: "Squad Y",
+        squad_date: startOfDayFromString('2023-09-16') as Date,
+        squad_time: '02:00 PM',
+        games: 6,
+        lane_count: 20,
+        starting_lane: 11,
+        sort_order: 2,
+      },
+      {
+        ...initSquad,
+        id: "sqd_7397da1adc014cf58c44e07c19914f72",
+        event_id: "evt_cd63777a6aee43be8372e4d008c1d6d0",
+        squad_name: "Squad Z",
+        squad_date: startOfDayFromString('2023-09-16') as Date,
+        squad_time: '06:00 PM',
+        games: 6,
+        lane_count: 16,
+        starting_lane: 3,
+        sort_order: 3,
+      }
+    ]
+
+    const rePostEvent = async (event: eventType) => {
+      try {
+        // if event alread in database, then don't re-post
+        const getResponse = await axios.get(oneEventUrl + event.id);
+        const found = getResponse.data.event;
+        if (found) return;
+      } catch (err) {
+        if (err instanceof AxiosError) {
+          if (err.status !== 404) {
+            console.log(err.message);
+            return;
+          }
+        }
+      }
+      try {
+        // if not in database, then re-post
+        const eventJSON = JSON.stringify(event);
+        const response = await axios({
+          method: "post",
+          withCredentials: true,
+          url: urlForEvents,
+          data: eventJSON
+        });
       } catch (err) {
         if (err instanceof AxiosError) console.log(err.message);
       }
     }
-  } 
 
-  beforeAll(async () => { 
-    await deletePostedSquad();
-  })
-
-  beforeEach(() => {
-    createdSquad = false;
-  })
-
-  afterEach(async () => {
-    if (createdSquad) {
-      await deletePostedSquad();
+    const delOneSquad = async (id: string) => {
+      try {
+        const getResponse = await axios.get(oneSquadUrl + id);
+        const found = getResponse.data.squad;
+        if (!found) return;
+        const response = await axios({
+          method: 'delete',
+          withCredentials: true,
+          url: oneSquadUrl + id
+        })
+      } catch (err) {
+        if (err instanceof AxiosError) console.log(err.message);
+      }
     }
+
+    const delOneEvent = async (id: string) => {
+      try {
+        const getResponse = await axios.get(oneEventUrl + id);
+        const found = getResponse.data.event;
+        if (!found) return;
+        const response = await axios({
+          method: 'delete',
+          withCredentials: true,
+          url: oneEventUrl + id
+        })
+      } catch (err) {
+        if (err instanceof AxiosError) console.log(err.message);
+      }
+    }
+
+    let didDel = false
+
+    beforeAll(async () => {
+      await rePostEvent(toDelEvents[0]);
+      await rePostEvent(toDelEvents[1]);
+      await rePostSquad(toDelSquads[0]);
+      await rePostSquad(toDelSquads[1]);
+      await rePostSquad(toDelSquads[2]);
+    })
+
+    beforeEach(() => {
+      didDel = false;
+    })
+
+    afterEach(async () => {
+      if (!didDel) return;
+      await rePostEvent(toDelEvents[0]);
+      await rePostEvent(toDelEvents[1]);
+      await rePostSquad(toDelSquads[0]);
+      await rePostSquad(toDelSquads[1]);
+      await rePostSquad(toDelSquads[2]);
+    })
+
+    afterAll(async () => {
+      await delOneSquad(toDelSquads[0].id);
+      await delOneSquad(toDelSquads[1].id);
+      await delOneSquad(toDelSquads[2].id);
+      await delOneEvent(toDelEvents[0].id);
+      await delOneEvent(toDelEvents[1].id);
+    })
+
+    it('should delete all squads for a tmnt', async () => {
+      const deleted = await deleteAllTmntSquads(toDelEvents[0].tmnt_id);
+      didDel = true;
+      expect(deleted).toBe(3);
+    })
+    it('should NOT delete all squads for a tmnt when ID is invalid', async () => {
+      const deleted = await deleteAllTmntSquads('test');
+      expect(deleted).toBe(-1);
+    })
+    it('should NOT delete all squads for a tmnt when tmnt ID is not found', async () => {
+      const deleted = await deleteAllTmntSquads('tmt_00000000000000000000000000000000');
+      expect(deleted).toBe(0);
+    })
+    it('should NOT delete all squads for a tmnt when tmnt ID is valid, but not a tmnt id', async () => {
+      const deleted = await deleteAllTmntSquads(toDelEvents[0].id);
+      expect(deleted).toBe(-1);
+    })
+    
   })
 
-  it('should post a squad', async () => { 
-    const postedSquad = await postSquad(squadToPost);
-    expect(postedSquad).not.toBeNull();
-    if(!postedSquad) return;
-    createdSquad = true;
-    expect(postedSquad.squad_name).toBe(squadToPost.squad_name);
-    expect(postedSquad.event_id).toBe(squadToPost.event_id);
-    const squadDate = new Date(postedSquad.squad_date);
-    expect(compareAsc(squadDate, squadToPost.squad_date)).toBe(0);
-    expect(postedSquad.squad_time).toBe(squadToPost.squad_time);
-    expect(postedSquad.games).toBe(squadToPost.games);
-    expect(postedSquad.lane_count).toBe(squadToPost.lane_count);
-    expect(postedSquad.starting_lane).toBe(squadToPost.starting_lane);
-    expect(postedSquad.sort_order).toBe(squadToPost.sort_order);
-    expect(isValidBtDbId(postedSquad.id, 'sqd')).toBeTruthy();
-  })
-  it('should NOT post a squad with invalid data', async () => { 
-    const invalidSquad = {
-      ...squadToPost,
-      squad_name: '',      
-    }
-    const postedSquad = await postSquad(invalidSquad);
-    expect(postedSquad).toBeNull();
-  })
-})  
+})

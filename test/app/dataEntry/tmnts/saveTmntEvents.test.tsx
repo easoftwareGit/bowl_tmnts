@@ -1,17 +1,17 @@
-import axios, { AxiosError } from "axios";
+import axios from "axios";
 import { baseEventsApi } from "@/lib/db/apiPaths";
 import { testBaseEventsApi } from "../../../testApi";
-import { tmntSaveEvents, exportedForTesting } from "@/app/dataEntry/tmnt/saveTmntEvents";
-import { mockEvents, mockEventsToEdit } from "../../../mocks/tmnts/singlesAndDoubles/mockEvents";
-import { mockSquadsToEdit } from "../../../mocks/tmnts/singlesAndDoubles/mockSquads";
-import { initEvents, initSquad, initEvent } from "@/lib/db/initVals";
-import { eventType } from "@/lib/types/types";
-import { isValidBtDbId } from "@/lib/validation";
-import { mockSquads } from "../../../mocks/tmnts/singlesAndDoubles/mockSquads";
-import { deleteEvent, putEvent } from "@/lib/db/events/eventsAxios";
-// import { deleteEvent } from "../../../../src/lib/db/events/events";
+import {
+  tmntSaveEvents,
+  exportedForTesting,
+} from "@/app/dataEntry/tmnt/saveTmntEvents";
+import { mockEventsToPost, mockEventsToEdit } from "../../../mocks/tmnts/singlesAndDoubles/mockEvents";
+import { eventType, saveTypes } from "@/lib/types/types";
+import { deleteAllTmntEvents, deleteEvent, postEvent, putEvent } from "@/lib/db/events/eventsAxios";
+import { blankEvent } from "@/lib/db/initVals";
+import 'core-js/actual/structured-clone';
 
-const { tmntPostEvents, tmntPostPutOrDelEvents } = exportedForTesting;
+const { tmntPostPutOrDelEvents, tmntPostEvents } = exportedForTesting;
 
 // before running this test, run the following commands in the terminal:
 // 1) clear and re-seed the database
@@ -28,411 +28,588 @@ const { tmntPostEvents, tmntPostPutOrDelEvents } = exportedForTesting;
 //      d) directly to the left of the drop down select, click the green play button
 //         This will start the server in debug mode.
 
-describe('saveTmntEvents', () => {
+describe("saveTmntEvents tests", () => {
+  const url = testBaseEventsApi.startsWith("undefined")
+    ? baseEventsApi
+    : testBaseEventsApi;
 
-  describe('save events', () => { 
+  const stCreate: saveTypes = "CREATE";
+  const stUpdate: saveTypes = "UPDATE";
 
-    const url = testBaseEventsApi.startsWith("undefined")
-      ? baseEventsApi
-      : testBaseEventsApi;
+  const deleteTestEvents = async () => {
+    await deleteAllTmntEvents(mockEventsToPost[0].tmnt_id);
+  };
+ 
+  describe("tmntPostEvents(): new event(s)", () => {
+    let createdEvent = false;
 
-    describe('tmntSaveEvents - new events', () => { 
-      // let createdEvents = false;
+    beforeAll(async () => {
+      await deleteTestEvents();
+    });
 
-      // const delTestEvents = async () => {
-      //   try {
-      //     const response = await axios.get(url);                    
-      //     const events = response.data.events;
-      //     const toDels = events.filter(
-      //       (e: eventType) => e.sort_order >= 5
-      //     );
-      //     if (toDels.length > 0) {
-      //       for (let i = 0; i < toDels.length; i++) {
-      //         const toDel = toDels[i];
-      //         try {
-      //           const delResponse = await axios({
-      //             method: "delete",
-      //             withCredentials: true,
-      //             url: url + "/" + toDel.id,
-      //           });                
-      //         } catch (err) {
-      //           if (err instanceof AxiosError) console.log(err.message);
-      //         }
-      //       }
-      //     }      
-      //   } catch (error) {
-      //     if (error instanceof AxiosError) console.log(error.message);
-      //   }
-      // }
+    beforeEach(() => {
+      createdEvent = false;
+    });
 
-      // beforeAll(async () => {
-      //   await delTestEvents();
-      // });
+    afterEach(async () => {
+      if (createdEvent) {
+        await deleteTestEvents();
+      }
+    });
 
-      // beforeEach(() => {
-      //   createdEvents = false;
-      // });
+    it("should create one new event when only one event to save", async () => {
+      const newEventClone = structuredClone(mockEventsToPost[0]);
+      const newEvents = [
+        {
+          ...newEventClone,
+        },
+      ];
+      const result = await tmntPostEvents(newEvents);
+      expect(result).not.toBeNull();
+      createdEvent = true;
+      if (!result) return;
+      expect(result.length).toBe(1);
+      const postedEvent = result[0];
+      expect(postedEvent.id).toBe(newEvents[0].id);
+      expect(postedEvent.tmnt_id).toBe(newEvents[0].tmnt_id);
+      expect(postedEvent.event_name).toBe(newEvents[0].event_name);
+      expect(postedEvent.team_size).toBe(newEvents[0].team_size);
+      expect(postedEvent.games).toBe(newEvents[0].games);
+      expect(postedEvent.entry_fee).toBe(newEvents[0].entry_fee);
+      expect(postedEvent.lineage).toBe(newEvents[0].lineage);
+      expect(postedEvent.prize_fund).toBe(newEvents[0].prize_fund);
+      expect(postedEvent.other).toBe(newEvents[0].other);
+      expect(postedEvent.expenses).toBe(newEvents[0].expenses);
+      expect(postedEvent.added_money).toBe(newEvents[0].added_money);
+      expect(postedEvent.lpox).toBe(newEvents[0].lpox);
+      expect(postedEvent.sort_order).toBe(newEvents[0].sort_order);
+    });
+    it("should create multiple events when more one event to save", async () => {      
+      const newEvents = structuredClone(mockEventsToPost);
+      const result = await tmntPostEvents(newEvents);
+      expect(result).not.toBeNull();
+      createdEvent = true;
+      if (!result) return;
+      expect(result.length).toBe(2);
+      const postedEvents = result as eventType[];
+      let postedEvent
+      if (postedEvents[0].id === newEvents[0].id) {
+        postedEvent = postedEvents[0]
+      } else {
+        postedEvent = postedEvents[1]
+      }      
+      expect(postedEvent.id).toBe(newEvents[0].id);
+      expect(postedEvent.tmnt_id).toBe(newEvents[0].tmnt_id);
+      expect(postedEvent.event_name).toBe(newEvents[0].event_name);
+      expect(postedEvent.team_size).toBe(newEvents[0].team_size);
+      expect(postedEvent.games).toBe(newEvents[0].games);
+      expect(postedEvent.entry_fee).toBe(newEvents[0].entry_fee);
+      expect(postedEvent.lineage).toBe(newEvents[0].lineage);
+      expect(postedEvent.prize_fund).toBe(newEvents[0].prize_fund);
+      expect(postedEvent.other).toBe(newEvents[0].other);
+      expect(postedEvent.expenses).toBe(newEvents[0].expenses);
+      expect(postedEvent.added_money).toBe(newEvents[0].added_money);
+      expect(postedEvent.lpox).toBe(newEvents[0].lpox);
+      expect(postedEvent.sort_order).toBe(newEvents[0].sort_order);
 
-      // afterEach(async () => {
-      //   if (createdEvents) {
-      //     await delTestEvents();
-      //   }
-      // });      
+      if (postedEvents[1].id === newEvents[1].id) {
+        postedEvent = postedEvents[1]
+      } else {
+        postedEvent = postedEvents[0]
+      }      
+      expect(postedEvent.id).toBe(newEvents[1].id);
+      expect(postedEvent.tmnt_id).toBe(newEvents[1].tmnt_id);
+      expect(postedEvent.event_name).toBe(newEvents[1].event_name);
+      expect(postedEvent.team_size).toBe(newEvents[1].team_size);
+      expect(postedEvent.games).toBe(newEvents[1].games);
+      expect(postedEvent.entry_fee).toBe(newEvents[1].entry_fee);
+      expect(postedEvent.lineage).toBe(newEvents[1].lineage);
+      expect(postedEvent.prize_fund).toBe(newEvents[1].prize_fund);
+      expect(postedEvent.other).toBe(newEvents[1].other);
+      expect(postedEvent.expenses).toBe(newEvents[1].expenses);
+      expect(postedEvent.added_money).toBe(newEvents[1].added_money);
+      expect(postedEvent.lpox).toBe(newEvents[1].lpox);
+      expect(postedEvent.sort_order).toBe(newEvents[1].sort_order);
+    });
+  });
 
-      // it('should save new events', async () => {
-      //   const toPostEvents = [...mockEvents]
-      //   toPostEvents[0].id = "1";  
-      //   toPostEvents[0].sort_order = 10;  
-      //   toPostEvents[0].tmnt_id = 'tmt_e134ac14c5234d708d26037ae812ac33';
-      //   toPostEvents[1].id = "2";
-      //   toPostEvents[1].sort_order = 11;  
-      //   toPostEvents[1].tmnt_id = 'tmt_e134ac14c5234d708d26037ae812ac33';
+  describe("tmntPostPutOrDelEvents(): edited events ", () => {
+    const clonedEvent = structuredClone(mockEventsToEdit[0]);
+    const toAddEvent = {
+      ...clonedEvent,
+      id: 'evt_9a58f0a486cb4e6c92ca3348702b1a63', // added one to last diget
+      event_name: "Team",
+      team_size: 4,
+      games: 3,
+      entry_fee: '200',
+      lineage: '36',
+      prize_fund: '150',
+      other: '4',
+      expenses: '10',
+      added_money: '0',    
+      lpox: '200',
+      sort_order: 4,
+    }    
+    // 1 deleted - trios [2]
+    // 1 edited - doubles [1]
+    // 1 left alone - singles [0]
+    // 1 created - team    
+   
+    const doResetEvent = async () => {
+      await putEvent(mockEventsToEdit[1]);
+    }    
+    const rePostEvent = async () => {
+      const response = await axios.get(url);
+      const events = response.data.events;
+      const found = events.find(
+        (e: eventType) => e.id === mockEventsToEdit[2].id
+      );
+      if (!found) {
+        await postEvent(mockEventsToEdit[2]);
+      }      
+    }
+    const removeEvent = async () => {
+      await deleteEvent(toAddEvent.id);
+    }
 
-      //   const mockSetEvents = jest.fn();
-      //   const mockSetSquads = jest.fn();
+    let didPost = false;
+    let didPut = false;
+    let didDel = false;
 
-      //   const toSaveEvents = {
-      //     origEvents: initEvents,
-      //     events: toPostEvents,
-      //     setEvents: mockSetEvents,
-      //     squads: mockSquads,
-      //     setSquads: mockSetSquads,
-      //   }
-      //   const didPost = await tmntSaveEvents(toSaveEvents);
-      //   expect(didPost).toBe(true);   
-      //   createdEvents = true;
-      // })
-      // it("should update id's in events and squads", async () => { 
-      //   const mockSetEvents = jest.fn();
-      //   const mockSetSquads = jest.fn();
+    beforeEach(async () => {
+      await doResetEvent();
+      await rePostEvent();
+      await removeEvent();
+    });
 
-      //   const toPostEvents = [...mockEvents]
-      //   toPostEvents[0].id = "1";  
-      //   toPostEvents[0].sort_order = 10;  
-      //   toPostEvents[0].tmnt_id = 'tmt_e134ac14c5234d708d26037ae812ac33';
-      //   toPostEvents[1].id = "2";
-      //   toPostEvents[1].sort_order = 11;  
-      //   toPostEvents[1].tmnt_id = 'tmt_e134ac14c5234d708d26037ae812ac33';
+    beforeEach = () => {
+      didPost = false;
+      didPut = false;
+      didDel = false;
+    };
 
-      //   const toSetSquads = [...mockSquads]
-      //   toSetSquads[0].id = "1";
-      //   toSetSquads[0].event_id = "1";
-      //   toSetSquads[1].id = "2";
-      //   toSetSquads[1].event_id = "2";
+    afterEach(async () => {
+      if (didPost) {
+        await removeEvent();
+      }
+      if (didPut) {
+        await doResetEvent();
+      }
+      if (didDel) {
+        await rePostEvent();
+      }
+    });
 
-      //   const toSaveEvents = {
-      //     origEvents: initEvents,
-      //     events: toPostEvents,
-      //     setEvents: mockSetEvents,
-      //     squads: mockSquads,
-      //     setSquads: mockSetSquads,
-      //   }
-      //   const didPost = await tmntSaveEvents(toSaveEvents);
-      //   expect(didPost).toBe(true);
-      //   createdEvents = true;
-        
-      //   const response = await axios.get(url);                    
-      //   const events = response.data.events;
-      //   const savedEvents = events.filter(
-      //     (e: eventType) => e.sort_order >= 5
-      //   );
-
-      //   for (let i = 0; i < savedEvents.length; i++) {
-      //     const savedEvent = savedEvents[i];
-      //     if (savedEvent.sort_order === 10) {
-      //       toPostEvents[0].id = savedEvent.id;
-      //     } else if (savedEvent.sort_order === 11) {
-      //       toPostEvents[1].id = savedEvent.id;
-      //     }
-      //   }
-      //   expect(mockSetEvents).toHaveBeenCalledTimes(2);        
-      //   expect(mockSetEvents).toHaveBeenCalledWith(toPostEvents); 
-        
-      //   for (let i = 0; i < toSetSquads.length; i++) {
-      //     const savedSquad = toSetSquads[i];
-      //     if (savedSquad.id === '1') {
-      //       savedSquad.event_id = toPostEvents[0].id;
-      //     } else if (savedSquad.id === '2') {
-      //       savedSquad.event_id = toPostEvents[1].id;
-      //     }
-      //   }
-      //   expect(mockSetSquads).toHaveBeenCalledTimes(2);
-      //   expect(mockSetSquads).toHaveBeenCalledWith(toSetSquads);  
-      // })
-      // it('should call tmntPostEvents when saving new tmnt', async () => {
-      //   const mockSetEvents = jest.fn();
-      //   const mockSetSquads = jest.fn();
-
-      //   const toPostEvents = [...mockEvents]
-      //   toPostEvents[0].id = "1";  
-      //   toPostEvents[0].sort_order = 10;  
-      //   toPostEvents[0].tmnt_id = 'tmt_e134ac14c5234d708d26037ae812ac33';
-      //   toPostEvents[1].id = "2";
-      //   toPostEvents[1].sort_order = 11;  
-      //   toPostEvents[1].tmnt_id = 'tmt_e134ac14c5234d708d26037ae812ac33';
-
-      //   const toSetSquads = [...mockSquads]
-      //   toSetSquads[0].id = "1";
-      //   toSetSquads[0].event_id = "1";
-      //   toSetSquads[1].id = "2";
-      //   toSetSquads[1].event_id = "2";
-
-      //   const toSaveEvents = {
-      //     origEvents: initEvents,
-      //     events: toPostEvents,
-      //     setEvents: mockSetEvents,
-      //     squads: mockSquads,
-      //     setSquads: mockSetSquads,
-      //   }
-      //   const didPost = await tmntPostEvents(toSaveEvents);
-      //   expect(didPost).toBe(true);
-      //   createdEvents = true;
-        
-      //   expect(mockSetEvents).toHaveBeenCalledTimes(2);        
-      //   expect(mockSetSquads).toHaveBeenCalledTimes(2);
-      // })
-      // it('should NOT save new events when no parent tournament', async () => {
-      //   const toPostEvents = [...mockEvents]
-      //   toPostEvents[0].id = "1";  
-      //   toPostEvents[0].sort_order = 10;  
-      //   toPostEvents[0].tmnt_id = 'tmt_01234567890123456789012345678901';
-      //   toPostEvents[1].id = "2";
-      //   toPostEvents[1].sort_order = 11;  
-      //   toPostEvents[1].tmnt_id = 'tmt_01234567890123456789012345678901';
-
-      //   const mockSetEvents = jest.fn();
-      //   const mockSetSquads = jest.fn();
-
-      //   const toSaveEvents = {
-      //     origEvents: initEvents,
-      //     events: toPostEvents,
-      //     setEvents: mockSetEvents,
-      //     squads: mockSquads,
-      //     setSquads: mockSetSquads,
-      //   }
-      //   const didPost = await tmntSaveEvents(toSaveEvents);
-      //   expect(didPost).toBe(false);   
-      //   createdEvents = false;
-      // })
-      // it('should NOT save new events with invalid event data', async () => { 
-      //   const invalidEvents = [...mockEvents]
-      //   invalidEvents[0].id = "1";  
-      //   invalidEvents[0].sort_order = 10;  
-      //   invalidEvents[1].id = "2";
-      //   invalidEvents[1].sort_order = 11;  
-      //   invalidEvents[1].event_name = '';
-
-      //   const mockSetEvents = jest.fn();
-      //   const mockSetSquads = jest.fn();
-
-      //   const toSaveEvents = {
-      //     origEvents: initEvents,
-      //     events: invalidEvents,
-      //     setEvents: mockSetEvents,
-      //     squads: mockSquads,
-      //     setSquads: mockSetSquads,
-      //   }
-
-      //   const didPost = await tmntSaveEvents(toSaveEvents);
-      //   expect(didPost).toBe(false);   
-      //   createdEvents = false;
-      // });
-      // it('should NOT save new events with no squads', async () => { 
-      //   const invalidEvents = [...mockEvents]
-      //   invalidEvents[0].id = "1";  
-      //   invalidEvents[0].sort_order = 10;  
-      //   invalidEvents[0].tmnt_id = 'tmt_e134ac14c5234d708d26037ae812ac33';
-      //   invalidEvents[1].id = "2";
-      //   invalidEvents[1].sort_order = 11;          
-      //   invalidEvents[1].tmnt_id = 'tmt_e134ac14c5234d708d26037ae812ac33';
-
-      //   const mockSetEvents = jest.fn();
-      //   const mockSetSquads = jest.fn();
-
-      //   const toSaveEvents = {
-      //     origEvents: initEvents,
-      //     events: invalidEvents,
-      //     setEvents: mockSetEvents,
-      //     squads: null as any,
-      //     setSquads: mockSetSquads,
-      //   }
-
-      //   const didPost = await tmntSaveEvents(toSaveEvents);
-      //   expect(didPost).toBe(false);   
-      //   createdEvents = false;
-      // });
+    it('should save edited events, one event edited', async () => { 
+      const eventsToEdit = structuredClone(mockEventsToEdit);
+      eventsToEdit[1].event_name = "Edited Doubles";
+      eventsToEdit[1].games = 4;
+      eventsToEdit[1].added_money = '300';
+      const savedEvents = await tmntPostPutOrDelEvents(mockEventsToEdit, eventsToEdit);
+      if (!savedEvents) {
+        expect(savedEvents).not.toBeNull();
+        return;
+      }
+      expect(savedEvents).toHaveLength(3);
+      didPut = true;
+      const found = savedEvents.find((e) => e.id === eventsToEdit[1].id);
+      if (!found) {
+        expect(found).not.toBeUndefined();
+        return;
+      }                  
+      expect(found.event_name).toBe(eventsToEdit[1].event_name);
+      expect(found.games).toBe(eventsToEdit[1].games);
+      expect(found.added_money).toBe(eventsToEdit[1].added_money);
+    })
+    it('should save edited events, one event added', async () => { 
+      const eventsToEdit = structuredClone(mockEventsToEdit);
+      eventsToEdit.push(toAddEvent);  
+      const savedEvents = await tmntPostPutOrDelEvents(mockEventsToEdit, eventsToEdit);
+      if (!savedEvents) {
+        expect(savedEvents).not.toBeNull();
+        return;
+      }
+      didPost = true;
+      expect(savedEvents).toHaveLength(4);
+      const found = savedEvents.find((e) => e.id === toAddEvent.id);
+      if (!found) {
+        expect(found).not.tbBeUndefined();
+        return;
+      }            
+      expect(found.id).toBe(toAddEvent.id);
+      expect(found.tmnt_id).toBe(toAddEvent.tmnt_id);
+      expect(found.event_name).toBe(toAddEvent.event_name);
+      expect(found.team_size).toBe(toAddEvent.team_size);
+      expect(found.games).toBe(toAddEvent.games);
+      expect(found.added_money).toBe(toAddEvent.added_money);
+      expect(found.entry_fee).toBe(toAddEvent.entry_fee);
+      expect(found.lineage).toBe(toAddEvent.lineage);
+      expect(found.prize_fund).toBe(toAddEvent.prize_fund);
+      expect(found.other).toBe(toAddEvent.other);
+      expect(found.expenses).toBe(toAddEvent.expenses);
+      expect(found.lpox).toBe(toAddEvent.lpox);
+      expect(found.sort_order).toBe(toAddEvent.sort_order);      
+    })
+    it('should save edited events, one event deleted', async () => { 
+      const eventsToEdit = structuredClone(mockEventsToEdit);
+      eventsToEdit.pop();      
+      const savedEvents = await tmntPostPutOrDelEvents(mockEventsToEdit, eventsToEdit);
+      if (!savedEvents) {
+        expect(savedEvents).not.toBeNull();
+        return;
+      }
+      didDel = true;
+      expect(savedEvents).toHaveLength(2);
+      const found = savedEvents.find((e) => e.id === mockEventsToEdit[2].id);
+      if (found) {
+        expect(found).toBeUndefined();
+        return;
+      }
+      expect(found).toBeUndefined();
+    })
+    it('should save edited events, one event edited, one added, one deleted', async () => { 
+      const eventsToEdit = structuredClone(mockEventsToEdit);
+      // delete trios
+      eventsToEdit.pop(); 
+      // edit doubles
+      eventsToEdit[1].event_name = "Edited Doubles";
+      eventsToEdit[1].games = 4;
+      eventsToEdit[1].added_money = '300';
+      // add team
+      eventsToEdit.push(toAddEvent);
+      
+      const savedEvents = await tmntPostPutOrDelEvents(mockEventsToEdit, eventsToEdit);
+      if (!savedEvents) {
+        expect(savedEvents).not.toBeNull();
+        return;
+      }
+      expect(savedEvents).toHaveLength(3);
+      didPut = true;
+      didPost = true;
+      didDel = true;
+      let found = savedEvents.find((e) => e.id === eventsToEdit[1].id);
+      if (!found) {
+        expect(found).not.toBeUndefined();
+        return;
+      }                  
+      expect(found.event_name).toBe(eventsToEdit[1].event_name);
+      expect(found.games).toBe(eventsToEdit[1].games);
+      expect(found.added_money).toBe(eventsToEdit[1].added_money);
+      found = savedEvents.find((e) => e.id === toAddEvent.id);
+      if (!found) {
+        expect(found).not.toBeUndefined();
+        return;
+      }
+      expect(found.id).toBe(toAddEvent.id);
+      expect(found.tmnt_id).toBe(toAddEvent.tmnt_id);
+      expect(found.event_name).toBe(toAddEvent.event_name);
+      expect(found.team_size).toBe(toAddEvent.team_size);
+      expect(found.games).toBe(toAddEvent.games);
+      expect(found.added_money).toBe(toAddEvent.added_money);
+      expect(found.entry_fee).toBe(toAddEvent.entry_fee);
+      expect(found.lineage).toBe(toAddEvent.lineage);
+      expect(found.prize_fund).toBe(toAddEvent.prize_fund);
+      expect(found.other).toBe(toAddEvent.other);
+      expect(found.expenses).toBe(toAddEvent.expenses);
+      expect(found.lpox).toBe(toAddEvent.lpox);
+      expect(found.sort_order).toBe(toAddEvent.sort_order);
+      found = savedEvents.find((e) => e.id === mockEventsToEdit[2].id);
+      if (found) {
+        expect(found).toBeUndefined();
+        return;
+      }
+      expect(found).toBeUndefined();
     })
 
-    describe('tmntsSaveEvents - edited Events', () => {
-      const mockSetEvents = jest.fn();
-      const mockSetSquads = jest.fn();
+  });
 
-      describe('tmntsSaveEvents - edited an Event', () => { 
-        // const resetEvent = {
-        //   ...initEvent,
-        //   id: "evt_9a58f0a486cb4e6c92ca3348702b1a62",
-        //   tmnt_id: "tmt_fe8ac53dad0f400abe6354210a8f4cd1",
-        //   event_name: "Singles",
-        //   team_size: 1,
-        //   games: 6,
-        //   entry_fee: '80',
-        //   lineage: '18',
-        //   prize_fund: '55',
-        //   other: '2',
-        //   expenses: '5',
-        //   added_money: '0',
-        //   sort_order: 1,
-        //   lpox: '80',
-        // }
+  describe("tmntSaveEvents(): new event(s)", () => {
+    let createdEvent = false;
 
-        // let puttedEvent = false;
+    beforeAll(async () => {
+      await deleteTestEvents();
+    });
 
-        // beforeAll(async () => {
-        //   await putEvent(resetEvent);          
-        // })
+    beforeEach(() => {
+      createdEvent = false;
+    });
 
-        // beforeEach(() => { puttedEvent = false })
+    afterEach(async () => {
+      if (createdEvent) {
+        await deleteTestEvents();
+      }
+    });
 
-        // afterEach(async () => {
-        //   if (puttedEvent) {
-        //     await putEvent(resetEvent);            
-        //   }
-        // })
+    const origClone = structuredClone(blankEvent);
+    const origEvents: eventType[] = [
+      {
+        ...origClone,
+      }
+    ]
 
-        // it('should save an edited event', async () => { 
-        //   const toPutEvents = mockEventsToEdit.map(a => ({...a}));                    
-        //   toPutEvents[0].event_name = "Test Event";  
-        //   toPutEvents[0].sort_order = 10;  
-  
-        //   const toSaveEvents = {
-        //     origEvents: mockEventsToEdit,
-        //     events: toPutEvents,
-        //     setEvents: mockSetEvents,
-        //     squads: mockSquadsToEdit,
-        //     setSquads: mockSetSquads,
-        //   }
-  
-        //   const didPut = await tmntSaveEvents(toSaveEvents);  
-        //   expect(didPut).toBe(true);
-        //   puttedEvent = true;
-        //   expect(mockSetEvents).not.toHaveBeenCalled();
-        //   expect(mockSetSquads).not.toHaveBeenCalled();  
-        // })
-        // it('should call tmntPostPutOrDelEvents when editing an event', async () => { 
-        //   const toPutEvents = mockEventsToEdit.map(a => ({...a}));                    
-        //   toPutEvents[0].event_name = "Test Event";  
-        //   toPutEvents[0].sort_order = 10;  
-  
-        //   const toSaveEvents = {
-        //     origEvents: mockEventsToEdit,
-        //     events: toPutEvents,
-        //     setEvents: mockSetEvents,
-        //     squads: mockSquadsToEdit,
-        //     setSquads: mockSetSquads,
-        //   }
-  
-        //   const didPut = await tmntPostPutOrDelEvents(toSaveEvents);  
-        //   expect(didPut).toBe(true);
-        //   puttedEvent = true;
-        //   expect(mockSetEvents).not.toHaveBeenCalled();
-        //   expect(mockSetSquads).not.toHaveBeenCalled();
-        // })
-      })
+    it("should save one new event when only one event to save", async () => {
+      const newEventClone = structuredClone(mockEventsToPost[0]);
+      const newEvents = [
+        {
+          ...newEventClone,
+        },
+      ];
+      const result = await tmntSaveEvents(origEvents, newEvents, stCreate);
+      expect(result).not.toBeNull();
+      createdEvent = true;
+      if (!result) return;
+      expect(result.length).toBe(1);
+      const postedEvent = result[0];
+      expect(postedEvent.id).toBe(newEvents[0].id);
+      expect(postedEvent.tmnt_id).toBe(newEvents[0].tmnt_id);
+      expect(postedEvent.event_name).toBe(newEvents[0].event_name);
+      expect(postedEvent.team_size).toBe(newEvents[0].team_size);
+      expect(postedEvent.games).toBe(newEvents[0].games);
+      expect(postedEvent.entry_fee).toBe(newEvents[0].entry_fee);
+      expect(postedEvent.lineage).toBe(newEvents[0].lineage);
+      expect(postedEvent.prize_fund).toBe(newEvents[0].prize_fund);
+      expect(postedEvent.other).toBe(newEvents[0].other);
+      expect(postedEvent.expenses).toBe(newEvents[0].expenses);
+      expect(postedEvent.added_money).toBe(newEvents[0].added_money);
+      expect(postedEvent.lpox).toBe(newEvents[0].lpox);
+      expect(postedEvent.sort_order).toBe(newEvents[0].sort_order);
+    });
+    it("should save multiple events when more one event to save", async () => {      
+      const newEvents = structuredClone(mockEventsToPost);      
+      const result = await tmntSaveEvents(origEvents, newEvents, stCreate);
+      expect(result).not.toBeNull();
+      createdEvent = true;
+      if (!result) return;
+      expect(result.length).toBe(2);
+      const postedEvents = result as eventType[];
+      let postedEvent
+      if (postedEvents[0].id === newEvents[0].id) {
+        postedEvent = postedEvents[0]
+      } else {
+        postedEvent = postedEvents[1]
+      }      
+      expect(postedEvent.id).toBe(newEvents[0].id);
+      expect(postedEvent.tmnt_id).toBe(newEvents[0].tmnt_id);
+      expect(postedEvent.event_name).toBe(newEvents[0].event_name);
+      expect(postedEvent.team_size).toBe(newEvents[0].team_size);
+      expect(postedEvent.games).toBe(newEvents[0].games);
+      expect(postedEvent.entry_fee).toBe(newEvents[0].entry_fee);
+      expect(postedEvent.lineage).toBe(newEvents[0].lineage);
+      expect(postedEvent.prize_fund).toBe(newEvents[0].prize_fund);
+      expect(postedEvent.other).toBe(newEvents[0].other);
+      expect(postedEvent.expenses).toBe(newEvents[0].expenses);
+      expect(postedEvent.added_money).toBe(newEvents[0].added_money);
+      expect(postedEvent.lpox).toBe(newEvents[0].lpox);
+      expect(postedEvent.sort_order).toBe(newEvents[0].sort_order);
 
-      describe('tmntsSaveEvents - added an Event', () => {
-        const addedEvent = {
-          ...initEvent,
-          id: '3',
-          tmnt_id: "tmt_fe8ac53dad0f400abe6354210a8f4cd1",
-          event_name: "Test Event",
-          team_size: 3,
-          games: 6,
-          entry_fee: '240',
-          lineage: '54',
-          prize_fund: '165',
-          other: '6',
-          expenses: '15',
-          added_money: '0',
-          sort_order: 12,
-          lpox: '240',
-        }
+      if (postedEvents[1].id === newEvents[1].id) {
+        postedEvent = postedEvents[1]
+      } else {
+        postedEvent = postedEvents[0]
+      }      
+      expect(postedEvent.id).toBe(newEvents[1].id);
+      expect(postedEvent.tmnt_id).toBe(newEvents[1].tmnt_id);
+      expect(postedEvent.event_name).toBe(newEvents[1].event_name);
+      expect(postedEvent.team_size).toBe(newEvents[1].team_size);
+      expect(postedEvent.games).toBe(newEvents[1].games);
+      expect(postedEvent.entry_fee).toBe(newEvents[1].entry_fee);
+      expect(postedEvent.lineage).toBe(newEvents[1].lineage);
+      expect(postedEvent.prize_fund).toBe(newEvents[1].prize_fund);
+      expect(postedEvent.other).toBe(newEvents[1].other);
+      expect(postedEvent.expenses).toBe(newEvents[1].expenses);
+      expect(postedEvent.added_money).toBe(newEvents[1].added_money);
+      expect(postedEvent.lpox).toBe(newEvents[1].lpox);
+      expect(postedEvent.sort_order).toBe(newEvents[1].sort_order);
+    });
+  });
 
-        let postedEvent = false;
+  describe("tmntSaveEvents(): edited events ", () => {
+    const clonedEvent = structuredClone(mockEventsToEdit[0]);
+    const toAddEvent = {
+      ...clonedEvent,
+      id: 'evt_9a58f0a486cb4e6c92ca3348702b1a63', // added one to last diget
+      event_name: "Team",
+      team_size: 4,
+      games: 3,
+      entry_fee: '200',
+      lineage: '36',
+      prize_fund: '150',
+      other: '4',
+      expenses: '10',
+      added_money: '0',    
+      lpox: '200',
+      sort_order: 4,
+    }    
+    // 1 deleted - trios [2]
+    // 1 edited - doubles [1]
+    // 1 left alone - singles [0]
+    // 1 created - team    
+   
+    const doResetEvent = async () => {
+      await putEvent(mockEventsToEdit[1]);
+    }    
+    const rePostEvent = async () => {
+      const response = await axios.get(url);
+      const events = response.data.events;
+      const found = events.find(
+        (e: eventType) => e.id === mockEventsToEdit[2].id
+      );
+      if (!found) {
+        await postEvent(mockEventsToEdit[2]);
+      }      
+    }
+    const removeEvent = async () => {
+      await deleteEvent(toAddEvent.id);
+    }
 
-        const delAddedEvent = async () => {
-          try {
-            const response = await axios.get(url);
-            const events = response.data.events;
-            const toDel = events.find(
-              (e: eventType) => e.sort_order === 12
-            );
-            if (toDel) {
-              try {
-                const delResponse = await axios({
-                  method: "delete",
-                  withCredentials: true,
-                  url: url + "/" + toDel.id,
-                });
-              } catch (err) {
-                if (err instanceof AxiosError) console.log(err.message);
-              }
-            }
-          } catch (error) {
-            if (error instanceof AxiosError) console.log(error.message);
-          }
-        }
-  
-        beforeAll(async () => {
-          await delAddedEvent();
-        })
+    let didPost = false;
+    let didPut = false;
+    let didDel = false;
 
-        beforeEach(() => { postedEvent = false })
+    beforeEach(async () => {
+      await doResetEvent();
+      await rePostEvent();
+      await removeEvent();
+    });
 
-        afterEach(async () => {
-          if (postedEvent) {
-            await delAddedEvent();
-          }
-        })
+    beforeEach = () => {
+      didPost = false;
+      didPut = false;
+      didDel = false;
+    };
 
-        it('should save an added event', async () => {
-          const addedToEvents = mockEventsToEdit.map(a => ({ ...a }));
-          addedToEvents.push(addedEvent); 
-          
-          const toSaveEvents = {
-            origEvents: mockEventsToEdit,
-            events: addedToEvents,
-            setEvents: mockSetEvents,
-            squads: mockSquadsToEdit,
-            setSquads: mockSetSquads,
-          }
-  
-          const didPost = await tmntSaveEvents(toSaveEvents);
-          expect(didPost).toBe(true);
-          postedEvent = true;
-          expect(mockSetEvents).toHaveBeenCalled();
-          expect(mockSetSquads).toHaveBeenCalled();
-        })
-        // it('should call tmntPostPutOrDelEvents when adding an event whil editing', async () => { 
-        //   const addedToEvents = mockEventsToEdit.map(a => ({ ...a }));
-        //   addedToEvents.push(addedEvent); 
-          
-        //   const toSaveEvents = {
-        //     origEvents: mockEventsToEdit,
-        //     events: addedToEvents,
-        //     setEvents: mockSetEvents,
-        //     squads: mockSquadsToEdit,
-        //     setSquads: mockSetSquads,
-        //   }
+    afterEach(async () => {
+      if (didPost) {
+        await removeEvent();
+      }
+      if (didPut) {
+        await doResetEvent();
+      }
+      if (didDel) {
+        await rePostEvent();
+      }
+    });
 
-        //   const didPost = await tmntPostPutOrDelEvents(toSaveEvents);
-        //   expect(didPost).toBe(true);
-        //   postedEvent = true;
-        //   expect(mockSetEvents).toHaveBeenCalled();
-        //   expect(mockSetSquads).toHaveBeenCalled();
-        // })
-      })
+    it('should save edited events, one event edited', async () => { 
+      const eventsToEdit = structuredClone(mockEventsToEdit);
+      eventsToEdit[1].event_name = "Edited Doubles";
+      eventsToEdit[1].games = 4;
+      eventsToEdit[1].added_money = '300';
+      const savedEvents = await tmntSaveEvents(mockEventsToEdit, eventsToEdit, stUpdate);
+      if (!savedEvents) {
+        expect(savedEvents).not.toBeNull();
+        return;
+      }
+      expect(savedEvents).toHaveLength(3);
+      didPut = true;
+      const found = savedEvents.find((e) => e.id === eventsToEdit[1].id);
+      if (!found) {
+        expect(found).not.toBeUndefined();
+        return;
+      }                  
+      expect(found.event_name).toBe(eventsToEdit[1].event_name);
+      expect(found.games).toBe(eventsToEdit[1].games);
+      expect(found.added_money).toBe(eventsToEdit[1].added_money);
+    })
+    it('should save edited events, one event added', async () => { 
+      const eventsToEdit = structuredClone(mockEventsToEdit);
+      eventsToEdit.push(toAddEvent);  
+      const savedEvents = await tmntSaveEvents(mockEventsToEdit, eventsToEdit, stUpdate);
+      if (!savedEvents) {
+        expect(savedEvents).not.toBeNull();
+        return;
+      }
+      didPost = true;
+      expect(savedEvents).toHaveLength(4);
+      const found = savedEvents.find((e) => e.id === toAddEvent.id);
+      if (!found) {
+        expect(found).not.tbBeUndefined();
+        return;
+      }            
+      expect(found.id).toBe(toAddEvent.id);
+      expect(found.tmnt_id).toBe(toAddEvent.tmnt_id);
+      expect(found.event_name).toBe(toAddEvent.event_name);
+      expect(found.team_size).toBe(toAddEvent.team_size);
+      expect(found.games).toBe(toAddEvent.games);
+      expect(found.added_money).toBe(toAddEvent.added_money);
+      expect(found.entry_fee).toBe(toAddEvent.entry_fee);
+      expect(found.lineage).toBe(toAddEvent.lineage);
+      expect(found.prize_fund).toBe(toAddEvent.prize_fund);
+      expect(found.other).toBe(toAddEvent.other);
+      expect(found.expenses).toBe(toAddEvent.expenses);
+      expect(found.lpox).toBe(toAddEvent.lpox);
+      expect(found.sort_order).toBe(toAddEvent.sort_order);      
+    })
+    it('should save edited events, one event deleted', async () => { 
+      const eventsToEdit = structuredClone(mockEventsToEdit);
+      eventsToEdit.pop();      
+      const savedEvents = await tmntSaveEvents(mockEventsToEdit, eventsToEdit, stUpdate);
+      if (!savedEvents) {
+        expect(savedEvents).not.toBeNull();
+        return;
+      }
+      didDel = true;
+      expect(savedEvents).toHaveLength(2);
+      const found = savedEvents.find((e) => e.id === mockEventsToEdit[2].id);
+      if (found) {
+        expect(found).toBeUndefined();
+        return;
+      }
+      expect(found).toBeUndefined();
+    })
+    it('should save edited events, one event edited, one added, one deleted', async () => { 
+      const eventsToEdit = structuredClone(mockEventsToEdit);
+      // delete trios
+      eventsToEdit.pop(); 
+      // edit doubles
+      eventsToEdit[1].event_name = "Edited Doubles";
+      eventsToEdit[1].games = 4;
+      eventsToEdit[1].added_money = '300';
+      // add team
+      eventsToEdit.push(toAddEvent);
+      
+      const savedEvents = await tmntSaveEvents(mockEventsToEdit, eventsToEdit, stUpdate);
+      if (!savedEvents) {
+        expect(savedEvents).not.toBeNull();
+        return;
+      }
+      expect(savedEvents).toHaveLength(3);
+      didPut = true;
+      didPost = true;
+      didDel = true;
+      let found = savedEvents.find((e) => e.id === eventsToEdit[1].id);
+      if (!found) {
+        expect(found).not.toBeUndefined();
+        return;
+      }                  
+      expect(found.event_name).toBe(eventsToEdit[1].event_name);
+      expect(found.games).toBe(eventsToEdit[1].games);
+      expect(found.added_money).toBe(eventsToEdit[1].added_money);
+      found = savedEvents.find((e) => e.id === toAddEvent.id);
+      if (!found) {
+        expect(found).not.toBeUndefined();
+        return;
+      }
+      expect(found.id).toBe(toAddEvent.id);
+      expect(found.tmnt_id).toBe(toAddEvent.tmnt_id);
+      expect(found.event_name).toBe(toAddEvent.event_name);
+      expect(found.team_size).toBe(toAddEvent.team_size);
+      expect(found.games).toBe(toAddEvent.games);
+      expect(found.added_money).toBe(toAddEvent.added_money);
+      expect(found.entry_fee).toBe(toAddEvent.entry_fee);
+      expect(found.lineage).toBe(toAddEvent.lineage);
+      expect(found.prize_fund).toBe(toAddEvent.prize_fund);
+      expect(found.other).toBe(toAddEvent.other);
+      expect(found.expenses).toBe(toAddEvent.expenses);
+      expect(found.lpox).toBe(toAddEvent.lpox);
+      expect(found.sort_order).toBe(toAddEvent.sort_order);
+      found = savedEvents.find((e) => e.id === mockEventsToEdit[2].id);
+      if (found) {
+        expect(found).toBeUndefined();
+        return;
+      }
+      expect(found).toBeUndefined();
     })
 
-  })
-    
+  });
 });

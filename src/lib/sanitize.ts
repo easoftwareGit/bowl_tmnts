@@ -72,6 +72,25 @@ export function sanitizeUrl(url: string): string {
   }
 }
 
+/**
+ * checks if string is all '0's
+ *
+ * @param {string} str - string to check
+ * @return {*}  {boolean} - true: str is all '0's
+ */
+export function isAllZeros(str: string): boolean {
+  if (!str) return false;
+  // Use a regular expression to test if the string is all '0's
+  return /^0+$/.test(str);
+}
+
+/**
+ * sanitizes currency string to remove commas, leading '$' and leading zeros
+ * a string with non-numeric characters will return an empty string
+ * 
+ * @param {string} currency - currency to sanitize
+ * @returns - sanitized currency
+ */
 export function sanitizeCurrency(currency: string): string {
   if (!currency) return "";
   if (typeof currency !== "string") {
@@ -81,6 +100,15 @@ export function sanitizeCurrency(currency: string): string {
       return "";
     }
   }
+  // remove commas
+  currency = currency.replace(/,/g, "");
+  // remove leading '$"
+  currency = currency.replace(/^\$/, "");  
+  if (isAllZeros(currency)) {
+    return "0";    
+  }
+  // remove leading '0's  
+  currency = currency.replace(/^0+/, "");  
   
   // Regular expression to match a number with 0, 1, or 2 digits after an optional decimal point
   const regex = /^\d+(\.\d{1,2})?$/;

@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { ErrorCode, isValidBtDbId } from "@/lib/validation";
-import { sanitizeDiv, validateDiv } from "../../validate";
+import { sanitizeDiv, validateDiv, validIntHdcp } from "../../validate";
 import { divType, HdcpForTypes } from "@/lib/types/types";
 import { initDiv } from "@/lib/db/initVals";
 
@@ -65,7 +65,8 @@ export async function PUT(
       sort_order,
     };
 
-    const errCode = validateDiv(toCheck);
+    const toPut = sanitizeDiv(toCheck);
+    const errCode = validateDiv(toPut);
     if (errCode !== ErrorCode.None) {
       let errMsg: string;
       switch (errCode) {
@@ -82,7 +83,6 @@ export async function PUT(
       return NextResponse.json({ error: errMsg }, { status: 422 });
     }
 
-    const toPut = sanitizeDiv(toCheck);
     // NO hdcp_per_str in data object
     const putDiv = await prisma.div.update({
       where: {
@@ -160,29 +160,37 @@ export async function PATCH(
       sort_order: currentDiv.sort_order,
     };
 
+    let gotDataToPatch = false;
     if (jsonProps.includes("div_name")) {
       toCheck.div_name = json.div_name;
-    }
-    if (jsonProps.includes("tmnt_id")) {
-      toCheck.tmnt_id = json.tmnt_id;
+      gotDataToPatch = true;
     }
     if (jsonProps.includes("hdcp_per")) {
       toCheck.hdcp_per = json.hdcp_per;
+      gotDataToPatch = true;
     }
     if (jsonProps.includes("hdcp_from")) {
       toCheck.hdcp_from = json.hdcp_from;
+      gotDataToPatch = true;
     }
     if (jsonProps.includes("int_hdcp")) {
       toCheck.int_hdcp = json.int_hdcp;
+      gotDataToPatch = true;
     }
     if (jsonProps.includes("hdcp_for")) {
       toCheck.hdcp_for = json.hdcp_for;
+      gotDataToPatch = true;
     }
     if (jsonProps.includes("sort_order")) {
       toCheck.sort_order = json.sort_order;
+      gotDataToPatch = true;
     }
 
-    const errCode = validateDiv(toCheck);
+    if (!gotDataToPatch) {
+      return NextResponse.json({ div: currentDiv }, { status: 200 });
+    }
+    const toBePatched = sanitizeDiv(toCheck);
+    const errCode = validateDiv(toBePatched);
     if (errCode !== ErrorCode.None) {
       let errMsg: string;
       switch (errCode) {
@@ -199,8 +207,7 @@ export async function PATCH(
       return NextResponse.json({ error: errMsg }, { status: 422 });
     }
 
-    let gotIntHdcp = undefined;
-    const toBePatched = sanitizeDiv(toCheck);
+    let gotIntHdcp = undefined;    
     const toPatch = {
       ...initDiv,
       tmnt_id: "",

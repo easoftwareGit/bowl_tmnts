@@ -6,6 +6,7 @@ import { initTmnt } from "@/lib/db/initVals";
 import { isValidBtDbId } from "@/lib/validation";
 import { compareAsc, startOfToday } from "date-fns";
 import { startOfDayFromString } from "@/lib/dateTools";
+import { btDbUuid } from "@/lib/uuid";
 
 // before running this test, run the following commands in the terminal:
 // 1) clear and re-seed the database
@@ -210,6 +211,7 @@ describe('Tmnts - API: /api/tmnts', () => {
       expect(response.status).toBe(201);
       const postedTmnt = response.data.tmnt;
       createdTmnt = true
+      expect(postedTmnt.id).toBe(tmntToPost.id);
       expect(postedTmnt.tmnt_name).toBe(tmntToPost.tmnt_name);
       expect(postedTmnt.user_id).toBe(tmntToPost.user_id);
       expect(postedTmnt.bowl_id).toBe(tmntToPost.bowl_id);
@@ -218,8 +220,7 @@ describe('Tmnts - API: /api/tmnts', () => {
       expect(compareAsc(postedStartDate, tmntToPost.start_date)).toBe(0);    
       // postedTmnt.end_date is a string, convert it to date for comparison
       const postedEndDate = new Date(postedTmnt.end_date);
-      expect(compareAsc(postedEndDate, tmntToPost.end_date)).toBe(0);      
-      expect(isValidBtDbId(postedTmnt.id, 'tmt')).toBeTruthy();
+      expect(compareAsc(postedEndDate, tmntToPost.end_date)).toBe(0);            
     })
     it('should not create a new tmnt with bowl_id that does not exist', async () => { 
       const invalidTmnt = {
@@ -642,6 +643,7 @@ describe('Tmnts - API: /api/tmnts', () => {
     it('should create a new tmnt with sanitized data', async () => {
       const toSanitizeTmnt = {
         ...tmntToPost,
+        id: btDbUuid('tmt'),
         tmnt_name: "    <script>" + tmntToPost.tmnt_name + "</script>   ",
       }
       const tmntJSON = JSON.stringify(toSanitizeTmnt);
@@ -654,10 +656,10 @@ describe('Tmnts - API: /api/tmnts', () => {
       expect(response.status).toBe(201);
       const postedTmnt = response.data.tmnt;
       createdTmnt = true;
+      expect(postedTmnt.id).toBe(toSanitizeTmnt.id); // use toSanitizeTmnt.id here
       expect(postedTmnt.tmnt_name).toBe(tmntToPost.tmnt_name);
       expect(compareAsc(postedTmnt.start_date, tmntToPost.start_date)).toBe(0);
-      expect(compareAsc(postedTmnt.end_date, tmntToPost.end_date)).toBe(0);
-      expect(isValidBtDbId(postedTmnt.id, 'tmt')).toBeTruthy();
+      expect(compareAsc(postedTmnt.end_date, tmntToPost.end_date)).toBe(0);      
     })
     
   })

@@ -10,7 +10,6 @@ import {
   validHdcpFor
 } from "@/app/api/divs/validate";
 import { initDiv } from "@/lib/db/initVals";
-import { postSecret } from "@/lib/tools";
 import { divType } from "@/lib/types/types";
 import { ErrorCode, maxEventLength, maxSortOrder } from "@/lib/validation";
 
@@ -411,15 +410,15 @@ describe('tests for div validation', () => {
       const testDiv = {
         ...validScratchDiv,
         tmnt_id: 'abc_123',
-        div_name: '  Test* ',
-        int_hdcp: null as any,
-        hdcp_for: 'everyone' as any,
+        div_name: '  Test* ',   
+        hdcp_for: ' invalid ' as any,
+        int_hdcp: 'true' as any,
       }
       const sanitizedDiv = sanitizeDiv(testDiv)
       expect(sanitizedDiv.tmnt_id).toEqual('') 
-      expect(sanitizedDiv.div_name).toEqual('Test')
-      expect(sanitizedDiv.int_hdcp).toEqual(true)
-      expect(sanitizedDiv.hdcp_for).toEqual('Game')
+      expect(sanitizedDiv.div_name).toEqual('Test')            
+      expect(sanitizedDiv.hdcp_for).toEqual('')
+      expect(sanitizedDiv.int_hdcp).toBeNull()
     })
     it('should return a sanitized div when numerical values are null', () => {
       const testDiv = {

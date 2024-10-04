@@ -75,12 +75,12 @@ describe('postPot', () => {
     expect(postedPot).not.toBeNull();
     if (!postedPot) return;
     createdPot = true;
+    expect(postedPot.id).toBe(potToPost.id);
     expect(postedPot.squad_id).toBe(potToPost.squad_id);
     expect(postedPot.div_id).toBe(potToPost.div_id);
     expect(postedPot.fee).toBe(potToPost.fee);
     expect(postedPot.pot_type).toBe(potToPost.pot_type);
-    expect(postedPot.sort_order).toBe(potToPost.sort_order);
-    expect(isValidBtDbId(postedPot.id, "pot")).toBeTruthy();
+    expect(postedPot.sort_order).toBe(potToPost.sort_order);    
   })
   it('should NOT post a pot with invalid data', async () => { 
     const invalidPot = {

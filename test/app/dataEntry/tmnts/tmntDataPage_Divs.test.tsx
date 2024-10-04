@@ -8,7 +8,7 @@ import { mockEvent } from "../../../mocks/tmnts/twoDivs/mockEvent";
 import { mockDivs, mockPots, mockBrkts, mockElims } from "../../../mocks/tmnts/twoDivs/mockDivs";
 import { mockSquad } from "../../../mocks/tmnts/twoDivs/mockSquad";
 import { fullTmntDataType } from "@/lib/types/types";
-import { defaultHdcpPer, defaultHdcpFrom, initBrkts, initDivs, initElims, initEvents, initPots, initSquads, initLanes, initDiv } from "@/lib/db/initVals";
+import { defaultHdcpPer, defaultHdcpFrom, initBrkts, initDivs, initElims, initEvents, initPots, initSquads, initLanes } from "@/lib/db/initVals";
 import { formatValuePercent2Dec } from "@/lib/currency/formatValue";
 
 describe('TmntDataPage - Divs Component', () => { 

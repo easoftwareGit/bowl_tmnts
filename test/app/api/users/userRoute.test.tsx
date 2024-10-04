@@ -125,11 +125,11 @@ describe('Users - API: /api/users', () => {
       expect(response.status).toBe(201);
       const postedUser: userType = response.data.user;
       createdUser = true;
+      expect(postedUser.id).toEqual(userToPost.id);
       expect(postedUser.first_name).toEqual(userToPost.first_name);
       expect(postedUser.last_name).toEqual(userToPost.last_name);
       expect(postedUser.email).toEqual(userToPost.email);
-      expect(postedUser.phone).toEqual(userToPost.phone);
-      expect(isValidBtDbId(postedUser.id, 'usr')).toBeTruthy();
+      expect(postedUser.phone).toEqual(userToPost.phone);      
     })
     it('should NOT create a new user when missing id', async () => {
       const invalidUser = {
@@ -411,11 +411,11 @@ describe('Users - API: /api/users', () => {
       const postedUser: userType = response.data.user;
       createdUser = true;
       expect(response.status).toBe(201);
+      expect(postedUser.id).toEqual(toSanitizeUser.id); // use toSanitizeUser.id 
       expect(postedUser.first_name).toEqual(userToPost.first_name);
       expect(postedUser.last_name).toEqual(userToPost.last_name);
       expect(postedUser.email).toEqual(userToPost.email);
       expect(postedUser.phone).toEqual(userToPost.phone);
-      expect(isValidBtDbId(postedUser.id, 'usr')).toBeTruthy();
     })
   
   })

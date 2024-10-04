@@ -76,13 +76,13 @@ describe('postElim', () => {
     expect(postedElim).not.toBeNull();
     if(!postedElim) return;
     createdElim = true
+    expect(postedElim.id).toBe(elimToPost.id);
     expect(postedElim.squad_id).toBe(elimToPost.squad_id);
     expect(postedElim.div_id).toBe(elimToPost.div_id);    
     expect(postedElim.start).toBe(elimToPost.start);
     expect(postedElim.games).toBe(elimToPost.games);
     expect(postedElim.fee).toBe(elimToPost.fee);    
-    expect(postedElim.sort_order).toBe(elimToPost.sort_order);
-    expect(isValidBtDbId(postedElim.id, 'elm')).toBeTruthy();
+    expect(postedElim.sort_order).toBe(elimToPost.sort_order);    
   })
   it('should NOT post a elim with invalid data', async () => { 
     const invalidElim = {

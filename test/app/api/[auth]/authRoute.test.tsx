@@ -3,7 +3,7 @@ import { baseUsersApi, baseRegisterApi } from "@/lib/db/apiPaths";
 import { testBaseUsersApi, testBaseRegisterApi } from "../../../testApi";
 import { userType } from "@/lib/types/types";
 import { initUser } from "@/lib/db/initVals";
-import { isValidBtDbId } from "@/lib/validation";
+import { btDbUuid } from "@/lib/uuid";
 
 // before running this test, run the following commands in the terminal:
 // 1) clear and re-seed the database
@@ -33,7 +33,9 @@ describe('auth route', () => {
       ? baseUsersApi
       : testBaseUsersApi;
     
-    let createdUserId = "";
+    const oneUserUrl = userUrl + "/user/"
+    
+    let createdUser = false;
     
     const registerUser: userType = {
       ...initUser,
@@ -44,42 +46,39 @@ describe('auth route', () => {
       phone: "+18005559999",
     }
     
-    beforeAll(async () => {
-      const response = await axios.get(userUrl);
-      const users = response.data.users;
-      const toDel = users.find((u: userType) => u.email === 'test@email.com');
-      if (toDel) {
-        const delResponse = await axios({
-          method: "delete",
-          withCredentials: true,
-          url: userUrl + "/" + toDel.id
-        });
-        if (delResponse.status === 200) {
-          console.log("deleted user with ID: " + createdUserId);
-        } else {
-          console.log("failed to delete user with ID: " + createdUserId);
+    const deleteTestUser = async () => {
+      try {
+        const response = await axios.get(userUrl);
+        const users = response.data.users;
+        const toDel = users.find((u: userType) => u.email === 'test@email.com' || u.email === 'test2@email.com');
+        try {        
+          if (toDel) {
+            const delResponse = await axios({
+              method: "delete",
+              withCredentials: true,
+              url: oneUserUrl + toDel.id
+            });            
+          }
+        } catch (err) {
+          if (err instanceof AxiosError) console.log(err.message);
         }
+      } catch (err) {
+        if (err instanceof AxiosError) console.log(err.message);
       }
+    } 
+
+    beforeAll(async () => {
+      await deleteTestUser();
     })
 
     beforeEach(() => {
-      createdUserId = "";
+      createdUser = false;
     })
 
     afterEach(async () => {
-      if (createdUserId !== "") {
-        const delResponse = await axios({
-          method: "delete",
-          withCredentials: true,
-          url: userUrl + "/" + createdUserId,
-        });
-        if (delResponse.status === 200) {
-          console.log("deleted user with ID: " + createdUserId);
-        } else {
-          console.log("failed to delete user with ID: " + createdUserId);
-        }
+      if (createdUser) {
+        await deleteTestUser();
       }
-      createdUserId = "";
     })
 
     it('should register a new user', async () => {
@@ -92,20 +91,23 @@ describe('auth route', () => {
       });
       expect(response.status).toBe(201);
       const postedUser: userType = response.data.user;
-      createdUserId = postedUser.id;      
+      createdUser = true;
+      expect(postedUser.id).toEqual(registerUser.id);
       expect(postedUser.first_name).toEqual(registerUser.first_name);
       expect(postedUser.last_name).toEqual(registerUser.last_name);
       expect(postedUser.email).toEqual(registerUser.email);
       expect(postedUser.phone).toEqual(registerUser.phone);
-      expect(postedUser.role).toEqual("USER");
-      expect(isValidBtDbId(postedUser.id, 'usr')).toBeTruthy();
+      expect(postedUser.role).toEqual("USER");      
     })
     it('should register a new user with a missing phone', async () => {
       const validUser = {
         ...registerUser,
+        id: btDbUuid('usr'),
+        email: "test2@email.com",
         phone: "",
       }
-      const userJSON = JSON.stringify(validUser);
+      let gotTestEmailUser = true
+      const userJSON = JSON.stringify(validUser);      
       const response = await axios({
         method: "post",
         data: userJSON,
@@ -114,7 +116,7 @@ describe('auth route', () => {
       });
       expect(response.status).toBe(201);
       const postedUser: userType = response.data.user;
-      createdUserId = postedUser.id;
+      createdUser = true;
       expect(postedUser.phone).toEqual("");
     })
     it('should not register a new user with a missing first name', async () => {
@@ -307,7 +309,7 @@ describe('auth route', () => {
         url: url,
       });
       const postedUser: userType = response.data.user;
-      createdUserId = postedUser.id;
+      createdUser = true;
       expect(response.status).toBe(201);
       expect(postedUser.first_name).toEqual(registerUser.first_name);
       expect(postedUser.last_name).toEqual(registerUser.last_name);

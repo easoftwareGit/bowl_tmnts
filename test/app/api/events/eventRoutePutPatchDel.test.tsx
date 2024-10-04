@@ -3,6 +3,8 @@ import { baseEventsApi } from "@/lib/db/apiPaths";
 import { testBaseEventsApi } from "../../../testApi";
 import { eventType } from "@/lib/types/types";
 import { initEvent } from "@/lib/db/initVals";
+import { mockEventsToPost, tmntToDelId } from "../../../mocks/tmnts/singlesAndDoubles/mockEvents";
+import { postEvent } from "@/lib/db/events/eventsAxios";
 
 // before running this test, run the following commands in the terminal:
 // 1) clear and re-seed the database
@@ -23,6 +25,7 @@ const url = testBaseEventsApi.startsWith("undefined")
   ? baseEventsApi
   : testBaseEventsApi;   
 const oneEventUrl = url + "/event/";
+const eventTmntUrl = url + '/tmnt/';
   
 describe('Events - PUT, PATCH, DELETE API: /api/events/event/:id', () => { 
 
@@ -59,6 +62,17 @@ describe('Events - PUT, PATCH, DELETE API: /api/events/event/:id', () => {
 
   describe('PUT by ID - API: /api/events/event/:id', () => { 
 
+    const resetUser = async () => {
+      // make sure test user is reset in database
+      const userJSON = JSON.stringify(testEvent);
+      const putResponse = await axios({
+        method: "put",
+        data: userJSON,
+        withCredentials: true,
+        url: oneEventUrl + testEvent.id,
+      })
+    }
+
     const putEvent = { 
       ...testEvent,
       tmnt_id: "tmt_fe8ac53dad0f400abe6354210a8f4cd1",
@@ -92,28 +106,11 @@ describe('Events - PUT, PATCH, DELETE API: /api/events/event/:id', () => {
     }
 
     beforeAll(async () => {
-      // make sure test user is reset in database
-      const userJSON = JSON.stringify(testEvent);
-      const putResponse = await axios({
-        method: "put",
-        data: userJSON,
-        withCredentials: true,
-        url: oneEventUrl + testEvent.id,
-      })
+      await resetUser()
     })
 
     afterEach(async () => {
-      try {
-        const eventJSON = JSON.stringify(testEvent);
-        const putResponse = await axios({
-          method: "put",
-          data: eventJSON,
-          withCredentials: true,
-          url: oneEventUrl + testEvent.id,
-        })
-      } catch (err) {
-        if (err instanceof AxiosError) console.log(err.message);
-      }
+      await resetUser()
     })
 
     it('should update an event by ID', async () => { 
@@ -138,6 +135,50 @@ describe('Events - PUT, PATCH, DELETE API: /api/events/event/:id', () => {
       expect(puttedEvent.expenses).toEqual(putEvent.expenses);
       expect(puttedEvent.added_money).toEqual(putEvent.added_money);
       expect(puttedEvent.sort_order).toEqual(putEvent.sort_order);
+    })
+    it('should update an event when by ID with blank added money', async () => {
+      const invalidEvent = {
+        ...putEvent,
+        added_money: '',
+      }
+      const eventJSON = JSON.stringify(invalidEvent);      
+      const putResponse = await axios({
+        method: "put",
+        data: eventJSON,
+        withCredentials: true,
+        url: oneEventUrl + testEvent.id,
+      });
+      expect(putResponse.status).toBe(200);
+      const puttedEvent = putResponse.data.event;
+      expect(puttedEvent.added_money).toEqual('0');
+    })
+    it('should update an event when by ID with all money flieds blank', async () => {
+      const invalidEvent = {
+        ...putEvent,
+        added_money: '',
+        entry_fee: '',
+        lineage: '',
+        prize_fund: '',
+        other: '',
+        expenses: '',
+        lpox: '',
+      }
+      const eventJSON = JSON.stringify(invalidEvent);      
+      const putResponse = await axios({
+        method: "put",
+        data: eventJSON,
+        withCredentials: true,
+        url: oneEventUrl + testEvent.id,
+      });
+      expect(putResponse.status).toBe(200);
+      const puttedEvent = putResponse.data.event;
+      expect(puttedEvent.added_money).toEqual('0');
+      expect(puttedEvent.entry_fee).toEqual('0');
+      expect(puttedEvent.lineage).toEqual('0');
+      expect(puttedEvent.prize_fund).toEqual('0');
+      expect(puttedEvent.other).toEqual('0');
+      expect(puttedEvent.expenses).toEqual('0');
+      expect(puttedEvent.lpox).toEqual('0');
     })
     it('should NOT update an event by ID when ID is invalid', async () => {
       const eventJSON = JSON.stringify(putEvent);
@@ -269,28 +310,6 @@ describe('Events - PUT, PATCH, DELETE API: /api/events/event/:id', () => {
       const invalidEvent = {
         ...putEvent,
         games: null as any,
-      }
-      const eventJSON = JSON.stringify(invalidEvent);
-      try {
-        const response = await axios({
-          method: "put",
-          data: eventJSON,
-          withCredentials: true,
-          url: oneEventUrl + testEvent.id,
-        });
-        expect(response.status).toBe(422);
-      } catch (err) {
-        if (err instanceof AxiosError) {
-          expect(err.response?.status).toBe(422);
-        } else {
-          expect(true).toBeFalsy();
-        }
-      }
-    })
-    it('should NOT update an event when by ID missing added money', async () => {
-      const invalidEvent = {
-        ...putEvent,
-        added_money: '',
       }
       const eventJSON = JSON.stringify(invalidEvent);
       try {
@@ -709,6 +728,28 @@ describe('Events - PUT, PATCH, DELETE API: /api/events/event/:id', () => {
         }
       }
     })
+    it('should NOT update an event by ID when added money is number not a string', async () => {
+      const invalidEvent = {
+        ...putEvent,
+        added_money: 100 as any,
+      }
+      const eventJSON = JSON.stringify(invalidEvent);
+      try {
+        const response = await axios({
+          method: "put",
+          data: eventJSON,
+          withCredentials: true,
+          url: oneEventUrl + testEvent.id,
+        });
+        expect(response.status).toBe(422);
+      } catch (err) {
+        if (err instanceof AxiosError) {
+          expect(err.response?.status).toBe(422);
+        } else {
+          expect(true).toBeFalsy();
+        }
+      }
+    })
     it('should NOT update an event by ID when added money is not a number', async () => {
       const invalidEvent = {
         ...putEvent,
@@ -757,6 +798,28 @@ describe('Events - PUT, PATCH, DELETE API: /api/events/event/:id', () => {
       const invalidEvent = {
         ...putEvent,
         added_money: '1234567',
+      }
+      const eventJSON = JSON.stringify(invalidEvent);
+      try {
+        const response = await axios({
+          method: "put",
+          data: eventJSON,
+          withCredentials: true,
+          url: oneEventUrl + testEvent.id,
+        });
+        expect(response.status).toBe(422);
+      } catch (err) {
+        if (err instanceof AxiosError) {
+          expect(err.response?.status).toBe(422);
+        } else {
+          expect(true).toBeFalsy();
+        }
+      }
+    })
+    it('should NOT update an event by ID when entry fee is a number not a string', async () => {
+      const invalidEvent = {
+        ...putEvent,
+        entry_fee: 100 as any,
       }
       const eventJSON = JSON.stringify(invalidEvent);
       try {
@@ -841,7 +904,29 @@ describe('Events - PUT, PATCH, DELETE API: /api/events/event/:id', () => {
         }
       }
     })
-    it('should NOT update an event by ID when lineage is not a number', async () => {
+    it('should NOT update an event by ID when lineage is a number not a string', async () => {
+      const invalidEvent = {
+        ...putEvent,
+        lineage: 20 as any,
+      }
+      const eventJSON = JSON.stringify(invalidEvent);
+      try {
+        const response = await axios({
+          method: "put",
+          data: eventJSON,
+          withCredentials: true,
+          url: oneEventUrl + testEvent.id,
+        });
+        expect(response.status).toBe(422);
+      } catch (err) {
+        if (err instanceof AxiosError) {
+          expect(err.response?.status).toBe(422);
+        } else {
+          expect(true).toBeFalsy();
+        }
+      }
+    })
+    it('should NOT update an event by ID when lineage is a not number', async () => {
       const invalidEvent = {
         ...putEvent,
         lineage: 'abc',
@@ -889,6 +974,28 @@ describe('Events - PUT, PATCH, DELETE API: /api/events/event/:id', () => {
       const invalidEvent = {
         ...putEvent,
         lineage: '1234567',
+      }
+      const eventJSON = JSON.stringify(invalidEvent);
+      try {
+        const response = await axios({
+          method: "put",
+          data: eventJSON,
+          withCredentials: true,
+          url: oneEventUrl + testEvent.id,
+        });
+        expect(response.status).toBe(422);
+      } catch (err) {
+        if (err instanceof AxiosError) {
+          expect(err.response?.status).toBe(422);
+        } else {
+          expect(true).toBeFalsy();
+        }
+      }
+    })
+    it('should NOT update an event by ID when prize_fund is a number not a string', async () => {
+      const invalidEvent = {
+        ...putEvent,
+        prize_fund: 75 as any,
       }
       const eventJSON = JSON.stringify(invalidEvent);
       try {
@@ -973,6 +1080,28 @@ describe('Events - PUT, PATCH, DELETE API: /api/events/event/:id', () => {
         }
       }
     })
+    it('should NOT update an event by ID when other is a number not a string', async () => {
+      const invalidEvent = {
+        ...putEvent,
+        other: 20 as any,
+      }
+      const eventJSON = JSON.stringify(invalidEvent);
+      try {
+        const response = await axios({
+          method: "put",
+          data: eventJSON,
+          withCredentials: true,
+          url: oneEventUrl + testEvent.id,
+        });
+        expect(response.status).toBe(422);
+      } catch (err) {
+        if (err instanceof AxiosError) {
+          expect(err.response?.status).toBe(422);
+        } else {
+          expect(true).toBeFalsy();
+        }
+      }
+    })
     it('should NOT update an event by ID when other is not a number', async () => {
       const invalidEvent = {
         ...putEvent,
@@ -1021,6 +1150,28 @@ describe('Events - PUT, PATCH, DELETE API: /api/events/event/:id', () => {
       const invalidEvent = {
         ...putEvent,
         other: '1234567',
+      }
+      const eventJSON = JSON.stringify(invalidEvent);
+      try {
+        const response = await axios({
+          method: "put",
+          data: eventJSON,
+          withCredentials: true,
+          url: oneEventUrl + testEvent.id,
+        });
+        expect(response.status).toBe(422);
+      } catch (err) {
+        if (err instanceof AxiosError) {
+          expect(err.response?.status).toBe(422);
+        } else {
+          expect(true).toBeFalsy();
+        }
+      }
+    })
+    it('should NOT update an event when expenses is not number not a string', async () => {
+      const invalidEvent = {
+        ...putEvent,
+        expenses: 10 as any,
       }
       const eventJSON = JSON.stringify(invalidEvent);
       try {
@@ -1334,18 +1485,7 @@ describe('Events - PUT, PATCH, DELETE API: /api/events/event/:id', () => {
 
   describe('PATCH by ID - API: /api/events/event/:id', () => {
 
-    beforeAll(async () => {
-      // make sure test user is reset in database
-      const userJSON = JSON.stringify(testEvent);
-      const putResponse = await axios({
-        method: "put",
-        data: userJSON,
-        withCredentials: true,
-        url: oneEventUrl + testEvent.id,
-      })
-    })
-
-    afterEach(async () => {
+    const doResetEvent = async () => {
       try {
         const eventJSON = JSON.stringify(testEvent);
         const putResponse = await axios({
@@ -1357,9 +1497,25 @@ describe('Events - PUT, PATCH, DELETE API: /api/events/event/:id', () => {
       } catch (err) {
         if (err instanceof AxiosError) console.log(err.message);
       }
+    }
+
+    let didPatch = false;
+
+    beforeAll(async () => {
+      await doResetEvent
     })
 
-    it('should NOT patch tmnt_id in event by ID', async () => {
+    beforeEach(() => {
+      didPatch = false;
+    })
+
+    afterEach(async () => {
+      if (didPatch) {
+        await doResetEvent();
+      }
+    })
+
+    it('should return 200 when just passing in tmnt_id, no patching done', async () => {
       // last tmnt is seeds, also used for delete test 
       const tmntNoEventsId = 'tmt_e134ac14c5234d708d26037ae812ac33';
       const patchEvent = {
@@ -1375,6 +1531,27 @@ describe('Events - PUT, PATCH, DELETE API: /api/events/event/:id', () => {
       })
       const patchedEvent = response.data.event;
       expect(response.status).toBe(200);
+      didPatch = true;
+      // for tmnt_id, check vs testEvent, not patchEvent 
+      expect(patchedEvent.tmnt_id).toEqual(testEvent.tmnt_id);
+    })
+    it('should return 200 when just passing in blank tmnt_id, no patching done', async () => {
+      // last tmnt is seeds, also used for delete test 
+      const tmntNoEventsId = 'tmt_e134ac14c5234d708d26037ae812ac33';
+      const patchEvent = {
+        ...blankEvent,
+        tmnt_id: '',
+      }
+      const eventJSON = JSON.stringify(patchEvent);
+      const response = await axios({
+        method: "patch",
+        data: eventJSON,
+        withCredentials: true,
+        url: oneEventUrl + blankEvent.id,
+      })
+      const patchedEvent = response.data.event;
+      expect(response.status).toBe(200);
+      didPatch = true;
       // for tmnt_id, check vs testEvent, not patchEvent 
       expect(patchedEvent.tmnt_id).toEqual(testEvent.tmnt_id);
     })
@@ -1392,6 +1569,7 @@ describe('Events - PUT, PATCH, DELETE API: /api/events/event/:id', () => {
       })
       const patchedEvent = response.data.event;
       expect(response.status).toBe(200);
+      didPatch = true;
       expect(patchedEvent.event_name).toEqual(patchEvent.event_name);
     })
     it('should patch team_size in an event by ID', async () => {
@@ -1408,6 +1586,7 @@ describe('Events - PUT, PATCH, DELETE API: /api/events/event/:id', () => {
       })
       const patchedEvent = response.data.event;
       expect(response.status).toBe(200);
+      didPatch = true;
       expect(patchedEvent.team_size).toEqual(patchEvent.team_size);
     })
     it('should patch games in an event by ID', async () => {
@@ -1424,6 +1603,7 @@ describe('Events - PUT, PATCH, DELETE API: /api/events/event/:id', () => {
       })
       const patchedEvent = response.data.event;
       expect(response.status).toBe(200);
+      didPatch = true;
       expect(patchedEvent.games).toEqual(patchEvent.games);
     })
     it('should patch added_money in an event by ID', async () => {
@@ -1440,6 +1620,7 @@ describe('Events - PUT, PATCH, DELETE API: /api/events/event/:id', () => {
       })
       const patchedEvent = response.data.event;
       expect(response.status).toBe(200);
+      didPatch = true;
       expect(patchedEvent.added_money).toEqual(patchEvent.added_money);
     })
     it('should patch entry fee, lineage and lpox in an event by ID', async () => {
@@ -1458,6 +1639,7 @@ describe('Events - PUT, PATCH, DELETE API: /api/events/event/:id', () => {
       })
       const patchedEvent = response.data.event;
       expect(response.status).toBe(200);
+      didPatch = true;
       expect(patchedEvent.entry_fee).toEqual(patchEvent.entry_fee);
       expect(patchedEvent.lineage).toEqual(patchEvent.lineage);
       expect(patchedEvent.lpox).toEqual(patchEvent.lpox);
@@ -1478,6 +1660,7 @@ describe('Events - PUT, PATCH, DELETE API: /api/events/event/:id', () => {
       })
       const patchedEvent = response.data.event;
       expect(response.status).toBe(200);
+      didPatch = true;
       expect(patchedEvent.entry_fee).toEqual(patchEvent.entry_fee);
       expect(patchedEvent.prize_fund).toEqual(patchEvent.prize_fund);
       expect(patchedEvent.lpox).toEqual(patchEvent.lpox);
@@ -1498,6 +1681,7 @@ describe('Events - PUT, PATCH, DELETE API: /api/events/event/:id', () => {
       })
       const patchedEvent = response.data.event;
       expect(response.status).toBe(200);
+      didPatch = true;
       expect(patchedEvent.entry_fee).toEqual(patchEvent.entry_fee);
       expect(patchedEvent.other).toEqual(patchEvent.other);
       expect(patchedEvent.lpox).toEqual(patchEvent.lpox);
@@ -1518,51 +1702,10 @@ describe('Events - PUT, PATCH, DELETE API: /api/events/event/:id', () => {
       })
       const patchedEvent = response.data.event;
       expect(response.status).toBe(200);
+      didPatch = true;
       expect(patchedEvent.entry_fee).toEqual(patchEvent.entry_fee);
       expect(patchedEvent.expenses).toEqual(patchEvent.expenses);
       expect(patchedEvent.lpox).toEqual(patchEvent.lpox);
-    })
-    it('should NOT patch invalid tmnt_id in an event by ID', async () => {
-      try {
-        const eventJSON = JSON.stringify({
-          ...blankEvent,
-          tmnt_id: 'invalid',
-        })
-        const response = await axios({
-          method: "patch",
-          data: eventJSON,
-          withCredentials: true,
-          url: oneEventUrl + blankEvent.id,
-        })
-        expect(response.status).toBe(422);
-      } catch (err) {
-        if (err instanceof AxiosError) {
-          expect(err.response?.status).toBe(422);
-        } else {
-          expect(true).toBeFalsy();
-        }
-      }
-    })
-    it('should NOT patch tmnt_id when tmnt_id is valid, but not a tmnt id by ID', async () => {
-      try {
-        const eventJSON = JSON.stringify({
-          ...blankEvent,
-          tmnt_id: nonEventId,
-        })
-        const response = await axios({
-          method: "patch",
-          data: eventJSON,
-          withCredentials: true,
-          url: oneEventUrl + blankEvent.id,
-        })
-        expect(response.status).toBe(422);
-      } catch (err) {
-        if (err instanceof AxiosError) {
-          expect(err.response?.status).toBe(422);
-        } else {
-          expect(true).toBeFalsy();
-        }
-      }
     })
     it('should not patch event name when event name is missing in an event by ID', async () => {
       try {
@@ -1732,6 +1875,27 @@ describe('Events - PUT, PATCH, DELETE API: /api/events/event/:id', () => {
         }
       }
     })
+    it('should not patch added money when added money is a number not a string in an event by ID', async () => {
+      try {
+        const eventJSON = JSON.stringify({
+          ...blankEvent,
+          added_money: 200 as any,
+        })
+        const response = await axios({
+          method: "patch",
+          data: eventJSON,
+          withCredentials: true,
+          url: oneEventUrl + blankEvent.id,
+        })
+        expect(response.status).toBe(422);
+      } catch (err) {
+        if (err instanceof AxiosError) {
+          expect(err.response?.status).toBe(422);
+        } else {
+          expect(true).toBeFalsy();
+        }
+      }
+    })
     it('should not patch added money when added money is not a number in an event by ID', async () => {
       try {
         const eventJSON = JSON.stringify({
@@ -1779,6 +1943,27 @@ describe('Events - PUT, PATCH, DELETE API: /api/events/event/:id', () => {
         const eventJSON = JSON.stringify({
           ...blankEvent,
           added_money: '1234567',
+        })
+        const response = await axios({
+          method: "patch",
+          data: eventJSON,
+          withCredentials: true,
+          url: oneEventUrl + blankEvent.id,
+        })
+        expect(response.status).toBe(422);
+      } catch (err) {
+        if (err instanceof AxiosError) {
+          expect(err.response?.status).toBe(422);
+        } else {
+          expect(true).toBeFalsy();
+        }
+      }
+    })
+    it('should not patch entry fee when entry fee is a number not a string, in an event by ID', async () => {
+      try {
+        const eventJSON = JSON.stringify({
+          ...blankEvent,
+          entry_fee: 100 as any,
         })
         const response = await axios({
           method: "patch",
@@ -1858,6 +2043,27 @@ describe('Events - PUT, PATCH, DELETE API: /api/events/event/:id', () => {
         }
       }
     })
+    it('should not patch lineage when lineage is a number not a string,  in an event by ID', async () => {
+      try {
+        const eventJSON = JSON.stringify({
+          ...blankEvent,
+          lineage: 20 as any,
+        })
+        const response = await axios({
+          method: "patch",
+          data: eventJSON,
+          withCredentials: true,
+          url: oneEventUrl + blankEvent.id,
+        })
+        expect(response.status).toBe(422);
+      } catch (err) {
+        if (err instanceof AxiosError) {
+          expect(err.response?.status).toBe(422);
+        } else {
+          expect(true).toBeFalsy();
+        }
+      }
+    })
     it('should not patch lineage when lineage is not a number in an event by ID', async () => {
       try {
         const eventJSON = JSON.stringify({
@@ -1905,6 +2111,27 @@ describe('Events - PUT, PATCH, DELETE API: /api/events/event/:id', () => {
         const eventJSON = JSON.stringify({
           ...blankEvent,
           lineage: '1234567',
+        })
+        const response = await axios({
+          method: "patch",
+          data: eventJSON,
+          withCredentials: true,
+          url: oneEventUrl + blankEvent.id,
+        })
+        expect(response.status).toBe(422);
+      } catch (err) {
+        if (err instanceof AxiosError) {
+          expect(err.response?.status).toBe(422);
+        } else {
+          expect(true).toBeFalsy();
+        }
+      }
+    })
+    it('should not patch prize fund when prize fund is a number not a string, in an event by ID', async () => {
+      try {
+        const eventJSON = JSON.stringify({
+          ...blankEvent,
+          prize_fund: 75 as any,
         })
         const response = await axios({
           method: "patch",
@@ -1984,6 +2211,27 @@ describe('Events - PUT, PATCH, DELETE API: /api/events/event/:id', () => {
         }
       }
     })
+    it('should not patch other when other is not number not a string, in an event by ID', async () => {
+      try {
+        const eventJSON = JSON.stringify({
+          ...blankEvent,
+          other: 2 as any,
+        })
+        const response = await axios({
+          method: "patch",
+          data: eventJSON,
+          withCredentials: true,
+          url: oneEventUrl + blankEvent.id,
+        })
+        expect(response.status).toBe(422);
+      } catch (err) {
+        if (err instanceof AxiosError) {
+          expect(err.response?.status).toBe(422);
+        } else {
+          expect(true).toBeFalsy();
+        }
+      }
+    })
     it('should not patch other when other is not a number in an event by ID', async () => {
       try {
         const eventJSON = JSON.stringify({
@@ -2031,6 +2279,27 @@ describe('Events - PUT, PATCH, DELETE API: /api/events/event/:id', () => {
         const eventJSON = JSON.stringify({
           ...blankEvent,
           other: '1234567',
+        })
+        const response = await axios({
+          method: "patch",
+          data: eventJSON,
+          withCredentials: true,
+          url: oneEventUrl + blankEvent.id,
+        })
+        expect(response.status).toBe(422);
+      } catch (err) {
+        if (err instanceof AxiosError) {
+          expect(err.response?.status).toBe(422);
+        } else {
+          expect(true).toBeFalsy();
+        }
+      }
+    })
+    it('should not patch expenses when expenses is a number not a string, in an event by ID', async () => {
+      try {
+        const eventJSON = JSON.stringify({
+          ...blankEvent,
+          expenses: 10 as any,
         })
         const response = await axios({
           method: "patch",
@@ -2257,6 +2526,7 @@ describe('Events - PUT, PATCH, DELETE API: /api/events/event/:id', () => {
       })
       const patchedEvent = response.data.event;
       expect(response.status).toBe(200);
+      didPatch = true;
       expect(patchedEvent.event_name).toEqual('Updated Event Name');
     })
 
@@ -2297,8 +2567,7 @@ describe('Events - PUT, PATCH, DELETE API: /api/events/event/:id', () => {
           data: eventJSON,
           withCredentials: true,
           url: url,
-        });
-        console.log('response.status: ', response.status)
+        });        
       } catch (err) {
         if (err instanceof Error) console.log(err.message);
       }
@@ -2386,6 +2655,96 @@ describe('Events - PUT, PATCH, DELETE API: /api/events/event/:id', () => {
       }
     })
     
+  })
+
+  describe('DELETE all events for a tmnt - API: /api/events/tmnt/:tmntId', () => { 
+
+    const postEvents = async () => {      
+      const response = await axios.get(eventTmntUrl + tmntToDelId);
+      const tmntEvents = response.data.events;
+      if (!tmntEvents || tmntEvents.length === 0) {
+        const eventsToPost = [...mockEventsToPost];        
+        for await (const event of eventsToPost) {    
+          const postedEvent = await postEvent(event);
+          if (!postedEvent) return null          
+        }  
+      }
+    }    
+
+    beforeEach(async () => {
+      await postEvents();
+    })
+
+    afterAll(async () => {
+      try {
+        const response = await axios({
+          method: "delete",
+          withCredentials: true,
+          url: eventTmntUrl + tmntToDelId,
+        });        
+      } catch (err) {
+        if (err instanceof Error) console.log(err.message);
+      }            
+    })
+
+    it('should delete all events for a tmnt', async () => {
+      try {
+        const response = await axios({
+          method: "delete",
+          withCredentials: true,
+          url: eventTmntUrl + tmntToDelId,
+        });
+        expect(response.status).toBe(200);        
+      } catch (err) {
+        expect(true).toBeFalsy();
+      }            
+    })
+    it('should not delete all events for a tmnt when tmnt id is invalid', async () => { 
+      try {
+        const response = await axios({
+          method: "delete",
+          withCredentials: true,
+          url: eventTmntUrl + 'test',
+        });
+        expect(response.status).toBe(404);
+      } catch (err) {
+        if (err instanceof AxiosError) {
+          expect(err.response?.status).toBe(404);
+        } else {
+          expect(true).toBeFalsy();
+        }
+      }
+    })
+    it('should not delete all events for a tmnt when tmnt id is valid, but not a tmnt id', async () => { 
+      try {
+        const response = await axios({
+          method: "delete",
+          withCredentials: true,
+          url: eventTmntUrl + nonEventId,
+        });
+        expect(response.status).toBe(404);
+      } catch (err) {
+        if (err instanceof AxiosError) {
+          expect(err.response?.status).toBe(404);
+        } else {
+          expect(true).toBeFalsy();
+        }
+      }
+    })
+    it('should delete 0 events for a tmnt when tmnt id is valid, but no events found for tmnt', async () => { 
+      try {
+        const response = await axios({
+          method: "delete",
+          withCredentials: true,
+          url: eventTmntUrl + notfoundParentId,
+        });
+        expect(response.status).toBe(200);
+        expect(response.data.deleted.count).toBe(0)
+      } catch (err) {
+        expect(true).toBeFalsy();
+      }
+    })
+
   })
 
 })

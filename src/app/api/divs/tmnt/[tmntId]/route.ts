@@ -2,16 +2,16 @@ import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { isValidBtDbId } from "@/lib/validation";
 
-// routes /api/divs/event/:id
+// routes /api/divs/tmnt/:tmntId
 
 export async function GET(
   request: Request,
-  { params }: { params: { id: string } }
+  { params }: { params: { tmntId: string } }
 ) {   
   try {
-    const id = params.id;
+    const tmntId = params.tmntId;
     // check if id is a valid tmnt id
-    if (!isValidBtDbId(id, 'tmt')) {
+    if (!isValidBtDbId(tmntId, 'tmt')) {
       return NextResponse.json(
         { error: "not found" },
         { status: 404 }
@@ -19,7 +19,7 @@ export async function GET(
     }
     const gotDivs = await prisma.div.findMany({
       where: {
-        tmnt_id: id
+        tmnt_id: tmntId
       },
       orderBy: {
         sort_order: 'asc'
@@ -36,6 +36,33 @@ export async function GET(
   } catch (err: any) {
     return NextResponse.json(
       { error: "error getting divs for event" },
+      { status: 500 }
+    );        
+  } 
+}
+
+export async function DELETE(
+  request: Request,
+  { params }: { params: { tmntId: string } }
+) {   
+  try {
+    const tmntId = params.tmntId;
+    // check if tmntId is a valid tmnt id
+    if (!isValidBtDbId(tmntId, 'tmt')) {
+      return NextResponse.json(
+        { error: "not found" },
+        { status: 404 }
+      );        
+    }
+    const deleted = await prisma.div.deleteMany({
+      where: {
+        tmnt_id: tmntId,
+      },
+    });    
+    return NextResponse.json({ deleted }, { status: 200 });
+  } catch (err: any) {
+    return NextResponse.json(
+      { error: "error getting divs for tmnt" },
       { status: 500 }
     );        
   } 

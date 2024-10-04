@@ -81,6 +81,7 @@ describe('postDiv', () => {
     expect(postedBrkt).not.toBeNull();
     if(!postedBrkt) return;
     createdBrkt = true;
+    expect(postedBrkt.id).toBe(brktToPost.id);
     expect(postedBrkt.squad_id).toBe(brktToPost.squad_id);
     expect(postedBrkt.div_id).toBe(brktToPost.div_id);    
     expect(postedBrkt.start).toBe(brktToPost.start);
@@ -89,8 +90,7 @@ describe('postDiv', () => {
     expect(postedBrkt.first).toBe(brktToPost.first);
     expect(postedBrkt.second).toBe(brktToPost.second);
     expect(postedBrkt.admin).toBe(brktToPost.admin);    
-    expect(postedBrkt.sort_order).toBe(brktToPost.sort_order);
-    expect(isValidBtDbId(postedBrkt.id, 'brk')).toBeTruthy();
+    expect(postedBrkt.sort_order).toBe(brktToPost.sort_order);    
   })
   it('should NOT post a brkt with invalid data', async () => { 
     const invalidBrkt = {

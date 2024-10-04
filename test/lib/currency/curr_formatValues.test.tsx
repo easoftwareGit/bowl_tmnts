@@ -2,6 +2,7 @@ import {
   formatValueSymbSep2Dec,
   formatValue2Dec,
   formatValuePercent2Dec,
+  formatDecimalValue,
 } from "@/lib/currency/formatValue";
 import { IntlConfig } from "@/lib/currency/components/CurrencyInputProps";
 import { getLocaleConfig } from "@/lib/currency/components/utils";
@@ -99,6 +100,49 @@ describe("formatValues.ts", () => {
     it("should handle very small numeric values", () => {
       const formattedValue = formatValue2Dec("0.0001", localConfig);
       expect(formattedValue).toBe("0.00");
+    });
+  });
+
+  describe('formatDecimalValue', () => {
+    it('should return the integer as a string when the value is an integer', () => {
+      const result = formatDecimalValue(42);
+      expect(result).toBe('42');
+    });
+    it('should return the decimal value formatted to two decimal places', () => {
+      const result = formatDecimalValue(10.56789);
+      expect(result).toBe('10.57');
+    });
+    it('should return empty string for NaN input', () => {
+      const result = formatDecimalValue(NaN);
+      expect(result).toBe('');
+    });
+    it('should return the decimal value as a string with 2 decimal places', () => {
+      const result = formatDecimalValue(3.14);
+      expect(result).toBe('3.14');
+    });
+    it('should return the decimal value as a string with 2 decimal places when only 1 decimal place is present', () => {
+      const result = formatDecimalValue(3.1);
+      expect(result).toBe('3.10');
+    });
+    it('should return the negative integer as a string', () => {
+      const result = formatDecimalValue(-10);
+      expect(result).toBe('-10');
+    });
+    it('should return the negative decimal value as a string with 2 decimal places', () => {
+      const result = formatDecimalValue(-3.14159);
+      expect(result).toBe('-3.14');
+    });
+    it('should return "0" when the value is zero', () => {
+      const result = formatDecimalValue(0);
+      expect(result).toBe('0');
+    });
+    it('should return the value as a string with two decimal places when the value has more than two decimal places', () => {
+      const result = formatDecimalValue(3.14159);
+      expect(result).toBe('3.14');
+    });
+    it('should return the value as a string with exactly two decimal places when the value is not an integer', () => {
+        const result = formatDecimalValue(42.123);
+        expect(result).toBe('42.12');
     });
   });
 

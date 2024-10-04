@@ -4,6 +4,8 @@ import { testBaseDivsApi } from "../../../testApi";
 import { divType } from "@/lib/types/types";
 import { initDiv } from "@/lib/db/initVals";
 import { isValidBtDbId } from "@/lib/validation";
+import { mockDivsToPost, tmntToDelId } from "../../../mocks/tmnts/twoDivs/mockDivs";
+import { postDiv } from "@/lib/db/divs/divsAxios";
 
 // before running this test, run the following commands in the terminal:
 // 1) clear and re-seed the database
@@ -24,6 +26,7 @@ const url = testBaseDivsApi.startsWith("undefined")
   ? baseDivsApi
   : testBaseDivsApi;   
 const oneDivUrl = url + "/div/"
+const divTmntUrl = url + '/tmnt/';
 
 const notFoundId = "div_01234567890123456789012345678901";
 const notfoundTmntId = "tmt_01234567890123456789012345678901";
@@ -94,7 +97,7 @@ describe('Divs - API: /api/divs', () => {
 
   })
 
-  describe('GET div lists API: /api/divs/tmnt/:id', () => {
+  describe('GET div for a tmnt API: /api/divs/tmnt/:tmntId', () => {
 
     beforeAll(async () => {
       await deletePostedDiv();
@@ -162,15 +165,15 @@ describe('Divs - API: /api/divs', () => {
       })
       expect(response.status).toBe(201);      
       createdDiv = true
-      const postedDiv = response.data.div;      
+      const postedDiv = response.data.div;    
+      expect(postedDiv.id).toBe(divToPost.id);
       expect(postedDiv.tmnt_id).toBe(divToPost.tmnt_id);
       expect(postedDiv.div_name).toBe(divToPost.div_name);
       expect(postedDiv.hdcp_per).toBe(divToPost.hdcp_per);
       expect(postedDiv.hdcp_from).toBe(divToPost.hdcp_from);
       expect(postedDiv.int_hdcp).toBe(divToPost.int_hdcp);
       expect(postedDiv.hdcp_for).toBe(divToPost.hdcp_for);
-      expect(postedDiv.sort_order).toBe(divToPost.sort_order);
-      expect(isValidBtDbId(postedDiv.id, 'div')).toBeTruthy();
+      expect(postedDiv.sort_order).toBe(divToPost.sort_order);      
     })
     it('should create a new div with hdcp_for as "Series"', async () => { 
       const seriesDiv = {
@@ -838,33 +841,20 @@ describe('Divs - API: /api/divs', () => {
       sort_order: 1
     }
 
+    let didPut = false;
+
     beforeAll(async () => {
       await resetDiv();
+    })
 
-      // make sure test div is reset in database
-
-      // const divJSON = JSON.stringify(testDiv);
-      // const putResponse = await axios({
-      //   method: "put",
-      //   data: divJSON,
-      //   withCredentials: true,
-      //   url: oneDivUrl + testDiv.id,
-      // })
+    beforeEach(() => {
+      didPut = false;
     })
 
     afterEach(async () => {
-      await resetDiv();
-      // try {
-      //   const divJSON = JSON.stringify(testDiv);
-      //   const putResponse = await axios({
-      //     method: "put",
-      //     data: divJSON,
-      //     withCredentials: true,
-      //     url: oneDivUrl + testDiv.id,
-      //   })
-      // } catch (err) {
-      //   if (err instanceof AxiosError) console.log(err.message);
-      // }
+      if (didPut) {
+        await resetDiv();
+      }      
     })
 
     it('should update a div by ID', async () => { 
@@ -877,6 +867,7 @@ describe('Divs - API: /api/divs', () => {
       })
       const div = putResponse.data.div;
       expect(putResponse.status).toBe(200);
+      didPut = true;
       // did not update tmnt_id
       expect(div.tmnt_id).toBe(testDiv.tmnt_id);
       // all other fields updated
@@ -1030,6 +1021,28 @@ describe('Divs - API: /api/divs', () => {
       }
     })
     it('should NOT update a div when hdcp_for is null', async () => { 
+      const invalidDiv = {
+        ...putDiv,
+        hdcp_for: null as any,
+      }
+      const divJSON = JSON.stringify(invalidDiv);
+      try {
+        const response = await axios({
+          method: "put",
+          data: divJSON,
+          withCredentials: true,
+          url: oneDivUrl + testDiv.id,
+        })
+        expect(response.status).toBe(422);
+      } catch (err) {
+        if (err instanceof AxiosError) {
+          expect(err.response?.status).toBe(422);
+        } else {
+          expect(true).toBeFalsy();
+        }
+      }
+    })
+    it('should NOT update a div when hdcp_for is blank', async () => { 
       const invalidDiv = {
         ...putDiv,
         hdcp_for: '',
@@ -1397,6 +1410,7 @@ describe('Divs - API: /api/divs', () => {
       })
       expect(response.status).toBe(200);
       const puttedDiv = response.data.div;
+      didPut = true;
       expect(puttedDiv.div_name).toEqual(sampleDiv.div_name);
     })
 
@@ -1404,18 +1418,7 @@ describe('Divs - API: /api/divs', () => {
 
   describe('PATCH by ID - API: /api/divs/div/:id', () => { 
 
-    beforeAll(async () => {
-      // make sure test div is reset in database
-      const divJSON = JSON.stringify(testDiv);
-      const putResponse = await axios({
-        method: "put",
-        data: divJSON,
-        withCredentials: true,
-        url: oneDivUrl + testDiv.id,
-      })
-    })
-      
-    afterEach(async () => {
+    const doResetDiv = async () => {
       try {
         const divJSON = JSON.stringify(testDiv);
         const putResponse = await axios({
@@ -1426,6 +1429,22 @@ describe('Divs - API: /api/divs', () => {
         })
       } catch (err) {
         if (err instanceof AxiosError) console.log(err.message);
+      }
+    }
+
+    let didPatch = false;
+
+    beforeAll(async () => {
+      await doResetDiv();
+    })
+      
+    beforeEach(() => {
+      didPatch = false;
+    })
+
+    afterEach(async () => {
+      if (didPatch) {
+        await doResetDiv();
       }
     })
 
@@ -1442,8 +1461,43 @@ describe('Divs - API: /api/divs', () => {
         url: oneDivUrl + blankDiv.id,
       })
       expect(response.status).toBe(200);
-      const patchedDiv = response.data.div;
+      didPatch = true;
+      const patchedDiv = response.data.div;      
       expect(patchedDiv.div_name).toEqual(patchDiv.div_name);
+    })
+    it('should patch a div_name by ID', async () => {
+      const patchDiv = {
+        ...blankDiv,
+        div_name: 'Patched Div Name',
+      }
+      const divJSON = JSON.stringify(patchDiv);
+      const response = await axios({
+        method: "patch",
+        data: divJSON,
+        withCredentials: true,
+        url: oneDivUrl + blankDiv.id,
+      })
+      expect(response.status).toBe(200);
+      didPatch = true;
+      const patchedDiv = response.data.div;      
+      expect(patchedDiv.div_name).toEqual(patchDiv.div_name);
+    })
+    it('should return 200 when just tmnt_id is passed, tmnt_id is ignored', async () => {
+      const patchDiv = {
+        ...blankDiv,
+        tmnt_id: tmnt2Id,
+      }
+      const divJSON = JSON.stringify(patchDiv);
+      const response = await axios({
+        method: "patch",
+        data: divJSON,
+        withCredentials: true,
+        url: oneDivUrl + blankDiv.id,
+      })
+      expect(response.status).toBe(200);
+      didPatch = true;
+      const patchedDiv = response.data.div;      
+      expect(patchedDiv.tmnt_id).toEqual(blankDiv.tmnt_id);
     })
     it('should patch a hdcp_per by ID', async () => {
       const patchDiv = {
@@ -1458,6 +1512,7 @@ describe('Divs - API: /api/divs', () => {
         url: oneDivUrl + blankDiv.id,
       })
       expect(response.status).toBe(200);
+      didPatch = true;
       const patchedDiv = response.data.div;
       expect(patchedDiv.hdcp_per).toEqual(patchDiv.hdcp_per);
     })
@@ -1474,6 +1529,7 @@ describe('Divs - API: /api/divs', () => {
         url: oneDivUrl + blankDiv.id,
       })
       expect(response.status).toBe(200);
+      didPatch = true;
       const patchedDiv = response.data.div;
       expect(patchedDiv.hdcp_from).toEqual(patchDiv.hdcp_from);
     })
@@ -1490,6 +1546,7 @@ describe('Divs - API: /api/divs', () => {
         url: oneDivUrl + blankDiv.id,
       })
       expect(response.status).toBe(200);
+      didPatch = true;
       const patchedDiv = response.data.div;
       expect(patchedDiv.int_hdcp).toEqual(patchDiv.int_hdcp);
     })
@@ -1506,6 +1563,7 @@ describe('Divs - API: /api/divs', () => {
         url: oneDivUrl + blankDiv.id,
       })
       expect(response.status).toBe(200);
+      didPatch = true;
       const patchedDiv = response.data.div;
       expect(patchedDiv.hdcp_for).toEqual(patchDiv.hdcp_for);
     })
@@ -1522,6 +1580,7 @@ describe('Divs - API: /api/divs', () => {
         url: oneDivUrl + blankDiv.id,
       })
       expect(response.status).toBe(200);
+      didPatch = true;
       const patchedDiv = response.data.div;
       expect(patchedDiv.sort_order).toEqual(patchDiv.sort_order);
     })
@@ -1538,6 +1597,7 @@ describe('Divs - API: /api/divs', () => {
         url: oneDivUrl + blankDiv.id,
       })
       expect(response.status).toBe(200);
+      didPatch = true;
       const patchedDiv = response.data.div;
       // for tmnt_id, compare to blankDiv.tmnt_id
       expect(patchedDiv.tmnt_id).toBe(blankDiv.tmnt_id);
@@ -1606,28 +1666,6 @@ describe('Divs - API: /api/divs', () => {
         } else {
           expect(true).toBeFalsy();
         }
-      }
-    })
-    it('should NOT patch a div when tmnt_id is blank', async () => {
-      try {
-        const patchTmnt = {
-          ...blankDiv,
-          tmnt_id: '',
-        }
-        const tmntJSON = JSON.stringify(patchTmnt);
-        const patchResponse = await axios({
-          method: "patch",
-          data: tmntJSON,
-          withCredentials: true,
-          url: oneDivUrl + blankDiv.id,
-        })
-        expect(patchResponse.status).toBe(422);
-      } catch (err) {
-        if (err instanceof AxiosError) {
-          expect(err.response?.status).toBe(422);
-        } else {
-          expect(true).toBeFalsy();
-        }        
       }
     })
     it('should NOT patch a div when div_name is blank', async () => { 
@@ -1701,28 +1739,6 @@ describe('Divs - API: /api/divs', () => {
         const patchTmnt = {
           ...blankDiv,
           int_hdcp: null as any,
-        }
-        const tmntJSON = JSON.stringify(patchTmnt);
-        const patchResponse = await axios({
-          method: "patch",
-          data: tmntJSON,
-          withCredentials: true,
-          url: oneDivUrl + blankDiv.id,
-        })
-        expect(patchResponse.status).toBe(422);
-      } catch (err) {
-        if (err instanceof AxiosError) {
-          expect(err.response?.status).toBe(422);
-        } else {
-          expect(true).toBeFalsy();
-        }
-      }
-    })
-    it('should NOT patch a div when hdcp_for is null', async () => { 
-      try {
-        const patchTmnt = {
-          ...blankDiv,
-          hdcp_for: null as any,
         }
         const tmntJSON = JSON.stringify(patchTmnt);
         const patchResponse = await axios({
@@ -1942,7 +1958,7 @@ describe('Divs - API: /api/divs', () => {
       try {
         const patchTmnt = {
           ...blankDiv,
-          int_hdcp: "true",
+          int_hdcp: 'true',
         }
         const tmntJSON = JSON.stringify(patchTmnt);
         const patchResponse = await axios({
@@ -2085,6 +2101,7 @@ describe('Divs - API: /api/divs', () => {
         url: oneDivUrl + blankDiv.id,
       })
       expect(patchResponse.status).toBe(200);
+      didPatch = true;
       const patchedDiv = patchResponse.data.div;
       expect(patchedDiv.div_name).toBe("Patched Div Name");
     })
@@ -2101,6 +2118,7 @@ describe('Divs - API: /api/divs', () => {
         url: oneDivUrl + blankDiv.id,
       })
       expect(patchResponse.status).toBe(200);
+      didPatch = true;
       const patchedDiv = patchResponse.data.div;
       expect(patchedDiv.hdcp_for).toBe("Series");
     })
@@ -2222,6 +2240,101 @@ describe('Divs - API: /api/divs', () => {
         } else {
           expect(true).toBeFalsy();
         }
+      }
+    })
+
+  })
+
+  describe('DELETE all divs for a tmnt - API: /api/divs/tmnt/:tmntId', () => { 
+
+    const postDivs = async () => {      
+      const response = await axios.get(divTmntUrl + tmntToDelId);
+      const tmntDivs = response.data.divs;
+      if (!tmntDivs || tmntDivs.length === 0) {
+        const divsToPost = [...mockDivsToPost];        
+        for await (const div of divsToPost) {    
+          const postedDiv = await postDiv(div);
+          if (!postedDiv) return null
+        }  
+      }
+    }    
+
+    beforeEach(async () => {
+      await postDivs();
+    })
+
+    afterAll(async () => {
+      try {
+        const response = await axios({
+          method: "delete",
+          withCredentials: true,
+          url: divTmntUrl + tmntToDelId,
+        });
+        expect(response.status).toBe(200);        
+      } catch (err) {
+        if (err instanceof Error) console.log(err.message);
+      }
+    })
+
+    it('should delete all divs for a tmnt', async () => { 
+      try {
+        const response = await axios({
+          method: "delete",
+          withCredentials: true,
+          url: divTmntUrl + tmntToDelId
+        })  
+        expect(response.status).toBe(200);
+      } catch (err) {
+        if (err instanceof AxiosError) {
+          expect(err.response?.status).toBe(200);
+        } else {
+          expect(true).toBeFalsy();
+        }
+      }
+    })
+    it('should NOT delete all divs for a tmnt when tmnt is invalid', async () => { 
+      try {
+        const response = await axios({
+          method: "delete",
+          withCredentials: true,
+          url: divTmntUrl + 'test'
+        })  
+        expect(response.status).toBe(404);
+      } catch (err) {
+        if (err instanceof AxiosError) {
+          expect(err.response?.status).toBe(404);
+        } else {
+          expect(true).toBeFalsy();
+        }
+      }
+    })
+    it('should NOT delete all divs for a tmnt when tmnt id is valid, but not a tmnt id', async () => { 
+      try {
+        const response = await axios({
+          method: "delete",
+          withCredentials: true,
+          url: divTmntUrl + nonDivId
+        })  
+        expect(response.status).toBe(404);
+      } catch (err) {
+        if (err instanceof AxiosError) {
+          expect(err.response?.status).toBe(404);
+        } else {
+          expect(true).toBeFalsy();
+        }
+      }
+    })
+    it('should delete 0 divs for a tmnt when tmnt id is valid, but no divs found for tmnt', async () => { 
+      try {
+        const response = await axios({
+          method: "delete",
+          withCredentials: true,
+          url: divTmntUrl + notfoundTmntId
+        })  
+        expect(response.status).toBe(200);
+        expect(response.data.deleted.count).toBe(0)
+      } catch (err) {
+        expect(true).toBeFalsy();
       }
     })
 

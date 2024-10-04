@@ -1,4 +1,3 @@
-
 import { prisma } from "@/lib/prisma";
 import { hash } from "bcrypt";
 import { NextResponse } from "next/server";
@@ -9,9 +8,10 @@ import { sanitizeUser, validateUser } from "../../users/validate";
 
 export async function POST(req: Request) {
   try {        
-    const { first_name, last_name, email, phone, password } = await req.json();
+    const { id, first_name, last_name, email, phone, password } = await req.json();
     const postUser: userType = {
       ...initUser,
+      id,
       first_name,
       last_name,
       email,
@@ -65,6 +65,7 @@ export async function POST(req: Request) {
 
     const user = await prisma.user.create({
       data: {
+        id: sanitizedUser.id,
         first_name: sanitizedUser.first_name,
         last_name: sanitizedUser.last_name,
         email,

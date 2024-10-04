@@ -6,17 +6,20 @@ import { mockElims, mockDivs, mockSquads } from "../../../mocks/tmnts/twoDivs/mo
 import { localConfig } from "@/lib/currency/const";
 import { formatValueSymbSep2Dec } from "@/lib/currency/formatValue";
 import { defaultElimGames, initElim } from "@/lib/db/initVals";
-import { getBrktOrElimName } from "@/lib/getName";
+import { getBrktOrElimName, getDivName } from "@/lib/getName";
+import { elimType } from "@/lib/types/types";
 
 const mockSetElims = jest.fn();
 const mockSetAcdnErr = jest.fn();
+const mockSetShowingModal = jest.fn();
 
 const mockZeroToNElimsProps = {
   elims: mockElims, 
   setElims: mockSetElims,
   divs: mockDivs,
   squads: mockSquads,
-  setAcdnErr: mockSetAcdnErr
+  setAcdnErr: mockSetAcdnErr,
+  setShowingModal: mockSetShowingModal,
 }
 
 describe('ZeroToNElims - Component', () => { 
@@ -25,13 +28,12 @@ describe('ZeroToNElims - Component', () => {
 
     describe('render the Create Eliminator tab', () => { 
       it('render the Division label', () => { 
-        // ARRANGE
-        // const user = userEvent.setup()
+        // ARRANGE        
         render(<ZeroToNElims {...mockZeroToNElimsProps} />)
         // ACT
         const divLabels = screen.getAllByText(/division/i);        
         // ASSERT        
-        expect(divLabels).toHaveLength(mockElims.length);
+        expect(divLabels).toHaveLength(mockElims.length + 1); // + 1 for create pot
       })
       it('render the "Scratch" radio button', () => { 
         render(<ZeroToNElims {...mockZeroToNElimsProps} />);
@@ -43,15 +45,20 @@ describe('ZeroToNElims - Component', () => {
         const hdcpRadio = screen.getByRole('radio', { name: /hdcp/i }) as HTMLInputElement;
         expect(hdcpRadio).not.toBeChecked();        
       })
+      it('DO NOT render the divison errors', () => {
+        render(<ZeroToNElims {...mockZeroToNElimsProps} />);
+        const divError = screen.queryByTestId("dangerElimDivRadio");
+        expect(divError).toHaveTextContent("");
+      })
       it('render the "Fee" label', () => {
         render(<ZeroToNElims {...mockZeroToNElimsProps} />);
         const feeLabels = screen.getAllByText("Fee");
-        expect(feeLabels).toHaveLength(mockElims.length);
+        expect(feeLabels).toHaveLength(mockElims.length + 1);
       })
       it('render the "Fee" input', () => {
         render(<ZeroToNElims {...mockZeroToNElimsProps} />);
         const fees = screen.getAllByRole('textbox', { name: /fee/i }) as HTMLInputElement[];        
-        expect(fees).toHaveLength(mockElims.length);
+        expect(fees).toHaveLength(mockElims.length + 1);
         expect(fees[0]).toHaveValue('');
       })
       it('DO NOT render the create eliminator fee error', () => {
@@ -62,12 +69,12 @@ describe('ZeroToNElims - Component', () => {
       it('render the create eliminator "Start" label', () => { 
         render(<ZeroToNElims {...mockZeroToNElimsProps} />);
         const startLabels = screen.getAllByText(/start/i);
-        expect(startLabels).toHaveLength(mockElims.length);
+        expect(startLabels).toHaveLength(mockElims.length + 1);
       })
       it('render the create eliminator "Start" input', () => { 
         render(<ZeroToNElims {...mockZeroToNElimsProps} />);
         const startInputs = screen.getAllByRole('spinbutton', { name: /start/i }) as HTMLInputElement[];        
-        expect(startInputs).toHaveLength(mockElims.length);
+        expect(startInputs).toHaveLength(mockElims.length + 1);
         expect(startInputs[0]).toHaveValue(1);
       })
       it('DO NOT render the create eliminator "Start" error', () => { 
@@ -78,12 +85,12 @@ describe('ZeroToNElims - Component', () => {
       it('render the "Games" label', () => { 
         render(<ZeroToNElims {...mockZeroToNElimsProps} />);
         const gamesLabels = screen.getAllByText("Games");
-        expect(gamesLabels).toHaveLength(mockElims.length);
+        expect(gamesLabels).toHaveLength(mockElims.length + 1);
       })
       it('render the "Games" input', () => { 
         render(<ZeroToNElims {...mockZeroToNElimsProps} />);
         const gamesInputs = screen.getAllByRole('spinbutton', { name: /games/i }) as HTMLInputElement[];
-        expect(gamesInputs).toHaveLength(mockElims.length);
+        expect(gamesInputs).toHaveLength(mockElims.length + 1);
         expect(gamesInputs[0]).toHaveValue(defaultElimGames)        
       })
       it('DO NOT render the create eliminator "Start" error', () => { 
@@ -100,7 +107,7 @@ describe('ZeroToNElims - Component', () => {
         const user = userEvent.setup()
         render(<ZeroToNElims {...mockZeroToNElimsProps} />);
         const tabs = screen.getAllByRole("tab");
-        expect(tabs).toHaveLength(mockElims.length);
+        expect(tabs).toHaveLength(mockElims.length + 1);
         await user.click(tabs[0]);
         expect(tabs[0]).toHaveTextContent('Create Eliminator');
         expect(tabs[0]).toHaveAttribute("aria-selected", "true");
@@ -123,7 +130,7 @@ describe('ZeroToNElims - Component', () => {
         // ACT
         const tabs = screen.getAllByRole("tab");
         // ASSERT
-        expect(tabs).toHaveLength(mockElims.length);
+        expect(tabs).toHaveLength(mockElims.length + 1);
         // ARRANGE
         await user.click(tabs[1]);
         // ASSERT
@@ -139,7 +146,7 @@ describe('ZeroToNElims - Component', () => {
         const tabs = screen.getAllByRole("tab");
         await user.click(tabs[1]);
         const divLabels = screen.getAllByText(/division/i);        
-        expect(divLabels).toHaveLength(mockElims.length);
+        expect(divLabels).toHaveLength(mockElims.length + 1);
       })
       it('render the Division input', async () => {
         const user = userEvent.setup()
@@ -147,8 +154,8 @@ describe('ZeroToNElims - Component', () => {
         const tabs = screen.getAllByRole("tab");
         await user.click(tabs[1]);
         const divInputs = screen.getAllByRole('textbox', { name: /division/i }) as HTMLInputElement[];        
-        expect(divInputs).toHaveLength(mockElims.length - 1);
-        expect(divInputs[0]).toHaveValue(mockElims[1].div_name);
+        expect(divInputs).toHaveLength(mockElims.length);
+        expect(divInputs[0]).toHaveValue(getDivName(mockElims[0].div_id, mockDivs));
       })
       it('render the Fee input', async () => {
         const user = userEvent.setup()
@@ -156,7 +163,7 @@ describe('ZeroToNElims - Component', () => {
         const tabs = screen.getAllByRole("tab");
         await user.click(tabs[1]);
         const feeInputs = screen.getAllByRole('textbox', { name: /fee/i }) as HTMLInputElement[];        
-        expect(feeInputs[1]).toHaveValue(formatValueSymbSep2Dec(mockElims[1].fee, localConfig));
+        expect(feeInputs[1]).toHaveValue(formatValueSymbSep2Dec(mockElims[0].fee, localConfig));
       })
       it('render the Start input', async () => {
         const user = userEvent.setup()
@@ -164,7 +171,7 @@ describe('ZeroToNElims - Component', () => {
         const tabs = screen.getAllByRole("tab");
         await user.click(tabs[1]);
         const startInputs = screen.getAllByRole('spinbutton', { name: /start/i }) as HTMLInputElement[];                
-        expect(startInputs[1]).toHaveValue(mockElims[1].start);
+        expect(startInputs[1]).toHaveValue(mockElims[0].start);
         expect(startInputs[1]).toBeDisabled();
       })
       it('render the Games input', async () => { 
@@ -173,7 +180,7 @@ describe('ZeroToNElims - Component', () => {
         const tabs = screen.getAllByRole("tab");
         await user.click(tabs[1]);
         const gamesInputs = screen.getAllByRole('spinbutton', { name: /games/i }) as HTMLInputElement[];        
-        expect(gamesInputs[1]).toHaveValue(mockElims[1].games);
+        expect(gamesInputs[1]).toHaveValue(mockElims[0].games);
         expect(gamesInputs[1]).toBeDisabled();
       })
       it('render the Delete Eliminator button', async () => {
@@ -182,7 +189,7 @@ describe('ZeroToNElims - Component', () => {
         const tabs = screen.getAllByRole("tab");
         await user.click(tabs[1]);
         const delBtns = screen.getAllByRole("button", { name: /delete eliminator/i });        
-        expect(delBtns).toHaveLength(mockElims.length - 1) // add button shown in Create Bracket tab      
+        expect(delBtns).toHaveLength(mockElims.length) // add button shown in Create Bracket tab      
       })      
     })
 
@@ -194,7 +201,7 @@ describe('ZeroToNElims - Component', () => {
         // ACT
         const tabs = screen.getAllByRole("tab");
         // ASSERT
-        expect(tabs).toHaveLength(mockElims.length);
+        expect(tabs).toHaveLength(mockElims.length + 1);
         // ARRANGE
         await user.click(tabs[2]);
         // ASSERT
@@ -210,8 +217,8 @@ describe('ZeroToNElims - Component', () => {
         const tabs = screen.getAllByRole("tab");
         await user.click(tabs[2]);
         const divInputs = screen.getAllByRole('textbox', { name: /division/i }) as HTMLInputElement[];        
-        expect(divInputs).toHaveLength(mockElims.length - 1);
-        expect(divInputs[1]).toHaveValue(mockElims[2].div_name);
+        expect(divInputs).toHaveLength(mockElims.length);
+        expect(divInputs[1]).toHaveValue(getDivName(mockElims[1].div_id, mockDivs));
       })
       it('render the Fee input', async () => {
         const user = userEvent.setup()
@@ -219,7 +226,7 @@ describe('ZeroToNElims - Component', () => {
         const tabs = screen.getAllByRole("tab");
         await user.click(tabs[2]);
         const feeInputs = screen.getAllByRole('textbox', { name: /fee/i }) as HTMLInputElement[];        
-        expect(feeInputs[2]).toHaveValue(formatValueSymbSep2Dec(mockElims[2].fee, localConfig));
+        expect(feeInputs[2]).toHaveValue(formatValueSymbSep2Dec(mockElims[1].fee, localConfig));
       })
       it('render the Start input', async () => {
         const user = userEvent.setup()
@@ -227,7 +234,7 @@ describe('ZeroToNElims - Component', () => {
         const tabs = screen.getAllByRole("tab");
         await user.click(tabs[2]);
         const startInputs = screen.getAllByRole('spinbutton', { name: /start/i }) as HTMLInputElement[];                
-        expect(startInputs[2]).toHaveValue(mockElims[2].start);
+        expect(startInputs[2]).toHaveValue(mockElims[1].start);
         expect(startInputs[2]).toBeDisabled();
       })
       it('render the Games input', async () => { 
@@ -236,7 +243,7 @@ describe('ZeroToNElims - Component', () => {
         const tabs = screen.getAllByRole("tab");
         await user.click(tabs[2]);
         const gamesInputs = screen.getAllByRole('spinbutton', { name: /games/i }) as HTMLInputElement[];        
-        expect(gamesInputs[2]).toHaveValue(mockElims[2].games);
+        expect(gamesInputs[2]).toHaveValue(mockElims[1].games);
         expect(gamesInputs[2]).toBeDisabled();
       })
     })
@@ -249,7 +256,7 @@ describe('ZeroToNElims - Component', () => {
         // ACT
         const tabs = screen.getAllByRole("tab");
         // ASSERT
-        expect(tabs).toHaveLength(mockElims.length);
+        expect(tabs).toHaveLength(mockElims.length + 1);
         // ARRANGE
         await user.click(tabs[3]);
         // ASSERT
@@ -265,8 +272,8 @@ describe('ZeroToNElims - Component', () => {
         const tabs = screen.getAllByRole("tab");
         await user.click(tabs[3]);
         const divInputs = screen.getAllByRole('textbox', { name: /division/i }) as HTMLInputElement[];        
-        expect(divInputs).toHaveLength(mockElims.length - 1);
-        expect(divInputs[2]).toHaveValue(mockElims[3].div_name);
+        expect(divInputs).toHaveLength(mockElims.length);
+        expect(divInputs[2]).toHaveValue(getDivName(mockElims[2].div_id, mockDivs));
       })
       it('render the Fee input', async () => {
         const user = userEvent.setup()
@@ -274,7 +281,7 @@ describe('ZeroToNElims - Component', () => {
         const tabs = screen.getAllByRole("tab");
         await user.click(tabs[3]);
         const feeInputs = screen.getAllByRole('textbox', { name: /fee/i }) as HTMLInputElement[];        
-        expect(feeInputs[3]).toHaveValue(formatValueSymbSep2Dec(mockElims[3].fee, localConfig));
+        expect(feeInputs[3]).toHaveValue(formatValueSymbSep2Dec(mockElims[2].fee, localConfig));
       })
       it('render the Start input', async () => {
         const user = userEvent.setup()
@@ -282,7 +289,7 @@ describe('ZeroToNElims - Component', () => {
         const tabs = screen.getAllByRole("tab");
         await user.click(tabs[3]);
         const startInputs = screen.getAllByRole('spinbutton', { name: /start/i }) as HTMLInputElement[];                
-        expect(startInputs[3]).toHaveValue(mockElims[3].start);
+        expect(startInputs[3]).toHaveValue(mockElims[2].start);
         expect(startInputs[3]).toBeDisabled();
       })
       it('render the Games input', async () => { 
@@ -291,7 +298,7 @@ describe('ZeroToNElims - Component', () => {
         const tabs = screen.getAllByRole("tab");
         await user.click(tabs[3]);
         const gamesInputs = screen.getAllByRole('spinbutton', { name: /games/i }) as HTMLInputElement[];        
-        expect(gamesInputs[3]).toHaveValue(mockElims[3].games);
+        expect(gamesInputs[3]).toHaveValue(mockElims[2].games);
         expect(gamesInputs[3]).toBeDisabled();
       })
     })
@@ -304,7 +311,7 @@ describe('ZeroToNElims - Component', () => {
         // ACT
         const tabs = screen.getAllByRole("tab");
         // ASSERT
-        expect(tabs).toHaveLength(mockElims.length);
+        expect(tabs).toHaveLength(mockElims.length + 1);
         // ARRANGE
         await user.click(tabs[4]);
         // ASSERT
@@ -320,8 +327,8 @@ describe('ZeroToNElims - Component', () => {
         const tabs = screen.getAllByRole("tab");
         await user.click(tabs[4]);
         const divInputs = screen.getAllByRole('textbox', { name: /division/i }) as HTMLInputElement[];        
-        expect(divInputs).toHaveLength(mockElims.length - 1);
-        expect(divInputs[3]).toHaveValue(mockElims[4].div_name);
+        expect(divInputs).toHaveLength(mockElims.length);
+        expect(divInputs[3]).toHaveValue(getDivName(mockElims[3].div_id, mockDivs));
       })
       it('render the Fee input', async () => {
         const user = userEvent.setup()
@@ -329,7 +336,7 @@ describe('ZeroToNElims - Component', () => {
         const tabs = screen.getAllByRole("tab");
         await user.click(tabs[4]);
         const feeInputs = screen.getAllByRole('textbox', { name: /fee/i }) as HTMLInputElement[];        
-        expect(feeInputs[4]).toHaveValue(formatValueSymbSep2Dec(mockElims[4].fee, localConfig));
+        expect(feeInputs[4]).toHaveValue(formatValueSymbSep2Dec(mockElims[3].fee, localConfig));
       })
       it('render the Start input', async () => {
         const user = userEvent.setup()
@@ -337,7 +344,7 @@ describe('ZeroToNElims - Component', () => {
         const tabs = screen.getAllByRole("tab");
         await user.click(tabs[4]);
         const startInputs = screen.getAllByRole('spinbutton', { name: /start/i }) as HTMLInputElement[];                
-        expect(startInputs[4]).toHaveValue(mockElims[4].start);
+        expect(startInputs[4]).toHaveValue(mockElims[3].start);
         expect(startInputs[4]).toBeDisabled();
       })
       it('render the Games input', async () => { 
@@ -346,7 +353,7 @@ describe('ZeroToNElims - Component', () => {
         const tabs = screen.getAllByRole("tab");
         await user.click(tabs[4]);
         const gamesInputs = screen.getAllByRole('spinbutton', { name: /games/i }) as HTMLInputElement[];        
-        expect(gamesInputs[4]).toHaveValue(mockElims[4].games);
+        expect(gamesInputs[4]).toHaveValue(mockElims[3].games);
         expect(gamesInputs[4]).toBeDisabled();
       })
     })
@@ -363,94 +370,112 @@ describe('ZeroToNElims - Component', () => {
     })
 
     describe('render the create eliminator with errors', () => { 
-      beforeAll(() => {
-        mockElims[0].div_err = "test division error";
-        mockElims[0].start_err = "test start error";
-        mockElims[0].fee_err = "test fee error";   
-        mockElims[0].games_err = "test games error";
-      })
-      afterAll(() => {
-        mockElims[0].div_err = "";
-        mockElims[0].start_err = "";
-        mockElims[0].fee_err = "";    
-        mockElims[0].games_err = "";
-      })
-      it('render divison error', async () => { 
+      it('render Eliminator errors', async () => { 
         // ARRANGE
+        const user = userEvent.setup()
         render(<ZeroToNElims {...mockZeroToNElimsProps} />);
         // ACT      
         const divError = screen.queryByTestId("dangerElimDivRadio");      
-        // ASSERT      
-        expect(divError).toHaveTextContent('test division error');
-      })
-      it('render fee error', async () => { 
-        render(<ZeroToNElims {...mockZeroToNElimsProps} />);
         const feeError = screen.queryByTestId("dangerCreateElimFee");
-        expect(feeError).toHaveTextContent('test fee error');
-      })
-      it('render start error', async () => { 
-        render(<ZeroToNElims {...mockZeroToNElimsProps} />);
         const startError = screen.queryByTestId("dangerCreateElimStart");
-        expect(startError).toHaveTextContent('test start error');
-      })
-      it('render games error', async () => {
-        render(<ZeroToNElims {...mockZeroToNElimsProps} />);
         const gamesError = screen.queryByTestId("dangerCreateElimGames");
-        expect(gamesError).toHaveTextContent('test games error');
+        const starts = screen.getAllByRole('spinbutton', { name: /start/i }) as HTMLInputElement[];        
+        const games = screen.getAllByRole('spinbutton', { name: /games/i }) as HTMLInputElement[];        
+        const createElimStarts = starts[0];
+        const createElimGames = games[0]
+        const addBtn = screen.getByRole('button', { name: /add eliminator/i });
+        await user.clear(createElimStarts);
+        await user.type(createElimStarts, '0');
+        await user.clear(createElimGames);
+        await user.type(createElimGames, '0');
+        await user.click(addBtn);
+
+        // ASSERT      
+        expect(divError).toHaveTextContent('Division is required');        
+        expect(feeError).toHaveTextContent('Fee cannot be less than $1.00');      
+        expect(startError).toHaveTextContent('Start cannot be less than 1');
+        expect(gamesError).toHaveTextContent('Games cannot be less than 1');
+      })
+      it('render Eliminator errors, then clear errors', async () => { 
+        // ARRANGE
+        const user = userEvent.setup()
+        render(<ZeroToNElims {...mockZeroToNElimsProps} />);
+        // ACT      
+        const divError = screen.queryByTestId("dangerElimDivRadio");      
+        const feeError = screen.queryByTestId("dangerCreateElimFee");
+        const startError = screen.queryByTestId("dangerCreateElimStart");
+        const gamesError = screen.queryByTestId("dangerCreateElimGames");
+        const scratchRadio = screen.getByRole('radio', { name: /scratch/i }) as HTMLInputElement;
+        const fees = screen.getAllByRole('textbox', { name: /fee/i }) as HTMLInputElement[];        
+        const starts = screen.getAllByRole('spinbutton', { name: /start/i }) as HTMLInputElement[];        
+        const games = screen.getAllByRole('spinbutton', { name: /games/i }) as HTMLInputElement[];        
+        const createElimFee = fees[0];
+        const createElimStarts = starts[0];
+        const createElimGames = games[0]
+        const addBtn = screen.getByRole('button', { name: /add eliminator/i });
+        await user.clear(createElimStarts);
+        await user.type(createElimStarts, '0');
+        await user.clear(createElimGames);
+        await user.type(createElimGames, '0');
+        await user.click(addBtn);
+
+        // ASSERT      
+        expect(divError).toHaveTextContent('Division is required');        
+        expect(feeError).toHaveTextContent('Fee cannot be less than $1.00');      
+        expect(startError).toHaveTextContent('Start cannot be less than 1');
+        expect(gamesError).toHaveTextContent('Games cannot be less than 1');
+
+        // ACT part 2
+        await user.click(scratchRadio)
+        await user.click(createElimFee);
+        await user.type(createElimFee, '10');
+        await user.clear(createElimStarts);
+        await user.type(createElimStarts, '1');
+        await user.clear(createElimGames);
+        await user.type(createElimGames, '3');
+        // ASSERT
+        expect(divError).toHaveTextContent('');        
+        expect(feeError).toHaveTextContent('');      
+        expect(startError).toHaveTextContent('');
+        expect(gamesError).toHaveTextContent('');
       })
     })
 
   })
 
   describe('add an eliminator', () => {
-    beforeAll(() => {
-      mockElims.push({
-        ...initElim,
-        id: "test-id",
-        sort_order: 6,
-        div_name: "Sctatch",
-        fee: "10",
-        start: 1,
-        games: 4,
-      });
-    })
-    afterAll(() => {
-      if (mockElims.length === 6) mockElims.pop();        
-    })
-    it('test if added eliminator has correct title', async () => {
+    it('test if added eliminator', async () => {
       // ARRANGE
+      const notElimsYet: elimType[] = [];
+      const mockNoPotsYet = { ...mockZeroToNElimsProps, elims: notElimsYet };
+
       const user = userEvent.setup();
-      render(<ZeroToNElims {...mockZeroToNElimsProps} />);
-      const addBtn = screen.getByText("Add Eliminator");
-      // ACT
-      await user.click(addBtn);
-      // ASSERT
-      expect(mockZeroToNElimsProps.setElims).toHaveBeenCalled();
+      render(<ZeroToNElims {...mockNoPotsYet} />);
+      const scratchRadio = screen.getByRole('radio', { name: /scratch/i }) as HTMLInputElement;
+      const fees = screen.getAllByRole('textbox', { name: /fee/i }) as HTMLInputElement[];        
+      const createElimFee = fees[0];
+      const divError = screen.queryByTestId("dangerElimDivRadio");      
+      const feeError = screen.queryByTestId("dangerCreateElimFee");
+      const startError = screen.queryByTestId("dangerCreateElimStart");
+      const gamesError = screen.queryByTestId("dangerCreateElimGames");
+
+      const addBtn = screen.getByRole('button', { name: /add eliminator/i });
 
       // ACT
-      const tabs = screen.getAllByRole("tab");
+      await user.click(scratchRadio);
+      await user.click(createElimFee);
+      await user.type(createElimFee, '13');
+      await user.click(addBtn);
       // ASSERT
-      expect(tabs.length).toBe(6);
-      const tabTitle = getBrktOrElimName(mockElims[5].id, mockZeroToNElimsProps.elims)
-      expect(tabs[5]).toHaveTextContent(tabTitle);        
+      expect(divError).toHaveTextContent('');        
+      expect(feeError).toHaveTextContent('');      
+      expect(startError).toHaveTextContent('');
+      expect(gamesError).toHaveTextContent('');
+      expect(mockZeroToNElimsProps.setElims).toHaveBeenCalled();
     })
   })
 
   describe('remove an eliminator', () => { 
-    beforeAll(() => {
-      mockElims.push({
-        ...initElim,
-        id: "test-id",
-        sort_order: 6,
-        div_name: "Sctatch",
-        fee: "10",
-        start: 1,
-        games: 4,
-      });
-    })
-    afterAll(() => {
-      if (mockElims.length === 6) mockElims.pop();
-    })
     it('delete eliminator', async () => {
       // ARRANGE
       const user = userEvent.setup();
@@ -461,9 +486,16 @@ describe('ZeroToNElims - Component', () => {
       await user.click(tabs[5]);
       const delBtns = screen.getAllByText("Delete Eliminator");
       // ASSERT
-      expect(delBtns.length).toBe(5);
+      expect(delBtns.length).toBe(4);
       // ACT
-      await user.click(delBtns[4]);
+      await user.click(delBtns[3]);
+      // ASSERT
+      const okBtn = await screen.findByRole('button', { name: /ok/i });
+      expect(okBtn).toBeInTheDocument();
+      const cancelBtn = screen.queryByRole('button', { name: /cancel/i });
+      expect(cancelBtn).toBeInTheDocument();
+      // ACT
+      await user.click(okBtn);
       // ASSERT
       expect(mockZeroToNElimsProps.setElims).toHaveBeenCalled();                    
     })

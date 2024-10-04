@@ -5,18 +5,21 @@ import ZeroToNBrackets from "../../../../src/app/dataEntry/tmnt/zeroToNBrkts";
 import { mockBrkts, mockDivs, mockSquads } from "../../../mocks/tmnts/twoDivs/mockDivs";
 import { localConfig } from "@/lib/currency/const";
 import { formatValueSymbSep2Dec } from "@/lib/currency/formatValue";
-import { defaultBrktGames, defaultBrktPlayers, initBrkt } from "@/lib/db/initVals";
-import { getBrktOrElimName } from "@/lib/getName";
+import { defaultBrktGames, defaultBrktPlayers } from "@/lib/db/initVals";
+import { getDivName } from "@/lib/getName";
+import { brktType } from "@/lib/types/types";
 
 const mockSetBrkts = jest.fn();
 const mockSetAcdnErr = jest.fn();
+const mockSetShowingModal = jest.fn();
 
 const mockZeroToNBrktsProps = {
   brkts: mockBrkts, 
   setBrkts: mockSetBrkts,
   divs: mockDivs,
   squads: mockSquads,
-  setAcdnErr: mockSetAcdnErr
+  setAcdnErr: mockSetAcdnErr,
+  setShowingModal: mockSetShowingModal,
 }
 
 describe("ZeroToNBrackets - Component", () => {
@@ -25,13 +28,12 @@ describe("ZeroToNBrackets - Component", () => {
     
     describe('render the Create Bracket tab', () => { 
       it('render "Division" labels', () => {
-        // ARRANGE
-        // const user = userEvent.setup()
+        // ARRANGE        
         render(<ZeroToNBrackets {...mockZeroToNBrktsProps} />);
-        // ACT        
+        // ACT                
         const brktLabels = screen.getAllByText(/division/i);
         // ASSERT
-        expect(brktLabels).toHaveLength(mockBrkts.length);        
+        expect(brktLabels).toHaveLength(mockBrkts.length + 1); // + 1 for create bracket
       })
       it('render the "Scratch" radio button', () => { 
         render(<ZeroToNBrackets {...mockZeroToNBrktsProps} />);
@@ -44,14 +46,14 @@ describe("ZeroToNBrackets - Component", () => {
         expect(hdcpRadio).not.toBeChecked();        
       })
       it('render the "Fee" labels', () => {
-        render(<ZeroToNBrackets {...mockZeroToNBrktsProps} />);
-        const feeLabels = screen.getAllByText("Fee");
-        expect(feeLabels).toHaveLength(mockBrkts.length);
+        render(<ZeroToNBrackets {...mockZeroToNBrktsProps} />);        
+        const feeLabels = screen.getAllByText(/fee/i);
+        expect(feeLabels).toHaveLength(mockBrkts.length + 1); // + 1 for create bracket
       })
       it('render the "Fee" input', () => {
         render(<ZeroToNBrackets {...mockZeroToNBrktsProps} />);
         const fees = screen.getAllByRole('textbox', { name: /fee/i }) as HTMLInputElement[];        
-        expect(fees).toHaveLength(mockBrkts.length);
+        expect(fees).toHaveLength(mockBrkts.length + 1); 
         expect(fees[0]).toHaveValue('');
       })
       it('DO NOT render the create bracket fee error', () => {
@@ -62,12 +64,12 @@ describe("ZeroToNBrackets - Component", () => {
       it('render the "Start" labels', () => { 
         render(<ZeroToNBrackets {...mockZeroToNBrktsProps} />);
         const startLabels = screen.getAllByText(/start/i);
-        expect(startLabels).toHaveLength(mockBrkts.length);
+        expect(startLabels).toHaveLength(mockBrkts.length + 1);
       })
       it('render the create bracket "Start" input', () => { 
         render(<ZeroToNBrackets {...mockZeroToNBrktsProps} />);        
         const startInputs = screen.getAllByRole('spinbutton', { name: /start/i }) as HTMLInputElement[];        
-        expect(startInputs).toHaveLength(mockBrkts.length);
+        expect(startInputs).toHaveLength(mockBrkts.length + 1);
         expect(startInputs[0]).toHaveValue(1);
       })
       it('DO NOT render the create bracket "Start" error', () => { 
@@ -78,24 +80,24 @@ describe("ZeroToNBrackets - Component", () => {
       it('render the "Games" labels', () => { 
         render(<ZeroToNBrackets {...mockZeroToNBrktsProps} />);
         const gamesLabels = screen.getAllByText("Games");
-        expect(gamesLabels).toHaveLength(mockBrkts.length);
+        expect(gamesLabels).toHaveLength(mockBrkts.length + 1);
       })
       it('render the "Games" input', () => { 
         render(<ZeroToNBrackets {...mockZeroToNBrktsProps} />); 
         const gamesInputs = screen.getAllByRole('spinbutton', { name: /games/i }) as HTMLInputElement[];
-        expect(gamesInputs).toHaveLength(mockBrkts.length);
-        expect(gamesInputs[0]).toHaveValue(defaultBrktGames)
+        expect(gamesInputs).toHaveLength(mockBrkts.length + 1);
+        expect(gamesInputs[0]).toHaveValue(defaultBrktGames);
         expect(gamesInputs[0]).toBeDisabled();
       })
       it('render the "Players" labels', () => { 
         render(<ZeroToNBrackets {...mockZeroToNBrktsProps} />);
         const brktPlayersLabels = screen.getAllByText(/players/i);
-        expect(brktPlayersLabels).toHaveLength(mockBrkts.length);
+        expect(brktPlayersLabels).toHaveLength(mockBrkts.length + 1);
       })
       it('render the "Players" input', () => {
         render(<ZeroToNBrackets {...mockZeroToNBrktsProps} />);        
         const brktPlayersInputs = screen.getAllByRole('spinbutton', { name: /players/i }) as HTMLInputElement[];        
-        expect(brktPlayersInputs).toHaveLength(mockBrkts.length);
+        expect(brktPlayersInputs).toHaveLength(mockBrkts.length + 1);
         expect(brktPlayersInputs[0]).toHaveValue(defaultBrktPlayers)
         expect(brktPlayersInputs[0]).toBeDisabled();
       })
@@ -107,54 +109,54 @@ describe("ZeroToNBrackets - Component", () => {
       it('render the bracket "First" labels', () => { 
         render(<ZeroToNBrackets {...mockZeroToNBrktsProps} />);
         const brktFirstLabels = screen.getAllByText("First");
-        expect(brktFirstLabels).toHaveLength(mockBrkts.length);
+        expect(brktFirstLabels).toHaveLength(mockBrkts.length + 1);
       })
       it('render the bracket "First" input', () => { 
         render(<ZeroToNBrackets {...mockZeroToNBrktsProps} />);        
         const brktFirstInputs = screen.getAllByRole('textbox', { name: /first/i }) as HTMLInputElement[];
-        expect(brktFirstInputs).toHaveLength(mockBrkts.length);
+        expect(brktFirstInputs).toHaveLength(mockBrkts.length + 1);
         expect(brktFirstInputs[0]).toBeDisabled();
         expect(brktFirstInputs[0]).toHaveValue("");        
       })
       it('render the bracket "Second" labels', () => {
         render(<ZeroToNBrackets {...mockZeroToNBrktsProps} />);
         const brktSecondLabels = screen.getAllByText("Second");
-        expect(brktSecondLabels).toHaveLength(mockBrkts.length);
+        expect(brktSecondLabels).toHaveLength(mockBrkts.length + 1);
       })
       it('render the bracket "Second" input', () => {
         render(<ZeroToNBrackets {...mockZeroToNBrktsProps} />);        
         const brktSecondInputs = screen.getAllByRole('textbox', { name: /second/i }) as HTMLInputElement[];        
-        expect(brktSecondInputs).toHaveLength(mockBrkts.length);
+        expect(brktSecondInputs).toHaveLength(mockBrkts.length + 1);
         expect(brktSecondInputs[0]).toBeDisabled();
         expect(brktSecondInputs[0]).toHaveValue("");
       })
       it('render the bracket "Admin" label', () => { 
         render(<ZeroToNBrackets {...mockZeroToNBrktsProps} />);
         const brktAdminLabels = screen.getAllByText("Admin");
-        expect(brktAdminLabels).toHaveLength(mockBrkts.length);
+        expect(brktAdminLabels).toHaveLength(mockBrkts.length + 1);
       })
       it('render the bracket "Admin" input', () => {
         render(<ZeroToNBrackets {...mockZeroToNBrktsProps} />);        
         const brktAdminInputs = screen.getAllByRole('textbox', { name: /admin/i }) as HTMLInputElement[];        
-        expect(brktAdminInputs).toHaveLength(mockBrkts.length);
+        expect(brktAdminInputs).toHaveLength(mockBrkts.length + 1);
         expect(brktAdminInputs[0]).toBeDisabled();
         expect(brktAdminInputs[0]).toHaveValue("");
       })
       it('render the bracket "FSA" labels', () => { 
         render(<ZeroToNBrackets {...mockZeroToNBrktsProps} />);
         const brktFSAs = screen.getAllByLabelText(/F\+S\+A/i);
-        expect(brktFSAs).toHaveLength(mockBrkts.length);
+        expect(brktFSAs).toHaveLength(mockBrkts.length + 1);
       })
       it('render "FSA" titles', () => {
         render(<ZeroToNBrackets {...mockZeroToNBrktsProps} />);
         const fsaTitles = screen.getAllByTitle("First + Second + Admin must equal Fee * Players");
-        expect(fsaTitles).toHaveLength(mockBrkts.length);
+        expect(fsaTitles).toHaveLength(mockBrkts.length + 1);
         expect(fsaTitles[0]).toHaveTextContent("?");
       });
       it('render "FSA" input', () => { 
         render(<ZeroToNBrackets {...mockZeroToNBrktsProps} />);        
         const fsaInputs = screen.getAllByRole('textbox', { name: /F\+S\+A/i }) as HTMLInputElement[];        
-        expect(fsaInputs).toHaveLength(mockBrkts.length);
+        expect(fsaInputs).toHaveLength(mockBrkts.length + 1);
         expect(fsaInputs[0]).toBeDisabled();
         expect(fsaInputs[0]).toHaveValue("");        
       })
@@ -162,7 +164,7 @@ describe("ZeroToNBrackets - Component", () => {
         const user = userEvent.setup()
         render(<ZeroToNBrackets {...mockZeroToNBrktsProps} />);
         const tabs = screen.getAllByRole("tab");
-        expect(tabs).toHaveLength(mockBrkts.length);
+        expect(tabs).toHaveLength(mockBrkts.length + 1);
         await user.click(tabs[0]);
         expect(tabs[0]).toHaveTextContent('Create Bracket');
         expect(tabs[0]).toHaveAttribute("aria-selected", "true");
@@ -185,7 +187,7 @@ describe("ZeroToNBrackets - Component", () => {
         // ACT
         const tabs = screen.getAllByRole("tab");
         // ASSERT
-        expect(tabs).toHaveLength(mockBrkts.length);
+        expect(tabs).toHaveLength(mockBrkts.length + 1);
         // ARRANGE
         await user.click(tabs[1]);
         // ASSERT
@@ -201,8 +203,9 @@ describe("ZeroToNBrackets - Component", () => {
         const tabs = screen.getAllByRole("tab");
         await user.click(tabs[1]);
         const divInputs = screen.getAllByRole('textbox', { name: /division/i }) as HTMLInputElement[];        
-        expect(divInputs).toHaveLength(mockBrkts.length - 1);
-        expect(divInputs[0]).toHaveValue(mockBrkts[1].div_name);
+        expect(divInputs).toHaveLength(mockBrkts.length);
+        const divName = getDivName(mockBrkts[1].div_id, mockDivs);
+        expect(divInputs[0]).toHaveValue(divName);
       })
       it('render the Fee input', async () => {
         const user = userEvent.setup()
@@ -218,7 +221,7 @@ describe("ZeroToNBrackets - Component", () => {
         const tabs = screen.getAllByRole("tab");
         await user.click(tabs[1]);
         const startInputs = screen.getAllByRole('spinbutton', { name: /start/i }) as HTMLInputElement[];                
-        expect(startInputs[1]).toHaveValue(mockBrkts[1].start);
+        expect(startInputs[1]).toHaveValue(mockBrkts[0].start);
         expect(startInputs[1]).toBeDisabled();
       })
       it('render the Games input', async () => { 
@@ -227,7 +230,7 @@ describe("ZeroToNBrackets - Component", () => {
         const tabs = screen.getAllByRole("tab");
         await user.click(tabs[1]);
         const gamesInputs = screen.getAllByRole('spinbutton', { name: /games/i }) as HTMLInputElement[];        
-        expect(gamesInputs[1]).toHaveValue(mockBrkts[1].games);
+        expect(gamesInputs[1]).toHaveValue(mockBrkts[0].games);
         expect(gamesInputs[1]).toBeDisabled();
       })
       it('render the Players input', async () => { 
@@ -236,7 +239,7 @@ describe("ZeroToNBrackets - Component", () => {
         const tabs = screen.getAllByRole("tab");
         await user.click(tabs[1]);
         const playersInputs = screen.getAllByRole('spinbutton', { name: /players/i }) as HTMLInputElement[];                
-        expect(playersInputs[1]).toHaveValue(mockBrkts[1].players);
+        expect(playersInputs[1]).toHaveValue(mockBrkts[0].players);
         expect(playersInputs[1]).toBeDisabled();
       })
       it('input the First input', async () => { 
@@ -245,7 +248,7 @@ describe("ZeroToNBrackets - Component", () => {
         const tabs = screen.getAllByRole("tab");
         await user.click(tabs[1]);
         const firstInputs = screen.getAllByRole('textbox', { name: /first/i }) as HTMLInputElement[];        
-        expect(firstInputs[1]).toHaveValue(formatValueSymbSep2Dec(mockBrkts[1].first, localConfig));        
+        expect(firstInputs[1]).toHaveValue(formatValueSymbSep2Dec(mockBrkts[0].first, localConfig));        
         expect(firstInputs[1]).toBeDisabled();
       })
       it('input the Second input', async () => {
@@ -254,7 +257,7 @@ describe("ZeroToNBrackets - Component", () => {
         const tabs = screen.getAllByRole("tab");
         await user.click(tabs[1]);
         const secondInputs = screen.getAllByRole('textbox', { name: /second/i }) as HTMLInputElement[];                
-        expect(secondInputs[1]).toHaveValue(formatValueSymbSep2Dec(mockBrkts[1].second, localConfig));
+        expect(secondInputs[1]).toHaveValue(formatValueSymbSep2Dec(mockBrkts[0].second, localConfig));
         expect(secondInputs[1]).toBeDisabled();
       })
       it('input the Admin input', async () => { 
@@ -263,7 +266,7 @@ describe("ZeroToNBrackets - Component", () => {
         const tabs = screen.getAllByRole("tab");
         await user.click(tabs[1]);
         const adminInputs = screen.getAllByRole('textbox', { name: /admin/i }) as HTMLInputElement[];                
-        expect(adminInputs[1]).toHaveValue(formatValueSymbSep2Dec(mockBrkts[1].admin, localConfig));
+        expect(adminInputs[1]).toHaveValue(formatValueSymbSep2Dec(mockBrkts[0].admin, localConfig));
         expect(adminInputs[1]).toBeDisabled();
       })
       it('render the FSA input', async () => { 
@@ -272,7 +275,7 @@ describe("ZeroToNBrackets - Component", () => {
         const tabs = screen.getAllByRole("tab");
         await user.click(tabs[1]);
         const fsaInputs = screen.getAllByRole('textbox', { name: /F\+S\+A/i }) as HTMLInputElement[];                
-        expect(fsaInputs[1]).toHaveValue(formatValueSymbSep2Dec(mockBrkts[1].fsa, localConfig));
+        expect(fsaInputs[1]).toHaveValue(formatValueSymbSep2Dec(mockBrkts[0].fsa, localConfig));
         expect(fsaInputs[1]).toBeDisabled();
       })
       it('render the Delete Bracket button', async () => {
@@ -281,7 +284,7 @@ describe("ZeroToNBrackets - Component", () => {
         const tabs = screen.getAllByRole("tab");
         await user.click(tabs[1]);
         const delBtns = screen.getAllByRole("button", { name: /delete bracket/i });        
-        expect(delBtns).toHaveLength(mockBrkts.length - 1) // add button shown in Create Bracket tab      
+        expect(delBtns).toHaveLength(mockBrkts.length) // add button shown in Create Bracket tab
       })
     })
 
@@ -293,7 +296,7 @@ describe("ZeroToNBrackets - Component", () => {
         // ACT
         const tabs = screen.getAllByRole("tab");
         // ASSERT
-        expect(tabs).toHaveLength(mockBrkts.length);
+        expect(tabs).toHaveLength(mockBrkts.length + 1);
         // ARRANGE
         await user.click(tabs[2]);
         // ASSERT
@@ -308,8 +311,9 @@ describe("ZeroToNBrackets - Component", () => {
         render(<ZeroToNBrackets {...mockZeroToNBrktsProps} />);
         const tabs = screen.getAllByRole("tab");
         await user.click(tabs[2]);
-        const divInputs = screen.getAllByRole('textbox', { name: /division/i }) as HTMLInputElement[];                
-        expect(divInputs[1]).toHaveValue(mockBrkts[2].div_name);        
+        const divInputs = screen.getAllByRole('textbox', { name: /division/i }) as HTMLInputElement[];
+        const divName = getDivName(mockBrkts[1].div_id, mockDivs);
+        expect(divInputs[1]).toHaveValue(divName);        
       })
       it('render the Fee input', async () => {
         const user = userEvent.setup()
@@ -317,7 +321,7 @@ describe("ZeroToNBrackets - Component", () => {
         const tabs = screen.getAllByRole("tab");
         await user.click(tabs[2]);
         const feeInputs = screen.getAllByRole('textbox', { name: /fee/i }) as HTMLInputElement[];                
-        expect(feeInputs[2]).toHaveValue(formatValueSymbSep2Dec(mockBrkts[2].fee, localConfig));
+        expect(feeInputs[2]).toHaveValue(formatValueSymbSep2Dec(mockBrkts[1].fee, localConfig));
       })
       it('render the Start input', async () => {
         const user = userEvent.setup()
@@ -325,7 +329,7 @@ describe("ZeroToNBrackets - Component", () => {
         const tabs = screen.getAllByRole("tab");
         await user.click(tabs[2]);
         const startInputs = screen.getAllByRole('spinbutton', { name: /start/i }) as HTMLInputElement[];                
-        expect(startInputs[2]).toHaveValue(mockBrkts[2].start);
+        expect(startInputs[2]).toHaveValue(mockBrkts[1].start);
         expect(startInputs[2]).toBeDisabled();
       })
       it('render the Games input', async () => { 
@@ -334,7 +338,7 @@ describe("ZeroToNBrackets - Component", () => {
         const tabs = screen.getAllByRole("tab");
         await user.click(tabs[2]);
         const gamesInputs = screen.getAllByRole('spinbutton', { name: /games/i }) as HTMLInputElement[];        
-        expect(gamesInputs[2]).toHaveValue(mockBrkts[2].games);
+        expect(gamesInputs[2]).toHaveValue(mockBrkts[1].games);
         expect(gamesInputs[2]).toBeDisabled();
       })
       it('render the Players input', async () => { 
@@ -343,7 +347,7 @@ describe("ZeroToNBrackets - Component", () => {
         const tabs = screen.getAllByRole("tab");
         await user.click(tabs[2]);
         const playersInputs = screen.getAllByRole('spinbutton', { name: /players/i }) as HTMLInputElement[];                
-        expect(playersInputs[2]).toHaveValue(mockBrkts[2].players);
+        expect(playersInputs[2]).toHaveValue(mockBrkts[1].players);
         expect(playersInputs[2]).toBeDisabled();
       })
       it('input the First input', async () => { 
@@ -352,7 +356,7 @@ describe("ZeroToNBrackets - Component", () => {
         const tabs = screen.getAllByRole("tab");
         await user.click(tabs[2]);
         const firstInputs = screen.getAllByRole('textbox', { name: /first/i }) as HTMLInputElement[];        
-        expect(firstInputs[2]).toHaveValue(formatValueSymbSep2Dec(mockBrkts[2].first, localConfig));        
+        expect(firstInputs[2]).toHaveValue(formatValueSymbSep2Dec(mockBrkts[1].first, localConfig));        
         expect(firstInputs[2]).toBeDisabled();
       })
       it('input the Second input', async () => {
@@ -361,7 +365,7 @@ describe("ZeroToNBrackets - Component", () => {
         const tabs = screen.getAllByRole("tab");
         await user.click(tabs[2]);
         const secondInputs = screen.getAllByRole('textbox', { name: /second/i }) as HTMLInputElement[];                
-        expect(secondInputs[2]).toHaveValue(formatValueSymbSep2Dec(mockBrkts[2].second, localConfig));
+        expect(secondInputs[2]).toHaveValue(formatValueSymbSep2Dec(mockBrkts[1].second, localConfig));
         expect(secondInputs[2]).toBeDisabled();
       })
       it('input the Admin input', async () => { 
@@ -370,7 +374,7 @@ describe("ZeroToNBrackets - Component", () => {
         const tabs = screen.getAllByRole("tab");
         await user.click(tabs[2]);
         const adminInputs = screen.getAllByRole('textbox', { name: /admin/i }) as HTMLInputElement[];                
-        expect(adminInputs[2]).toHaveValue(formatValueSymbSep2Dec(mockBrkts[2].admin, localConfig));
+        expect(adminInputs[2]).toHaveValue(formatValueSymbSep2Dec(mockBrkts[1].admin, localConfig));
         expect(adminInputs[2]).toBeDisabled();
       })
       it('render the FSA input', async () => { 
@@ -379,7 +383,7 @@ describe("ZeroToNBrackets - Component", () => {
         const tabs = screen.getAllByRole("tab");
         await user.click(tabs[2]);
         const fsaInputs = screen.getAllByRole('textbox', { name: /F\+S\+A/i }) as HTMLInputElement[];                
-        expect(fsaInputs[2]).toHaveValue(formatValueSymbSep2Dec(mockBrkts[2].fsa, localConfig));
+        expect(fsaInputs[2]).toHaveValue(formatValueSymbSep2Dec(mockBrkts[1].fsa, localConfig));
         expect(fsaInputs[2]).toBeDisabled();
       })
     })
@@ -392,7 +396,7 @@ describe("ZeroToNBrackets - Component", () => {
         // ACT
         const tabs = screen.getAllByRole("tab");
         // ASSERT
-        expect(tabs).toHaveLength(mockBrkts.length);
+        expect(tabs).toHaveLength(mockBrkts.length + 1);
         // ARRANGE
         await user.click(tabs[3]);
         // ASSERT
@@ -408,7 +412,8 @@ describe("ZeroToNBrackets - Component", () => {
         const tabs = screen.getAllByRole("tab");
         await user.click(tabs[3]);
         const divInputs = screen.getAllByRole('textbox', { name: /division/i }) as HTMLInputElement[];
-        expect(divInputs[2]).toHaveValue(mockBrkts[3].div_name);        
+        const divName = getDivName(mockBrkts[2].div_id, mockDivs);
+        expect(divInputs[2]).toHaveValue(divName);        
       })
       it('render the Fee input', async () => {
         const user = userEvent.setup()
@@ -416,7 +421,7 @@ describe("ZeroToNBrackets - Component", () => {
         const tabs = screen.getAllByRole("tab");
         await user.click(tabs[3]);        
         const feeInputs = screen.getAllByRole('textbox', { name: /fee/i }) as HTMLInputElement[];                
-        expect(feeInputs[3]).toHaveValue(formatValueSymbSep2Dec(mockBrkts[3].fee, localConfig));
+        expect(feeInputs[3]).toHaveValue(formatValueSymbSep2Dec(mockBrkts[2].fee, localConfig));
       })
       it('render the Start input', async () => {
         const user = userEvent.setup()
@@ -424,7 +429,7 @@ describe("ZeroToNBrackets - Component", () => {
         const tabs = screen.getAllByRole("tab");
         await user.click(tabs[3]);
         const startInputs = screen.getAllByRole('spinbutton', { name: /start/i }) as HTMLInputElement[];                
-        expect(startInputs[3]).toHaveValue(mockBrkts[3].start);
+        expect(startInputs[3]).toHaveValue(mockBrkts[2].start);
         expect(startInputs[3]).toBeDisabled();
       })
       it('render the Games input', async () => { 
@@ -433,7 +438,7 @@ describe("ZeroToNBrackets - Component", () => {
         const tabs = screen.getAllByRole("tab");
         await user.click(tabs[3]);
         const gamesInputs = screen.getAllByRole('spinbutton', { name: /games/i }) as HTMLInputElement[];        
-        expect(gamesInputs[3]).toHaveValue(mockBrkts[3].games);
+        expect(gamesInputs[3]).toHaveValue(mockBrkts[2].games);
         expect(gamesInputs[3]).toBeDisabled();
       })
       it('render the Players input', async () => { 
@@ -442,7 +447,7 @@ describe("ZeroToNBrackets - Component", () => {
         const tabs = screen.getAllByRole("tab");
         await user.click(tabs[3]);
         const playersInputs = screen.getAllByRole('spinbutton', { name: /players/i }) as HTMLInputElement[];                
-        expect(playersInputs[3]).toHaveValue(mockBrkts[3].players);
+        expect(playersInputs[3]).toHaveValue(mockBrkts[2].players);
         expect(playersInputs[3]).toBeDisabled();
       })
       it('input the First input', async () => { 
@@ -451,7 +456,7 @@ describe("ZeroToNBrackets - Component", () => {
         const tabs = screen.getAllByRole("tab");
         await user.click(tabs[3]);
         const firstInputs = screen.getAllByRole('textbox', { name: /first/i }) as HTMLInputElement[];        
-        expect(firstInputs[3]).toHaveValue(formatValueSymbSep2Dec(mockBrkts[3].first, localConfig));        
+        expect(firstInputs[3]).toHaveValue(formatValueSymbSep2Dec(mockBrkts[2].first, localConfig));        
         expect(firstInputs[3]).toBeDisabled();
       })
       it('input the Second input', async () => {
@@ -460,7 +465,7 @@ describe("ZeroToNBrackets - Component", () => {
         const tabs = screen.getAllByRole("tab");
         await user.click(tabs[3]);
         const secondInputs = screen.getAllByRole('textbox', { name: /second/i }) as HTMLInputElement[];                
-        expect(secondInputs[3]).toHaveValue(formatValueSymbSep2Dec(mockBrkts[3].second, localConfig));
+        expect(secondInputs[3]).toHaveValue(formatValueSymbSep2Dec(mockBrkts[2].second, localConfig));
         expect(secondInputs[3]).toBeDisabled();
       })
       it('input the Admin input', async () => { 
@@ -469,7 +474,7 @@ describe("ZeroToNBrackets - Component", () => {
         const tabs = screen.getAllByRole("tab");
         await user.click(tabs[3]);
         const adminInputs = screen.getAllByRole('textbox', { name: /admin/i }) as HTMLInputElement[];                
-        expect(adminInputs[3]).toHaveValue(formatValueSymbSep2Dec(mockBrkts[3].admin, localConfig));
+        expect(adminInputs[3]).toHaveValue(formatValueSymbSep2Dec(mockBrkts[2].admin, localConfig));
         expect(adminInputs[3]).toBeDisabled();
       })
       it('render the FSA input', async () => { 
@@ -478,7 +483,7 @@ describe("ZeroToNBrackets - Component", () => {
         const tabs = screen.getAllByRole("tab");
         await user.click(tabs[3]);
         const fsaInputs = screen.getAllByRole('textbox', { name: /F\+S\+A/i }) as HTMLInputElement[];                
-        expect(fsaInputs[3]).toHaveValue(formatValueSymbSep2Dec(mockBrkts[3].fsa, localConfig));
+        expect(fsaInputs[3]).toHaveValue(formatValueSymbSep2Dec(mockBrkts[2].fsa, localConfig));
         expect(fsaInputs[3]).toBeDisabled();
       })
     })
@@ -491,7 +496,7 @@ describe("ZeroToNBrackets - Component", () => {
         // ACT
         const tabs = screen.getAllByRole("tab");
         // ASSERT
-        expect(tabs).toHaveLength(mockBrkts.length);
+        expect(tabs).toHaveLength(mockBrkts.length + 1);
         // ARRANGE
         await user.click(tabs[4]);
         // ASSERT
@@ -507,7 +512,8 @@ describe("ZeroToNBrackets - Component", () => {
         const tabs = screen.getAllByRole("tab");
         await user.click(tabs[4]);
         const divInputs = screen.getAllByRole('textbox', { name: /division/i }) as HTMLInputElement[];                
-        expect(divInputs[3]).toHaveValue(mockBrkts[4].div_name);        
+        const divName = getDivName(mockBrkts[3].div_id, mockDivs);
+        expect(divInputs[3]).toHaveValue(divName);        
       })
       it('render the Fee input', async () => {
         const user = userEvent.setup()
@@ -515,7 +521,7 @@ describe("ZeroToNBrackets - Component", () => {
         const tabs = screen.getAllByRole("tab");
         await user.click(tabs[4]);
         const feeInputs = screen.getAllByRole('textbox', { name: /fee/i }) as HTMLInputElement[];                
-        expect(feeInputs[4]).toHaveValue(formatValueSymbSep2Dec(mockBrkts[4].fee, localConfig));
+        expect(feeInputs[4]).toHaveValue(formatValueSymbSep2Dec(mockBrkts[3].fee, localConfig));
       })
       it('render the Start input', async () => {
         const user = userEvent.setup()
@@ -523,7 +529,7 @@ describe("ZeroToNBrackets - Component", () => {
         const tabs = screen.getAllByRole("tab");
         await user.click(tabs[4]);
         const startInputs = screen.getAllByRole('spinbutton', { name: /start/i }) as HTMLInputElement[];                
-        expect(startInputs[4]).toHaveValue(mockBrkts[4].start);
+        expect(startInputs[4]).toHaveValue(mockBrkts[3].start);
         expect(startInputs[4]).toBeDisabled();
       })
       it('render the Games input', async () => { 
@@ -532,7 +538,7 @@ describe("ZeroToNBrackets - Component", () => {
         const tabs = screen.getAllByRole("tab");
         await user.click(tabs[4]);
         const gamesInputs = screen.getAllByRole('spinbutton', { name: /games/i }) as HTMLInputElement[];        
-        expect(gamesInputs[4]).toHaveValue(mockBrkts[4].games);
+        expect(gamesInputs[4]).toHaveValue(mockBrkts[3].games);
         expect(gamesInputs[4]).toBeDisabled();
       })
       it('render the Players input', async () => { 
@@ -541,7 +547,7 @@ describe("ZeroToNBrackets - Component", () => {
         const tabs = screen.getAllByRole("tab");
         await user.click(tabs[4]);
         const playersInputs = screen.getAllByRole('spinbutton', { name: /players/i }) as HTMLInputElement[];                
-        expect(playersInputs[4]).toHaveValue(mockBrkts[4].players);
+        expect(playersInputs[4]).toHaveValue(mockBrkts[3].players);
         expect(playersInputs[4]).toBeDisabled();
       })
       it('input the First input', async () => { 
@@ -550,7 +556,7 @@ describe("ZeroToNBrackets - Component", () => {
         const tabs = screen.getAllByRole("tab");
         await user.click(tabs[4]);
         const firstInputs = screen.getAllByRole('textbox', { name: /first/i }) as HTMLInputElement[];        
-        expect(firstInputs[4]).toHaveValue(formatValueSymbSep2Dec(mockBrkts[4].first, localConfig));        
+        expect(firstInputs[4]).toHaveValue(formatValueSymbSep2Dec(mockBrkts[3].first, localConfig));        
         expect(firstInputs[4]).toBeDisabled();
       })
       it('input the Second input', async () => {
@@ -559,7 +565,7 @@ describe("ZeroToNBrackets - Component", () => {
         const tabs = screen.getAllByRole("tab");
         await user.click(tabs[4]);        
         const secondInputs = screen.getAllByRole('textbox', { name: /second/i }) as HTMLInputElement[];                
-        expect(secondInputs[4]).toHaveValue(formatValueSymbSep2Dec(mockBrkts[4].second, localConfig));
+        expect(secondInputs[4]).toHaveValue(formatValueSymbSep2Dec(mockBrkts[3].second, localConfig));
         expect(secondInputs[4]).toBeDisabled();
       })
       it('input the Admin input', async () => { 
@@ -568,7 +574,7 @@ describe("ZeroToNBrackets - Component", () => {
         const tabs = screen.getAllByRole("tab");
         await user.click(tabs[4]);
         const adminInputs = screen.getAllByRole('textbox', { name: /admin/i }) as HTMLInputElement[];                
-        expect(adminInputs[4]).toHaveValue(formatValueSymbSep2Dec(mockBrkts[4].admin, localConfig));
+        expect(adminInputs[4]).toHaveValue(formatValueSymbSep2Dec(mockBrkts[3].admin, localConfig));
         expect(adminInputs[4]).toBeDisabled();
       })
       it('render the FSA input', async () => { 
@@ -577,7 +583,7 @@ describe("ZeroToNBrackets - Component", () => {
         const tabs = screen.getAllByRole("tab");
         await user.click(tabs[4]);
         const fsaInputs = screen.getAllByRole('textbox', { name: /F\+S\+A/i }) as HTMLInputElement[];                
-        expect(fsaInputs[4]).toHaveValue(formatValueSymbSep2Dec(mockBrkts[4].fsa, localConfig));
+        expect(fsaInputs[4]).toHaveValue(formatValueSymbSep2Dec(mockBrkts[3].fsa, localConfig));
         expect(fsaInputs[4]).toBeDisabled();
       })
     })
@@ -594,94 +600,95 @@ describe("ZeroToNBrackets - Component", () => {
     })
 
     describe('render the create bracket with errors', () => { 
-      beforeAll(() => {
-        mockBrkts[0].div_err = "test division error";
-        mockBrkts[0].start_err = "test start error";
-        mockBrkts[0].fee_err = "test fee error";        
-      })
-      afterAll(() => {
-        mockBrkts[0].div_err = "";
-        mockBrkts[0].start_err = "";
-        mockBrkts[0].fee_err = "";                
-      })
-      it('render divison error', async () => { 
+      it('render errors', async () => { 
         // ARRANGE
+        const user = userEvent.setup();
         render(<ZeroToNBrackets {...mockZeroToNBrktsProps} />);
         // ACT      
         const divError = screen.queryByTestId("dangerBrktDivRadio");      
-        // ASSERT      
-        expect(divError).toHaveTextContent('test division error');
-      })
-      it('render fee error', async () => { 
-        render(<ZeroToNBrackets {...mockZeroToNBrktsProps} />);
         const feeError = screen.queryByTestId("dangerCreateBrktFee");
-        expect(feeError).toHaveTextContent('test fee error');
-      })
-      it('render start error', async () => { 
-        render(<ZeroToNBrackets {...mockZeroToNBrktsProps} />);
         const startError = screen.queryByTestId("dangerCreateBrktStart");
-        expect(startError).toHaveTextContent('test start error');
+        const startInputs = screen.getAllByRole('spinbutton', { name: /start/i }) as HTMLInputElement[];        
+        const createStartInput = startInputs[0];        
+        const addBtn = screen.getByRole('button', { name: /add bracket/i });
+        await user.clear(createStartInput);
+        await user.type(createStartInput, '5');
+        await user.click(addBtn);                        
+        // ASSERT      
+        expect(divError).toHaveTextContent('Division is required');
+        expect(feeError).toHaveTextContent('Fee cannot be less than $1.00');
+        expect(startError).toHaveTextContent('Start cannot be more than 1');
+      })
+      it('render errors, then clear errors', async () => { 
+        // ARRANGE
+        const user = userEvent.setup();
+        render(<ZeroToNBrackets {...mockZeroToNBrktsProps} />);
+        // ACT      
+        const scratchRadio = screen.getByRole('radio', { name: /scratch/i }) as HTMLInputElement;
+        const fees = screen.getAllByRole('textbox', { name: /fee/i }) as HTMLInputElement[];
+        const startInputs = screen.getAllByRole('spinbutton', { name: /start/i }) as HTMLInputElement[];
+        const divError = screen.queryByTestId("dangerBrktDivRadio");      
+        const feeError = screen.queryByTestId("dangerCreateBrktFee");
+        const startError = screen.queryByTestId("dangerCreateBrktStart");
+        const createFeeInput = fees[0];
+        const createStartInput = startInputs[0];        
+        const addBtn = screen.getByRole('button', { name: /add bracket/i });
+        await user.clear(createStartInput);
+        await user.type(createStartInput, '5');
+        await user.click(addBtn);                        
+        // ASSERT      
+        expect(divError).toHaveTextContent('Division is required');
+        expect(feeError).toHaveTextContent('Fee cannot be less than $1.00');
+        expect(startError).toHaveTextContent('Start cannot be more than 1');
+        // ACT part 2
+        await user.click(scratchRadio)
+        await user.clear(createFeeInput);
+        await user.type(createFeeInput, '5');
+        await user.clear(createStartInput);
+        await user.type(createStartInput, '1');
+        // ASSERT part 2
+        expect(divError).toHaveTextContent('');
+        expect(feeError).toHaveTextContent('');
+        expect(startError).toHaveTextContent('');
       })
     })
   })
 
   describe('add a bracket', () => { 
-    beforeAll(() => {
-      mockBrkts.push({
-        ...initBrkt,
-        id: "test-id",
-        div_id: "div_578834e04e5e4885bbae79229d8b96e8",  
-        div_name: 'Scratch',
-        start: 2,
-        fee: '10',
-        first: '50',
-        second: '20',
-        admin: '10',
-        fsa: '80',      
-        sort_order: 5
-      })
-    })
-    afterAll(() => {
-      if (mockBrkts.length === 6) mockBrkts.pop();
-    })
     it('test if added bracket has correct title', async () => {
       // ARRANGE
-      const user = userEvent.setup();
-      render(<ZeroToNBrackets {...mockZeroToNBrktsProps} />);
-      const addBtn = screen.getByText("Add Bracket");
-      // ACT
-      await user.click(addBtn);
-      // ASSERT
-      expect(mockZeroToNBrktsProps.setBrkts).toHaveBeenCalled();
+      const noBrktsYet: brktType[] = [];      
+      const mockNoBrktsYet = { ...mockZeroToNBrktsProps, brkts: noBrktsYet };
 
-      // ACT
-      const tabs = screen.getAllByRole("tab");
+      const user = userEvent.setup();
+      render(<ZeroToNBrackets {...mockNoBrktsYet} />);
+      const scratchRadio = screen.getByRole('radio', { name: /scratch/i }) as HTMLInputElement;
+      const fees = screen.getAllByRole('textbox', { name: /fee/i }) as HTMLInputElement[];
+      const startInputs = screen.getAllByRole('spinbutton', { name: /start/i }) as HTMLInputElement[];
+      const createFeeInout = fees[0];
+      const createStartInput = startInputs[0];
+      const divError = screen.queryByTestId("dangerBrktDivRadio");      
+      const feeError = screen.queryByTestId("dangerCreateBrktFee");
+      const startError = screen.queryByTestId("dangerCreateBrktStart");
+      const addBtn = screen.getByRole('button', { name: /add bracket/i });
+      // ACT 
+      await user.click(scratchRadio)
+      await user.clear(createFeeInout);
+      await user.type(createFeeInout, '3');
+      await user.clear(createStartInput);
+      await user.type(createStartInput, '1');
+      await user.click(addBtn);
+
       // ASSERT
-      expect(tabs.length).toBe(6);
-      const tabTitle = getBrktOrElimName(mockBrkts[5].id, mockZeroToNBrktsProps.brkts)
-      expect(tabs[5]).toHaveTextContent(tabTitle);        
+      // expect no errors
+      expect(divError).toHaveTextContent('');
+      expect(feeError).toHaveTextContent('');
+      expect(startError).toHaveTextContent('');
+      expect(mockZeroToNBrktsProps.setBrkts).toHaveBeenCalled();            
     })
   })
 
   describe('remove a bracket', () => {
-    beforeAll(() => {
-      mockBrkts.push({
-        ...initBrkt,
-        id: "test-id",
-        div_id: "div_578834e04e5e4885bbae79229d8b96e8",  
-        div_name: 'Scratch',
-        start: 2,
-        fee: '10',
-        first: '50',
-        second: '20',
-        admin: '10',
-        fsa: '80',      
-        sort_order: 5
-      })
-    })
-    afterAll(() => {
-      if (mockBrkts.length === 6) mockBrkts.pop();
-    })
     it('delete bracket', async () => {
       // ARRANGE
       const user = userEvent.setup();
@@ -692,9 +699,17 @@ describe("ZeroToNBrackets - Component", () => {
       await user.click(tabs[5]);
       const delBtns = screen.getAllByText("Delete Bracket");
       // ASSERT
-      expect(delBtns.length).toBe(5);
+      expect(delBtns.length).toBe(4);
       // ACT
-      await user.click(delBtns[4]);
+      await user.click(delBtns[3]);
+      // ASSERT
+      // get the buttons in the modal dialog      
+      const okBtn = await screen.findByRole('button', { name: /ok/i });
+      expect(okBtn).toBeInTheDocument();
+      const cancelBtn = screen.queryByRole('button', { name: /cancel/i });
+      expect(cancelBtn).toBeInTheDocument();
+      // ACT
+      await user.click(okBtn);
       // ASSERT
       expect(mockZeroToNBrktsProps.setBrkts).toHaveBeenCalled();                    
     })      

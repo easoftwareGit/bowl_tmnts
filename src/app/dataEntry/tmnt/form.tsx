@@ -1,18 +1,18 @@
 "use client";
-import { useState, ChangeEvent, useEffect } from "react";
+import React, { useState, ChangeEvent, useEffect } from "react";
 import { useSelector, useDispatch } from "react-redux";
 import { AppDispatch, RootState, store } from "@/redux/store";
 import { fetchBowls, selectAllBowls, getBowlsStatus, getBowlsError } from "@/redux/features/bowls/bowlsSlice";
 import { isValidBtDbId, maxTmntNameLength } from "@/lib/validation";
 import { Accordion, AccordionItem } from "react-bootstrap";
-import { tmntType, tmntPropsType, saveTypes } from "../../../lib/types/types";
+import { tmntType, tmntPropsType, saveTypes, eventType, divType, squadType } from "../../../lib/types/types";
 import { noAcdnErr } from "./errors";
 import OneToNEvents, { validateEvents } from "./oneToNEvents";
 import OneToNDivs, { validateDivs } from "./oneToNDivs";
 import OneToNSquads, { validateSquads } from "./oneToNSquads";
 import OneToNLanes from "./oneToNLanes";
 import { dateTo_yyyyMMdd, getYearMonthDays, startOfDayFromString } from "@/lib/dateTools";
-import { compareAsc, isValid } from "date-fns";
+import { compareAsc, isValid, set } from "date-fns";
 import ZeroToNPots, { validatePots } from "./zeroToNPots";
 import ZeroToNBrackets, { validateBrkts } from "./zeroToNBrkts";
 import ZeroToNElims, { validateElims } from "./zeroToNElims";
@@ -25,14 +25,19 @@ import { postLane } from "@/lib/db/lanes/lanesAxios";
 import { postPot } from "@/lib/db/pots/potsAxios";
 import { postBrkt } from "@/lib/db/brkts/brktsAxios";
 import { postElim } from "@/lib/db/elims/elimsAxios";
-import "./form.css";
 import { tmntSaveTmnt } from "./saveTmnt";
+import { tmntSaveEvents } from "./saveTmntEvents";
+
+import "./form.css";
+import { blankDiv, blankEvent, blankSquad, blankTmnt } from "@/lib/db/initVals";
+import { tmntSaveDivs } from "./saveTmntDivs";
+import { tmntSaveSquads } from "./saveTmntSquads";
 
 interface FormProps {
   tmntProps: tmntPropsType
 }
 
-const TmntDataForm: React.FC<FormProps> = ({ tmntProps }) => {     
+const TmntDataForm: React.FC<FormProps> = ({ tmntProps }) => {
   const {
     tmnt, setTmnt,
     events, setEvents,
@@ -41,20 +46,25 @@ const TmntDataForm: React.FC<FormProps> = ({ tmntProps }) => {
     lanes, setLanes,
     pots, setPots,
     brkts, setBrkts,
-    elims, setElims
+    elims, setElims,
+    showingModal, setShowingModal,
   } = tmntProps;
 
-  let saveType: saveTypes = 'POST';
-  let origEvents = [...events];
-
+  let saveType: saveTypes = 'CREATE';
+  
   const dispatch = useDispatch<AppDispatch>();
 
   const [eventAcdnErr, setEventAcdnErr] = useState(noAcdnErr);
-  const [divAcdnErr, setDivAcdnErr] = useState(noAcdnErr);  
-  const [squadAcdnErr, setSquadAcdnErr] = useState(noAcdnErr);   
-  const [potAcdnErr, setPotAcdnErr] = useState(noAcdnErr);   
-  const [brktAcdnErr, setBrktAcdnErr] = useState(noAcdnErr);   
-  const [elimAcdnErr, setElimAcdnErr] = useState(noAcdnErr); 
+  const [divAcdnErr, setDivAcdnErr] = useState(noAcdnErr);
+  const [squadAcdnErr, setSquadAcdnErr] = useState(noAcdnErr);
+  const [potAcdnErr, setPotAcdnErr] = useState(noAcdnErr);
+  const [brktAcdnErr, setBrktAcdnErr] = useState(noAcdnErr);
+  const [elimAcdnErr, setElimAcdnErr] = useState(noAcdnErr);
+
+  let origTmnt: tmntType = { ...blankTmnt };
+  let origEvents: eventType[] = [ { ...blankEvent } ];  
+  let origDivs: divType[] = [{ ...blankDiv }];
+  let origSquads: squadType[] = [{ ...blankSquad }];
 
   const bowlsStatus = useSelector(getBowlsStatus);
   const bowls = useSelector(selectAllBowls);
@@ -66,7 +76,6 @@ const TmntDataForm: React.FC<FormProps> = ({ tmntProps }) => {
   }
 
   const [dateStrs, setDateStrs] = useState(initDateStrs);
-
   const [errModalObj, setErrModalObj] = useState(initModalObj);
 
   useEffect(() => {
@@ -245,13 +254,13 @@ const TmntDataForm: React.FC<FormProps> = ({ tmntProps }) => {
     if (!validateSquads(squads, setSquads, events, setSquadAcdnErr, tmnt.start_date, tmnt.end_date)) {
       isTmntValid = false;
     }
-    if (!validatePots(pots, setPots, setPotAcdnErr)) {
+    if (!validatePots(pots, setPots, divs, setPotAcdnErr)) {
       isTmntValid = false;
     }
-    if (!validateBrkts(brkts, setBrkts, setBrktAcdnErr)) {
+    if (!validateBrkts(brkts, setBrkts, divs, setBrktAcdnErr)) {
       isTmntValid = false;
     }
-    if (!validateElims(elims, setElims, setElimAcdnErr)) { 
+    if (!validateElims(elims, setElims, divs, setElimAcdnErr)) { 
       isTmntValid = false;
     }
     return isTmntValid;
@@ -301,144 +310,72 @@ const TmntDataForm: React.FC<FormProps> = ({ tmntProps }) => {
     // })
   };
 
-  const saveTmnt = async (): Promise<boolean | null> => {      
+  const getLanesTabTilte = (): string => {
+    let lanesTitle = '';
+    squads.forEach((squad) => {
+      if (lanesTitle === '') {
+        lanesTitle = squad.lane_count + '';
+      } else {
+        lanesTitle = lanesTitle + ', ' + squad.lane_count;
+      }
+    })
+    return lanesTitle
+  }
 
-    const didSave = await tmntSaveTmnt({tmnt, setTmnt, events, setEvents, divs, setDivs});
-    if (!didSave) {
+  const saveTmnt = async (): Promise<boolean> => {      
+    const savedTmnt = await tmntSaveTmnt(origTmnt, tmnt, saveType);
+    if (!savedTmnt) {
       setErrModalObj({
         show: true,
         title: cannotSaveTitle,
         message: `Cannot save Tournament "${tmnt.tmnt_name}".`,
         id: initModalObj.id
-      })      
-    };
-    return didSave
-  }
+      })   
+      return false;
+    };    
+    origTmnt = {...tmnt};
+    return true;
+  }  
   const saveEvents = async (): Promise<boolean> => {
-    for (let i = 0; i < events.length; i++) {      
-      const currentEventId = events[i].id;
-      events[i].id = '';
-      const postedEvent = await postEvent(events[i]);      
-      if (!postedEvent) {
-        events[i].id = currentEventId;
-        setErrModalObj({
-          show: true,
-          title: cannotSaveTitle,
-          message: `Cannot save Tournament, error saving Events.`,
-          id: initModalObj.id
-        }) 
-        return false;
-      }
-      // update event id events
-      setEvents(
-        events.map((event) => {
-          if (event.id === currentEventId) {
-            event.id = postedEvent.id;
-          }
-          return event;
-        })
-      )
-      // update event id in squads
-      squads.map((squad) => {
-        if (squad.event_id === currentEventId) {
-          squad.event_id = postedEvent.id;
-        }
-        return squad;
-      })
+    const savedEvents = await tmntSaveEvents(origEvents, events, saveType);
+    if (!savedEvents) {
+      setErrModalObj({
+        show: true,
+        title: cannotSaveTitle,
+        message: `Cannot save Events.`,
+        id: initModalObj.id
+      }) 
+      return false;
     }
-
     origEvents = [...events];
     return true;
   }
   const saveDivs = async (): Promise<boolean> => {
-    for (let i = 0; i < divs.length; i++) {
-      const currentDivId = divs[i].id;
-      divs[i].id = '';
-      const postedDiv = await postDiv(divs[i]);
-      if (!postedDiv) {
-        divs[i].id = currentDivId;
-        setErrModalObj({
-          show: true,
-          title: cannotSaveTitle,
-          message: `Cannot save Division "${divs[i].div_name}".`,
-          id: initModalObj.id
-        }) 
-        return false;
-      }
-      // update div id in pots
-      setPots(
-        pots.map((pot) => {
-          if (pot.div_id === currentDivId) {
-            pot.div_id = postedDiv.id;
-          }
-          return pot;
-        })
-      )
-      // update div id in brkts
-      brkts.map((brkt) => {
-        if (brkt.div_id === currentDivId) {
-          brkt.div_id = postedDiv.id;
-        }
-        return brkt;
-      })
-      // update div id in elims
-      elims.map((elim) => {
-        if (elim.div_id === currentDivId) {
-          elim.div_id = postedDiv.id;
-        }
-        return elim;
-      })
+    const savedDivs = await tmntSaveDivs(origDivs, divs, saveType);
+    if (!savedDivs) {
+      setErrModalObj({
+        show: true,
+        title: cannotSaveTitle,
+        message: `Cannot save Divisions.`,
+        id: initModalObj.id
+      }) 
+      return false;
     }
+    origDivs = [...divs];
     return true;
   }  
   const saveSquads = async (): Promise<boolean> => {
-    for (let i = 0; i < squads.length; i++) {
-      const currentSquadId = squads[i].id;
-      squads[i].id = '';
-      const postedSquad = await postSquad(squads[i]);
-      if (!postedSquad) {
-        squads[i].id = currentSquadId;
-        setErrModalObj({
-          show: true,
-          title: cannotSaveTitle,
-          message: `Cannot save Squad "${squads[i].squad_name}".`,
-          id: initModalObj.id
-        }) 
-        return false;
-      }
-      // update squad id in lanes
-      setLanes(
-        lanes.map((lane) => {
-          if (lane.squad_id === currentSquadId) {
-            lane.squad_id = postedSquad.id;
-          }
-          return lane;
-        })
-      )
-      // update squad id in pots
-      setPots(
-        pots.map((pot) => {
-          if (pot.squad_id === currentSquadId) {
-            pot.squad_id = postedSquad.id;
-          }
-          return pot;
-        })
-      )
-      // update squad id in brkts
-      brkts.map((brkt) => {
-        if (brkt.squad_id === currentSquadId) {
-          brkt.squad_id = postedSquad.id;
-        }
-        return brkt;
-      })
-      // update squad id in elims
-      elims.map((elim) => {
-        if (elim.squad_id === currentSquadId) {
-          elim.squad_id = postedSquad.id;
-        }
-        return elim;
-      })
-    }    
+    const savedSquads = await tmntSaveSquads(origSquads, squads, saveType);
+    if (!savedSquads) {
+      setErrModalObj({
+        show: true,
+        title: cannotSaveTitle,
+        message: `Cannot save Squads.`,
+        id: initModalObj.id
+      }) 
+      return false;
+    }
+    origSquads = [...squads];
     return true;
   }
   const saveLanes = async (): Promise<boolean> => {
@@ -516,21 +453,27 @@ const TmntDataForm: React.FC<FormProps> = ({ tmntProps }) => {
 
   const save = async () => { 
 
-    if (!saveTmnt()) return false;
-    // if (!saveEvents()) return false;
-    // if (!saveDivs()) return false;
-    // if (!saveSquads()) return false;
+    let saved = false;
+    saved = await saveTmnt();
+    if (!saved) return false;
+    saved = await saveEvents();
+    if (!saved) return false;
+    saved = await saveDivs();
+    if (!saved) return false;
+    saved = await saveSquads();
+    if (!saved) return false;    
     // if (!saveLanes()) return false;
     // if (!savePots()) return false;
     // if (!saveBrkts()) return false;
-    // if (!saveElims()) return false;
-    saveType = 'PUT';
+    // if (!saveElims()) return false;    
+    saveType = 'UPDATE';
     return true;
   };
 
   const handleSubmit = (e: React.FormEvent) => {
     // console.log("Submitted");
     e.preventDefault();
+    if (showingModal) return;
     if (validateTmnt()) {      
       save();
       // console.log("Tournament valid");
@@ -547,7 +490,7 @@ const TmntDataForm: React.FC<FormProps> = ({ tmntProps }) => {
         message={errModalObj.message}   
         onCancel={canceledModalErr}
       />      
-      <form onSubmit={handleSubmit}>
+      <form onSubmit={handleSubmit}>      
         {(bowlsStatus === 'loading' ) && <div>Loading...</div>}
         {bowlsStatus !== 'loading' && bowlsError ? (
           <div>Error: {bowlsError}</div>
@@ -672,7 +615,7 @@ const TmntDataForm: React.FC<FormProps> = ({ tmntProps }) => {
             <Accordion>
               <AccordionItem eventKey="events" >
                 <Accordion.Header className={eventAcdnErr.errClassName} data-testid="acdnEvents">
-                  Events{eventAcdnErr.message}
+                  Events - {events.length} {eventAcdnErr.message}
                 </Accordion.Header>
                 <Accordion.Body data-testid="eventAcdn">
                   <OneToNEvents
@@ -680,7 +623,7 @@ const TmntDataForm: React.FC<FormProps> = ({ tmntProps }) => {
                     setEvents={setEvents}
                     squads={squads}
                     setSquads={setSquads}
-                    setAcdnErr={setEventAcdnErr}
+                    setAcdnErr={setEventAcdnErr}                    
                   />
                 </Accordion.Body>
               </AccordionItem>
@@ -688,7 +631,7 @@ const TmntDataForm: React.FC<FormProps> = ({ tmntProps }) => {
             <Accordion>
               <AccordionItem eventKey="divs">
                 <Accordion.Header className={divAcdnErr.errClassName}>
-                  Divisions{divAcdnErr.message}
+                  Divisions - {divs.length} {divAcdnErr.message}
                 </Accordion.Header>
                 <Accordion.Body>
                   <OneToNDivs
@@ -705,7 +648,7 @@ const TmntDataForm: React.FC<FormProps> = ({ tmntProps }) => {
             <Accordion>
               <AccordionItem eventKey="squads">
                 <Accordion.Header className={squadAcdnErr.errClassName}>
-                  Squads{squadAcdnErr.message}
+                  Squads - {squads.length} {squadAcdnErr.message}
                 </Accordion.Header>
                 <Accordion.Body>
                   <OneToNSquads
@@ -723,7 +666,7 @@ const TmntDataForm: React.FC<FormProps> = ({ tmntProps }) => {
               <AccordionItem eventKey="lanes">
                 {/* <no errors in Lanes */}
                 <Accordion.Header>
-                  Lanes
+                  Lanes - {getLanesTabTilte()}
                 </Accordion.Header>
                 <Accordion.Body>
                   <OneToNLanes  
@@ -736,7 +679,7 @@ const TmntDataForm: React.FC<FormProps> = ({ tmntProps }) => {
             <Accordion>
               <AccordionItem eventKey="pots">
                 <Accordion.Header className={potAcdnErr.errClassName}>
-                  Pots{potAcdnErr.message}
+                  Pots - {pots.length} {potAcdnErr.message}
                 </Accordion.Header>
                 <Accordion.Body>
                   <ZeroToNPots
@@ -744,6 +687,7 @@ const TmntDataForm: React.FC<FormProps> = ({ tmntProps }) => {
                     setPots={setPots}
                     divs={divs}                  
                     setAcdnErr={setPotAcdnErr}
+                    setShowingModal={setShowingModal}
                   />
                 </Accordion.Body>
               </AccordionItem>
@@ -751,7 +695,7 @@ const TmntDataForm: React.FC<FormProps> = ({ tmntProps }) => {
             <Accordion>
               <AccordionItem eventKey="brkts">
                 <Accordion.Header className={brktAcdnErr.errClassName}>
-                  Brackets{brktAcdnErr.message}
+                  Brackets - {brkts.length} {brktAcdnErr.message}
                 </Accordion.Header>
                 <Accordion.Body>
                   <ZeroToNBrackets
@@ -760,6 +704,7 @@ const TmntDataForm: React.FC<FormProps> = ({ tmntProps }) => {
                     divs={divs}
                     squads={squads}
                     setAcdnErr={setBrktAcdnErr}
+                    setShowingModal={setShowingModal}
                   />
                 </Accordion.Body>
               </AccordionItem>
@@ -767,7 +712,7 @@ const TmntDataForm: React.FC<FormProps> = ({ tmntProps }) => {
             <Accordion>
               <AccordionItem eventKey="elims">
                 <Accordion.Header className={elimAcdnErr.errClassName}>
-                  Eliminators{elimAcdnErr.message}
+                  Eliminators - {elims.length} {elimAcdnErr.message}
                 </Accordion.Header>
                 <Accordion.Body>
                   <ZeroToNElims
@@ -776,6 +721,7 @@ const TmntDataForm: React.FC<FormProps> = ({ tmntProps }) => {
                     divs={divs}
                     squads={squads}
                     setAcdnErr={setElimAcdnErr}
+                    setShowingModal={setShowingModal}
                   />
                 </Accordion.Body>
               </AccordionItem>

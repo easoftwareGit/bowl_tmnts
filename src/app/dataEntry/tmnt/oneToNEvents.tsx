@@ -24,13 +24,14 @@ import {
 } from "@/lib/validation";
 import EaCurrencyInput, { minMoneyText, maxMoneyText } from "@/components/currency/eaCurrencyInput";
 import { localConfig, currRexEx } from "@/lib/currency/const";
+import { btDbUuid } from "@/lib/uuid";
 
 interface ChildProps {
   events: eventType[];
   setEvents: (events: eventType[]) => void;
   squads: squadType[],
   setSquads: (squds: squadType[]) => void;
-  setAcdnErr: (objAcdnErr: AcdnErrType) => void;  
+  setAcdnErr: (objAcdnErr: AcdnErrType) => void;    
 }
 interface AddOrDelButtonProps {
   id: string,
@@ -258,29 +259,32 @@ const OneToNEvents: React.FC<ChildProps> = ({
   setEvents,
   squads,
   setSquads,
-  setAcdnErr,
+  setAcdnErr,  
 }) => {
 
   const defaultTabKey = events[0].id;
 
   const [confModalObj, setConfModalObj] = useState(initModalObj);
   const [errModalObj, setErrModalObj] = useState(initModalObj);
-  const [tabKey, setTabKey] = useState(defaultTabKey);
-  const [eventId, setEventId] = useState(1); // id # used in initEvents in form.tsx
+  const [tabKey, setTabKey] = useState(defaultTabKey);  
+  const [sortOrder, setSortOrder] = useState(1); // id # used in initEvents in form.tsx
   
+  const tmntId = events[0].tmnt_id; // save parent id for all events 
+
   const handleAdd = () => {
     const newEvent: eventType = {
       ...initEvent,      
-      id: '' + (eventId + 1),
-      sort_order: eventId + 1,
-      event_name: "Event " + (eventId + 1),
-      tab_title: "Event " + (eventId + 1),
+      id: btDbUuid('evt'),
+      tmnt_id: tmntId,
+      sort_order: sortOrder + 1,
+      event_name: "Event " + (sortOrder + 1),
+      tab_title: "Event " + (sortOrder + 1),      
     };
-    setEventId(eventId + 1);
+    setSortOrder(sortOrder + 1);
     setEvents([...events, newEvent]);    
   };
 
-  const confirmedDelete = () => {
+  const confirmedDelete = () => {    
     setConfModalObj(initModalObj); // reset modal object (hides modal)
 
     // filter out deleted event
@@ -301,11 +305,11 @@ const OneToNEvents: React.FC<ChildProps> = ({
     setTabKey(defaultTabKey); // refocus 1st event
   };
 
-  const canceledDelete = () => {
+  const canceledDelete = () => {    
     setConfModalObj(initModalObj); // reset modal object (hides modal)
   };
 
-  const canceledModalErr = () => {
+  const canceledModalErr = () => {    
     setErrModalObj(initModalObj); // reset modal object (hides modal)
   };
 
@@ -314,10 +318,10 @@ const OneToNEvents: React.FC<ChildProps> = ({
   }
 
   const handleDelete = (id: string) => {
-    const eventToDel = events.find((event) => event.id === id);
-    // if did not find event OR first event (must have at least 1 event)
-    if (!eventToDel || eventToDel.sort_order === 1) return;
-
+    const eventToDel = events.find((event) => event.id === id);    
+    // if did not find event OR only 1 event (must have at least 1 event)
+    if (!eventToDel || events.length === 1) return;
+    
     const toDelName = eventToDel.event_name;
     if (eventHasSquads(eventToDel)) {
       setErrModalObj({

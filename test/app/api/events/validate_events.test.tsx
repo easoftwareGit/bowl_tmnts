@@ -8,13 +8,16 @@ import {
   exportedForTesting,
   entryFeeEqualsLpox,
   validEventFkId,
+  allEventMoneyValid,
 } from "@/app/api/events/validate";
 import { initEvent } from "@/lib/db/initVals";
 import { eventType } from "@/lib/types/types";
 import { ErrorCode, maxEventLength, maxSortOrder } from "@/lib/validation";
 import { startOfDayFromString, todayStr } from "@/lib/dateTools";
+import { add } from "date-fns";
+import e from "express";
 
-const { gotEventData, validEventData } = exportedForTesting;
+const { gotEventMoney, gotEventData, validEventData, sanitizedEventMoney } = exportedForTesting;
 
 const eventId = 'evt_cb97b73cb538418ab993fc867f860510'
 const notfoundParentId = "tmt_01234567890123456789012345678901";
@@ -37,6 +40,73 @@ const validEvent = {
 
 describe("tests for event validation", () => {
 
+  describe('gotEventMoney', () => {
+    it('should return true when the input is an empty string', () => {
+      const result = gotEventMoney("");
+      expect(result).toBe(true);
+    });
+    it('should return false when the money string represents a number less than MIN_SAFE_INTEGER', () => {
+      const result = gotEventMoney((Number.MIN_SAFE_INTEGER - 1).toString());
+      expect(result).toBe(false);
+    });
+    it('should return false for a money string greater than MAX_SAFE_INTEGER', () => {
+      const result = gotEventMoney("9007199254740992");
+      expect(result).toBe(false);
+    });
+    it('should return true for valid money string within safe integer range', () => {
+      const result = gotEventMoney("500");
+      expect(result).toBe(true);
+    });
+    it('should return false for an invalid money string', () => {
+      const result = gotEventMoney("abc");
+      expect(result).toBe(false);
+    });
+    it('should return false for a money string with non-numeric characters', () => {
+      const result = gotEventMoney("abc");
+      expect(result).toBe(false);
+    });
+    it('should return true for a money string with special characters', () => {
+      const result = gotEventMoney("*1,000");
+      expect(result).toBe(false);
+    });
+    it('should return true for a money string with brackets for negative', () => {
+      const result = gotEventMoney("<1000>");
+      expect(result).toBe(false);
+    });
+    it('should return true for a money string with leading "$"', () => {
+      const result = gotEventMoney("$1,000");
+      expect(result).toBe(true);
+    });
+    it('should return true for empty string input', () => {
+      const result = gotEventMoney("");
+      expect(result).toBe(true);
+    });
+    it('should return true for money string with leading spaces after trimming', () => {
+        const result = gotEventMoney('   50.25'.trim());
+        expect(result).toBe(true);
+    });
+    it('should return true for empty string', () => {
+      const result = gotEventMoney("");
+      expect(result).toBe(true);
+    });
+    it('should return true for values over 999', () => {
+      const result = gotEventMoney("1000");
+      expect(result).toBe(true);
+    });
+    it('should return true for values over 999', () => {
+      const result = gotEventMoney("1000");
+      expect(result).toBe(true);
+    });
+    it('should return true for value 1,000 without commas', () => {
+      const result = gotEventMoney("1000");
+      expect(result).toBe(true);
+    });
+    it('should return true for value 1,000', () => {
+      const result = gotEventMoney("1,000");
+      expect(result).toBe(true);
+    });
+  });
+
   describe("gotEventData function", () => {
     it("should return ErrorCode.None when all data is valid", () => {
       const result = gotEventData(validEvent);
@@ -46,6 +116,28 @@ describe("tests for event validation", () => {
       const testEvent = {
         ...validEvent,
         added_money: "0",
+      };
+      const result = gotEventData(validEvent);
+      expect(result).toBe(ErrorCode.None);
+    });
+    it('should return ErrorCode.None when all data is valid, added_money is blank', () => {
+      const testEvent = {
+        ...validEvent,
+        added_money: "",
+      };
+      const result = gotEventData(validEvent);
+      expect(result).toBe(ErrorCode.None);
+    });
+    it('should return ErrorCode.None when all money values are blank', () => {
+      const testEvent = {
+        ...validEvent,
+        added_money: "",
+        entry_fee: "",
+        lineage: "",
+        prize_fund: "",
+        other: "",
+        expenses: "",
+        lpox: "",
       };
       const result = gotEventData(validEvent);
       expect(result).toBe(ErrorCode.None);
@@ -138,13 +230,21 @@ describe("tests for event validation", () => {
       const result = gotEventData(invalidEvent);
       expect(result).toBe(ErrorCode.MissingData);
     });
-    it("should return ErrorCode.MissingData when added_money is a valid number", () => {
-      const invalidEvent = {
+    it("should return ErrorCode.None when added_money is a valid number (no fee !== lpox error)", () => {
+      const zeroAddedMoneyEvent = {
         ...validEvent,
         added_money: 0 as any,
       };
-      const result = gotEventData(invalidEvent);
-      expect(result).toBe(ErrorCode.MissingData);
+      const result = gotEventData(zeroAddedMoneyEvent);
+      expect(result).toBe(ErrorCode.None);
+    });
+    it("should return ErrorCode.None when other is a valid number", () => {
+      const zeroAddedMoneyEvent = {
+        ...validEvent,
+        other: 0 as any,
+      };
+      const result = gotEventData(zeroAddedMoneyEvent);
+      expect(result).toBe(ErrorCode.None);
     });
     it("should return ErrorCode.OtherError when passed null", () => {
       const result = gotEventData(null as any);
@@ -346,7 +446,35 @@ describe("tests for event validation", () => {
   });
 
   describe("validEventMoney function", () => {
-    it("should return true when valid added_money", () => {
+    it('should return true for blank string', () => { 
+      const result = validEventMoney('');
+      expect(result).toBe(true);
+    })
+    it('should return true for value value', () => { 
+      const result = validEventMoney('123');
+      expect(result).toBe(true);
+    })
+    it('should return true for just one zero string "0"', () => { 
+      const result = validEventMoney('0');
+      expect(result).toBe(true);
+    })
+    it('should return true for just one zero string "0"', () => { 
+      const result = validEventMoney('0');
+      expect(result).toBe(true);
+    })
+    it('should return true for just zeros in a string "0000"', () => { 
+      const result = validEventMoney('0000');
+      expect(result).toBe(true);
+    })
+    it('should return true for "000.0"', () => { 
+      const result = validEventMoney('000.0');
+      expect(result).toBe(true);
+    })
+    it('should return true for "00.00"', () => { 
+      const result = validEventMoney('00.00');
+      expect(result).toBe(true);
+    })
+    it("should return true when valid value", () => {
       const result = validEventMoney(validEvent.added_money);
       expect(result).toBe(true);
     });
@@ -375,67 +503,31 @@ describe("tests for event validation", () => {
       expect(result).toBe(true);
     });
 
-    it("should return false when invalid added_money", () => {
-      const invalidEvent = {
-        ...initEvent,
-        added_money: "$100",
-      };
-      const result = validEventMoney(invalidEvent.added_money);
+    it("should return false for negative number", () => {
+      const result = validEventMoney("-1");
       expect(result).toBe(false);
     });
-    it("should return false when invalid entry_fee", () => {
-      const invalidEvent = {
-        ...initEvent,
-        entry_fee: "123456789",
-      };
-      const result = validEventMoney(invalidEvent.entry_fee);
+    it("should return false for value too high", () => {
+      const result = validEventMoney("123456789");
       expect(result).toBe(false);
     });
-    it("should return false when invalid lineage", () => {
-      const invalidEvent = {
-        ...initEvent,
-        lineage: "(123456789)",
-      };
-      const result = validEventMoney(invalidEvent.lineage);
+    it("should return false for value with brackets ( )", () => {
+      const result = validEventMoney("(123456789)");
       expect(result).toBe(false);
     });
-    it("should return false when invalid prize fund", () => {
-      const invalidEvent = {
-        ...initEvent,
-        prize_fund: "123-",
-      };
-      const result = validEventMoney(invalidEvent.prize_fund);
+    it("should return false for trailing negative sign", () => {
+      const result = validEventMoney("123-");
       expect(result).toBe(false);
     });
-    it("should return false when invalid other", () => {
-      const invalidEvent = {
-        ...initEvent,
-        other: "-1",
-      };
-      const result = validEventMoney(invalidEvent.other);
+    it("should return false for non-numeric", () => {
+      const result = validEventMoney('ABC');
       expect(result).toBe(false);
     });
-    it("should return false when invalid expenses", () => {
-      const invalidEvent = {
-        ...initEvent,
-        expenses: "ABC",
-      };
-      const result = validEventMoney(invalidEvent.expenses);
-      expect(result).toBe(false);
-    });
-    it("should return false when invalid lpox", () => {
-      const invalidEvent = {
-        ...initEvent,
-        lpox: "ABC",
-      };
-      const result = validEventMoney(invalidEvent.lpox);
-      expect(result).toBe(false);
-    });
-    it("should return false when passed null event", () => {
+    it("should return false when passed null", () => {
       const result = validEventMoney(null as any);
       expect(result).toBe(false);
     });
-    it("should return false when passed undefined event", () => {
+    it("should return false when passed undefined", () => {
       const result = validEventMoney(undefined as any);
       expect(result).toBe(false);
     });
@@ -493,9 +585,226 @@ describe("tests for event validation", () => {
     });
   });
 
+  describe('allEventMoneyValid function', () => { 
+    it('should return true for valid event data', () => {
+      expect(allEventMoneyValid(validEvent)).toBe(true)
+    })
+    it('should return true if all money fields are blank', () => {
+      const okEvent = {
+        ...validEvent,
+        added_money: "",
+        entry_fee: "",
+        lineage: "",
+        prize_fund: "",
+        other: "",
+        expenses: "",
+        lpox: "",
+      }
+      expect(allEventMoneyValid(okEvent)).toBe(true)
+    })
+    it('should return true if added_money a valid number', () => {
+      const invalidEvent = {
+        ...validEvent,
+        added_money: 0 as any,
+      }
+      expect(allEventMoneyValid(invalidEvent)).toBe(true)
+    })
+    it('should return false if added_money is negative', () => {
+      const invalidEvent = {
+        ...validEvent,
+        added_money: "-1",
+      }
+      expect(allEventMoneyValid(invalidEvent)).toBe(false)
+    })
+    it('should return false if added_money is too big', () => {
+      const invalidEvent = {
+        ...validEvent,
+        added_money: "1234567890",
+      }
+      expect(allEventMoneyValid(invalidEvent)).toBe(false)
+    })
+    it('should return false if added_money is not a number', () => {
+      const invalidEvent = {
+        ...validEvent,
+        added_money: "abc",
+      }
+      expect(allEventMoneyValid(invalidEvent)).toBe(false)
+    })
+    it('should return true if entry_fee is valid number value', () => {
+      const okEvent = {
+        ...validEvent,
+        entry_fee: 100 as any,
+      }
+      expect(allEventMoneyValid(okEvent)).toBe(true)
+    })
+    it('should return false if entry_fee is negative', () => {
+      const invalidEvent = {
+        ...validEvent,
+        entry_fee: "-1",
+      }
+      expect(allEventMoneyValid(invalidEvent)).toBe(false)
+    })
+    it('should return false if entry_fee is too big', () => {
+      const invalidEvent = {
+        ...validEvent,
+        entry_fee: "1234567890",
+      }
+      expect(allEventMoneyValid(invalidEvent)).toBe(false)
+    })
+    it('should return false if entry_fee is not a number', () => {
+      const invalidEvent = {
+        ...validEvent,
+        entry_fee: "abc",
+      }
+      expect(allEventMoneyValid(invalidEvent)).toBe(false)
+    })
+    it('should return true if lineage is valid number value', () => {
+      const okEvent = {
+        ...validEvent,
+        lineage: 10 as any,
+      }
+      expect(allEventMoneyValid(okEvent)).toBe(true)
+    })
+    it('should return false if lineage is negative', () => {
+      const invalidEvent = {
+        ...validEvent,
+        lineage: "-1",
+      }
+      expect(allEventMoneyValid(invalidEvent)).toBe(false)
+    })
+    it('should return false if lineage is too big', () => {
+      const invalidEvent = {
+        ...validEvent,
+        lineage: "1234567890",
+      }
+      expect(allEventMoneyValid(invalidEvent)).toBe(false)
+    })
+    it('should return false if lineage is not a number', () => {
+      const invalidEvent = {
+        ...validEvent,
+        lineage: "abc",
+      }
+      expect(allEventMoneyValid(invalidEvent)).toBe(false)
+    })
+    it('should return true if prize_fund is valid number value', () => {
+      const okEvent = {
+        ...validEvent,
+        prize_fund: 70 as any,
+      }
+      expect(allEventMoneyValid(okEvent)).toBe(true)
+    })
+    it('should return false if prize_fund is negative', () => {
+      const invalidEvent = {
+        ...validEvent,
+        prize_fund: "-1",
+      }
+      expect(allEventMoneyValid(invalidEvent)).toBe(false)
+    })
+    it('should return false if prize_fund is too big', () => {
+      const invalidEvent = {
+        ...validEvent,
+        prize_fund: "1234567890",
+      }
+      expect(allEventMoneyValid(invalidEvent)).toBe(false)
+    })
+    it('should return false if prize_fund is not a number', () => {
+      const invalidEvent = {
+        ...validEvent,
+        prize_fund: "abc",
+      }
+      expect(allEventMoneyValid(invalidEvent)).toBe(false)
+    })
+    it('should return true if other is valid number value', () => {
+      const okEvent = {
+        ...validEvent,
+        other: 7 as any,
+      }
+      expect(allEventMoneyValid(okEvent)).toBe(true)
+    })
+    it('should return false if other is negative', () => {
+      const invalidEvent = {
+        ...validEvent,
+        other: "-1",
+      }
+      expect(allEventMoneyValid(invalidEvent)).toBe(false)
+    })
+    it('should return false if other is too big', () => {
+      const invalidEvent = {
+        ...validEvent,
+        other: "1234567890",
+      }
+      expect(allEventMoneyValid(invalidEvent)).toBe(false)
+    })
+    it('should return false if other is not a number', () => {
+      const invalidEvent = {
+        ...validEvent,
+        other: "abc",
+      }
+      expect(allEventMoneyValid(invalidEvent)).toBe(false)
+    })
+    it('should return true if expenses is valid number value', () => {
+      const okEvent = {
+        ...validEvent,
+        expenses: 5 as any,
+      }
+      expect(allEventMoneyValid(okEvent)).toBe(true)
+    })
+    it('should return false if expenses is negative', () => {
+      const invalidEvent = {
+        ...validEvent,
+        expenses: "-1",
+      }
+      expect(allEventMoneyValid(invalidEvent)).toBe(false)
+    })
+    it('should return false if expenses is too big', () => {
+      const invalidEvent = {
+        ...validEvent,
+        expenses: "1234567890",
+      }
+      expect(allEventMoneyValid(invalidEvent)).toBe(false)
+    })
+    it('should return false if expenses is not a number', () => {
+      const invalidEvent = {
+        ...validEvent,
+        expenses: "abc",
+      }
+      expect(allEventMoneyValid(invalidEvent)).toBe(false)
+    })
+  })
+
   describe("validEventData function", () => {
     it("should return ErrorCode.None when valid event data", () => {
       const result = validEventData(validEvent);
+      expect(result).toBe(ErrorCode.None);
+    });
+    it("should return ErrorCode.None when blank added money", () => {
+      const noAddedMoneyEvent = {
+        ...validEvent,
+        added_money: "",
+      };
+      const result = validEventData(noAddedMoneyEvent);
+      expect(result).toBe(ErrorCode.None);
+    });
+    it("should return ErrorCode.None when '0' added money", () => {
+      const noAddedMoneyEvent = {
+        ...validEvent,
+        added_money: "0",
+      };
+      const result = validEventData(noAddedMoneyEvent);
+      expect(result).toBe(ErrorCode.None);
+    });
+    it("should return ErrorCode.None when blank values for all money fields", () => {
+      const noAddedMoneyEvent = {
+        ...validEvent,
+        added_money: "",
+        entry_fee: "",
+        lineage: "",
+        prize_fund: "",
+        other: "",
+        expenses: "",
+        lpox: "",
+      };
+      const result = validEventData(noAddedMoneyEvent);
       expect(result).toBe(ErrorCode.None);
     });
     it("should return ErrorCode.InvalidData when tmnt_id is empty", () => {
@@ -637,6 +946,51 @@ describe("tests for event validation", () => {
     });
   });
 
+  describe('sanitizedEventMoney', () => {
+    it('should return sanitized format when given a valid currency string', () => {
+      const input = "$1,234.56";
+      const expectedOutput = "1234.56";
+      const result = sanitizedEventMoney(input);
+      expect(result).toBe(expectedOutput);
+    });
+    it('should return an empty string when given an invalid currency format', () => {
+      const input = "invalid_currency";
+      const expectedOutput = "";
+      const result = sanitizedEventMoney(input);
+      expect(result).toBe(expectedOutput);
+    });
+    it('should return "0" when the input string is empty', () => {
+      const input = "";
+      const expectedOutput = "0";
+      const result = sanitizedEventMoney(input);
+      expect(result).toBe(expectedOutput);
+    });
+    it('should return sanitized format when given a valid currency string', () => {
+      const input = "$1,234.56";
+      const expectedOutput = "1234.56";
+      const result = sanitizedEventMoney(input);
+      expect(result).toBe(expectedOutput);
+    });
+    it('should return sanitized format for currency string ending with ".00"', () => {
+      const input = "100.00";
+      const expectedOutput = "100";
+      const result = sanitizedEventMoney(input);
+      expect(result).toBe(expectedOutput);
+    });
+    it('should convert NaN values to an empty string when provided with a non-numeric string', () => {
+      const input = "invalid";
+      const expectedOutput = "";
+      const result = sanitizedEventMoney(input);
+      expect(result).toBe(expectedOutput);
+    });
+    it('should return empty string for null input', () => {
+      const input = null;
+      const expectedOutput = "";
+      const result = sanitizedEventMoney(input as any);
+      expect(result).toBe(expectedOutput);
+    });    
+  })
+
   describe("sanitizeEvent function", () => {
     it("should return a sanitized event when event is already sanitized", () => {
       const sanitizedEvent = sanitizeEvent(validEvent);
@@ -683,6 +1037,14 @@ describe("tests for event validation", () => {
       };
       const sanitizedEvent = sanitizeEvent(testEvent);
       expect(sanitizedEvent.id).toEqual('');
+    })
+    it('should return a sanitized event when event has an invalid added_money', () => { 
+      const testEvent = {
+        ...validEvent,
+        added_money: 'abc',
+      };
+      const sanitizedEvent = sanitizeEvent(testEvent);
+      expect(sanitizedEvent.added_money).toEqual('');
     })
     it("should return a sanitized event when event has null for numerical fields", () => {
       const testEvent = {
@@ -740,6 +1102,42 @@ describe("tests for event validation", () => {
       const result = sanitizeEvent(undefined as any);
       expect(result).toBe(null);
     });
+    it('should return a sanitzed event with "0" values for monery fields when event monery fields are blank', () => {
+      const testEvent = {
+        ...validEvent,
+        added_money: "",
+        entry_fee: "",
+        lineage: "",
+        prize_fund: "",
+        other: "",
+        expenses: "",
+      };      
+      const sanitizedEvent = sanitizeEvent(testEvent);
+      expect(sanitizedEvent.added_money).toEqual("0");
+      expect(sanitizedEvent.entry_fee).toEqual("0");
+      expect(sanitizedEvent.lineage).toEqual("0");
+      expect(sanitizedEvent.prize_fund).toEqual("0");
+      expect(sanitizedEvent.other).toEqual("0");
+      expect(sanitizedEvent.expenses).toEqual("0");
+    })
+    it('should return a sanitzed event with "0" values for monery fields when event monery fields are "0"', () => {
+      const testEvent = {
+        ...validEvent,
+        added_money: "0",
+        entry_fee: "0.0",
+        lineage: "0.00",
+        prize_fund: "00",
+        other: "0,000.0",
+        expenses: "00.00",
+      };      
+      const sanitizedEvent = sanitizeEvent(testEvent);
+      expect(sanitizedEvent.added_money).toEqual("0");
+      expect(sanitizedEvent.entry_fee).toEqual("0");
+      expect(sanitizedEvent.lineage).toEqual("0");
+      expect(sanitizedEvent.prize_fund).toEqual("0");
+      expect(sanitizedEvent.other).toEqual("0");
+      expect(sanitizedEvent.expenses).toEqual("0");
+    })
   });
 
   describe("validateEvent function", () => {
@@ -774,6 +1172,29 @@ describe("tests for event validation", () => {
         const result = validateEvent(validTestEvent);
         expect(result).toBe(ErrorCode.None);
       })
+      it("should return ErrorCode.None when added money is blank", () => {
+        const validTestEvent = {
+          ...validEvent,
+          added_money: "",
+        };
+        const result = validateEvent(validTestEvent);
+        expect(result).toBe(ErrorCode.None);
+      });
+      it("should return ErrorCode.None when all monery fields are blank", () => {
+        const validTestEvent = {
+          ...validEvent,
+          added_money: "",
+          entry_fee: "",
+          lineage: "",
+          prize_fund: "",
+          other: "",
+          expenses: "",
+          lpox: "",
+        };
+        const result = validateEvent(validTestEvent);
+        expect(result).toBe(ErrorCode.None);
+      });
+
     });
 
     describe("validateEvent function - missing data", () => {
@@ -841,13 +1262,13 @@ describe("tests for event validation", () => {
         const result = validateEvent(invalidEvent);
         expect(result).toBe(ErrorCode.MissingData); // sanitized to 0
       });
-      it("should return ErrorCode.MissingData when entry_fee is blank", () => {
+      it("should return ErrorCode.InvalidData when entry_fee is blank (entry_fee !== lpox)", () => {
         const invalidEvent = {
           ...validEvent,
           entry_fee: "",
         };
         const result = validateEvent(invalidEvent);
-        expect(result).toBe(ErrorCode.MissingData);
+        expect(result).toBe(ErrorCode.InvalidData);
       });
       it("should return ErrorCode.MissingData when entry_fee is not a number", () => {
         const invalidEvent = {
@@ -858,13 +1279,13 @@ describe("tests for event validation", () => {
         const result = validateEvent(invalidEvent);
         expect(result).toBe(ErrorCode.MissingData);
       });
-      it("should return ErrorCode.MissingData when lineage is blank", () => {
+      it("should return ErrorCode.InvalidData when lineage is blank (entry_fee !== lpox)", () => {
         const invalidEvent = {
           ...validEvent,
           lineage: "",
         };
         const result = validateEvent(invalidEvent);
-        expect(result).toBe(ErrorCode.MissingData);
+        expect(result).toBe(ErrorCode.InvalidData);
       });
       it("should return ErrorCode.MissingData when lineage is not a number", () => {
         const invalidEvent = {
@@ -874,13 +1295,13 @@ describe("tests for event validation", () => {
         const result = validateEvent(invalidEvent);
         expect(result).toBe(ErrorCode.MissingData);
       });
-      it("should return ErrorCode.MissingData when prize_fund is blank", () => {
+      it("should return ErrorCode.InvalidData when prize_fund is blank (entry_fee !== lpox)", () => {
         const invalidEvent = {
           ...validEvent,
           prize_fund: "",
         };
         const result = validateEvent(invalidEvent);
-        expect(result).toBe(ErrorCode.MissingData);
+        expect(result).toBe(ErrorCode.InvalidData);
       });
       it("should return ErrorCode.MissingData when prize_fund is not a number", () => {
         const invalidEvent = {
@@ -890,13 +1311,13 @@ describe("tests for event validation", () => {
         const result = validateEvent(invalidEvent);
         expect(result).toBe(ErrorCode.MissingData);
       });
-      it("should return ErrorCode.MissingData when other is blank", () => {
+      it("should return ErrorCode.InvalidData when other is blank (entry_fee !== lpox)", () => {
         const invalidEvent = {
           ...validEvent,
           other: "",
         };
         const result = validateEvent(invalidEvent);
-        expect(result).toBe(ErrorCode.MissingData);
+        expect(result).toBe(ErrorCode.InvalidData);
       });
       it("should return ErrorCode.MissingData when other is not a number", () => {
         const invalidEvent = {
@@ -906,13 +1327,13 @@ describe("tests for event validation", () => {
         const result = validateEvent(invalidEvent);
         expect(result).toBe(ErrorCode.MissingData);
       });
-      it("should return ErrorCode.MissingData when expenses is blank", () => {
+      it("should return ErrorCode.InvalidData when expenses is blank (entry_fee !== lpox)", () => {
         const invalidEvent = {
           ...validEvent,
           expenses: "",
         };
         const result = validateEvent(invalidEvent);
-        expect(result).toBe(ErrorCode.MissingData);
+        expect(result).toBe(ErrorCode.InvalidData);
       });
       it("should return ErrorCode.MissingData when expenses is not a number", () => {
         const invalidEvent = {
@@ -922,13 +1343,13 @@ describe("tests for event validation", () => {
         const result = validateEvent(invalidEvent);
         expect(result).toBe(ErrorCode.MissingData);
       });
-      it("should return ErrorCode.MissingData when lpox is blank", () => {
+      it("should return ErrorCode.InvalidData when lpox is blank (entry_fee !== lpox)", () => {
         const invalidEvent = {
           ...validEvent,
           lpox: "",
         };
         const result = validateEvent(invalidEvent);
-        expect(result).toBe(ErrorCode.MissingData);
+        expect(result).toBe(ErrorCode.InvalidData);
       });
       it("should return ErrorCode.MissingData when lpox is not a number", () => {
         const invalidEvent = {

@@ -3,11 +3,12 @@ import { elimType, divType, squadType, AcdnErrType } from "../../../lib/types/ty
 import { initModalObj } from '@/components/modal/modalObjType';
 import ModalConfirm, { delConfTitle } from '@/components/modal/confirmModal';
 import { Tab, Tabs } from 'react-bootstrap';
-import { getBrktOrElimName } from '@/lib/getName';
+import { getBrktOrElimName, getDivName } from '@/lib/getName';
 import EaCurrencyInput, { maxMoneyText, minFeeText } from '@/components/currency/eaCurrencyInput';
 import { acdnErrClassName, getAcdnErrMsg, noAcdnErr, objErrClassName } from './errors';
 import { maxGames, maxMoney, minFee, minGames } from '@/lib/validation';
 import { initElim } from '../../../lib/db/initVals';
+import { btDbUuid } from '@/lib/uuid';
 
 interface ChildProps {
   elims: elimType[];
@@ -15,6 +16,7 @@ interface ChildProps {
   divs: divType[];
   squads: squadType[];
   setAcdnErr: (objAcdnErr: AcdnErrType) => void;
+  setShowingModal: (showingModal: boolean) => void;
 }
 interface NumberProps {
   elim: elimType;
@@ -26,9 +28,9 @@ interface NumberProps {
 
 const createElimTitle = "Create Eliminator";
 const duplicateElimErrMsg = "Eliminator - Division, Start & Games already exists";
-const defaultTabKey = "elim1";
 
 const getElimErrMsg = (elim: elimType): string => {  
+  if (!elim) return '';
   if (elim.div_err) return elim.div_err;
   if (elim.start_err) return elim.start_err;
   if (elim.fee_err) return elim.fee_err;
@@ -37,7 +39,8 @@ const getElimErrMsg = (elim: elimType): string => {
 
 const getNextElimAcdnErrMsg = (
   updatedElim: elimType | null,
-  brkts: elimType[]
+  brkts: elimType[],
+  divs: divType[]
 ): string => {
   let errMsg = "";
   let acdnErrMsg = "";
@@ -47,11 +50,7 @@ const getNextElimAcdnErrMsg = (
     elim = brkts[i].id === updatedElim?.id ? updatedElim : brkts[i];
     errMsg = getElimErrMsg(elim);
     if (errMsg) {
-      const errTabTitle =
-        elim.sort_order === 1
-          ? createElimTitle
-          : `${elim.div_name}: ${elim.start}-${elim.start + elim.games - 1}`;
-      acdnErrMsg = getAcdnErrMsg(errTabTitle, errMsg);
+      acdnErrMsg = getAcdnErrMsg(getBrktOrElimName(elim, divs), errMsg);
     }
     i++;
   }
@@ -59,8 +58,9 @@ const getNextElimAcdnErrMsg = (
 };
 
 export const validateElims = (
-  elims: elimType[],
+  elims: elimType[],  
   setElims: (elims: elimType[]) => void,
+  divs: divType[],
   setAcdnErr: (objAcdnErr: AcdnErrType) => void
 ): boolean => {
   
@@ -97,7 +97,7 @@ export const validateElims = (
           feeErr = "Fee cannot be more than " + maxMoneyText;          
         }
         if (feeErr) { 
-          setError(getBrktOrElimName(elim.id, elims), feeErr);
+          setError(getBrktOrElimName(elim, divs), feeErr);
         }
         if (feeErr) {
           return {
@@ -121,68 +121,59 @@ const ZeroToNElims: React.FC<ChildProps> = ({
   setElims,
   divs,
   squads,
-  setAcdnErr
+  setAcdnErr,
+  setShowingModal,
 }) => {
+
+  const defaultTabKey = 'createElim';
 
   const [modalObj, setModalObj] = useState(initModalObj);
   const [tabKey, setTabKey] = useState(defaultTabKey);
-  const [elimId, setElimId] = useState(1); // id # used in initElims in form.tsx
+  const [sortOrder, setSortOrder] = useState(1); 
+  const [createElim, setCreateElim] = useState(initElim);
 
-  const validNewElim = (newElim: elimType): boolean => {
+  const validNewElim = (): boolean => {
+    const newElim = {...createElim}
     let isElimValid = true;
     let startErr = "";
     let divErr = "";
     let feeErr = "";
-    let gamesErr = "";
-    let elimErrClassName = "";
+    let gamesErr = "";    
 
-    const setError = (errMsg: string) => {
-      if (isElimValid) {
-        setAcdnErr({
-          errClassName: acdnErrClassName,
-          message: getAcdnErrMsg(createElimTitle, errMsg),
-        })
-      }
-      isElimValid = false;
-      elimErrClassName = objErrClassName;
-    }
-
-    if (newElim.div_name === "") {
+    if (newElim.div_id === "") {
       divErr = "Division is required";
-      setError(divErr);
+      isElimValid = false;
     }
     const fee = Number(newElim.fee);
     if (typeof fee !== "number") {
       feeErr = "Invalid Fee";
-      setError(feeErr);
+      isElimValid = false;
     } else if (fee < minFee) {
       feeErr = "Fee cannot be less than " + minFeeText;
-      setError(feeErr);
+      isElimValid = false;
     } else if (fee > maxMoney) {
       feeErr = "Fee cannot be more than " + maxMoneyText;
-      setError(feeErr);
+      isElimValid = false;
     }
     if (newElim.start < 1) {
       startErr = 'Start cannot be less than 1';
-      setError(startErr);
+      isElimValid = false;
     }
     if (newElim.games < 1) {
       gamesErr = 'Games cannot be less than 1';
-      setError(gamesErr);
+      isElimValid = false;
     }
     if (newElim.games > maxGames) {
       gamesErr = 'Games cannot be more than ' + maxGames;
-      setError(gamesErr);
+      isElimValid = false;
     }
     if (newElim.start + newElim.games - 1 > squads[0].games) {
       startErr = 'Eliminator ends after last game'; 
-      setError(startErr);
+      isElimValid = false;
     }
 
-    if (isElimValid) {
-      // DO NOT check elim with ID 1
-      const elimsToCheck = elims.filter(elim => elim.id !== "1")
-      const duplicateElim = elimsToCheck.find(
+    if (isElimValid) {            
+      const duplicateElim = elims.find(
         (elim) =>
           elim.start === newElim.start &&
           elim.games === newElim.games &&
@@ -190,64 +181,43 @@ const ZeroToNElims: React.FC<ChildProps> = ({
       );
       if (duplicateElim) {
         startErr = duplicateElimErrMsg;
-        setError(startErr);
+        isElimValid = false;
       }
     }
 
-    setElims(
-      elims.map((elim) => {
-        if (elim.id === newElim.id) {
-          return {
-            ...newElim,
-            div_err: divErr,
-            fee_err: feeErr,
-            games_err: gamesErr,
-            start_err: startErr,
-            errClassName: elimErrClassName
-          }
-        }
-        return elim
-      })
-    )
+    setCreateElim({
+      ...newElim,
+      div_err: divErr,
+      fee_err: feeErr,
+      games_err: gamesErr,
+      start_err: startErr,
+    })
 
-    if (isElimValid) {
-      setAcdnErr(noAcdnErr)
-    }
     return isElimValid;
   }
 
   const handleAdd = (e: React.FormEvent) => { 
     e.preventDefault();
-    if (validNewElim(elims[0])) {
+    if (validNewElim()) {
       const newElim = {
-        ...elims[0],
-        id: '' + (elimId + 1),
-        div_id: elims[0].div_id,
-        div_name: elims[0].div_name,
-        start: elims[0].start,
-        games: elims[0].games,
-        fee: elims[0].fee,
-        sort_order: elimId + 1,
+        ...createElim,
+        id: btDbUuid('elm'),
       }
-      setElimId(elimId + 1);
-
+      // add new elim      
       const mappedElims = elims.map((elim) => ({ ...elim }));
-      mappedElims[0] = {
-        ...initElim
-      }
       mappedElims.push(newElim);
       setElims(mappedElims);
-
-      // const updatedElims = structuredClone(elims);
-      // updatedElims[0] = {
-      //   ...initElim
-      // }
-      // updatedElims.push(newElim);
-      // setElims(updatedElims);
+      // update sort order for next new elim
+      setCreateElim({
+        ...createElim,
+        sort_order: sortOrder + 1,
+      })
+      setSortOrder(sortOrder + 1);
     }
   }
 
   const confirmedDelete = () => { 
+    setShowingModal(false);
     setModalObj(initModalObj)   // reset modal object (hides modal)
     const updatedData = elims.filter((elim) => elim.id !== modalObj.id);
     setElims(updatedData);
@@ -255,67 +225,63 @@ const ZeroToNElims: React.FC<ChildProps> = ({
   }
 
   const canceledDelete = () => { 
+    setShowingModal(false);
     setModalObj(initModalObj); // reset modal object (hides modal)
   }
 
   const handleDelete = (id: string) => {    
-    const elimToDel = elims.find((elim) => elim.id === id);
-    // if did not find elim OR first elim (1st elim used for creating new elims)
-    if (!elimToDel || elimToDel.sort_order === 1) return;
-
-    const toDelName = getBrktOrElimName(id, elims);
+    const elimToDel = elims.find((elim) => elim.id === id);    
+    if (!elimToDel) return;
+    const toDelName = getBrktOrElimName(elimToDel, divs);
+    setShowingModal(true);
     setModalObj({
       show: true,
       title: delConfTitle,
       message: `Do you want to delete Eliminator: ${toDelName}?`,
       id: id,
-    });
-   }
+    }); // deletion done in confirmedDelete
+  }
 
-  const handleInputChange = (id: string) => (e: ChangeEvent<HTMLInputElement>) => { 
+  const handleCreateElimInputChange = (id: string) => (e: ChangeEvent<HTMLInputElement>) => { 
     const { id, name, value } = e.target;      
-    const ids = id.split("-");
-
-    // only elim[0] has editable div_name, start and games
+    const ids = id.split("-");    
+    
     let updatedElim: elimType;
-
-    if (ids[0] === 'div_name') {
+    if (name === "elimsDivRadio") {
+      const parentId = ids[1];      
       updatedElim = {
-        ...elims[0],
-        div_name: ids[2],
-        div_id: ids[1],
+        ...createElim,
+        div_id: parentId,
         div_err: "",
       }
-      if (elims[0].div_err === duplicateElimErrMsg) {
+      if (createElim.div_err === duplicateElimErrMsg) {
         updatedElim.div_err = "";
       }
-    } else {
+    } else { 
       const valueNum = Number(value)
       const nameErr = name + "_err";
       updatedElim = {
-        ...elims[0],
+        ...createElim,
         [name]: valueNum,
         [nameErr]: "",
       }
     }
-    updatedElim.errClassName = "";
-    const acdnErrMsg = getNextElimAcdnErrMsg(updatedElim, elims);
-    if (acdnErrMsg) {
-      setAcdnErr({
-        errClassName: acdnErrClassName,
-        message: acdnErrMsg,
-      });
-    } else {
-      setAcdnErr(noAcdnErr);
+    setCreateElim(updatedElim);
+  }
+
+  const handleCreateElimAmountValueChange = (id: string, name: string) => (value: string | undefined): void => { 
+    const nameErr = name + "_err";
+    let rawValue = value === undefined ? 'undefined' : value;
+    rawValue = (rawValue || ' ');
+    if (rawValue && Number.isNaN(Number(rawValue))) {
+      rawValue = ''
+    } 
+    let updatedElim: elimType = {            
+      ...createElim,
+      fee: rawValue,
+      fee_err: ''
     }
-    setElims(
-      elims.map((elim) => {
-        if (elim.id === updatedElim.id) {
-          return updatedElim;
-        }
-        return elim
-      })
-    )
+    setCreateElim(updatedElim);
   }
 
   const handleAmountValueChange = (id: string, name: string) => (value: string | undefined): void => { 
@@ -335,7 +301,7 @@ const ZeroToNElims: React.FC<ChildProps> = ({
             fee: rawValue,
             fee_err: ''
           }
-          const acdnErrMsg = getNextElimAcdnErrMsg(updatedElim, elims);
+          const acdnErrMsg = getNextElimAcdnErrMsg(updatedElim, elims, divs);
           if (acdnErrMsg) {
             setAcdnErr({
               errClassName: acdnErrClassName,
@@ -361,8 +327,6 @@ const ZeroToNElims: React.FC<ChildProps> = ({
       })
     )    
   }
-
-  const handleBlur = (id: string) => (e: ChangeEvent<HTMLInputElement>) => { }
 
   const handleTabSelect = (key: string | null) => {
     if (key) {
@@ -407,185 +371,175 @@ const ZeroToNElims: React.FC<ChildProps> = ({
         activeKey={tabKey}
         onSelect={handleTabSelect}
       >
+        <Tab
+          key={'createElim'}
+          eventKey={'createElim'}
+          title={createElimTitle}            
+        >
+          <div className="row g-3 mb-3">
+            <div className="col-sm-3">
+              <label
+                className="form-label"                      
+              >
+                Division
+              </label>
+              {divs.map((div) => (
+                <div key={div.id} className="form-check text-break">
+                  <input
+                    className="form-check-input"
+                    type="radio"
+                    name="elimsDivRadio"
+                    id={`div_name-${div.id}-${div.div_name}-elims`}
+                    checked={createElim.div_id === div.id}
+                    onChange={handleCreateElimInputChange(createElim.id)}
+                  />
+                  <label
+                    className="form-check-label"
+                    htmlFor={`div_name-${div.id}-${div.div_name}-elims`}
+                  >
+                    {div.div_name}
+                  </label>
+                </div>
+              ))}
+              <div
+                className="text-danger"
+                data-testid="dangerElimDivRadio"
+              >
+                {createElim.div_err}
+              </div>
+            </div>
+            <div className="col-sm-2">
+              <label
+                htmlFor={`inputElimFee${createElim.id}`}
+                className="form-label"                      
+              >
+                Fee
+              </label>
+              <EaCurrencyInput
+                id={`inputElimFee${createElim.id}`}                      
+                name="fee"
+                className={`form-control ${createElim.fee_err && "is-invalid"}`}
+                value={createElim.fee}
+                onValueChange={handleCreateElimAmountValueChange(createElim.id, 'fee')}                
+              />
+              <div
+                className="text-danger"
+                data-testid="dangerCreateElimFee"
+              >
+                {createElim.fee_err}
+              </div>
+            </div>
+            <div className="col-sm-2">
+              <label
+                htmlFor={`inputElimStart${createElim.id}`}
+                className="form-label"                      
+              >
+                Start
+              </label>
+              <input
+                type="number"
+                id={`inputElimStart${createElim.id}`}                      
+                name="start"
+                placeholder="#"
+                step={1}
+                className={`form-control ${createElim.start_err && "is-invalid"}`}
+                onChange={handleCreateElimInputChange(createElim.id)}
+                value={createElim.start}
+              />
+              <div
+                className="text-danger"
+                data-testid="dangerCreateElimStart"
+              >
+                {createElim.start_err}
+              </div>
+            </div>
+            <div className="col-sm-2">
+              <label
+                htmlFor={`inputElimGames${createElim.id}`}
+                className="form-label"                      
+              >
+                Games
+              </label>
+              <input
+                type="number"
+                id={`inputElimGames${createElim.id}`}                      
+                name="games"
+                placeholder="#"
+                step={1}
+                className={`form-control ${createElim.games_err && "is-invalid"}`}
+                onChange={handleCreateElimInputChange(createElim.id)}
+                value={createElim.games}
+                data-testid="createElimGames"
+              />
+              <div
+                className="text-danger"
+                data-testid="dangerCreateElimGames"
+              >
+                {createElim.games_err}
+              </div>
+            </div>
+            <div className="col-sm-3 d-flex justify-content-center align-items-start">
+              <button className="btn btn-success mx-3" onClick={handleAdd}>
+                Add Eliminator
+              </button>
+            </div>
+          </div>
+        </Tab>
         {elims.map((elim) => (
           <Tab
             key={elim.id}
             eventKey={`elim${elim.id}`}
-            title={(elim.sort_order === 1) ? createElimTitle : getBrktOrElimName(elim.id, elims)}
+            title={getBrktOrElimName(elim, divs)}
             tabClassName={`${elim.errClassName}`}
           >
             <div className="row g-3 mb-3">
-              {elim.sort_order === 1 ? (
-                <>
-                  <div className="col-sm-3">
-                    <label
-                      className="form-label"
-                      // data-testid="elimDivRadioLabel"
-                    >
-                      Division
-                    </label>
-                    {divs.map((div) => (
-                      <div key={div.id} className="form-check text-break">
-                        <input
-                          className="form-check-input"
-                          type="radio"
-                          name="elimsDivRadio"
-                          id={`div_name-${div.id}-${div.div_name}-elims`}
-                          checked={elims[0].div_name === div.div_name}
-                          onChange={handleInputChange(elim.id)}
-                        />
-                        <label
-                          className="form-check-label"
-                          htmlFor={`div_name-${div.id}-${div.div_name}-elims`}
-                        >
-                          {div.div_name}
-                        </label>
-                      </div>
-                    ))}
-                    <div
-                      className="text-danger"
-                      data-testid="dangerElimDivRadio"
-                    >
-                      {elim.div_err}
-                    </div>
-                  </div>
-                  <div className="col-sm-2">
-                    <label
-                      htmlFor={`inputElimFee${elim.id}`}
-                      className="form-label"
-                      // data-testid="createElimFeeLabel"
-                    >
-                      Fee
-                    </label>
-                    <EaCurrencyInput
-                      id={`inputElimFee${elim.id}`}
-                      // data-testid="createElimFeeInput"
-                      name="fee"
-                      className={`form-control ${elim.fee_err && "is-invalid"}`}
-                      value={elim.fee}
-                      onValueChange={handleAmountValueChange(elim.id, 'fee')}
-                      onBlur={handleBlur(elim.id)}
-                    />
-                    <div
-                      className="text-danger"
-                      data-testid="dangerCreateElimFee"
-                    >
-                      {elim.fee_err}
-                    </div>
-                  </div>
-                  <div className="col-sm-2">
-                    <label
-                      htmlFor={`inputElimStart${elim.id}`}
-                      className="form-label"
-                      // data-testid="createElimStartLabel"
-                    >
-                      Start
-                    </label>
-                    <input
-                      type="number"
-                      id={`inputElimStart${elim.id}`}
-                      // data-testid="createElimStartInput"
-                      name="start"
-                      placeholder="#"
-                      step={1}
-                      className={`form-control ${elim.start_err && "is-invalid"}`}
-                      onChange={handleInputChange(elim.id)}
-                      value={elim.start}
-                    />
-                    <div
-                      className="text-danger"
-                      data-testid="dangerCreateElimStart"
-                    >
-                      {elim.start_err}
-                    </div>
-                  </div>
-                  <div className="col-sm-2">
-                    <label
-                      htmlFor={`inputElimGames${elim.id}`}
-                      className="form-label"
-                      // data-testid="createElimGamesLabel"
-                    >
-                      Games
-                    </label>
-                    <input
-                      type="number"
-                      id={`inputElimGames${elim.id}`}
-                      // data-testid="createElimGamesInput"
-                      name="games"
-                      placeholder="#"
-                      step={1}
-                      className={`form-control ${elim.games_err && "is-invalid"}`}
-                      onChange={handleInputChange(elim.id)}
-                      value={elim.games}
-                      data-testid="createElimGames"
-                    />
-                    <div
-                      className="text-danger"
-                      data-testid="dangerCreateElimGames"
-                    >
-                      {elim.games_err}
-                    </div>
-                  </div>
-                  <div className="col-sm-3 d-flex justify-content-center align-items-start">
-                    <button className="btn btn-success mx-3" onClick={handleAdd}>
-                      Add Eliminator
-                    </button>
-                  </div>
-                </>
-              ) : (
-                <>
-                  <div className="col-sm-3">
-                    <label
-                      className="form-label"
-                      htmlFor={`elim_div-${elim.id}`}
-                    >
-                      Division
-                    </label>
-                    <input
-                      type="text"
-                      className="form-control"
-                      id={`elim_div-${elim.id}`}
-                      // data-testid={`elimDiv${elim.sort_order}`}
-                      name="div_name"
-                      value={elim.div_name}
-                      disabled
-                    />
-                  </div>
-                  <div className="col-sm-2">
-                    <label
-                      htmlFor={`inputElimFee${elim.id}`}
-                      className="form-label"
-                    >
-                      Fee
-                    </label>
-                    <EaCurrencyInput
-                      id={`inputElimFee${elim.id}`}            
-                      // data-testid={`elimFee${elim.sort_order}`}  
-                      name="fee"
-                      className={`form-control ${elim.fee_err && "is-invalid"}`}
-                      value={elim.fee}
-                      onValueChange={handleAmountValueChange(elim.id, 'fee')}
-                      onBlur={handleBlur(elim.id)}
-                    />
-                    <div
-                      className="text-danger"
-                      data-testid={`dangerElimFee${elim.sort_order}`}
-                    >
-                      {elim.fee_err}
-                    </div>
-                  </div>                  
-                  <NumberEntry elim={elim} LabelText='Start' property='start' value={elim.start} />
-                  <NumberEntry elim={elim} LabelText='Games' property='games' value={elim.games} />                  
-                  <div className="col-sm-3 d-flex justify-content-center align-items-start">
-                    <button
-                      className="btn btn-danger mx-3"
-                      onClick={() => handleDelete(elim.id)}
-                    >
-                      Delete Eliminator
-                    </button>
-                  </div>                
-                </>
-              ) }
+              <div className="col-sm-3">
+                <label
+                  className="form-label"
+                  htmlFor={`elim_div-${elim.id}`}
+                >
+                  Division
+                </label>
+                <input
+                  type="text"
+                  className="form-control"
+                  id={`elim_div-${elim.id}`}                  
+                  name="div_name"
+                  value={getDivName(elim.div_id, divs)}
+                  disabled
+                />
+              </div>
+              <div className="col-sm-2">
+                <label
+                  htmlFor={`inputElimFee${elim.id}`}
+                  className="form-label"
+                >
+                  Fee
+                </label>
+                <EaCurrencyInput
+                  id={`inputElimFee${elim.id}`}                                
+                  name="fee"
+                  className={`form-control ${elim.fee_err && "is-invalid"}`}
+                  value={elim.fee}
+                  onValueChange={handleAmountValueChange(elim.id, 'fee')}                  
+                />
+                <div
+                  className="text-danger"
+                  data-testid={`dangerElimFee${elim.sort_order}`}
+                >
+                  {elim.fee_err}
+                </div>
+              </div>                  
+              <NumberEntry elim={elim} LabelText='Start' property='start' value={elim.start} />
+              <NumberEntry elim={elim} LabelText='Games' property='games' value={elim.games} />                  
+              <div className="col-sm-3 d-flex justify-content-center align-items-start">
+                <button
+                  className="btn btn-danger mx-3"
+                  onClick={() => handleDelete(elim.id)}
+                >
+                  Delete Eliminator
+                </button>
+              </div>                
             </div>
           </Tab>
         ))}        

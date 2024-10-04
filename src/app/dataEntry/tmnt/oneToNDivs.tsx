@@ -9,6 +9,7 @@ import { objErrClassName, acdnErrClassName, getAcdnErrMsg, noAcdnErr, isDuplicat
 import { maxEventLength, minHdcpPer, maxHdcpPer, minHdcpFrom, maxHdcpFrom } from "@/lib/validation";
 import { EaPercentInput } from "@/components/currency/eaCurrencyInput";
 import { formatValuePercent2Dec } from "@/lib/currency/formatValue";
+import { btDbUuid } from "@/lib/uuid";
 
 interface ChildProps {
   divs: divType[],
@@ -135,18 +136,18 @@ const OneToNDivs: React.FC<ChildProps> = ({
 
   const [confModalObj, setConfModalObj] = useState(initModalObj);
   const [errModalObj, setErrModalObj] = useState(initModalObj);
-  const [tabKey, setTabKey] = useState(defaultTabKey); 
-  const [divId, setDivId] = useState(1); // id # used in initDivs in form.tsx
+  const [tabKey, setTabKey] = useState(defaultTabKey);   
+  const [sortOrder, setSortOrder] = useState(1); // id # used in initDivs in form.tsx
 
   const handleAdd = () => {
     const newDiv: divType = {
       ...initDiv,
-      id: '' + (divId + 1),
-      div_name: "Division " + (divId + 1),
-      tab_title: "Division " + (divId + 1),
-      sort_order: divId + 1,
+      id: btDbUuid('div'),
+      div_name: "Division " + (sortOrder + 1),
+      tab_title: "Division " + (sortOrder + 1),
+      sort_order: sortOrder + 1,
     };
-    setDivId(divId + 1);
+    setSortOrder(sortOrder + 1);
     setDivs([...divs, newDiv]);
   };
 
@@ -279,7 +280,6 @@ const OneToNDivs: React.FC<ChildProps> = ({
         return div;
       })
     )
-
   }
 
   const handleInputChange = (id: string) => (e: ChangeEvent<HTMLInputElement>) => { 
@@ -309,31 +309,6 @@ const OneToNDivs: React.FC<ChildProps> = ({
               ...div,
               hdcp_for: hdcpFor,
             };
-          // } else if (name === 'hdcp_per_str') {
-          //   let rawValue = value === undefined ? 'undefined' : value;
-          //   rawValue = (rawValue || ' ')
-          //   // if user types fast, % might not be at end of string
-          //   rawValue = rawValue.replace('%', '');
-          //   console.log(`4 - rawValue: "${rawValue}"`)            
-          //   if (rawValue && Number.isNaN(Number(rawValue))) {
-          //     rawValue = '';
-          //   }
-          //   const hdcpPerNum = Number(rawValue) / 100;
-          //   updatedDiv = {
-          //     ...div,
-          //     hdcp_per_str: rawValue,
-          //     hdcp_per: hdcpPerNum,
-          //   }
-          //   // do check AFETR setting updatedDiv above
-          //   // need to clear hdcp_from_err because if hdcp is 0,
-          //   // hdcp_from spineditis disabled, so user can't clear error
-          //   if (hdcpPerNum === 0 && (div.hdcp_from < minHdcpFrom || div.hdcp_from > maxHdcpFrom)) {
-          //     updatedDiv = {
-          //       ...updatedDiv,
-          //       hdcp_from: defaultHdcpFrom,
-          //       hdcp_from_err: ''
-          //     }
-          //   }
           } else { // hdcp_from
             const hdcpFromNum = Number(value);
             updatedDiv = {

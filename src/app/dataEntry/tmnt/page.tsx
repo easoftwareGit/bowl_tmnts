@@ -1,5 +1,5 @@
 "use client";
-import { useState } from "react";
+import React, { useState } from "react";
 import { useSession } from "next-auth/react"; 
 import TmntDataForm from "./form";
 import {
@@ -10,23 +10,16 @@ import {
   initLanes,
   initPots,
   initSquads,
-  initTmnt,
+  initTmnt,  
 } from "../../../lib/db/initVals";
 import { fullTmntDataType, tmntPropsType } from "../../../lib/types/types";
-import { startOfToday } from "date-fns";
-
-const blankTmnt = {
-  ...initTmnt,
-  start_date: startOfToday(),
-  end_date: startOfToday(),
-};
 
 interface FormProps {
   fullTmntData?: fullTmntDataType;
 }
 
 const blankFullTmnt: fullTmntDataType = {
-  tmnt: blankTmnt,
+  tmnt: initTmnt,
   events: initEvents,
   divs: initDivs,
   squads: initSquads,
@@ -41,21 +34,13 @@ export const TmntDataPage: React.FC<FormProps> = ({
 }) => {
 
   const { status, data } = useSession();
-  // line the tmnt data types
+  // link the tmnt data types
   fullTmntData.tmnt.user_id = data?.user?.id || "";  
   fullTmntData.events[0].tmnt_id = fullTmntData.tmnt.id;
   fullTmntData.divs[0].tmnt_id = fullTmntData.tmnt.id;
   fullTmntData.squads[0].event_id = fullTmntData.events[0].id;
   fullTmntData.lanes[0].squad_id = fullTmntData.squads[0].id;
   fullTmntData.lanes[1].squad_id = fullTmntData.squads[0].id; // initLanes has 2 itens
-
-  fullTmntData.pots[0].div_id = fullTmntData.divs[0].id;
-  fullTmntData.pots[0].squad_id = fullTmntData.squads[0].id;
-  
-  // fullTmntData.brkts[0].div_id = fullTmntData.divs[0].id;
-  // fullTmntData.brkts[0].squad_id = fullTmntData.squads[0].id;
-  // fullTmntData.elims[0].div_id = fullTmntData.divs[0].id;
-  // fullTmntData.elims[0].squad_id = fullTmntData.squads[0].id;
 
   const [tmntData, setTmntData] = useState(fullTmntData.tmnt);
   const [events, setEvents] = useState(fullTmntData.events);
@@ -65,6 +50,7 @@ export const TmntDataPage: React.FC<FormProps> = ({
   const [pots, setPots] = useState(fullTmntData.pots);
   const [brkts, setBrkts] = useState(fullTmntData.brkts);
   const [elims, setElims] = useState(fullTmntData.elims);
+  const [showingModal, setShowingModal] = useState(false);  
 
   const tmntFormProps: tmntPropsType = {
     tmnt: tmntData,
@@ -83,6 +69,8 @@ export const TmntDataPage: React.FC<FormProps> = ({
     setBrkts,
     elims,
     setElims,
+    showingModal,
+    setShowingModal,
   };
 
   return (

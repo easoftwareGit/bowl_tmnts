@@ -1,5 +1,5 @@
 import React, { useState, ChangeEvent, Dispatch, SetStateAction } from "react";
-import { divType, squadType, AcdnErrType, PotCategoryObjType, potType } from "../../../lib/types/types";
+import { divType, squadType, AcdnErrType, PotCategoryObjType, potType, PotCategories } from "../../../lib/types/types";
 import ModalConfirm, { delConfTitle } from "@/components/modal/confirmModal";
 import { Tab, Tabs } from "react-bootstrap";
 import { initModalObj } from "@/components/modal/modalObjType";
@@ -15,18 +15,18 @@ import {
   noAcdnErr,
 } from "./errors";
 import { maxMoney, minFee } from "@/lib/validation";
-import { getPotName } from "@/lib/getName";
+import { getDivName, getPotName } from "@/lib/getName";
+import { btDbUuid } from "@/lib/uuid";
 
 interface ChildProps {
   pots: potType[];
   setPots: (pots: potType[]) => void;
   divs: divType[];  
-  setAcdnErr: (objAcdnErr: AcdnErrType) => void;
+  setAcdnErr: (objAcdnErr: AcdnErrType) => void;  
+  setShowingModal: (showingModal: boolean) => void;
 }
 
 const createPotTitle = "Create Pot";
-// const duplicatePotErrMsg = "Pot Type - Division already exists";
-// const defaultTabKey = "pot1";
 
 const potCategories: PotCategoryObjType[] = [
   {
@@ -44,6 +44,7 @@ const potCategories: PotCategoryObjType[] = [
 ];
 
 const getPotErrMsg = (pot: potType): string => {
+  if (!pot) return "";
   if (pot.pot_type_err) return pot.pot_type_err;
   if (pot.div_err) return pot.div_err;
   if (pot.fee_err) return pot.fee_err;
@@ -51,7 +52,7 @@ const getPotErrMsg = (pot: potType): string => {
 };
 
 const getNextPotAcdnErrMsg = (
-  updatedPot: potType | null,
+  updatedPot: potType | null,  
   pots: potType[],
   divs: divType[]
 ): string => {
@@ -59,13 +60,12 @@ const getNextPotAcdnErrMsg = (
   let acdnErrMsg = "";
   let i = 0;
   let pot: potType;
+
   while (i < pots.length && !errMsg) {
     pot = pots[i].id === updatedPot?.id ? updatedPot : pots[i];
     errMsg = getPotErrMsg(pot);
     if (errMsg) {      
-      const errTabTitle =
-        pot.sort_order === 1 ? createPotTitle : getPotName(pot, divs);
-      acdnErrMsg = getAcdnErrMsg(errTabTitle, errMsg);
+      acdnErrMsg = getAcdnErrMsg(getPotName(pot, divs), errMsg);
     }
     i++;
   }
@@ -73,8 +73,9 @@ const getNextPotAcdnErrMsg = (
 };
 
 export const validatePots = (
-  pots: potType[],
+  pots: potType[],  
   setPots: (pots: potType[]) => void,
+  divs: divType[],
   setAcdnErr: (objAcdnErr: AcdnErrType) => void
 ): boolean => {
   let arePotsValid = true;
@@ -97,8 +98,7 @@ export const validatePots = (
   setPots(
     pots.map((pot) => {
       feeErr = "";
-      potErrClassName = "";
-      if (pot.sort_order === 1) return pot; // no error checking for 1st pot
+      potErrClassName = "";      
       const fee = Number(pot.fee);
       if (typeof fee !== "number") {
         feeErr = "Invalid Fee";
@@ -108,7 +108,7 @@ export const validatePots = (
         feeErr = "Fee cannot be more than " + maxMoneyText;
       }
       if (feeErr) {
-        setError(pot.pot_type + " - " + pot.div_name, feeErr);
+        setError(pot.pot_type + " - " + getDivName(pot.div_id, divs), feeErr);
       }
       return {
         ...pot,
@@ -127,137 +127,102 @@ const ZeroToNPots: React.FC<ChildProps> = ({
   pots,
   setPots,
   divs,  
-  setAcdnErr,
+  setAcdnErr,  
+  setShowingModal,
 }) => {
 
-  const defaultTabKey = pots[0].id;
-  // const defaultTabKey = '';
+  const defaultTabKey = 'createPot';
 
   const [modalObj, setModalObj] = useState(initModalObj);
-  const [tabKey, setTabKey] = useState(defaultTabKey);
-  const [potId, setPotId] = useState(1); // id # used in initPots in form.tsx
+  const [tabKey, setTabKey] = useState(defaultTabKey);  
+  const [sortOrder, setSortOrder] = useState(1);
+  const [createPot, setCreatePot] = useState(initPot);
 
-  const validNewPot = (newPot: potType) => {
+  const validNewPot = () => {
     let isPotValid = true;
     let potErr = "";
     let divErr = "";
-    let feeErr = "";
-    let potErrClassName = "";
+    let feeErr = "";    
   
-    const setError = (errMsg: string) => {
-      if (isPotValid) {
-        setAcdnErr({
-          errClassName: acdnErrClassName,
-          message: getAcdnErrMsg(createPotTitle, errMsg),
-        });
-      }
-      isPotValid = false;
-      potErrClassName = objErrClassName;
-    };
-
-    if (newPot.pot_type === "") {
+    if (createPot.pot_type === "") {
       potErr = "Pot Type is required";
-      setError(potErr);
+      isPotValid = false;
     }
-    if (newPot.div_name === "") {
+    if (createPot.div_id === "") {
       divErr = "Division is required";
-      setError(divErr);
+      isPotValid = false;      
     }
-    const fee = Number(newPot.fee);
+    const fee = Number(createPot.fee);
     if (typeof fee !== "number") {
       feeErr = "Invalid Fee";
-      setError(feeErr);
+      isPotValid = false;      
     } else if (fee < minFee) {
       feeErr = "Fee cannot be less than " + minFeeText;
-      setError(feeErr);
+      isPotValid = false;      
     } else if (fee > maxMoney) {
       feeErr = "Fee cannot be more than " + maxMoneyText;
-      setError(feeErr);
+      isPotValid = false;      
     }
 
-    if (isPotValid) {
-      // DO NOT check pot with ID 1
-      const potsToCheck = pots.filter((pot) => pot.id !== "1");
-      const duplicatePot = potsToCheck.find(
-        (pot) =>
-          pot.pot_type === newPot.pot_type && pot.div_id === newPot.div_id            
+    if (isPotValid) {      
+      const duplicatePot = pots.find((pot) =>
+        pot.pot_type === createPot.pot_type && pot.div_id === createPot.div_id            
       );
       if (duplicatePot) {        
-        const duplicatePotErrMsg = `Pot: ${newPot.pot_type} - ${newPot.div_name} already exists`;
+        const duplicatePotErrMsg = `Pot: ${createPot.pot_type} - ${getDivName(createPot.div_id, divs)} already exists`;
         potErr = duplicatePotErrMsg;
-        setError(potErr);
+        isPotValid = false;        
       }
     }
 
-    setPots(
-      pots.map((pot) => {
-        if (pot.id === newPot.id) {
-          return {
-            ...newPot,
-            pot_type_err: potErr,
-            div_err: divErr,
-            fee_err: feeErr,
-            errClassName: potErrClassName,
-          };
-        }
-        return pot;
-      })
-    );
-
-    if (isPotValid) {
-      setAcdnErr(noAcdnErr);
-    }
-
+    setCreatePot({
+      ...createPot,
+      pot_type_err: potErr,
+      div_err: divErr,
+      fee_err: feeErr,
+    })
     return isPotValid;
   };
 
   const handleAdd = (e: React.FormEvent) => {
     e.preventDefault();
-    if (validNewPot(pots[0])) {
+    if (validNewPot()) {
+      // create a new pot with a new id
       const newPot: potType = {
-        ...initPot,
-        id: "" + (potId + 1),
-        pot_type: pots[0].pot_type,
-        div_id: pots[0].div_id,
-        div_name: pots[0].div_name,
-        fee: pots[0].fee,
-        sort_order: potId + 1,
+        ...createPot,
+        id: btDbUuid('pot')
       };
-      setPotId(potId + 1);
-
+      // add new pot      
       const mappedPots = pots.map((pot) => ({ ...pot }));
-      mappedPots[0] = {
-        ...initPot,
-      }
       mappedPots.push(newPot);
-      setPots(mappedPots);
-
-      // const updatedPots = structuredClone(pots);
-      // updatedPots[0] = {
-      //   ...initPot,
-      // };
-      // updatedPots.push(newPot);
-      // setPots(updatedPots);
-    }
+      setPots(mappedPots);  
+      // update sort order for next new pot
+      setCreatePot({
+        ...createPot,
+        sort_order: sortOrder + 1,
+      });            
+      setSortOrder(sortOrder + 1);
+    } 
   };
 
   const confirmedDelete = () => {
+    setShowingModal(false);
     setModalObj(initModalObj); // reset modal object (hides modal)
     const updatedData = pots.filter((pot) => pot.id !== modalObj.id);
     setPots(updatedData);
-    setTabKey(defaultTabKey); // refocus 1st pot
+    setTabKey(defaultTabKey); // refocus create pot
   };
 
   const canceledDelete = () => {
+    setShowingModal(false);
     setModalObj(initModalObj); // reset modal object (hides modal)
   };
 
   const handleDelete = (id: string) => {
-    const potToDel = pots.find((pot) => pot.id === id);
-    // if did not find pot OR first pot (1st pot used for creating new pots)
-    if (!potToDel || potToDel.sort_order === 1) return;
-
+    const potToDel = pots.find((pot) => pot.id === id);     
+    if (!potToDel) return;
     const toDelName = getPotName(potToDel, divs); // potToDel.pot_type + " - " + potToDel.div_name;
+    setShowingModal(true);
     setModalObj({
       show: true,
       title: delConfTitle,
@@ -266,55 +231,48 @@ const ZeroToNPots: React.FC<ChildProps> = ({
     }); // deletion done in confirmedDelete
   };
 
-  const handleInputChange = (e: ChangeEvent<HTMLInputElement>) => {
-    const { id } = e.target;
+  const handleCreatePotInputChange = (e: ChangeEvent<HTMLInputElement>) => { 
+    const { id, name, value } = e.target;
     const ids = id.split("-");
-    const name = ids[0];
-    const value = ids[2];
 
-    // only pots[0] has editable pot_type and div_name
     let updatedPot: potType;
-    if (name === "div_name") {
+    if (name === "potsDivRadio") { 
+      const parentId = ids[1];
       updatedPot = {
-        ...pots[0],
-        div_name: value,
-        div_id: ids[1],
+        ...createPot,
+        div_id: parentId, 
         div_err: "",
       };
-
-      if (pots[0].pot_type_err.includes('already exists')) {
+      if (createPot.pot_type_err.includes('already exists')) {
         updatedPot.pot_type_err = "";
       }
     } else {
-      // use [name] here, not pot_type, becuase typescript
-      // does not like assigning pot_name: value
       updatedPot = {
-        ...pots[0],
-        [name]: value,
+        ...createPot,        
+        pot_type: value as PotCategories,
         pot_type_err: "",
       };
     }
-    updatedPot.errClassName = "";
-    const acdnErrMsg = getNextPotAcdnErrMsg(updatedPot, pots, divs);
-    if (acdnErrMsg) {
-      setAcdnErr({
-        errClassName: acdnErrClassName,
-        message: acdnErrMsg,
-      });
-    } else {
-      setAcdnErr(noAcdnErr);
+    setCreatePot(updatedPot);
+  }
+
+  const handleCreatePotAmountValueChange =
+    (id: string) =>
+    (value: string | undefined): void => {
+      let rawValue = value === undefined ? "undefined" : value;
+      rawValue = rawValue || " ";
+
+      if (rawValue && Number.isNaN(Number(rawValue))) {
+        rawValue = "";
+      }
+      let updatedPot: potType = {
+        ...createPot,
+        fee: rawValue,
+        fee_err: "",        
+      };
+      setCreatePot(updatedPot);      
     }
-
-    setPots(
-      pots.map((pot) => {
-        if (pot.id === updatedPot.id) {
-          return updatedPot;
-        }
-        return pot;
-      })
-    );
-  };
-
+  
   const handleAmountValueChange =
     (id: string) =>
     (value: string | undefined): void => {
@@ -374,162 +332,159 @@ const ZeroToNPots: React.FC<ChildProps> = ({
         activeKey={tabKey}
         onSelect={handleTabSelect}
       >
+        <Tab
+          key="createPot"
+          eventKey="createPot"
+          title={createPotTitle}          
+        >
+          <div className="row g-3 mb-3">
+            <div className="col-sm-3">
+              <label className="form-label">
+                Pot Type
+              </label>
+              {potCategories.map((potCat) => (
+                <div key={potCat.id} className="form-check">
+                  <input
+                    className="form-check-input"
+                    type="radio"
+                    name="potTypeRadio"
+                    id={`pot_type-${potCat.id}-${potCat.name}`}                          
+                    value={potCat.name}
+                    checked={createPot.pot_type === potCat.name}
+                    onChange={handleCreatePotInputChange}
+                  />
+                  <label
+                    className="form-check-label"
+                    htmlFor={`pot_type-${potCat.id}-${potCat.name}`}
+                  >
+                    {potCat.name}
+                  </label>
+                </div>
+              ))}
+              <div className="text-danger" data-testid="dangerPotType">
+                {createPot.pot_type_err}
+              </div>
+            </div>  
+            <div className="col-sm-3">
+              <label
+                className="form-label"                      
+              >
+                Division
+              </label>
+              {divs.map((div) => (
+                <div key={div.id} className="form-check text-break">
+                  <input
+                    className="form-check-input"
+                    type="radio"
+                    name="potsDivRadio"
+                    id={`div_name-${div.id}-${div.div_name}-pots`}                          
+                    value={div.div_name}
+                    checked={createPot.div_id === div.id}
+                    onChange={handleCreatePotInputChange}
+                  />
+                  <label
+                    className="form-check-label"
+                    htmlFor={`div_name-${div.id}-${div.div_name}-pots`}
+                  >
+                    {div.div_name}
+                  </label>
+                </div>
+              ))}
+              <div className="text-danger" data-testid="dangerDiv">
+                {createPot.div_err}
+              </div>
+            </div>   
+            <div className="col-sm-3">
+              <label htmlFor="inputPotFee" className="form-label">
+                Fee
+              </label>
+              <EaCurrencyInput
+                id="inputPotFee"                      
+                name="inputPotFee"
+                className={`form-control ${createPot.fee_err && "is-invalid"}`}
+                value={createPot.fee}
+                onValueChange={handleCreatePotAmountValueChange(createPot.id)}
+              />
+              <div className="text-danger" data-testid="dangerPotFee">
+                {createPot.fee_err}
+              </div>
+            </div>
+            <div className="col-sm-3 d-flex justify-content-center align-items-start">
+              <button
+                className="btn btn-success mx-3"
+                onClick={handleAdd}
+              >
+                Add Pot
+              </button>
+            </div>            
+          </div>
+        </Tab>
         {pots.map((pot) => (
           <Tab
             key={pot.id}
             eventKey={`${pot.id}`}
-            title={
-              pot.sort_order === 1 ? createPotTitle : getPotName(pot, divs)
-            }
+            title={getPotName(pot, divs)}
             tabClassName={`${pot.errClassName}`}
           >
             <div className="row g-3 mb-3">
-              {pot.sort_order === 1 ? (
-                <>
-                  <div className="col-sm-3">
-                    <label
-                      className="form-label"                      
-                    >
-                      Pot Type
-                    </label>
-                    {potCategories.map((potCat) => (
-                      <div key={potCat.id} className="form-check">
-                        <input
-                          className="form-check-input"
-                          type="radio"
-                          name="potTypeRadio"
-                          id={`pot_type-${potCat.id}-${potCat.name}`}                          
-                          value={potCat.name}
-                          checked={pot.pot_type === potCat.name}
-                          onChange={handleInputChange}
-                        />
-                        <label
-                          className="form-check-label"
-                          htmlFor={`pot_type-${potCat.id}-${potCat.name}`}
-                        >
-                          {potCat.name}
-                        </label>
-                      </div>
-                    ))}
-                    <div className="text-danger" data-testid="dangerPotType">
-                      {pot.pot_type_err}
-                    </div>
-                  </div>
-                  <div className="col-sm-3">
-                    <label
-                      className="form-label"                      
-                    >
-                      Division
-                    </label>
-                    {divs.map((div) => (
-                      <div key={div.id} className="form-check text-break">
-                        <input
-                          className="form-check-input"
-                          type="radio"
-                          name="potsDivRadio"
-                          id={`div_name-${div.id}-${div.div_name}-pots`}                          
-                          value={div.div_name}
-                          checked={pot.div_name === div.div_name}
-                          onChange={handleInputChange}
-                        />
-                        <label
-                          className="form-check-label"
-                          htmlFor={`div_name-${div.id}-${div.div_name}-pots`}
-                        >
-                          {div.div_name}
-                        </label>
-                      </div>
-                    ))}
-                    <div className="text-danger" data-testid="dangerDiv">
-                      {pot.div_err}
-                    </div>
-                  </div>
-                  <div className="col-sm-3">
-                    <label htmlFor="inputPotFee" className="form-label">
-                      Fee
-                    </label>
-                    <EaCurrencyInput
-                      id="inputPotFee"                      
-                      name="inputPotFee"
-                      className={`form-control ${pot.fee_err && "is-invalid"}`}
-                      value={pot.fee}
-                      onValueChange={handleAmountValueChange(pot.id)}
-                    />
-                    <div className="text-danger" data-testid="dangerPotFee">
-                      {pot.fee_err}
-                    </div>
-                  </div>
-                  <div className="col-sm-3 d-flex justify-content-center align-items-start">
-                    <button
-                      className="btn btn-success mx-3"
-                      onClick={handleAdd}
-                    >
-                      Add Pot
-                    </button>
-                  </div>
-                </>
-              ) : (
-                <>
-                  <div className="col-sm-3">
-                    <label
-                      className="form-label"
-                      htmlFor={`pot_type-${pot.id}`}
-                    >
-                      Pot Type
-                    </label>
-                    <input
-                      type="text"
-                      className="form-control"
-                      id={`pot_type-${pot.id}`}                      
-                      name={`pot_type-${pot.id}`}
-                      value={pot.pot_type}
-                      disabled
-                    />
-                  </div>
-                  <div className="col-sm-3">
-                    <label
-                      className="form-label"
-                      htmlFor={`div_name-${pot.id}`}
-                    >
-                      Division
-                    </label>
-                    <input
-                      type="text"
-                      className="form-control"
-                      id={`div_name-${pot.id}`}                      
-                      name={`div_name-${pot.id}`}
-                      value={pot.div_name}
-                      disabled
-                    />
-                  </div>
-                  <div className="col-sm-3">
-                    <label className="form-label" htmlFor={`potFee-${pot.id}`}>
-                      Fee
-                    </label>
-                    <EaCurrencyInput
-                      id={`potFee-${pot.id}`}                      
-                      name={`potFee-${pot.id}`}
-                      className={`form-control ${pot.fee_err && "is-invalid"}`}
-                      value={pot.fee}
-                      onValueChange={handleAmountValueChange(pot.id)}
-                    />
-                    <div
-                      className="text-danger"
-                      data-testid={`dangerPotFee${pot.sort_order}`}
-                    >
-                      {pot.fee_err}
-                    </div>
-                  </div>
-                  <div className="col-sm-3 d-flex justify-content-center align-items-start">
-                    <button
-                      className="btn btn-danger mx-3"
-                      onClick={() => handleDelete(pot.id)}
-                    >
-                      Delete Pot
-                    </button>
-                  </div>
-                </>
-              )}
+              <div className="col-sm-3">
+                <label
+                  className="form-label"
+                  htmlFor={`pot_type-${pot.id}`}
+                >
+                  Pot Type
+                </label>
+                <input
+                  type="text"
+                  className="form-control"
+                  id={`pot_type-${pot.id}`}                      
+                  name={`pot_type-${pot.id}`}
+                  value={pot.pot_type}
+                  disabled
+                />
+              </div>
+              <div className="col-sm-3">
+                <label
+                  className="form-label"
+                  htmlFor={`div_name-${pot.id}`}
+                >
+                  Division
+                </label>
+                <input
+                  type="text"
+                  className="form-control"
+                  id={`div_name-${pot.id}`}                      
+                  name={`div_name-${pot.id}`}                  
+                  value={getDivName(pot.div_id, divs)}
+                  disabled
+                />
+              </div>
+              <div className="col-sm-3">
+                <label className="form-label" htmlFor={`potFee-${pot.id}`}>
+                  Fee
+                </label>
+                <EaCurrencyInput
+                  id={`potFee-${pot.id}`}                      
+                  name={`potFee-${pot.id}`}
+                  className={`form-control ${pot.fee_err && "is-invalid"}`}
+                  value={pot.fee}
+                  onValueChange={handleAmountValueChange(pot.id)}
+                />
+                <div
+                  className="text-danger"
+                  data-testid={`dangerPotFee${pot.sort_order}`}
+                >
+                  {pot.fee_err}
+                </div>
+              </div>
+              <div className="col-sm-3 d-flex justify-content-center align-items-start">
+                <button
+                  className="btn btn-danger mx-3"
+                  onClick={() => handleDelete(pot.id)}
+                >
+                  Delete Pot
+                </button>
+              </div>                            
             </div>
           </Tab>
         ))}

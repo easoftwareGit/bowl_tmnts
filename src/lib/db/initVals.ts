@@ -12,7 +12,7 @@ import {
   testDateType,
 } from "../types/types";
 import { User, Bowl, Tmnt } from "@prisma/client";
-import { startOfDayFromString, todayStr } from "@/lib/dateTools";
+import { todayStr } from "@/lib/dateTools";
 import { btDbUuid } from "../uuid";
 import { startOfToday } from "date-fns";
 
@@ -88,7 +88,9 @@ export const initTmnt: tmntType = {
 
 export const blankTmnt = {
   ...initTmnt,
-  id: "",
+  id: '',
+  start_date: startOfToday(),
+  end_date: startOfToday(),
 }
 
 export const initPrismaTmnt: Tmnt = {
@@ -104,7 +106,7 @@ export const initPrismaTmnt: Tmnt = {
 
 export const initEvent: eventType = {
   id: btDbUuid('evt'),  
-  tmnt_id: "1",
+  tmnt_id: "",
   tab_title: "Singles",
   event_name: "Singles",
   event_name_err: "",
@@ -216,8 +218,7 @@ export const initPot: potType = {
   div_id: "",
   squad_id: "",
   pot_type: "",
-  pot_type_err: "",
-  div_name: "",
+  pot_type_err: "",  
   div_err: "",
   fee: "",
   fee_err: "",
@@ -228,8 +229,6 @@ export const initPot: potType = {
 export const blankPot: potType = {
   ...initPot,
   id: "",
-  div_id: "",
-  squad_id: "",
 }
 
 export const defaultBrktGames = 3;
@@ -237,8 +236,7 @@ export const defaultBrktPlayers = 8;
 export const initBrkt: brktType = {
   id: btDbUuid('brk'),
   div_id: "",
-  squad_id: "",
-  div_name: "",
+  squad_id: "",  
   div_err: "",
   start: 1,
   start_err: "",
@@ -264,16 +262,13 @@ export const initBrkt: brktType = {
 export const blankBrkt: brktType = {
   ...initBrkt,
   id: "",
-  div_id: "",
-  squad_id: "",
 }
 
 export const defaultElimGames = 3;
 export const initElim: elimType = {
   id: btDbUuid('elm'),
   div_id: "",
-  squad_id: "",
-  div_name: "",
+  squad_id: "",  
   div_err: "",
   fee: "",
   fee_err: "",
@@ -288,31 +283,32 @@ export const initElim: elimType = {
 export const blankElim: elimType = {
   ...initElim,
   id: "",
-  div_id: "",
-  squad_id: "",
 }
 
 export const initEvents: eventType[] = [
   {
     ...initEvent,
+    id: btDbUuid('evt'),
   },
 ];
 
 export const initDivs: divType[] = [
   {
     ...initDiv,
+    id: btDbUuid('div'),
   },
 ];
 
 export const initSquads: squadType[] = [
   {
     ...initSquad,
+    id: btDbUuid('sqd'),
   },
 ];
 
 export const initLanes: laneType[] = [
   {
-    id: btDbUuid('lan'),
+    id: btDbUuid('lan'),    
     lane_number: 1,
     squad_id: "",
   },
@@ -323,26 +319,11 @@ export const initLanes: laneType[] = [
   },
 ];
 
-export const initPots: potType[] = [
-  {
-    ...initPot,
-  },
-];
+export const initPots: potType[] = [];
 
-// export const initPots: potType[] = [];
+export const initBrkts: brktType[] = [];
 
-
-export const initBrkts: brktType[] = [
-  {
-    ...initBrkt,
-  },
-];
-
-export const initElims: elimType[] = [
-  {
-    ...initElim,
-  },
-];
+export const initElims: elimType[] = [];
 
 export const initTestDate: testDateType = {
   id: 0,

@@ -1,6 +1,6 @@
 import { NextResponse, NextRequest } from "next/server";
 import { prisma } from "@/lib/prisma";
-import { validateEvent, sanitizeEvent } from "@/app/api/events/validate";
+import { validateEvent, sanitizeEvent, allEventMoneyValid } from "@/app/api/events/validate";
 import { ErrorCode } from "@/lib/validation";
 import { eventDataType, eventType } from "@/lib/types/types";
 import { initEvent } from "@/lib/db/initVals";
@@ -54,6 +54,9 @@ export async function POST(request: Request) {
       sort_order,
     }
 
+    if (!allEventMoneyValid(toCheck)) {
+      return NextResponse.json({ error: "invalid data" }, { status: 422 });
+    }
     const toPost = sanitizeEvent(toCheck);
     const errCode = validateEvent(toPost);
     if (errCode !== ErrorCode.None) {

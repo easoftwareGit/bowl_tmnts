@@ -2,7 +2,7 @@ export type roleTypes = "ADMIN" | "DIRECTOR" | "USER"
 
 export type idTypes = 'usr' | 'bwl' | 'tmt' | 'evt' | 'div' | 'sqd' | 'lan' | 'hdc' | 'pot' | 'brk' | 'elm' | 'ply'
 
-export type saveTypes = "POST" | "PUT"
+export type saveTypes = "CREATE" | "UPDATE"
 
 export type userType = {
   id: string
@@ -169,8 +169,7 @@ export type potType = {
   div_id: string,  
   squad_id: string,
   pot_type: PotCategories,
-  pot_type_err: string,  
-  div_name: string,  
+  pot_type_err: string,     
   div_err: string,
   fee: string,
   fee_err: string,
@@ -181,8 +180,7 @@ export type potType = {
 export type brktType = {
   id: string,
   div_id: string,  
-  squad_id: string,
-  div_name: string,  
+  squad_id: string,  
   div_err: string,
   start: number,  
   start_err: string,
@@ -208,8 +206,7 @@ export type brktType = {
 export type elimType = {
   id: string,
   div_id: string,  
-  squad_id: string,
-  div_name: string,  
+  squad_id: string,   
   div_err: string,
   start: number,
   start_err: string,
@@ -253,7 +250,9 @@ export type tmntPropsType = {
   elims: elimType[];
   setElims: (elims: elimType[]) => void;
   brkts: brktType[];
-  setBrkts: (brkts: brktType[]) => void;
+  setBrkts: (brkts: brktType[]) => void;  
+  showingModal: boolean;
+  setShowingModal: (showingModal: boolean) => void;
 }
 
 export type testDateType = {

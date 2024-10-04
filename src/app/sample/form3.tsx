@@ -56,18 +56,19 @@ const pets = [
 interface ChildProps {
   events: eventType[];
   setEvents: (events: eventType[]) => void;
-  pets: petType[],
-  setPets: (pets: petType[]) => void;  
+  // pets: petType[],
+  // setPets: (pets: petType[]) => void;  
 }
 
 export const Form3: React.FC<ChildProps> = ({
   events,
   setEvents,
-  pets,
-  setPets
+  // pets,
+  // setPets
 }) => {
   const [petId, setPetId] = useState(4);
   const [confModalObj, setConfModalObj] = useState(initModalObj);
+  const [pets, setPets] = useState<petType[]>([]);
 
   const handleAdd = () => {
     const newPet: petType = {

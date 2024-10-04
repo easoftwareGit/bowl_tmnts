@@ -105,6 +105,34 @@ export const mockSquadsToEdit: squadType[] = [
   },
 ]
 
+export const tmntToDelId = 'tmt_e134ac14c5234d708d26037ae812ac33'
+export const mockSquadsToPost: squadType[] = [
+  {
+    ...initSquad,    
+    id: 'sqd_20c24199328447f8bbe95c05e1b84645', // added 1 to last digit
+    squad_name: 'Test 1',
+    event_id: "evt_bd63777a6aee43be8372e4d008c1d6d0",    
+    squad_date: startOfDayFromString('2022-08-01') as Date, 
+    squad_time: '10:00 AM',
+    games: 6,
+    lane_count: 10, 
+    starting_lane: 11,
+    sort_order: 1,
+  },
+  {
+    ...initSquad,    
+    id: 'sqd_20c24199328447f8bbe95c05e1b84646', // added 2 to last digit
+    squad_name: 'Test 2',
+    event_id: "evt_bd63777a6aee43be8372e4d008c1d6d0",    
+    squad_date: startOfDayFromString('2022-08-01') as Date, 
+    squad_time: '03:00 PM',
+    games: 6,
+    lane_count: 12, 
+    starting_lane: 1,
+    sort_order: 1,
+  },
+]
+
 
 export const mockLanes: laneType[] = [
   {

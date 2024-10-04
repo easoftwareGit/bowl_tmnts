@@ -11,10 +11,11 @@ import {
   initSquads,
   initTmnt,
 } from "@/lib/db/initVals";
-import { startOfTodayUTC, dateTo_UTC_yyyyMMdd, todayStr } from '@/lib/dateTools';
+import { startOfTodayUTC, dateTo_UTC_yyyyMMdd } from '@/lib/dateTools';
 import { tmntPropsType } from '@/lib/types/types';
 import userEvent from '@testing-library/user-event';
 
+const showingModal = false;
 const mockSetTmnts = jest.fn();
 const mockSetEvents = jest.fn();
 const mockSetDivs = jest.fn();
@@ -23,6 +24,7 @@ const mockSetLanes = jest.fn();
 const mockSetPots = jest.fn();
 const mockSetBrkts = jest.fn();
 const mockSetElims = jest.fn();
+const mockSetShowingModal = jest.fn();
 
 describe('TmntDataForm - Component', () => { 
 
@@ -50,6 +52,8 @@ describe('TmntDataForm - Component', () => {
     setBrkts: mockSetBrkts,
     elims: initElims,
     setElims: mockSetElims,
+    showingModal,
+    setShowingModal: mockSetShowingModal
   };
 
   describe('render TmntDataForm - loading message', () => {

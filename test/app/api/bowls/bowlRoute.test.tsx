@@ -4,6 +4,7 @@ import { testBaseBowlsApi } from "../../../testApi";
 import { bowlType } from "@/lib/types/types";
 import { initBowl } from "@/lib/db/initVals";
 import { isValidBtDbId } from "@/lib/validation";
+import { btDbUuid } from "@/lib/uuid";
 
 // before running this test, run the following commands in the terminal:
 // 1) clear and re-seed the database
@@ -126,11 +127,11 @@ describe('Bowls - API: /api/bowls', () => {
       expect(response.status).toBe(201);
       const postedBowl = response.data.bowl;
       createdBowl = true;
+      expect(postedBowl.id).toBe(bowlToPost.id);
       expect(postedBowl.bowl_name).toBe(bowlToPost.bowl_name);
       expect(postedBowl.city).toBe(bowlToPost.city);
       expect(postedBowl.state).toBe(bowlToPost.state);
-      expect(postedBowl.url).toBe(bowlToPost.url);
-      expect(isValidBtDbId(postedBowl.id, 'bwl')).toBeTruthy();
+      expect(postedBowl.url).toBe(bowlToPost.url);      
     })
     it('should not create a new bowl with missing id', async () => {
       const invalidBowl = {
@@ -245,6 +246,7 @@ describe('Bowls - API: /api/bowls', () => {
     it('should create a new bowl with sanitized data', async () => {
       const toSanitizeBowl = {
         ...bowlToPost,
+        id: btDbUuid('bwl'),
         bowl_name: "  <script>" + bowlToPost.bowl_name + "</script>  ",
         city: "%3Cdiv%3E" + bowlToPost.city + "%3C/div%3E%20%3Cp%3E!%3C/p%3E",
         state: "***" + bowlToPost.state + " **** ",
@@ -259,11 +261,11 @@ describe('Bowls - API: /api/bowls', () => {
       const postedBowl = response.data.bowl;
       createdBowl = true;
       expect(response.status).toBe(201);
+      expect(postedBowl.id).toBe(toSanitizeBowl.id); // use the sanitized id
       expect(postedBowl.bowl_name).toBe(bowlToPost.bowl_name);
       expect(postedBowl.city).toBe(bowlToPost.city);
       expect(postedBowl.state).toBe(bowlToPost.state);
-      expect(postedBowl.url).toBe(bowlToPost.url);
-      expect(isValidBtDbId(postedBowl.id, 'bwl')).toBeTruthy();
+      expect(postedBowl.url).toBe(bowlToPost.url);      
     })
 
   })

@@ -19,9 +19,10 @@ import {
   noAcdnErr,
   objErrClassName,
 } from "./errors";
-import { getBrktOrElimName } from "@/lib/getName";
+import { getBrktOrElimName, getDivName } from "@/lib/getName";
 import { currRexEx, localConfig } from "@/lib/currency/const";
 import { formatValue2Dec } from "@/lib/currency/formatValue";
+import { btDbUuid } from "@/lib/uuid";
 
 interface ChildProps {
   brkts: brktType[];
@@ -29,6 +30,7 @@ interface ChildProps {
   divs: divType[];
   squads: squadType[];
   setAcdnErr: (objAcdnErr: AcdnErrType) => void;
+  setShowingModal: (showingModal: boolean) => void;
 }
 interface FeeProps {
   brkt: brktType;
@@ -43,9 +45,9 @@ interface NumberProps {
 
 const createBrktTitle = "Create Bracket";
 const duplicateBrktErrMsg = "Bracket - Division & Start already exists";
-const defaultTabKey = "brkt1";
 
 const getBrktErrMsg = (brkt: brktType): string => {
+  if (!brkt) return "";
   if (brkt.div_err) return brkt.div_err;
   if (brkt.start_err) return brkt.start_err;
   if (brkt.fee_err) return brkt.fee_err;
@@ -54,7 +56,8 @@ const getBrktErrMsg = (brkt: brktType): string => {
 
 const getNextBrktAcdnErrMsg = (
   updatedBrkt: brktType | null,
-  brkts: brktType[]
+  brkts: brktType[],
+  divs: divType[]
 ): string => {
   let errMsg = "";
   let acdnErrMsg = "";
@@ -64,11 +67,7 @@ const getNextBrktAcdnErrMsg = (
     brkt = brkts[i].id === updatedBrkt?.id ? updatedBrkt : brkts[i];
     errMsg = getBrktErrMsg(brkt);
     if (errMsg) {
-      const errTabTitle =
-        brkt.sort_order === 1
-          ? createBrktTitle
-          : getBrktOrElimName(brkt.id, brkts);
-      acdnErrMsg = getAcdnErrMsg(errTabTitle, errMsg);
+      acdnErrMsg = getAcdnErrMsg(getBrktOrElimName(brkt, divs), errMsg);
     }
     i++;
   }
@@ -78,6 +77,7 @@ const getNextBrktAcdnErrMsg = (
 export const validateBrkts = (
   brkts: brktType[],
   setBrkts: (brkts: brktType[]) => void,
+  divs: divType[],  
   setAcdnErr: (objAcdnErr: AcdnErrType) => void
 ): boolean => {
   let areBrktsValid = true;
@@ -99,29 +99,24 @@ export const validateBrkts = (
 
   setBrkts(
     brkts.map((brkt) => {
-      if (brkt.sort_order === 1) {
-        // no error checking for first bracket
-        return brkt;
-      } else {
-        feeErr = "";
-        brktErrClassName = "";
-        const feeNum = Number(brkt.fee);
-        if (typeof feeNum !== "number") {
-          feeErr = "Invalid Fee";
-        } else if (feeNum < minFee) {
-          feeErr = "Fee cannot be less than " + minFeeText;
-        } else if (feeNum > maxMoney) {
-          feeErr = "Fee cannot be more than " + maxMoneyText;
-        }
-        if (feeErr) {
-          setError(getBrktOrElimName(brkt.id, brkts), feeErr);
-        }
-        return {
-          ...brkt,
-          fee_err: feeErr,
-          errClassName: feeErr ? objErrClassName : "",
-        };
+      feeErr = "";
+      brktErrClassName = "";
+      const feeNum = Number(brkt.fee);
+      if (typeof feeNum !== "number") {
+        feeErr = "Invalid Fee";
+      } else if (feeNum < minFee) {
+        feeErr = "Fee cannot be less than " + minFeeText;
+      } else if (feeNum > maxMoney) {
+        feeErr = "Fee cannot be more than " + maxMoneyText;
       }
+      if (feeErr) {
+        setError(getBrktOrElimName(brkt, divs), feeErr);
+      }
+      return {
+        ...brkt,
+        fee_err: feeErr,
+        errClassName: feeErr ? objErrClassName : "",
+      };      
     })
   );
   if (areBrktsValid) {
@@ -136,186 +131,168 @@ const ZeroToNBrackets: React.FC<ChildProps> = ({
   divs,
   squads,
   setAcdnErr,
+  setShowingModal,
 }) => {
+
+  const defaultTabKey = 'createBrkt';
+
   const [modalObj, setModalObj] = useState(initModalObj);
   const [tabKey, setTabKey] = useState(defaultTabKey);
-  const [brktId, setBrktId] = useState(1); // id # used in initBrkts in form.tsx
+  const [sortOrder, setSortOrder] = useState(1); 
+  const [createBrkt, setCreateBrkt] = useState(initBrkt);
 
   const maxStartGame = squads[0].games - (defaultBrktGames - 1);
 
-  const validNewBrkt = (newBrkt: brktType) => {
+  const validNewBrkt = () => {
+    const newBrkt = {...createBrkt};
     let isBrktValid = true;
     let startErr = "";
     let divErr = "";
-    let feeErr = "";
-    let brktErrClassName = "";
-
-    const setError = (errMsg: string) => {
-      if (isBrktValid) {
-        setAcdnErr({
-          errClassName: acdnErrClassName,
-          message: getAcdnErrMsg(createBrktTitle, errMsg),
-        });
-      }
-      isBrktValid = false;
-      brktErrClassName = objErrClassName;
-    };
+    let feeErr = "";    
 
     if (newBrkt.start < 1) {
       startErr = "Start cannot be less than 1";
-      setError(startErr);
+      isBrktValid = false;
     } else if (newBrkt.start > maxStartGame) {
       startErr = "Start cannot be more than " + maxStartGame;
-      setError(startErr);
+      isBrktValid = false;
     }
-    if (newBrkt.div_name === "") {
+    if (newBrkt.div_id === "") {
       divErr = "Division is required";
-      setError(divErr);
+      isBrktValid = false;
     }
     const feeNum = Number(newBrkt.fee);
     if (typeof feeNum !== "number") {
       feeErr = "Invalid Fee";
-      setError(feeErr);
+      isBrktValid = false;
     } else if (feeNum < minFee) {
       feeErr = "Fee cannot be less than " + minFeeText;
-      setError(feeErr);
+      isBrktValid = false;
     } else if (feeNum > maxMoney) {
       feeErr = "Fee cannot be more than " + maxMoneyText;
-      setError(feeErr);
+      isBrktValid = false;
     }
 
-    if (isBrktValid) {
-      // DO NOT check brkt with ID 1
-      const brktsToCheck = brkts.filter((brkt) => brkt.id !== "1");
-      const duplicateBrkt = brktsToCheck.find(
-        (brkt) => brkt.start === newBrkt.start && brkt.div_id === newBrkt.div_id          
+    if (isBrktValid) {      
+      const duplicateBrkt = brkts.find(
+        (brkt) => brkt.start === newBrkt.start && brkt.div_id === newBrkt.div_id
       );
       if (duplicateBrkt) {
         startErr = duplicateBrktErrMsg;
-        setError(startErr);
+        isBrktValid = false;
       }
     }
 
-    setBrkts(
-      brkts.map((brkt) => {
-        if (brkt.id === newBrkt.id) {
-          return {
-            ...newBrkt,
-            start_err: startErr,
-            div_err: divErr,
-            fee_err: feeErr,
-            errClassName: brktErrClassName,
-          };
-        }
-        return brkt;
-      })
-    );
-
-    if (isBrktValid) {
-      setAcdnErr(noAcdnErr);
-    }
+    setCreateBrkt({
+      ...newBrkt,      
+      start_err: startErr,
+      div_err: divErr,
+      fee_err: feeErr,
+    })
 
     return isBrktValid;
   };
 
   const handleAdd = (e: React.FormEvent) => {
     e.preventDefault();
-    if (validNewBrkt(brkts[0])) {
+    if (validNewBrkt()) {
       const newBrkt = {
-        ...brkts[0],
-        id: "" + (brktId + 1),
-        start: brkts[0].start,
-        div_id: brkts[0].div_id,
-        div_name: brkts[0].div_name,
-        fee: brkts[0].fee,
-        sort_order: brktId + 1,
+        ...createBrkt,
+        id: btDbUuid('brk'),
       };
-      setBrktId(brktId + 1);
-
+      // add new brkt
       const mappedBrkts = brkts.map((brkt) => ({ ...brkt }));
-      mappedBrkts[0] = {
-        ...initBrkt,
-      }
       mappedBrkts.push(newBrkt);
       setBrkts(mappedBrkts);
-
-      // const updatedBrkts = structuredClone(brkts);
-      // updatedBrkts[0] = {
-      //   ...initBrkt,
-      // };
-      // updatedBrkts.push(newBrkt);
-      // setBrkts(updatedBrkts);
+      // update sort order for next new brkt
+      setCreateBrkt({
+        ...createBrkt,
+        sort_order: sortOrder + 1,
+      });            
+      setSortOrder(sortOrder + 1);
     }
   };
 
   const confirmedDelete = () => {
+    setShowingModal(false);
     setModalObj(initModalObj); // reset modal object (hides modal)
     const updatedData = brkts.filter((brkt) => brkt.id !== modalObj.id);
     setBrkts(updatedData);
-    setTabKey(defaultTabKey); // refocus 1st pot
+    setTabKey(defaultTabKey); // refocus create brkt
   };
 
   const canceledDelete = () => {
+    setShowingModal(false);
     setModalObj(initModalObj); // reset modal object (hides modal)
   };
 
   const handleDelete = (id: string) => {
-    const brktToDel = brkts.find((brkt) => brkt.id === id);
-    // if did not find brkt OR first brkt (1st brkt used for creating new brkts)
-    if (!brktToDel || brktToDel.sort_order === 1) return;
-
-    const toDelName = getBrktOrElimName(id, brkts);
+    const brktToDel = brkts.find((brkt) => brkt.id === id);    
+    if (!brktToDel) return;
+    const toDelName = getBrktOrElimName(brktToDel, divs);
+    setShowingModal(true);
     setModalObj({
       show: true,
       title: delConfTitle,
       message: `Do you want to delete Bracket: ${toDelName}?`,
       id: id,
-    });
+    }); // deletion done in confirmedDelete
   };
 
-  const handleInputChange = (e: ChangeEvent<HTMLInputElement>) => {
-    const { id, value } = e.target;
+  const handleCreateBrktInputChange = (e: ChangeEvent<HTMLInputElement>) => {
+    const { id, name, value } = e.target;
     const ids = id.split("-");
-    const name = ids[0];
-
-    // only brkts[0] has editable div_name and start
+    
     let updatedBrkt: brktType;
-
-    if (name === "div_name") {
+    if (name === 'brktsDivRadio') {
+      const parentId = ids[1];      
       updatedBrkt = {
-        ...brkts[0],
-        div_name: ids[2],
-        div_id: ids[1],
+        ...createBrkt,        
+        div_id: parentId, 
         div_err: "",
       };
-      if (brkts[0].div_err === duplicateBrktErrMsg) {
+      if (createBrkt.div_err === duplicateBrktErrMsg) {
         updatedBrkt.div_err = "";
       }
     } else {
       updatedBrkt = {
-        ...brkts[0],
+        ...createBrkt,
         start: Number(value),
         start_err: "",
       };
     }
-    updatedBrkt.errClassName = "";
-    const acdnErrMsg = getNextBrktAcdnErrMsg(updatedBrkt, brkts);
-    if (acdnErrMsg) {
-      setAcdnErr({
-        errClassName: acdnErrClassName,
-        message: acdnErrMsg,
-      });
-    } else {
-      setAcdnErr(noAcdnErr);
+    setCreateBrkt(updatedBrkt);
+  };
+
+  const handlCreateBrktAmountValueChange = (id: string) => (value: string | undefined): void => {
+    let rawValue = value === undefined ? "undefined" : value;
+    rawValue = rawValue || " ";
+    if (rawValue && Number.isNaN(Number(rawValue))) {
+      rawValue = "";
     }
-    setBrkts(
-      brkts.map((brkt) => {
-        if (brkt.id === updatedBrkt.id) {
-          return updatedBrkt;
-        }
-        return brkt;
-      })
-    );
+    let updatedBrkt: brktType = {
+      ...createBrkt,
+      fee: rawValue,
+      fee_err: "",
+      errClassName: "",
+    };
+    setCreateBrkt(updatedBrkt);
+  };
+
+  const handleCreateBrktBlur = (id: string) => (e: ChangeEvent<HTMLInputElement>) => {
+    const { name, value } = e.target;
+    if (value) {
+      const temp_brkt = updateFSA(createBrkt, value);
+      setCreateBrkt(temp_brkt);
+    }
+
+    if (!value.trim()) {
+      // if cleared entry
+      const temp_brkt = updateFSA(createBrkt, value);
+      temp_brkt.fee = "";
+      temp_brkt.fee_err = "";
+      setCreateBrkt(temp_brkt);
+    }
   };
 
   const handleAmountValueChange = (id: string) => (value: string | undefined): void => {
@@ -335,7 +312,7 @@ const ZeroToNBrackets: React.FC<ChildProps> = ({
               fee_err: "",
               errClassName: "",
             };
-            const acdnErrMsg = getNextBrktAcdnErrMsg(updatedBrkt, brkts);
+            const acdnErrMsg = getNextBrktAcdnErrMsg(updatedBrkt, brkts, divs);
             if (acdnErrMsg) {
               setAcdnErr({
                 errClassName: acdnErrClassName,
@@ -515,250 +492,249 @@ const ZeroToNBrackets: React.FC<ChildProps> = ({
         activeKey={tabKey}
         onSelect={handleTabSelect}
       >
+        <Tab
+          key="createBrkt"
+          eventKey="createBrkt"
+          title={createBrktTitle}
+        >
+          <div className="row g-3 mb-3">
+            <div className="col-sm-2">
+              <label className="form-label">
+                Division
+              </label>
+              {divs.map((div) => (
+                <div key={div.id} className="form-check text-break">
+                  <input
+                    className="form-check-input"
+                    type="radio"
+                    name="brktsDivRadio"
+                    id={`div_name-${div.id}-${div.div_name}-brkts`}
+                    checked={createBrkt.div_id === div.id}
+                    onChange={handleCreateBrktInputChange}
+                  />
+                  <label
+                    className="form-check-label"
+                    htmlFor={`div_name-${div.id}-${div.div_name}-brkts`}
+                  >
+                    {div.div_name}
+                  </label>
+                </div>
+              ))}
+              <div
+                className="text-danger"
+                data-testid="dangerBrktDivRadio"
+              >
+                {createBrkt.div_err}
+              </div>
+            </div>
+            <div className="col-sm-8">
+              <div className="row mb-3">
+                <div className="col-sm-3">
+                  <label
+                    htmlFor={`inputBrktFee${createBrkt.id}`}
+                    className="form-label"
+                  >
+                    Fee
+                  </label>
+                  <EaCurrencyInput
+                    id={`inputBrktFee${createBrkt.id}`}
+                    name="fee"
+                    className={`form-control ${
+                      createBrkt.fee_err && "is-invalid"
+                    }`}
+                    value={createBrkt.fee}
+                    onValueChange={handlCreateBrktAmountValueChange(createBrkt.id)}
+                    onBlur={handleCreateBrktBlur(createBrkt.id)}                            
+                  />
+                  <div
+                    className="text-danger"
+                    data-testid="dangerCreateBrktFee"
+                  >
+                    {createBrkt.fee_err}
+                  </div>
+                </div>
+                <div className="col-sm-3">
+                  <label
+                    htmlFor={`inputBrktStart${createBrkt.id}`}
+                    className="form-label"
+                  >
+                    Start
+                  </label>
+                  <input
+                    type="number"
+                    id={`inputBrktStart${createBrkt.id}`}
+                    name="start"
+                    placeholder="#"
+                    step={1}
+                    className={`form-control ${
+                      createBrkt.start_err && "is-invalid"
+                    }`}
+                    onChange={handleCreateBrktInputChange}
+                    value={createBrkt.start}
+                  />
+                  <div
+                    className="text-danger"
+                    data-testid="dangerCreateBrktStart"
+                  >
+                    {createBrkt.start_err}
+                  </div>
+                </div>
+                <NumberEntry
+                  brkt={createBrkt}
+                  LabelText="Games"
+                  property="games"
+                  value={createBrkt.games}
+                />
+                <NumberEntry
+                  brkt={createBrkt}
+                  LabelText="Players"
+                  property="players"
+                  value={createBrkt.players}
+                />
+              </div>
+              <div className="row">
+                <MoneyDisabled
+                  brkt={createBrkt}
+                  LabelText="First"
+                  property="first"
+                  value={createBrkt.first}
+                />
+                <MoneyDisabled
+                  brkt={createBrkt}
+                  LabelText="Second"
+                  property="second"
+                  value={createBrkt.second}
+                />
+                <MoneyDisabled
+                  brkt={createBrkt}
+                  LabelText="Admin"
+                  property="admin"
+                  value={createBrkt.admin}
+                />
+                <MoneyDisabled
+                  brkt={createBrkt}
+                  LabelText="F+S+A"
+                  property="fsa"
+                  value={createBrkt.fsa}
+                  title="First + Second + Admin must equal Fee * Players"
+                />
+              </div>
+            </div>
+            <div className="col-sm-2 d-flex justify-content-center align-items-start">
+              <button
+                className="btn btn-success mx-3"
+                onClick={handleAdd}
+              >
+                Add Bracket
+              </button>
+            </div>
+          </div>
+        </Tab>
         {brkts.map((brkt) => (
           <Tab
             key={brkt.id}
             eventKey={`brkt${brkt.id}`}
-            title={
-              brkt.sort_order === 1
-                ? createBrktTitle
-                : getBrktOrElimName(brkt.id, brkts)
-            }
+            title={getBrktOrElimName(brkt, divs)}
             tabClassName={`${brkt.errClassName}`}
           >
-            <div className="row g-3 mb-3">
-              {brkt.sort_order === 1 ? (
-                <>
-                  <div className="col-sm-2">
-                    <label className="form-label">Division</label>
-                    {divs.map((div) => (
-                      <div key={div.id} className="form-check text-break">
-                        <input
-                          className="form-check-input"
-                          type="radio"
-                          name="brktsDivRadio"
-                          id={`div_name-${div.id}-${div.div_name}-brkts`}
-                          checked={brkts[0].div_name === div.div_name}
-                          onChange={handleInputChange}
-                        />
-                        <label
-                          className="form-check-label"
-                          htmlFor={`div_name-${div.id}-${div.div_name}-brkts`}
-                        >
-                          {div.div_name}
-                        </label>
-                      </div>
-                    ))}
-                    <div
-                      className="text-danger"
-                      data-testid="dangerBrktDivRadio"
-                    >
-                      {brkt.div_err}
-                    </div>
-                  </div>
-                  <div className="col-sm-8">
-                    <div className="row mb-3">
-                      <div className="col-sm-3">
-                        <label
-                          htmlFor={`inputBrktFee${brkt.id}`}
-                          className="form-label"
-                        >
-                          Fee
-                        </label>
-                        <EaCurrencyInput
-                          id={`inputBrktFee${brkt.id}`}
-                          name="fee"
-                          className={`form-control ${
-                            brkt.fee_err && "is-invalid"
-                          }`}
-                          value={brkt.fee}
-                          onValueChange={handleAmountValueChange(brkt.id)}
-                          onBlur={handleBlur(brkt.id)}                            
-                        />
-                        <div
-                          className="text-danger"
-                          data-testid="dangerCreateBrktFee"
-                        >
-                          {brkt.fee_err}
-                        </div>
-                      </div>
-                      <div className="col-sm-3">
-                        <label
-                          htmlFor={`inputBrktStart${brkt.id}`}
-                          className="form-label"
-                        >
-                          Start
-                        </label>
-                        <input
-                          type="number"
-                          id={`inputBrktStart${brkt.id}`}
-                          name="start"
-                          placeholder="#"
-                          step={1}
-                          className={`form-control ${
-                            brkt.start_err && "is-invalid"
-                          }`}
-                          onChange={handleInputChange}
-                          value={brkt.start}
-                        />
-                        <div
-                          className="text-danger"
-                          data-testid="dangerCreateBrktStart"
-                        >
-                          {brkt.start_err}
-                        </div>
-                      </div>
-                      <NumberEntry
-                        brkt={brkt}
-                        LabelText="Games"
-                        property="games"
-                        value={brkt.games}
-                      />
-                      <NumberEntry
-                        brkt={brkt}
-                        LabelText="Players"
-                        property="players"
-                        value={brkt.players}
-                      />
-                    </div>
-                    <div className="row">
-                      <MoneyDisabled
-                        brkt={brkt}
-                        LabelText="First"
-                        property="first"
-                        value={brkt.first}
-                      />
-                      <MoneyDisabled
-                        brkt={brkt}
-                        LabelText="Second"
-                        property="second"
-                        value={brkt.second}
-                      />
-                      <MoneyDisabled
-                        brkt={brkt}
-                        LabelText="Admin"
-                        property="admin"
-                        value={brkt.admin}
-                      />
-                      <MoneyDisabled
-                        brkt={brkt}
-                        LabelText="F+S+A"
-                        property="fsa"
-                        value={brkt.fsa}
-                        title="First + Second + Admin must equal Fee * Players"
-                      />
-                    </div>
-                  </div>
-                  <div className="col-sm-2 d-flex justify-content-center align-items-start">
-                    <button
-                      className="btn btn-success mx-3"
-                      onClick={handleAdd}
-                    >
-                      Add Bracket
-                    </button>
-                  </div>
-                </>
-              ) : (
-                <>
-                  <div className="col-sm-2">
+            <div className="row g-3 mb-3">                
+              <div className="col-sm-2">
+                <label
+                  className="form-label"
+                  htmlFor={`brkt_div-${brkt.id}`}
+                >
+                  Division
+                </label>
+                <input
+                  type="text"
+                  className="form-control"
+                  id={`brkt_div-${brkt.id}`}
+                  name="div_name"                  
+                  value={getDivName(brkt.div_id, divs)}
+                  disabled
+                />
+              </div>
+              <div className="col-sm-8">
+                <div className="row mb-3">
+                  <div className="col-sm-3">
                     <label
+                      htmlFor={`inputBrktFee${brkt.id}`}
                       className="form-label"
-                      htmlFor={`brkt_div-${brkt.id}`}
                     >
-                      Division
+                      Fee
                     </label>
-                    <input
-                      type="text"
-                      className="form-control"
-                      id={`brkt_div-${brkt.id}`}
-                      name="div_name"
-                      value={brkt.div_name}
-                      disabled
+                    <EaCurrencyInput
+                      id={`inputBrktFee${brkt.id}`}
+                      name="fee"
+                      className={`form-control ${
+                        brkt.fee_err && "is-invalid"
+                      }`}
+                      value={brkt.fee}
+                      onValueChange={handleAmountValueChange(brkt.id)}
+                      onBlur={handleBlur(brkt.id)}
                     />
-                  </div>
-                  <div className="col-sm-8">
-                    <div className="row mb-3">
-                      <div className="col-sm-3">
-                        <label
-                          htmlFor={`inputBrktFee${brkt.id}`}
-                          className="form-label"
-                        >
-                          Fee
-                        </label>
-                        <EaCurrencyInput
-                          id={`inputBrktFee${brkt.id}`}
-                          name="fee"
-                          className={`form-control ${
-                            brkt.fee_err && "is-invalid"
-                          }`}
-                          value={brkt.fee}
-                          onValueChange={handleAmountValueChange(brkt.id)}
-                          onBlur={handleBlur(brkt.id)}
-                        />
-                        <div
-                          className="text-danger"                            
-                          data-testid={`dangerBrktFee${brkt.sort_order}`}
-                        >
-                          {brkt.fee_err}
-                        </div>
-                      </div>
-                      <NumberEntry
-                        brkt={brkt}
-                        LabelText="Start"
-                        property="start"
-                        value={brkt.start}
-                      />
-                      <NumberEntry
-                        brkt={brkt}
-                        LabelText="Games"
-                        property="games"
-                        value={brkt.games}
-                      />
-                      <NumberEntry
-                        brkt={brkt}
-                        LabelText="Players"
-                        property="players"
-                        value={brkt.players}
-                      />
-                    </div>
-                    <div className="row">
-                      <MoneyDisabled
-                        brkt={brkt}
-                        LabelText="First"
-                        property="first"
-                        value={brkt.first}
-                      />
-                      <MoneyDisabled
-                        brkt={brkt}
-                        LabelText="Second"
-                        property="second"
-                        value={brkt.second}
-                      />
-                      <MoneyDisabled
-                        brkt={brkt}
-                        LabelText="Admin"
-                        property="admin"
-                        value={brkt.admin}
-                      />
-                      <MoneyDisabled
-                        brkt={brkt}
-                        LabelText="F+S+A"
-                        property="fsa"
-                        value={brkt.fsa}
-                        title="First + Second + Admin must equal Fee * Players"
-                      />
-                    </div>
-                  </div>
-                  <div className="col-sm-2 d-flex justify-content-center align-items-start">
-                    <button
-                      className="btn btn-danger mx-3"
-                      onClick={() => handleDelete(brkt.id)}
+                    <div
+                      className="text-danger"                            
+                      data-testid={`dangerBrktFee${brkt.sort_order}`}
                     >
-                      Delete Bracket
-                    </button>
+                      {brkt.fee_err}
+                    </div>
                   </div>
-                </>
-              )}
+                  <NumberEntry
+                    brkt={brkt}
+                    LabelText="Start"
+                    property="start"
+                    value={brkt.start}
+                  />
+                  <NumberEntry
+                    brkt={brkt}
+                    LabelText="Games"
+                    property="games"
+                    value={brkt.games}
+                  />
+                  <NumberEntry
+                    brkt={brkt}
+                    LabelText="Players"
+                    property="players"
+                    value={brkt.players}
+                  />
+                </div>
+                <div className="row">
+                  <MoneyDisabled
+                    brkt={brkt}
+                    LabelText="First"
+                    property="first"
+                    value={brkt.first}
+                  />
+                  <MoneyDisabled
+                    brkt={brkt}
+                    LabelText="Second"
+                    property="second"
+                    value={brkt.second}
+                  />
+                  <MoneyDisabled
+                    brkt={brkt}
+                    LabelText="Admin"
+                    property="admin"
+                    value={brkt.admin}
+                  />
+                  <MoneyDisabled
+                    brkt={brkt}
+                    LabelText="F+S+A"
+                    property="fsa"
+                    value={brkt.fsa}
+                    title="First + Second + Admin must equal Fee * Players"
+                  />
+                </div>
+              </div>
+              <div className="col-sm-2 d-flex justify-content-center align-items-start">
+                <button
+                  className="btn btn-danger mx-3"
+                  onClick={() => handleDelete(brkt.id)}
+                >
+                  Delete Bracket
+                </button>
+              </div>            
             </div>
           </Tab>
         ))}

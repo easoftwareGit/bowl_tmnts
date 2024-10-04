@@ -4,7 +4,7 @@ import { testBaseEventsApi } from "../../../testApi";
 import { eventType } from "@/lib/types/types";
 import { initEvent } from "@/lib/db/initVals";
 import { Event } from "@prisma/client";
-import { isValidBtDbId } from "@/lib/validation";
+import { btDbUuid } from "@/lib/uuid";
 
 // before running this test, run the following commands in the terminal:
 // 1) clear and re-seed the database
@@ -160,6 +160,7 @@ describe('Events - GETs and POST API: /api/events', () => {
       expect(response.status).toBe(201);
       const postedEvent = response.data.event;
       createdEvent = true;
+      expect(postedEvent.id).toEqual(eventToPost.id);
       expect(postedEvent.tmnt_id).toEqual(eventToPost.tmnt_id);
       expect(postedEvent.event_name).toEqual(eventToPost.event_name);
       expect(postedEvent.team_size).toEqual(eventToPost.team_size);
@@ -170,8 +171,52 @@ describe('Events - GETs and POST API: /api/events', () => {
       expect(postedEvent.other).toEqual(eventToPost.other);
       expect(postedEvent.expenses).toEqual(eventToPost.expenses);
       expect(postedEvent.added_money).toEqual(eventToPost.added_money);
-      expect(postedEvent.sort_order).toEqual(eventToPost.sort_order);      
-      expect(isValidBtDbId(postedEvent.id, 'evt')).toBeTruthy();
+      expect(postedEvent.sort_order).toEqual(eventToPost.sort_order);            
+    })
+    it('should create a new event when added money is blank', async () => { 
+      const validEvent = {
+        ...eventToPost,
+        added_money: '',
+      }
+      const eventJSON = JSON.stringify(validEvent);
+      const response = await axios({
+        method: "post",
+        data: eventJSON,
+        withCredentials: true,
+        url: url,
+      });
+      expect(response.status).toBe(201);
+      const postedEvent = response.data.event;
+      createdEvent = true;
+      expect(postedEvent.added_money).toEqual('0');
+    })
+    it('should create a new event when all money fields are blank', async () => { 
+      const validEvent = {
+        ...eventToPost,
+        added_money: '',
+        entry_fee: '',
+        lineage: '',
+        other: '',
+        prize_fund: '',
+        expenses: '',
+        lpox: '',
+      }
+      const eventJSON = JSON.stringify(validEvent);
+      const response = await axios({
+        method: "post",
+        data: eventJSON,
+        withCredentials: true,
+        url: url,
+      });
+      expect(response.status).toBe(201);
+      const postedEvent = response.data.event;
+      createdEvent = true;
+      expect(postedEvent.entry_fee).toEqual('0');
+      expect(postedEvent.lineage).toEqual('0');
+      expect(postedEvent.prize_fund).toEqual('0');
+      expect(postedEvent.other).toEqual('0');
+      expect(postedEvent.expenses).toEqual('0');
+      expect(postedEvent.added_money).toEqual('0');
     })
     it('should NOT create a new event when ID is blank', async () => { 
       const invalidEvent = {
@@ -283,29 +328,7 @@ describe('Events - GETs and POST API: /api/events', () => {
         }
       }
     })
-    it('should NOT create a new event when added money is blank', async () => { 
-      const invalidEvent = {
-        ...eventToPost,
-        added_money: '',
-      }
-      const eventJSON = JSON.stringify(invalidEvent);
-      try {
-        const response = await axios({
-          method: "post",
-          data: eventJSON,
-          withCredentials: true,
-          url: url,
-        });
-        expect(response.status).toBe(422);
-      } catch (err) {
-        if (err instanceof AxiosError) {
-          expect(err.response?.status).toBe(422);
-        } else {
-          expect(true).toBeFalsy();
-        }
-      }
-    })
-    it('should NOT create a new event when entry fee is blank', async () => { 
+    it('should NOT create a new event when entry fee is blank (entry_fee !== lpox)', async () => { 
       const invalidEvent = {
         ...eventToPost,
         entry_fee: '',
@@ -327,7 +350,7 @@ describe('Events - GETs and POST API: /api/events', () => {
         }
       }
     })
-    it('should NOT create a new event when lineage is blank', async () => { 
+    it('should NOT create a new event when lineage is blank (entry_fee !== lpox)', async () => { 
       const invalidEvent = {
         ...eventToPost,
         lineage: '',
@@ -349,7 +372,7 @@ describe('Events - GETs and POST API: /api/events', () => {
         }
       }
     })
-    it('should NOT create a new event when prize fund is blank', async () => { 
+    it('should NOT create a new event when prize fund is blank (entry_fee !== lpox)', async () => { 
       const invalidEvent = {
         ...eventToPost,
         prize_fund: '',
@@ -371,7 +394,7 @@ describe('Events - GETs and POST API: /api/events', () => {
         }
       }
     })
-    it('should NOT create a new event when other is blank', async () => { 
+    it('should NOT create a new event when other is blank (entry_fee !== lpox)', async () => { 
       const invalidEvent = {
         ...eventToPost,
         other: '',
@@ -393,7 +416,7 @@ describe('Events - GETs and POST API: /api/events', () => {
         }
       }
     })
-    it('should NOT create a new event when expenses is blank', async () => { 
+    it('should NOT create a new event when expenses is blank (entry_fee !== lpox)', async () => { 
       const invalidEvent = {
         ...eventToPost,
         expenses: '',
@@ -415,7 +438,7 @@ describe('Events - GETs and POST API: /api/events', () => {
         }
       }
     })
-    it('should NOT create a new event when lpox is blank', async () => { 
+    it('should NOT create a new event when lpox is blank (entry_fee !== lpox)', async () => { 
       const invalidEvent = {
         ...eventToPost,
         lpox: '',
@@ -767,6 +790,28 @@ describe('Events - GETs and POST API: /api/events', () => {
         }
       }
     })
+    it('should NOT create a new event when added money is a number not a string', async () => {
+      const invalidEvent = {
+        ...eventToPost,
+        added_money: 500 as any,
+      }
+      const eventJSON = JSON.stringify(invalidEvent);
+      try {
+        const response = await axios({
+          method: "post",
+          data: eventJSON,
+          withCredentials: true,
+          url: url,
+        });
+        expect(response.status).toBe(422);
+      } catch (err) {
+        if (err instanceof AxiosError) {
+          expect(err.response?.status).toBe(422);
+        } else {
+          expect(true).toBeFalsy();
+        }
+      }
+    })
     it('should NOT create a new event when added money is not a number', async () => {
       const invalidEvent = {
         ...eventToPost,
@@ -815,6 +860,28 @@ describe('Events - GETs and POST API: /api/events', () => {
       const invalidEvent = {
         ...eventToPost,
         added_money: '1234567',
+      }
+      const eventJSON = JSON.stringify(invalidEvent);
+      try {
+        const response = await axios({
+          method: "post",
+          data: eventJSON,
+          withCredentials: true,
+          url: url,
+        });
+        expect(response.status).toBe(422);
+      } catch (err) {
+        if (err instanceof AxiosError) {
+          expect(err.response?.status).toBe(422);
+        } else {
+          expect(true).toBeFalsy();
+        }
+      }
+    })
+    it('should NOT create a new event when entry fee is a number not a string', async () => {
+      const invalidEvent = {
+        ...eventToPost,
+        entry_fee: 100 as any,
       }
       const eventJSON = JSON.stringify(invalidEvent);
       try {
@@ -899,6 +966,28 @@ describe('Events - GETs and POST API: /api/events', () => {
         }
       }
     })
+    it('should NOT create a new event when lineage is a number not a string', async () => {
+      const invalidEvent = {
+        ...eventToPost,
+        lineage: 20 as any,
+      }
+      const eventJSON = JSON.stringify(invalidEvent);
+      try {
+        const response = await axios({
+          method: "post",
+          data: eventJSON,
+          withCredentials: true,
+          url: url,
+        });
+        expect(response.status).toBe(422);
+      } catch (err) {
+        if (err instanceof AxiosError) {
+          expect(err.response?.status).toBe(422);
+        } else {
+          expect(true).toBeFalsy();
+        }
+      }
+    })
     it('should NOT create a new event when lineage is not a number', async () => {
       const invalidEvent = {
         ...eventToPost,
@@ -947,6 +1036,28 @@ describe('Events - GETs and POST API: /api/events', () => {
       const invalidEvent = {
         ...eventToPost,
         lineage: '1234567',
+      }
+      const eventJSON = JSON.stringify(invalidEvent);
+      try {
+        const response = await axios({
+          method: "post",
+          data: eventJSON,
+          withCredentials: true,
+          url: url,
+        });
+        expect(response.status).toBe(422);
+      } catch (err) {
+        if (err instanceof AxiosError) {
+          expect(err.response?.status).toBe(422);
+        } else {
+          expect(true).toBeFalsy();
+        }
+      }
+    })
+    it('should NOT create a new event when prize_fund is a number not a string', async () => {
+      const invalidEvent = {
+        ...eventToPost,
+        prize_fund: 75 as any,
       }
       const eventJSON = JSON.stringify(invalidEvent);
       try {
@@ -1031,6 +1142,28 @@ describe('Events - GETs and POST API: /api/events', () => {
         }
       }
     })
+    it('should NOT create a new event when other is a number not a string', async () => {
+      const invalidEvent = {
+        ...eventToPost,
+        other: 2 as any,
+      }
+      const eventJSON = JSON.stringify(invalidEvent);
+      try {
+        const response = await axios({
+          method: "post",
+          data: eventJSON,
+          withCredentials: true,
+          url: url,
+        });
+        expect(response.status).toBe(422);
+      } catch (err) {
+        if (err instanceof AxiosError) {
+          expect(err.response?.status).toBe(422);
+        } else {
+          expect(true).toBeFalsy();
+        }
+      }
+    })
     it('should NOT create a new event when other is not a number', async () => {
       const invalidEvent = {
         ...eventToPost,
@@ -1079,6 +1212,28 @@ describe('Events - GETs and POST API: /api/events', () => {
       const invalidEvent = {
         ...eventToPost,
         other: '1234567',
+      }
+      const eventJSON = JSON.stringify(invalidEvent);
+      try {
+        const response = await axios({
+          method: "post",
+          data: eventJSON,
+          withCredentials: true,
+          url: url,
+        });
+        expect(response.status).toBe(422);
+      } catch (err) {
+        if (err instanceof AxiosError) {
+          expect(err.response?.status).toBe(422);
+        } else {
+          expect(true).toBeFalsy();
+        }
+      }
+    })
+    it('should NOT create a new event when expenses is a number not a string', async () => {
+      const invalidEvent = {
+        ...eventToPost,
+        expenses: 10 as any,
       }
       const eventJSON = JSON.stringify(invalidEvent);
       try {
@@ -1368,6 +1523,7 @@ describe('Events - GETs and POST API: /api/events', () => {
     it('should create a new event with sanitized event name', async () => {
       const validEvent = {
         ...eventToPost,
+        id: btDbUuid('evt'),
         event_name: '<script>' + eventToPost.event_name + '</script>',
       }
       const eventJSON = JSON.stringify(validEvent);
@@ -1380,6 +1536,7 @@ describe('Events - GETs and POST API: /api/events', () => {
       const postedEvent = response.data.event;      
       expect(response.status).toBe(201);
       createdEvent = true
+      expect(postedEvent.id).toEqual(validEvent.id); // use validEvent.id
       expect(postedEvent.tmnt_id).toEqual(eventToPost.tmnt_id);
       expect(postedEvent.event_name).toEqual(eventToPost.event_name);
       expect(postedEvent.team_size).toEqual(eventToPost.team_size);
@@ -1390,8 +1547,7 @@ describe('Events - GETs and POST API: /api/events', () => {
       expect(postedEvent.other).toEqual(eventToPost.other);
       expect(postedEvent.expenses).toEqual(eventToPost.expenses);
       expect(postedEvent.added_money).toEqual(eventToPost.added_money);
-      expect(postedEvent.sort_order).toEqual(eventToPost.sort_order);
-      expect(isValidBtDbId(postedEvent.id, 'evt')).toBeTruthy();
+      expect(postedEvent.sort_order).toEqual(eventToPost.sort_order);      
     })  
     
   })

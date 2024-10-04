@@ -16,6 +16,19 @@ import { blankEvent } from "@/lib/db/initVals";
 import { isNumber } from "@/lib/validation";
 
 /**
+ * checks if money string is valid - blank value is valid
+ * valid formats are: ###.##, ##.#, ####
+ * 
+ * @param {string} moneyStr - money string to check
+ * @returns - true if money string is valid
+ */
+const gotEventMoney = (moneyStr: string): boolean => {
+  // a blank value for event money is OK
+  if (moneyStr === "") return true
+  return validMoney(moneyStr, Number.MIN_SAFE_INTEGER, Number.MAX_SAFE_INTEGER);
+}
+
+/**
  * checks if event object has missing data - DOES NOT SANITIZE OR VALIDATE
  *
  * @param event - event to check for missing data
@@ -29,14 +42,14 @@ const gotEventData = (event: eventType): ErrorCode => {
       !event.tmnt_id ||
       !sanitize(event.event_name) ||
       typeof event.team_size !== "number" ||
-      typeof event.games !== "number" ||
-      !validMoney(event.added_money, Number.MIN_SAFE_INTEGER, Number.MAX_SAFE_INTEGER) ||
-      !validMoney(event.entry_fee, Number.MIN_SAFE_INTEGER, Number.MAX_SAFE_INTEGER) ||
-      !validMoney(event.lineage, Number.MIN_SAFE_INTEGER, Number.MAX_SAFE_INTEGER) ||
-      !validMoney(event.prize_fund, Number.MIN_SAFE_INTEGER, Number.MAX_SAFE_INTEGER) ||
-      !validMoney(event.other, Number.MIN_SAFE_INTEGER, Number.MAX_SAFE_INTEGER) ||
-      !validMoney(event.expenses, Number.MIN_SAFE_INTEGER, Number.MAX_SAFE_INTEGER) ||
-      !validMoney(event.lpox, Number.MIN_SAFE_INTEGER, Number.MAX_SAFE_INTEGER) ||
+      typeof event.games !== "number" ||  
+      !gotEventMoney(event.added_money) ||
+      !gotEventMoney(event.entry_fee) ||
+      !gotEventMoney(event.lineage) ||
+      !gotEventMoney(event.prize_fund) ||
+      !gotEventMoney(event.other) ||
+      !gotEventMoney(event.expenses) ||
+      !gotEventMoney(event.lpox) ||
       typeof event.sort_order !== "number"
     ) {
       return ErrorCode.MissingData;
@@ -61,6 +74,16 @@ export const validGames = (games: number): boolean => {
   return Number.isInteger(games) && games >= minGames && games <= maxGames;
 };
 export const validEventMoney = (moneyStr: string): boolean => {
+  if (moneyStr === null
+    || moneyStr === undefined
+    || typeof moneyStr !== "string") return false;
+  // maxMoney is 999999, so max valid string is $999,999.99 or 11 chars 
+  if (moneyStr.length > 11) return false;
+  // a blank value for event money is OK
+  // all 0's is ok
+  if (moneyStr === "" || moneyStr.replace(/^0+/, '') === "") {
+    return true;
+  }
   if (!moneyStr) return false;
   return validMoney(moneyStr, 0, maxMoney);
 };
@@ -112,6 +135,38 @@ export const validEventFkId = (FkId: string, idType: idTypes): boolean => {
 };
 
 /**
+ * checks if all event money is valid
+ *
+ * @param {object} event - event object to check
+ * @returns {boolean} - true if all event money is valid
+ */
+export const allEventMoneyValid = (event: eventType): boolean => {
+  if (!event) return false;
+  if (!validEventMoney(event.added_money)) {
+    return false;
+  }
+  if (!validEventMoney(event.entry_fee)) {
+    return false;
+  }
+  if (!validEventMoney(event.lineage)) {
+    return false;
+  }
+  if (!validEventMoney(event.prize_fund)) {
+    return false;
+  }
+  if (!validEventMoney(event.other)) {
+    return false;
+  }
+  if (!validEventMoney(event.expenses)) {
+    return false;
+  }
+  if (!validEventMoney(event.lpox)) {
+    return false;
+  }
+  return true;
+}
+
+/**
  * checks if event data is valid
  *
  * @param event - event object to validate
@@ -132,25 +187,7 @@ const validEventData = (event: eventType): ErrorCode => {
     if (!validGames(event.games)) {
       return ErrorCode.InvalidData;
     }
-    if (!validEventMoney(event.added_money)) {
-      return ErrorCode.InvalidData;
-    }
-    if (!validEventMoney(event.entry_fee)) {
-      return ErrorCode.InvalidData;
-    }
-    if (!validEventMoney(event.lineage)) {
-      return ErrorCode.InvalidData;
-    }
-    if (!validEventMoney(event.prize_fund)) {
-      return ErrorCode.InvalidData;
-    }
-    if (!validEventMoney(event.other)) {
-      return ErrorCode.InvalidData;
-    }
-    if (!validEventMoney(event.expenses)) {
-      return ErrorCode.InvalidData;
-    }
-    if (!validEventMoney(event.lpox)) {
+    if (!allEventMoneyValid(event)) {
       return ErrorCode.InvalidData;
     }
     if (!validSortOrder(event.sort_order)) {
@@ -164,6 +201,23 @@ const validEventData = (event: eventType): ErrorCode => {
     return ErrorCode.OtherError;
   }
 };
+
+/**
+ * sanitizes an event money string
+ *   "" is valid, and sanitized to "0"
+ *   all 0's is ok, return "0"
+ *   sanitizeCurrency removes trailing zeros
+ *
+ * @param moneyStr - money string to sanitize
+ * @returns {string} - sanitized money string
+ */
+const sanitizedEventMoney = (moneyStr: string): string => {
+  if (moneyStr === null
+    || moneyStr === undefined
+    || typeof moneyStr !== "string") return "";  
+  if (moneyStr === "" || moneyStr.replace(/^0+/, '') === "") return "0";
+  return sanitizeCurrency(moneyStr);
+}
 
 /**
  * sanitizes an event object
@@ -193,27 +247,27 @@ export const sanitizeEvent = (event: eventType): eventType => {
   if ((event.games === null) || isNumber(event.games)) {
     sanitizedEvent.games = event.games;
   }
-  // sanitizeCurrency removes trailing zeros
+  // sanitizedEventMoney removes trailing zeros
   if (validEventMoney(event.added_money)) {
-    sanitizedEvent.added_money = sanitizeCurrency(event.added_money);
+    sanitizedEvent.added_money = sanitizedEventMoney(event.added_money); 
   }
   if (validEventMoney(event.entry_fee)) {
-    sanitizedEvent.entry_fee = sanitizeCurrency(event.entry_fee);
+    sanitizedEvent.entry_fee = sanitizedEventMoney(event.entry_fee);
   }
   if (validEventMoney(event.lineage)) {
-    sanitizedEvent.lineage = sanitizeCurrency(event.lineage);
+    sanitizedEvent.lineage = sanitizedEventMoney(event.lineage);
   }
   if (validEventMoney(event.prize_fund)) {
-    sanitizedEvent.prize_fund = sanitizeCurrency(event.prize_fund);
+    sanitizedEvent.prize_fund = sanitizedEventMoney(event.prize_fund);
   }
   if (validEventMoney(event.other)) {
-    sanitizedEvent.other = sanitizeCurrency(event.other);
+    sanitizedEvent.other = sanitizedEventMoney(event.other);
   }
   if (validEventMoney(event.expenses)) {
-    sanitizedEvent.expenses = sanitizeCurrency(event.expenses);
+    sanitizedEvent.expenses = sanitizedEventMoney(event.expenses);
   }
   if (validEventMoney(event.lpox)) {
-    sanitizedEvent.lpox = sanitizeCurrency(event.lpox);
+    sanitizedEvent.lpox = sanitizedEventMoney(event.lpox);
   }
   if ((event.sort_order === null) || isNumber(event.sort_order)) {
     sanitizedEvent.sort_order = event.sort_order;
@@ -240,6 +294,8 @@ export function validateEvent(event: eventType): ErrorCode {
 }
 
 export const exportedForTesting = {
+  gotEventMoney,
   gotEventData,
+  sanitizedEventMoney,
   validEventData,
 };

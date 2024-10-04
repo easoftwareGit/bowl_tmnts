@@ -8,13 +8,13 @@
     "start": "next start",
     "lint": "next lint",
     "test": "jest",
-    "test:watch": "jest --watchAll"    
+    "test:watch": "jest --watchAll"
   },
   "prisma": {
     "seed": "ts-node --compiler-options {\"module\":\"CommonJS\"} prisma/seed.ts"
   },
   "dependencies": {
-    "@prisma/client": "^5.19.1",
+    "@prisma/client": "^5.20.0",
     "@reduxjs/toolkit": "^2.0.1",
     "axios": "^1.6.2",
     "bcrypt": "^5.1.1",
@@ -42,6 +42,7 @@
     "@types/react": "^18",
     "@types/react-dom": "^18",
     "@types/uuid": "^9.0.8",
+    "core-js": "^3.38.1",
     "dotenv": "^16.4.5",
     "eslint": "^8",
     "eslint-config-next": "14.0.4",
@@ -52,7 +53,7 @@
     "jest-mock-extended": "^3.0.7",
     "next-routes-list": "^1.1.5",
     "node-mocks-http": "^1.14.1",
-    "prisma": "^5.19.1",
+    "prisma": "^5.20.0",
     "ts-jest": "^29.1.2",
     "ts-node": "^10.9.2",
     "typescript": "^5"

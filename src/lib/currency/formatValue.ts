@@ -1,5 +1,6 @@
 import { formatValue } from "@/lib/currency";
 import { LocaleConfig } from "@/lib/currency/components/utils";
+import { localConfig } from "./const";
 
 /**
  * formats a string value into a local formatted money string 
@@ -34,6 +35,11 @@ export const formatValue2Dec = (value: string, localConfig: LocaleConfig): strin
     decimalScale: 2,
     disableGroupSeparators: true,
   });
+}
+
+export const formatDecimalValue = (value: number): string => { 
+  if (Number.isNaN(value)) return '';
+  return (Number.isInteger(value)) ? value.toString() : value.toFixed(2);  
 }
 
 /**

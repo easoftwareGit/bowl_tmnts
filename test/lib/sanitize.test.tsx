@@ -1,4 +1,4 @@
-import { sanitize, sanitizeCurrency, sanitizeUrl } from '../../src/lib/sanitize';
+import { isAllZeros, sanitize, sanitizeCurrency, sanitizeUrl } from '../../src/lib/sanitize';
 
 describe('sanitize inputs', () => {
 
@@ -291,6 +291,49 @@ describe('sanitize inputs', () => {
   });
   })
   
+  describe('tests for isAllZeros function', () => { 
+    it('should return true when the string contains only "0"s', () => {
+      const result = isAllZeros('0000');
+      expect(result).toBe(true);
+    });
+    it('should return true when the string contains only 1 "0"', () => {
+      const result = isAllZeros('0');
+      expect(result).toBe(true);
+    });
+    it('should return false when the string contains mixed "0"s and other characters', () => {
+      const result = isAllZeros('0101');
+      expect(result).toBe(false);
+    });
+    it('should return false for an empty string', () => {
+      const result = isAllZeros('');
+      expect(result).toBe(false);
+    });
+    it('should return false when the string contains non-\'0\' characters', () => {
+      const result = isAllZeros('0123');
+      expect(result).toBe(false);
+    });
+    it('should return true when the string contains only special characters', () => {
+      const result = isAllZeros('!@#$%^&*()');
+      expect(result).toBe(false);
+    });
+    it('should return true when the string contains only "0"s and whitespace characters', () => {
+        const result = isAllZeros('  0000  ');
+        expect(result).toBe(false);
+    });
+    it('should return true for a very long string of "0"s', () => {
+      const result = isAllZeros('00000000000000000000000000000000000000000000000000000000000000000000000000000000000');
+      expect(result).toBe(true);
+    });
+    it('should return false when input is null', () => {
+      const result = isAllZeros(null as any);
+      expect(result).toBe(false);
+    });
+    it('should return false when input is undefined', () => {
+      const result = isAllZeros(undefined as any);
+      expect(result).toBe(false);
+    });
+  })
+
   describe('test for sanitizeCurrency function', () => {
     it('should return the sanitized currency when given a valid currency string', () => {
       const result = sanitizeCurrency('123.45');
@@ -299,6 +342,22 @@ describe('sanitize inputs', () => {
     it('should return an empty string when given an empty currency string', () => { 
       const result = sanitizeCurrency('');
       expect(result).toBe('');
+    })
+    it('should return an "0" when given an "0"', () => { 
+      const result = sanitizeCurrency('0');
+      expect(result).toBe('0');
+    })
+    it('should return an "0" when given an "000"', () => { 
+      const result = sanitizeCurrency('000');
+      expect(result).toBe('0');
+    })
+    it('should return an "0" when given an "00.0"', () => { 
+      const result = sanitizeCurrency('00.0');
+      expect(result).toBe('0');
+    })
+    it('should return an "0" when given an "0.00"', () => { 
+      const result = sanitizeCurrency('0.00');
+      expect(result).toBe('0');
     })
     it('should return a strig with no decimal point when given a currency string without any decimal points', () => { 
       const result = sanitizeCurrency('123');
@@ -328,10 +387,21 @@ describe('sanitize inputs', () => {
       const result = sanitizeCurrency('123.000');
       expect(result).toBe('123');
     })
-    it('should return an empty sstring when given a strig with a leading currency sign', () => { 
-      const result = sanitizeCurrency('$123.45');
-      expect(result).toBe('');
-    })
+    it('should remove trailing ".0" from valid currency string', () => {
+      const input = "123.00";
+      const result = sanitizeCurrency(input);
+      expect(result).toBe("123");
+    });
+    it('should return the sanitized currency string without commas ","', () => {
+      const input = "1,234.56";
+      const result = sanitizeCurrency(input);
+      expect(result).toBe("1234.56");
+    });
+    it('should return the sanitized currency string without leading "$"', () => {
+      const input = "$123.45";
+      const result = sanitizeCurrency(input);
+      expect(result).toBe("123.45");
+    });    
     it('should return aN EMPTY string when given a strig with a brackets for a negative number', () => { 
       const result = sanitizeCurrency('(123.45)');
       expect(result).toBe('');

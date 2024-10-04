@@ -255,8 +255,8 @@ const OneToNSquads: React.FC<ChildProps> = ({
   const defaultTabKey = squads[0].id;
 
   const [modalObj, setModalObj] = useState(initModalObj);
-  const [tabKey, setTabKey] = useState(defaultTabKey);
-  const [squadId, setSquadId] = useState(1); // id # used in initSquads in form.tsx
+  const [tabKey, setTabKey] = useState(defaultTabKey);  
+  const [sortOrder, setSortOrder] = useState(1); // id # used in initSquads in form.tsx
 
   const clearLanes = (squad: squadType) => {
     const nonSquadLanes = lanes.filter((lane) => lane.squad_id !== squad.id);
@@ -266,12 +266,12 @@ const OneToNSquads: React.FC<ChildProps> = ({
   const handleAdd = () => {    
     const newSquad: squadType = {
       ...initSquad,
-      id: '' + (squadId + 1),
-      squad_name: "Squad " + (squadId + 1),
-      tab_title: "Squad " + (squadId + 1),
-      sort_order: squadId + 1,
+      id: btDbUuid('sqd'),
+      squad_name: "Squad " + (sortOrder + 1),
+      tab_title: "Squad " + (sortOrder + 1),
+      sort_order: sortOrder + 1,
     };
-    setSquadId(squadId + 1);
+    setSortOrder(sortOrder + 1);
     setSquads([...squads, newSquad]);
     setLanes(updatedLanes(lanes, newSquad));    
   };
@@ -282,6 +282,10 @@ const OneToNSquads: React.FC<ChildProps> = ({
     // filter out deleted squad
     const updatedData = squads.filter((squad) => squad.id !== modalObj.id);
     setSquads(updatedData);
+
+    // filter out lanes for deleted squad 
+    const updatedLanes = lanes.filter((lane) => lane.squad_id !== modalObj.id);
+    setLanes(updatedLanes);    
 
     // if had multiple squads, then squad time is manditory
     // if now only have 1 squad and time was missing, then clear time error
@@ -320,8 +324,8 @@ const OneToNSquads: React.FC<ChildProps> = ({
 
   const handleDelete = (id: string) => {
     const squadToDel = squads.find((squad) => squad.id === id);
-    // if did not find event OR first event (must have at least 1 event)
-    if (!squadToDel || squadToDel.sort_order === 1) return;
+    // if did not find event only 1 event (must have at least 1 event)
+    if (!squadToDel || squads.length === 1) return;
 
     const toDelName = squadToDel.squad_name;
     setModalObj({
