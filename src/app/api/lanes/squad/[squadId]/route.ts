@@ -42,10 +42,7 @@ export async function DELETE(
     const squadId = params.squadId;
     // check if id is a valid tmnt id
     if (!isValidBtDbId(squadId, 'sqd')) {
-      return NextResponse.json(
-        { error: "not found" },
-        { status: 404 }
-      );        
+      return NextResponse.json({ error: "not found" }, { status: 404 });        
     }
     const deleted = await prisma.lane.deleteMany({
       where: {

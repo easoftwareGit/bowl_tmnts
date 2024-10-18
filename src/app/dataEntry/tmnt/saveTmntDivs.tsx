@@ -1,4 +1,4 @@
-import { deleteDiv, postDiv, putDiv } from "@/lib/db/divs/divsAxios";
+import { deleteDiv, postDiv, postManyDivs, putDiv } from "@/lib/db/divs/divsAxios";
 import { divType, saveTypes } from "@/lib/types/types";
 import { isValidBtDbId } from "@/lib/validation";
 
@@ -50,23 +50,6 @@ const tmntPostPutOrDelDivs = async (origDivs: divType[], divs: divType[]): Promi
 }
 
 /**
- * posts tmnt divs
- * 
- * @param {divType[]} divs - divs to save
- * @returns {divType[] | null} - array of saved current divs or null
- */
-const tmntPostDivs = async (divs: divType[]): Promise<divType[] | null> => {
-
-  const postedDivs: divType[] = [];
-  for await (const div of divs) {
-    const postedDiv = await postDiv(div);
-    if (!postedDiv) return null
-    postedDivs.push(postedDiv);
-  }
-  return postedDivs;
-}
-
-/**
  * saves tmnt divs
  * 
  * @param {divType[]} origDivs - original divs in tmnts
@@ -78,7 +61,7 @@ export const tmntSaveDivs = async (origDivs: divType[], divs: divType[], saveTyp
 
   if (!origDivs || !divs || !saveType) return null;
   if (saveType === 'CREATE') {
-    return await tmntPostDivs(divs) 
+    return await postManyDivs(divs); 
   } else if (saveType === 'UPDATE') {
     return await tmntPostPutOrDelDivs(origDivs, divs)
   } else {  
@@ -88,5 +71,4 @@ export const tmntSaveDivs = async (origDivs: divType[], divs: divType[], saveTyp
 
 export const exportedForTesting = {  
   tmntPostPutOrDelDivs,  
-  tmntPostDivs,
 };

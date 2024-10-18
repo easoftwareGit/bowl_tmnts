@@ -17,7 +17,7 @@ import {
 } from "@/lib/validation";
 import { sanitize } from "@/lib/sanitize";
 import { compareAsc, isValid } from "date-fns";
-import { squadType, idTypes } from "@/lib/types/types";
+import { squadType, idTypes, validSquadsType } from "@/lib/types/types";
 import { blankSquad, initSquad } from "@/lib/db/initVals";
 import { validDateString } from "@/lib/dateTools";
 
@@ -224,6 +224,34 @@ export function validateSquad(squad: squadType): ErrorCode {
   } catch (error) {
     return ErrorCode.OtherError
   }
+}
+
+/**
+ * sanitizes and validates an array of squad
+ * 
+ * @param {squadType[]} squads - array of squad to validate
+ * @returns {validSquadsType} - {squads:squadType[], errorCode: ErrorCode.None | ErrorCode.MissingData | ErrorCode.InvalidData | ErrorCode.OtherError}
+ */
+export const validateSquads = (squads: squadType[]): validSquadsType => {
+
+  const blankSquads: squadType[] = [];
+  const okSquads: squadType[] = [];
+  if (!Array.isArray(squads) || squads.length === 0) {
+    return { squads: blankSquads, errorCode: ErrorCode.MissingData };
+  };
+  // cannot use forEach because if got an errror need exit loop
+  let i = 0;  
+  while (i < squads.length) {
+    const toPost = sanitizeSquad(squads[i]);
+    const errCode = validateSquad(toPost);
+    if (errCode !== ErrorCode.None) { 
+      return { squads: okSquads, errorCode: errCode };
+    }    
+    // push AFETER errCode is None
+    okSquads.push(toPost);    
+    i++;
+  }
+  return { squads: okSquads, errorCode: ErrorCode.None };
 }
 
 export const exportedForTesting = {

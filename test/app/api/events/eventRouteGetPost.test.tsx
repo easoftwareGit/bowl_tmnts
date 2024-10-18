@@ -5,6 +5,8 @@ import { eventType } from "@/lib/types/types";
 import { initEvent } from "@/lib/db/initVals";
 import { Event } from "@prisma/client";
 import { btDbUuid } from "@/lib/uuid";
+import { mockEventsToPost } from "../../../mocks/tmnts/singlesAndDoubles/mockEvents";
+import { deleteAllTmntEvents } from "@/lib/db/events/eventsAxios";
 
 // before running this test, run the following commands in the terminal:
 // 1) clear and re-seed the database
@@ -25,6 +27,8 @@ const url = testBaseEventsApi.startsWith("undefined")
   ? baseEventsApi
   : testBaseEventsApi; 
 const oneEventUrl = url + "/event/";
+const tmntUrl = url + "/tmnt/"; 
+const manyUrl = url + "/many";
 
 describe('Events - GETs and POST API: /api/events', () => { 
 
@@ -46,7 +50,7 @@ describe('Events - GETs and POST API: /api/events', () => {
   };
 
   const notFoundId = "evt_01234567890123456789012345678901";
-  const notfoundParentId = "tmt_01234567890123456789012345678901";
+  const notFoundTmntId = "tmt_01234567890123456789012345678901";
   const nonEventId = "usr_01234567890123456789012345678901";
 
   const event2Id = 'evt_dadfd0e9c11a4aacb87084f1609a0afd';
@@ -84,7 +88,64 @@ describe('Events - GETs and POST API: /api/events', () => {
 
   })
 
-  describe('GET event lists API: /api/events/tmnt/:id', () => {
+  describe('GET by ID - API: API: /api/events/event/:id', () => { 
+
+    it('should get an event by ID', async () => { 
+      const response = await axios.get(oneEventUrl + testEvent.id);
+      const event = response.data.event;
+      expect(event.id).toEqual(testEvent.id);
+      expect(event.tmnt_id).toEqual(testEvent.tmnt_id);
+      expect(event.event_name).toEqual(testEvent.event_name);
+      expect(event.team_size).toEqual(testEvent.team_size);
+      expect(event.games).toEqual(testEvent.games);
+      expect(event.entry_fee).toEqual(testEvent.entry_fee);
+      expect(event.lineage).toEqual(testEvent.lineage);
+      expect(event.prize_fund).toEqual(testEvent.prize_fund);
+      expect(event.other).toEqual(testEvent.other);
+      expect(event.expenses).toEqual(testEvent.expenses);
+      expect(event.added_money).toEqual(testEvent.added_money);
+      expect(event.sort_order).toEqual(testEvent.sort_order);
+    })
+    it('should NOT get an event by ID when ID is invalid', async () => {
+      try {
+        const response = await axios.get(oneEventUrl + '/invalid');
+        expect(true).toBeFalsy();
+      } catch (err) {
+        if (err instanceof AxiosError) {
+          expect(err.response?.status).toBe(404);
+        } else {
+          expect(true).toBeFalsy();
+        }
+      }
+    })
+    it('should NOT get an event by ID when ID is valid, but not an event ID', async () => {
+      try {
+        const response = await axios.get(oneEventUrl + nonEventId);
+        expect(true).toBeFalsy();
+      } catch (err) {
+        if (err instanceof AxiosError) {
+          expect(err.response?.status).toBe(404);
+        } else {
+          expect(true).toBeFalsy();
+        }
+      }
+    })
+    it('should NOT get an event by ID when ID is not found', async () => {
+      try {
+        const response = await axios.get(oneEventUrl + notFoundId);
+        expect(response.status).toBe(404);
+      } catch (err) {
+        if (err instanceof AxiosError) {
+          expect(err.response?.status).toBe(404);
+        } else {
+          expect(true).toBeFalsy();
+        }
+      }
+    })
+    
+  })
+
+  describe('GET all events for a tmnt API: /api/events/tmnt/:tmntId', () => {
         
     beforeAll(async () => {
       await deletePostedEvent();
@@ -96,12 +157,11 @@ describe('Events - GETs and POST API: /api/events', () => {
       const tmntEvent1Id = 'evt_9a58f0a486cb4e6c92ca3348702b1a62';
       const tmntEvent2Id = 'evt_cb55703a8a084acb86306e2944320e8d';
       const tmntEvent3Id = 'evt_adfcff4846474a25ad2936aca121bd37';
-
-      const multiEventUrl = url + '/tmnt/' + miltiEventTmntId;
+      
       const response = await axios({
         method: "get",
         withCredentials: true,
-        url: multiEventUrl, 
+        url: tmntUrl + miltiEventTmntId, 
       })
       expect(response.status).toBe(200);
       // 3 event rows for tmnt in prisma/seed.ts
@@ -111,6 +171,47 @@ describe('Events - GETs and POST API: /api/events', () => {
       expect(events[0].id).toBe(tmntEvent1Id);
       expect(events[1].id).toBe(tmntEvent2Id);
       expect(events[2].id).toBe(tmntEvent3Id);
+    })
+    it('should return status 404 when tmntId is invalid', async () => { 
+      try {
+        const response = await axios({
+          method: "get",
+          withCredentials: true,
+          url: tmntUrl + "invalid",
+        })
+        expect(response.status).toBe(404);
+      } catch (err) {
+        if (err instanceof AxiosError) {
+          expect(err.response?.status).toBe(404);
+        } else {
+          expect(true).toBeFalsy();
+        }
+      }
+    })
+    it('should return starus 404 when tmntId is valid, but not a tmnt id', async () => { 
+      try {
+        const response = await axios({
+          method: "get",
+          withCredentials: true,
+          url: tmntUrl + nonEventId,
+        })
+        expect(response.status).toBe(404);
+      } catch (err) {
+        if (err instanceof AxiosError) {
+          expect(err.response?.status).toBe(404);
+        } else {
+          expect(true).toBeFalsy();
+        }
+      }
+    }) 
+    it('should return status 200 when tmnt id is not found', async () => { 
+      const response = await axios({
+        method: "get",
+        withCredentials: true,
+        url: tmntUrl + notFoundTmntId, 
+      })
+      expect(response.status).toBe(200);      
+      expect(response.data.events).toHaveLength(0);
     })
 
   })
@@ -573,7 +674,7 @@ describe('Events - GETs and POST API: /api/events', () => {
     it('should NOT create a new event when tmnt_id is valid and a tmnt id, but is not found', async () => {
       const invalidEvent = {
         ...eventToPost,
-        tmnt_id: notfoundParentId,
+        tmnt_id: notFoundTmntId,
       }
       const eventJSON = JSON.stringify(invalidEvent);
       try {
@@ -1511,10 +1612,10 @@ describe('Events - GETs and POST API: /api/events', () => {
           withCredentials: true,
           url: url,
         });
-        expect(response.status).toBe(404);
+        expect(response.status).toBe(409);
       } catch (err) {
         if (err instanceof AxiosError) {
-          expect(err.response?.status).toBe(404);
+          expect(err.response?.status).toBe(409);
         } else {
           expect(true).toBeFalsy();
         }
@@ -1552,61 +1653,133 @@ describe('Events - GETs and POST API: /api/events', () => {
     
   })
 
-  describe('GET by ID - API: API: /api/events/event/:id', () => { 
+  describe('POST many events for one tmnt API: /api/events/many', () => { 
 
-    it('should get an event by ID', async () => { 
-      const response = await axios.get(oneEventUrl + testEvent.id);
-      const event = response.data.event;
-      expect(event.id).toEqual(testEvent.id);
-      expect(event.tmnt_id).toEqual(testEvent.tmnt_id);
-      expect(event.event_name).toEqual(testEvent.event_name);
-      expect(event.team_size).toEqual(testEvent.team_size);
-      expect(event.games).toEqual(testEvent.games);
-      expect(event.entry_fee).toEqual(testEvent.entry_fee);
-      expect(event.lineage).toEqual(testEvent.lineage);
-      expect(event.prize_fund).toEqual(testEvent.prize_fund);
-      expect(event.other).toEqual(testEvent.other);
-      expect(event.expenses).toEqual(testEvent.expenses);
-      expect(event.added_money).toEqual(testEvent.added_money);
-      expect(event.sort_order).toEqual(testEvent.sort_order);
+    let createdEvents = false;    
+
+    beforeAll(async () => { 
+      await deleteAllTmntEvents(mockEventsToPost[0].tmnt_id);
     })
-    it('should NOT get an event by ID when ID is invalid', async () => {
+
+    beforeEach(() => {
+      createdEvents = false;
+    })
+
+    afterEach(async () => {
+      if (createdEvents) {
+        await deleteAllTmntEvents(mockEventsToPost[0].tmnt_id);
+      }      
+    })
+
+    it('should create many events', async () => { 
+      const eventsJSON = JSON.stringify(mockEventsToPost);
+      const response = await axios({
+        method: "post",
+        data: eventsJSON,
+        withCredentials: true,
+        url: manyUrl,
+      })
+      const postedEvents = response.data.events;      
+      expect(response.status).toBe(201);
+      createdEvents = true
+      expect(postedEvents.length).toEqual(mockEventsToPost.length);
+      for (let i = 0; i < postedEvents.length; i++) {
+        expect(postedEvents[i].id).toEqual(mockEventsToPost[i].id);
+        expect(postedEvents[i].tmnt_id).toEqual(mockEventsToPost[i].tmnt_id);
+        expect(postedEvents[i].event_name).toEqual(mockEventsToPost[i].event_name);
+        expect(postedEvents[i].team_size).toEqual(mockEventsToPost[i].team_size);
+        expect(postedEvents[i].games).toEqual(mockEventsToPost[i].games);
+        expect(postedEvents[i].entry_fee).toEqual(mockEventsToPost[i].entry_fee);
+        expect(postedEvents[i].lineage).toEqual(mockEventsToPost[i].lineage);
+        expect(postedEvents[i].prize_fund).toEqual(mockEventsToPost[i].prize_fund);
+        expect(postedEvents[i].other).toEqual(mockEventsToPost[i].other);
+        expect(postedEvents[i].expenses).toEqual(mockEventsToPost[i].expenses);
+        expect(postedEvents[i].added_money).toEqual(mockEventsToPost[i].added_money);
+        expect(postedEvents[i].lpox).toEqual(mockEventsToPost[i].lpox);
+        expect(postedEvents[i].sort_order).toEqual(mockEventsToPost[i].sort_order);        
+      } 
+    })
+    it('should create many events with sanitized data', async () => {
+      const toSanitzie = [
+        {
+          ...mockEventsToPost[0],
+          event_name: '   ' + mockEventsToPost[0].event_name + '  **** ',
+        },
+        {
+          ...mockEventsToPost[1],
+          event_name: '<script>' + mockEventsToPost[1].event_name + '</script>',
+        }
+      ]
+      const eventsJSON = JSON.stringify(toSanitzie);
+      const response = await axios({
+        method: "post",
+        data: eventsJSON,
+        withCredentials: true,
+        url: manyUrl,
+      })
+      const postedEvents = response.data.events;      
+      expect(response.status).toBe(201);
+      createdEvents = true
+      expect(postedEvents.length).toEqual(toSanitzie.length);
+      expect(postedEvents[0].event_name).toEqual(mockEventsToPost[0].event_name);
+      expect(postedEvents[1].event_name).toEqual(mockEventsToPost[1].event_name);
+    })
+    it('should not post events with invalid data in first event', async () => {
+      const invalidEvents = [
+        {
+          ...mockEventsToPost[0],
+          event_name: '',
+        },
+        {
+          ...mockEventsToPost[1],
+          event_name: 'Valid Event',
+        }
+      ]
+      const eventsJSON = JSON.stringify(invalidEvents);
       try {
-        const response = await axios.get(oneEventUrl + '/invalid');
-        expect(true).toBeFalsy();
+        const response = await axios({
+          method: "post",
+          data: eventsJSON,
+          withCredentials: true,
+          url: manyUrl,
+        })      
+        expect(response.status).toBe(422);
       } catch (err) {
         if (err instanceof AxiosError) {
-          expect(err.response?.status).toBe(404);
+          expect(err.response?.status).toBe(422);
         } else {
           expect(true).toBeFalsy();
         }
       }
     })
-    it('should NOT get an event by ID when ID is valid, but not an event ID', async () => {
+    it('should not post events with invalid data in other event', async () => {
+      const invalidEvents = [
+        {
+          ...mockEventsToPost[0],
+          event_name: 'Valid Name',
+        },
+        {
+          ...mockEventsToPost[1],
+          games: 0,
+        }
+      ]
+      const eventsJSON = JSON.stringify(invalidEvents);
       try {
-        const response = await axios.get(oneEventUrl + nonEventId);
-        expect(true).toBeFalsy();
+        const response = await axios({
+          method: "post",
+          data: eventsJSON,
+          withCredentials: true,
+          url: manyUrl,
+        })      
+        expect(response.status).toBe(422);
       } catch (err) {
         if (err instanceof AxiosError) {
-          expect(err.response?.status).toBe(404);
+          expect(err.response?.status).toBe(422);
         } else {
           expect(true).toBeFalsy();
         }
       }
     })
-    it('should NOT get an event by ID when ID is not found', async () => {
-      try {
-        const response = await axios.get(oneEventUrl + notFoundId);
-        expect(response.status).toBe(404);
-      } catch (err) {
-        if (err instanceof AxiosError) {
-          expect(err.response?.status).toBe(404);
-        } else {
-          expect(true).toBeFalsy();
-        }
-      }
-    })
-    
   })
 
 })

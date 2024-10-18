@@ -251,6 +251,9 @@ const ZeroToNBrackets: React.FC<ChildProps> = ({
         div_id: parentId, 
         div_err: "",
       };
+      if (updatedBrkt.start_err = duplicateBrktErrMsg) {
+        updatedBrkt.start_err = "";
+      }
       if (createBrkt.div_err === duplicateBrktErrMsg) {
         updatedBrkt.div_err = "";
       }

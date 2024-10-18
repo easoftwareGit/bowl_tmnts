@@ -16,7 +16,7 @@ export const baseDivsApi = baseApi + '/divs'
 
 export const baseSquadsApi = baseApi + '/squads'
 
-export const baseLanesApi = baseApi + '/laness'
+export const baseLanesApi = baseApi + '/lanes'
 
 export const basePotsApi = baseApi + '/pots'
 

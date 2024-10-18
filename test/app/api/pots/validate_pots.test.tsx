@@ -4,11 +4,13 @@ import {
   validPotType,
   validPotMoney,
   validPotFkId,
-  exportedForTesting
+  exportedForTesting,
+  validatePots,
 } from "@/app/api/pots/validate";
 import { initPot } from "@/lib/db/initVals";
-import { PotCategories, potType } from "@/lib/types/types";
+import { PotCategories, potType, validPotsType } from "@/lib/types/types";
 import { ErrorCode } from "@/lib/validation";
+import { mockPotsToPost } from "../../../mocks/tmnts/singlesAndDoubles/mockSquads";
 
 const { gotPotData, validPotData } = exportedForTesting;
 
@@ -96,15 +98,15 @@ describe("tests for pot validation", () => {
       expect(validPotMoney('5')).toBe(true);      
       expect(validPotMoney('1.5')).toBe(true);
       expect(validPotMoney('5.55')).toBe(true);
+      expect(validPotMoney('$5.55')).toBe(true);      
     })
-    it('should return false when money is invalid', () => {
+    it('should return false when money is invalid', () => {      
       expect(validPotMoney('')).toBe(false);
       expect(validPotMoney('0')).toBe(false);
       expect(validPotMoney('0.99')).toBe(false);
       expect(validPotMoney('0.0005')).toBe(false);
       expect(validPotMoney('1.0005')).toBe(true);
-      expect(validPotMoney('1234567890')).toBe(false);
-      expect(validPotMoney('$5.55')).toBe(false);
+      expect(validPotMoney('1234567890')).toBe(false);      
       expect(validPotMoney('5,55')).toBe(false);
       expect(validPotMoney('5.5.5')).toBe(false);
       expect(validPotMoney('-5')).toBe(false);
@@ -113,10 +115,7 @@ describe("tests for pot validation", () => {
       expect(validPotMoney('(5.55)')).toBe(false)
       expect(validPotMoney('abc')).toBe(false);
       expect(validPotMoney('<script>alert(1)</script>' as any)).toBe(false);
-      expect(validPotMoney(10 as any)).toBe(true);
-      expect(validPotMoney(10.1 as any)).toBe(true);
-      expect(validPotMoney(10.12 as any)).toBe(true);
-      expect(validPotMoney(10.123 as any)).toBe(true);
+      expect(validPotMoney(10 as any)).toBe(false);
     })
     it('should return false when passed null', () => {
       expect(validPotMoney(null as any)).toBe(false);
@@ -243,6 +242,14 @@ describe("tests for pot validation", () => {
       }
       const sanitizedPot = sanitizePot(testPot)
       expect(sanitizedPot.id).toEqual(potId)
+    })
+    it('should return sanitized pot when pot_type is sanitzied to a vlaid type', () => {
+      const testPot = {
+        ...validPot,
+        pot_type: '<script>Game</script>' as any,
+      }
+      const sanitizedPot = sanitizePot(testPot)
+      expect(sanitizedPot.pot_type).toEqual('Game')
     })
     it('should return sanitized pot when pot has an invalidid', () => {
       const testPot = {
@@ -401,6 +408,137 @@ describe("tests for pot validation", () => {
         expect(validatePot(testPot)).toBe(ErrorCode.InvalidData);
       })
     })
+  })
+
+  describe('validatePots function', () => { 
+
+    it('should validate pots', () => {
+      const potsToValidate = [...mockPotsToPost]
+      const validPots: validPotsType = validatePots(potsToValidate)
+      expect(validPots.errorCode).toBe(ErrorCode.None)
+      expect(validPots.pots.length).toBe(potsToValidate.length)
+      for (let i = 0; i < validPots.pots.length; i++) {
+        expect(validPots.pots[i].id).toBe(potsToValidate[i].id)
+        expect(validPots.pots[i].div_id).toBe(potsToValidate[i].div_id)
+        expect(validPots.pots[i].squad_id).toBe(potsToValidate[i].squad_id)
+        expect(validPots.pots[i].pot_type).toBe(potsToValidate[i].pot_type)
+        expect(validPots.pots[i].fee).toBe(potsToValidate[i].fee)
+        expect(validPots.pots[i].sort_order).toBe(potsToValidate[i].sort_order)
+      }
+    })
+    it('should return ErrorCode.None when data is sanitized', () => { 
+      const invalidPots = [
+        {
+          ...mockPotsToPost[0],
+          pot_type: '<script>Game</script>' as any
+        },
+        {
+          ...mockPotsToPost[1],          
+        },
+        {
+          ...mockPotsToPost[2],
+        },
+      ]
+      const validPots = validatePots(invalidPots)
+      expect(validPots.errorCode).toBe(ErrorCode.None)
+    })
+    it('should return ErrorCode.MissingData when data pot_type is not valid (sanitized to blank)', () => { 
+      const invalidPots = [
+        {
+          ...mockPotsToPost[0],
+          pot_type: '  *** NOT VALID ***' as any
+        },
+        {
+          ...mockPotsToPost[1],          
+        },
+        {
+          ...mockPotsToPost[2],
+        },
+      ]
+      const validPots = validatePots(invalidPots)
+      expect(validPots.errorCode).toBe(ErrorCode.MissingData)
+    })
+    it('should return ErrorCode.MissingData when data is invalid (sanitized clears invalid fee', () => { 
+      const invalidPots = [
+        {
+          ...mockPotsToPost[0],
+          fee: '1234567'
+        },
+        {
+          ...mockPotsToPost[1],          
+        },
+        {
+          ...mockPotsToPost[2],
+        },
+      ]
+      const validPots = validatePots(invalidPots)
+      expect(validPots.errorCode).toBe(ErrorCode.MissingData)
+    })
+    it('should return ErrorCode.MissingData and return pots length 1 when 2nd pot has missing data', () => {
+      const invalidPots = [
+        {
+          ...mockPotsToPost[0],
+        },
+        {
+          ...mockPotsToPost[1],
+          fee: null as any
+        },
+        {
+          ...mockPotsToPost[2],
+        },
+      ]
+      const validPots = validatePots(invalidPots)
+      expect(validPots.errorCode).toBe(ErrorCode.MissingData)
+      expect(validPots.pots.length).toBe(1)
+    })
+    it('should return ErrorCode.MissingData when squad_id is not a valid squad_id', () => {
+      const invalidPots = [
+        {
+          ...mockPotsToPost[0],
+        },
+        {
+          ...mockPotsToPost[1],
+          squad_id: mockPotsToPost[0].id 
+        },
+        {
+          ...mockPotsToPost[2],
+        },
+      ]
+      const validPots = validatePots(invalidPots)
+      expect(validPots.errorCode).toBe(ErrorCode.MissingData)
+    })
+    it('should return ErrorCode.MissingData when div_id is not a valid div_id', () => {
+      const invalidPots = [
+        {
+          ...mockPotsToPost[0],
+        },
+        {
+          ...mockPotsToPost[1],
+          div_id: mockPotsToPost[0].id
+        },
+        {
+          ...mockPotsToPost[2],
+        },
+      ]
+      const validPots = validatePots(invalidPots)
+      expect(validPots.errorCode).toBe(ErrorCode.MissingData)
+    })
+    it('should return ErrorCode.MissingData when passed an empty array', async () => { 
+      const validLanes = validatePots([]);
+      expect(validLanes.errorCode).toBe(ErrorCode.MissingData);
+      expect(validLanes.pots.length).toBe(0);
+    })
+    it('should return ErrorCode.MissingData when passed null', async () => { 
+      const validLanes = validatePots(null as any);
+      expect(validLanes.errorCode).toBe(ErrorCode.MissingData);
+      expect(validLanes.pots.length).toBe(0);
+    })
+    it('should return ErrorCode.MissingData when passed undefined', async () => { 
+      const validLanes = validatePots(undefined as any);
+      expect(validLanes.errorCode).toBe(ErrorCode.MissingData);
+      expect(validLanes.pots.length).toBe(0);
+    })  
+
   })
 
 })

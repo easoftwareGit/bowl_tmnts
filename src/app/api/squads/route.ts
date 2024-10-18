@@ -2,7 +2,7 @@ import { NextResponse, NextRequest } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { sanitizeSquad, validateSquad } from "./validate";
 import { ErrorCode } from "@/lib/validation";
-import { squadType } from "@/lib/types/types";
+import { squadDataType, squadType } from "@/lib/types/types";
 import { initSquad } from "@/lib/db/initVals";
 import { removeTimeFromISODateStr, startOfDayFromString } from "@/lib/dateTools";
 
@@ -69,17 +69,6 @@ export async function POST(request: Request) {
       );
     }
     
-    type squadDataType = {
-      id: string,
-      event_id: string,            
-      squad_name: string,      
-      games: number,        
-      lane_count: number,      
-      starting_lane: number,      
-      squad_date: Date,      
-      squad_time: string | null,       
-      sort_order: number,      
-    }
     let squadData: squadDataType = {
       id: toPost.id,
       event_id: toPost.event_id,            
@@ -100,7 +89,7 @@ export async function POST(request: Request) {
     let errStatus: number
     switch (err.code) {
       case 'P2002': // Unique constraint
-        errStatus = 404 
+        errStatus = 409 
         break;
       case 'P2003': // Foreign key constraint
         errStatus = 404

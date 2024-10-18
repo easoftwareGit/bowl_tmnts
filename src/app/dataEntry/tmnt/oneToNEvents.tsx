@@ -261,7 +261,7 @@ const OneToNEvents: React.FC<ChildProps> = ({
   setSquads,
   setAcdnErr,  
 }) => {
-
+  
   const defaultTabKey = events[0].id;
 
   const [confModalObj, setConfModalObj] = useState(initModalObj);

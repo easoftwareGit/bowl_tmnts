@@ -10,6 +10,7 @@ const url = testBaseEventsApi.startsWith("undefined")
   : testBaseEventsApi;   
 const oneEventUrl = url + "/event/"; 
 const oneTmntUrl = url + "/tmnt/";  
+const manyUrl = url + "/many";
 
 /**
  * posts an event
@@ -31,6 +32,31 @@ export const postEvent = async (event: eventType): Promise<eventType | null> => 
     });
     return (response.status === 201)
       ? response.data.event
+      : null
+  } catch (err) {
+    return null;
+  }
+}
+
+/**
+ * posts many events
+ * 
+ * @param {eventType[]} events - array of events to post
+ * @returns {eventType[] | null} - array of events posted or null
+ */
+export const postManyEvents = async (events: eventType[]): Promise<eventType[] | null> => {
+
+  try {    
+    // sanatation and validation done in POST route
+    const eventJSON = JSON.stringify(events);    
+    const response = await axios({
+      method: "post",
+      data: eventJSON,
+      withCredentials: true,
+      url: manyUrl,
+    });
+    return (response.status === 201)
+      ? response.data.events
       : null
   } catch (err) {
     return null;

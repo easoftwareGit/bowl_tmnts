@@ -10,12 +10,16 @@ import {
   validSquadTime,  
   validEventFkId,
   exportedForTesting,
-  sanitizedTime
+  sanitizedTime,
+  validateSquads
 } from "@/app/api/squads/validate";
 import { initSquad } from "@/lib/db/initVals";
 import { ErrorCode, maxEventLength, maxSortOrder } from "@/lib/validation";
 import { startOfTodayUTC } from "@/lib/dateTools";
 import { compareAsc } from "date-fns";
+import { mockSquadsToPost } from "../../../mocks/tmnts/singlesAndDoubles/mockSquads";
+import { validSquadsType } from "@/lib/types/types";
+import { mock } from "node:test";
 
 const { gotSquadData, validSquadData } = exportedForTesting;
 
@@ -581,7 +585,7 @@ describe('tests for squad validation', () => {
     })
   })
 
-  describe('validateSquads function', () => {
+  describe('validateSquad function', () => {
 
     describe('validateSquad function - valid data', () => {
       it('should return ErrorCode.None when passed a valid squad', () => {
@@ -728,6 +732,115 @@ describe('tests for squad validation', () => {
         expect(validateSquad(invalidSquad)).toBe(ErrorCode.InvalidData)
       })
     })
+  })
+
+  describe('validateSquads function', () => { 
+
+    it('should validate squads', () => { 
+      const squadsToValidate = [...mockSquadsToPost]
+      const validSquads: validSquadsType = validateSquads(squadsToValidate);
+      expect(validSquads.errorCode).toBe(ErrorCode.None);
+      expect(validSquads.squads.length).toBe(squadsToValidate.length);
+
+      for (let i = 0; i < validSquads.squads.length; i++) { 
+        expect(validSquads.squads[i].id).toEqual(mockSquadsToPost[i].id);
+        expect(validSquads.squads[i].event_id).toEqual(mockSquadsToPost[i].event_id);
+        expect(validSquads.squads[i].squad_name).toEqual(mockSquadsToPost[i].squad_name);
+        expect(validSquads.squads[i].games).toEqual(mockSquadsToPost[i].games);
+        expect(validSquads.squads[i].starting_lane).toEqual(mockSquadsToPost[i].starting_lane);
+        expect(validSquads.squads[i].lane_count).toEqual(mockSquadsToPost[i].lane_count);
+        expect(validSquads.squads[i].squad_date).toEqual(mockSquadsToPost[i].squad_date);
+        expect(validSquads.squads[i].squad_time).toEqual(mockSquadsToPost[i].squad_time);
+        expect(validSquads.squads[i].sort_order).toEqual(mockSquadsToPost[i].sort_order);
+      }
+    })
+    it('should return ErrorCode.None and sanitize squads', async () => {
+      const toSanitzie = [
+        {
+          ...mockSquadsToPost[0],
+          squad_name: '   ' + mockSquadsToPost[0].squad_name + '  *** ',
+        },
+        {
+          ...mockSquadsToPost[1],
+          squad_name: '<script>' + mockSquadsToPost[1].squad_name + '</script>',
+        },
+      ]
+      const validSquads = validateSquads(toSanitzie);
+      expect(validSquads.errorCode).toBe(ErrorCode.None);      
+      expect(validSquads.squads[0].squad_name).toBe(mockSquadsToPost[0].squad_name);
+      expect(validSquads.squads[1].squad_name).toBe(mockSquadsToPost[1].squad_name);
+    })
+    it('should return ErrorCode.MissingData when required data is missing', async () => { 
+      const invalidSquads = [
+        {
+          ...mockSquadsToPost[0],
+          squad_name: '',
+        },
+        {
+          ...mockSquadsToPost[1],
+        },
+      ]
+      const validSquads = validateSquads(invalidSquads);
+      expect(validSquads.errorCode).toBe(ErrorCode.MissingData);
+      expect(validSquads.squads.length).toBe(0);
+    })
+    it('should return ErrorCode.MissingData and return squads length 1 when 1st squad is valid, 2nd is not', async () => { 
+      const invalidSquads = [
+        {
+          ...mockSquadsToPost[0],          
+        },
+        {
+          ...mockSquadsToPost[1],
+          event_id: squadId,
+        },
+      ]
+      const validSquads = validateSquads(invalidSquads);
+      expect(validSquads.errorCode).toBe(ErrorCode.MissingData);
+      expect(validSquads.squads.length).toBe(1);
+    })
+    it('should return ErrorCode.InvalidData when required data is invalid', async () => { 
+      const invalidSquads = [
+        {
+          ...mockSquadsToPost[0],
+          games: 100,
+        },
+        {
+          ...mockSquadsToPost[1],          
+        },  
+      ]
+      const validSquads = validateSquads(invalidSquads);
+      expect(validSquads.errorCode).toBe(ErrorCode.InvalidData);      
+    })
+    it('should return ErrorCode.MissingData when event_id is not a valid event id', async () => { 
+      const invalidSquads = [
+        {
+          ...mockSquadsToPost[0],          
+        },
+        {
+          ...mockSquadsToPost[1],
+          event_id: squadId,
+        },
+      ]
+      const validSquads = validateSquads(invalidSquads);
+      expect(validSquads.errorCode).toBe(ErrorCode.MissingData);
+      expect(validSquads.squads.length).toBe(1);
+    })
+    it('should return ErrorCode.MissingData when passed an empty array', async () => { 
+      const validSquads = validateSquads([]);
+      expect(validSquads.errorCode).toBe(ErrorCode.MissingData);
+      expect(validSquads.squads.length).toBe(0);
+    })
+    it('should return ErrorCode.MissingData when passed null', async () => { 
+      const validSquads = validateSquads(null as any);
+      expect(validSquads.errorCode).toBe(ErrorCode.MissingData);
+      expect(validSquads.squads.length).toBe(0);
+    })
+    it('should return ErrorCode.MissingData when passed undefined', async () => { 
+      const validSquads = validateSquads(undefined as any);
+      expect(validSquads.errorCode).toBe(ErrorCode.MissingData);
+      expect(validSquads.squads.length).toBe(0);
+    })
+
   })
 
 })

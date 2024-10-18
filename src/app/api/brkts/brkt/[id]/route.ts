@@ -119,10 +119,10 @@ export async function PUT(
     let errStatus: number;
     switch (err.code) {
       case "P2002": // unique constraint
-        errStatus = 422;
+        errStatus = 409;
         break;
       case "P2003": // parent not found
-        errStatus = 422;
+        errStatus = 404;
         break;
       case "P2025": // record not found
         errStatus = 404;

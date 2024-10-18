@@ -3,7 +3,6 @@ import { baseBowlsApi } from "@/lib/db/apiPaths";
 import { testBaseBowlsApi } from "../../../testApi";
 import { bowlType } from "@/lib/types/types";
 import { initBowl } from "@/lib/db/initVals";
-import { isValidBtDbId } from "@/lib/validation";
 import { btDbUuid } from "@/lib/uuid";
 
 // before running this test, run the following commands in the terminal:

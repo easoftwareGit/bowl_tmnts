@@ -5,7 +5,7 @@ import { divType } from "@/lib/types/types";
 import { initDiv } from "@/lib/db/initVals";
 import { isValidBtDbId } from "@/lib/validation";
 import { mockDivsToPost, tmntToDelId } from "../../../mocks/tmnts/twoDivs/mockDivs";
-import { postDiv } from "@/lib/db/divs/divsAxios";
+import { deleteAllTmntDivs, postDiv } from "@/lib/db/divs/divsAxios";
 
 // before running this test, run the following commands in the terminal:
 // 1) clear and re-seed the database
@@ -27,6 +27,7 @@ const url = testBaseDivsApi.startsWith("undefined")
   : testBaseDivsApi;   
 const oneDivUrl = url + "/div/"
 const divTmntUrl = url + '/tmnt/';
+const manyUrl = url + "/many";
 
 const notFoundId = "div_01234567890123456789012345678901";
 const notfoundTmntId = "tmt_01234567890123456789012345678901";
@@ -93,6 +94,59 @@ describe('Divs - API: /api/divs', () => {
       expect(response.status).toBe(200);
       // 7 rows in prisma/seed.ts
       expect(response.data.divs).toHaveLength(7);
+    })
+
+  })
+
+  describe('GET by ID - API: API: /api/divs/div/:id', () => { 
+
+    it('should get a div by ID', async () => {
+      const response = await axios.get(oneDivUrl + testDiv.id);
+      const div = response.data.div;
+      expect(response.status).toBe(200);
+      expect(div.id).toBe(testDiv.id);
+      expect(div.div_name).toBe(testDiv.div_name);
+      expect(div.hdcp_per).toBe(testDiv.hdcp_per);
+      expect(div.hdcp_from).toBe(testDiv.hdcp_from);      
+      expect(div.int_hdcp).toBe(testDiv.int_hdcp);
+      expect(div.hdcp_for).toBe(testDiv.hdcp_for);
+      expect(div.sort_order).toBe(testDiv.sort_order);
+    })
+    it('should NOT get a div by ID when ID is invalid', async () => {
+      try {
+        const response = await axios.get(oneDivUrl + 'test');
+        expect(response.status).toBe(404);
+      } catch (err) {
+        if (err instanceof AxiosError) {
+          expect(err.response?.status).toBe(404);
+        } else {
+          expect(true).toBeFalsy();
+        }
+      }
+    })
+    it('should NOT get a div by ID when ID is valid, but not a div ID', async () => {
+      try {
+        const response = await axios.get(oneDivUrl + nonDivId);
+        expect(response.status).toBe(404);
+      } catch (err) {
+        if (err instanceof AxiosError) {
+          expect(err.response?.status).toBe(404);
+        } else {
+          expect(true).toBeFalsy();
+        }
+      }
+    })
+    it('should NOT get a div by ID when ID is not found', async () => {
+      try {
+        const response = await axios.get(oneDivUrl + notFoundId);
+        expect(response.status).toBe(404);
+      } catch (err) {
+        if (err instanceof AxiosError) {
+          expect(err.response?.status).toBe(404);
+        } else {
+          expect(true).toBeFalsy();
+        }
+      }
     })
 
   })
@@ -763,57 +817,128 @@ describe('Divs - API: /api/divs', () => {
 
   })
 
-  describe('GET by ID - API: API: /api/divs/div/:id', () => { 
+  describe('POST many divs for one tmnt API: /api/divs/many', () => { 
 
-    it('should get a div by ID', async () => {
-      const response = await axios.get(oneDivUrl + testDiv.id);
-      const div = response.data.div;
-      expect(response.status).toBe(200);
-      expect(div.id).toBe(testDiv.id);
-      expect(div.div_name).toBe(testDiv.div_name);
-      expect(div.hdcp_per).toBe(testDiv.hdcp_per);
-      expect(div.hdcp_from).toBe(testDiv.hdcp_from);      
-      expect(div.int_hdcp).toBe(testDiv.int_hdcp);
-      expect(div.hdcp_for).toBe(testDiv.hdcp_for);
-      expect(div.sort_order).toBe(testDiv.sort_order);
-    })
-    it('should NOT get a div by ID when ID is invalid', async () => {
-      try {
-        const response = await axios.get(oneDivUrl + 'test');
-        expect(response.status).toBe(404);
-      } catch (err) {
-        if (err instanceof AxiosError) {
-          expect(err.response?.status).toBe(404);
-        } else {
-          expect(true).toBeFalsy();
-        }
-      }
-    })
-    it('should NOT get a div by ID when ID is valid, but not a div ID', async () => {
-      try {
-        const response = await axios.get(oneDivUrl + nonDivId);
-        expect(response.status).toBe(404);
-      } catch (err) {
-        if (err instanceof AxiosError) {
-          expect(err.response?.status).toBe(404);
-        } else {
-          expect(true).toBeFalsy();
-        }
-      }
-    })
-    it('should NOT get a div by ID when ID is not found', async () => {
-      try {
-        const response = await axios.get(oneDivUrl + notFoundId);
-        expect(response.status).toBe(404);
-      } catch (err) {
-        if (err instanceof AxiosError) {
-          expect(err.response?.status).toBe(404);
-        } else {
-          expect(true).toBeFalsy();
-        }
-      }
+    let createdEvents = false;    
+
+    beforeAll(async () => { 
+      await deleteAllTmntDivs(mockDivsToPost[0].tmnt_id);
     })
 
+    beforeEach(() => {
+      createdEvents = false;
+    })
+
+    afterEach(async () => {
+      if (createdEvents) {
+        await deleteAllTmntDivs(mockDivsToPost[0].tmnt_id);
+      }      
+    })
+
+    it('should create many divs', async () => {
+      const divsJSON = JSON.stringify(mockDivsToPost);
+      const response = await axios({
+        method: "post",
+        data: divsJSON,
+        withCredentials: true,
+        url: manyUrl
+      })
+      const postedDivs = response.data.divs;      
+      expect(response.status).toBe(201);
+      createdEvents = true;
+      expect(postedDivs.length).toBe(mockDivsToPost.length);
+      for (let i = 0; i < postedDivs.length; i++) {
+        expect(postedDivs[i].id).toBe(mockDivsToPost[i].id);
+        expect(postedDivs[i].tmnt_id).toBe(mockDivsToPost[i].tmnt_id);
+        expect(postedDivs[i].div_name).toBe(mockDivsToPost[i].div_name);
+        expect(postedDivs[i].hdcp_per).toBe(mockDivsToPost[i].hdcp_per);
+        expect(postedDivs[i].hdcp_from).toBe(mockDivsToPost[i].hdcp_from);
+        expect(postedDivs[i].int_hdcp).toBe(mockDivsToPost[i].int_hdcp);
+        expect(postedDivs[i].hdcp_for).toBe(mockDivsToPost[i].hdcp_for);
+        expect(postedDivs[i].sort_order).toBe(mockDivsToPost[i].sort_order);
+      }
+    })
+    it('should create many divs with sanitized data', async () => { 
+      const toSanitizeDiv = [
+        {
+          ...mockDivsToPost[0],
+          div_name: "    " + mockDivsToPost[0].div_name + "  ***  ",
+        },
+        {
+          ...mockDivsToPost[1],
+          div_name: "<script>" + mockDivsToPost[1].div_name + "</script>",
+        }
+      ]
+      const divsJSON = JSON.stringify(toSanitizeDiv);
+      const response = await axios({
+        method: "post",
+        data: divsJSON,
+        withCredentials: true,
+        url: manyUrl
+      })
+      const postedDivs = response.data.divs;      
+      expect(response.status).toBe(201);
+      createdEvents = true;
+      expect(postedDivs.length).toBe(toSanitizeDiv.length);
+      expect(postedDivs[0].div_name).toBe(mockDivsToPost[0].div_name);
+      expect(postedDivs[1].div_name).toBe(mockDivsToPost[1].div_name);
+    })
+    it('should NOT create many divs with invalid data in first div', async () => { 
+      const invalidDivs = [
+        {
+          ...mockDivsToPost[0],
+          div_name: "",
+        },
+        {
+          ...mockDivsToPost[1],
+          div_name: "Valid Div",
+        }
+      ]
+      const divsJSON = JSON.stringify(invalidDivs);
+      try {        
+        const response = await axios({
+          method: "post",
+          data: divsJSON,
+          withCredentials: true,
+          url: manyUrl
+        })
+        expect(response.status).toBe(422);
+      } catch (err) {
+        if (err instanceof AxiosError) {
+          expect(err.response?.status).toBe(422);
+        } else {
+          expect(true).toBeFalsy();
+        }
+      }
+    })
+    it('should not post events with invalid data in second div', async () => { 
+      const invalidDivs = [
+        {
+          ...mockDivsToPost[0],
+          div_name: "Valid Div",
+        },
+        {
+          ...mockDivsToPost[1],
+          hdcp_from: -1,
+        }
+      ]
+      const divsJSON = JSON.stringify(invalidDivs);
+      try {        
+        const response = await axios({
+          method: "post",
+          data: divsJSON,
+          withCredentials: true,
+          url: manyUrl
+        })
+        expect(response.status).toBe(422);
+      } catch (err) {
+        if (err instanceof AxiosError) {
+          expect(err.response?.status).toBe(422);
+        } else {
+          expect(true).toBeFalsy();
+        }
+      }
+    })
   })
 
   describe('PUT by ID - API: API: /api/divs/div/:id', () => { 

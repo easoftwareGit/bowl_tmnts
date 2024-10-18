@@ -9,7 +9,7 @@ import {
   validSortOrder,
 } from "@/lib/validation";
 import { sanitize } from "@/lib/sanitize";
-import { HdcpForTypes, idTypes } from "@/lib/types/types";
+import { HdcpForTypes, idTypes, validDivsType } from "@/lib/types/types";
 import { divType } from "@/lib/types/types";
 import { blankDiv } from "@/lib/db/initVals";
 import { isNumber } from "@/lib/validation";
@@ -175,6 +175,43 @@ export function validateDiv(div: divType): ErrorCode {
   } catch (error) {
     return ErrorCode.OtherError
   }
+}
+
+/**
+ * sanitizea and validates an array of divs
+ * 
+ * @param {divType[]} divs - array of divs to validate
+ * @returns {validDivsType} - {divs:divType[], errorCode: ErrorCode.None | ErrorCode.MissingData | ErrorCode.InvalidData | ErrorCode.OtherError}
+ */
+export const validateDivs = (divs: divType[]): validDivsType => {
+  
+  const blankDivs: divType[] = [];
+  const okDivs: divType[] = [];
+  if (!Array.isArray(divs) || divs.length === 0) {
+    return { divs: blankDivs, errorCode: ErrorCode.MissingData };
+  };
+  // cannot use forEach because if got an errror need exit loop
+  let i = 0;
+  let tmntId = "";
+  while (i < divs.length) {
+    const toPost = sanitizeDiv(divs[i]);
+    const errCode = validateDiv(toPost);
+    if (errCode !== ErrorCode.None) { 
+      return { divs: okDivs, errorCode: errCode };
+    }    
+    // all events MUST have same tmnt_id
+    if (i > 0 && tmntId !== toPost.tmnt_id) {
+      return { divs: okDivs, errorCode: ErrorCode.InvalidData };
+    }
+    // push AFETER errCode is None
+    okDivs.push(toPost);    
+    // set tmnt_id AFTER 1st event sanitzied and validated
+    if (i === 0) {
+      tmntId = toPost.tmnt_id;
+    }
+    i++;
+  }
+  return { divs: okDivs, errorCode: ErrorCode.None };
 }
 
 export const exportedForTesting = {

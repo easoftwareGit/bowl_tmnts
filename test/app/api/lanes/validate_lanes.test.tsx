@@ -4,9 +4,12 @@ import {
   validLaneNumber,
   validEventFkId,
   exportedForTesting,
+  validateLanes,
 } from "@/app/api/lanes/validate";
 import { initLane } from "@/lib/db/initVals";
 import { ErrorCode, maxLaneCount } from "@/lib/validation";
+import { mockLanesToPost } from "../../../mocks/tmnts/singlesAndDoubles/mockSquads";
+import { validLanesType } from "@/lib/types/types";
 
 const { gotLaneData, validLaneData } = exportedForTesting;
 
@@ -237,6 +240,118 @@ describe("tests for lane validation", () => {
         expect(validateLane(testLane)).toBe(ErrorCode.InvalidData);
       })
     })  
+  })
+
+  describe('validateLanes function', () => { 
+
+    it('should validate lanes', () => { 
+      const lanesToValidate = [...mockLanesToPost] 
+      const validLanes: validLanesType = validateLanes(lanesToValidate)
+      expect(validLanes.errorCode).toEqual(ErrorCode.None);
+      expect(validLanes.lanes.length).toEqual(lanesToValidate.length);
+      for (let i = 0; i < validLanes.lanes.length; i++) { 
+        expect(validLanes.lanes[i].id).toEqual(lanesToValidate[i].id);
+        expect(validLanes.lanes[i].squad_id).toEqual(lanesToValidate[i].squad_id);
+        expect(validLanes.lanes[i].lane_number).toEqual(lanesToValidate[i].lane_number);
+      }
+    })
+    // no test for sanitized data, since there is no strings to sanitize
+    it('should return ErrorCode.InvalidData when data is invalid', () => { 
+      const invalidLanes = [
+        {
+          ...mockLanesToPost[0],
+          lane_number: 999
+        },
+        {
+          ...mockLanesToPost[1],          
+        },
+        {
+          ...mockLanesToPost[2],
+        },
+        {
+          ...mockLanesToPost[3],
+        },
+      ]
+      const validLanes = validateLanes(invalidLanes)
+      expect(validLanes.errorCode).toEqual(ErrorCode.InvalidData);
+      expect(validLanes.lanes.length).toEqual(0);
+    })
+    it('should return ErrorCode.InvalidData and return lanes length 1 when 2nd lane has missing data', () => { 
+      const invalidLanes = [
+        {
+          ...mockLanesToPost[0],
+        },
+        {
+          ...mockLanesToPost[1],    
+          lane_number: 999
+        },
+        {
+          ...mockLanesToPost[2],
+        },
+        {
+          ...mockLanesToPost[3],
+        },
+      ]
+      const validLanes = validateLanes(invalidLanes)
+      expect(validLanes.errorCode).toEqual(ErrorCode.InvalidData);
+      expect(validLanes.lanes.length).toEqual(1);
+    })
+    it('should return ErrorCode.MissingData and return lanes length 1 when 2nd lane has missing data', () => { 
+      const invalidLanes = [
+        {
+          ...mockLanesToPost[0],
+        },
+        {
+          ...mockLanesToPost[1],    
+          lane_number: null as any
+        },
+        {
+          ...mockLanesToPost[2],
+        },
+        {
+          ...mockLanesToPost[3],
+        },
+      ]
+      const validLanes = validateLanes(invalidLanes)
+      expect(validLanes.errorCode).toEqual(ErrorCode.MissingData);
+      expect(validLanes.lanes.length).toEqual(1);
+    })
+    it('should return ErrorCode.MissingData when squad_id os not a valid squad_id', () => { 
+      const invalidLanes = [
+        {
+          ...mockLanesToPost[0],
+        },
+        {
+          ...mockLanesToPost[1],    
+          squad_id: laneId
+        },
+        {
+          ...mockLanesToPost[2],
+        },
+        {
+          ...mockLanesToPost[3],
+        },
+      ]
+      const validLanes = validateLanes(invalidLanes)
+      expect(validLanes.errorCode).toEqual(ErrorCode.MissingData);
+      expect(validLanes.lanes.length).toEqual(1);
+    })
+    it('should return ErrorCode.MissingData when passed an empty array', async () => { 
+      const validSquads = validateLanes([]);
+      expect(validSquads.errorCode).toBe(ErrorCode.MissingData);
+      expect(validSquads.lanes.length).toBe(0);
+    })
+    it('should return ErrorCode.MissingData when passed null', async () => { 
+      const validSquads = validateLanes(null as any);
+      expect(validSquads.errorCode).toBe(ErrorCode.MissingData);
+      expect(validSquads.lanes.length).toBe(0);
+    })
+    it('should return ErrorCode.MissingData when passed undefined', async () => { 
+      const validSquads = validateLanes(undefined as any);
+      expect(validSquads.errorCode).toBe(ErrorCode.MissingData);
+      expect(validSquads.lanes.length).toBe(0);
+    })
+
   })
 
 })

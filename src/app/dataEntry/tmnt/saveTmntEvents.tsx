@@ -1,4 +1,4 @@
-import { deleteEvent, postEvent, putEvent } from "@/lib/db/events/eventsAxios";
+import { deleteEvent, postEvent, postManyEvents, putEvent } from "@/lib/db/events/eventsAxios";
 import { eventType, saveTypes} from "@/lib/types/types";
 import { isValidBtDbId } from "@/lib/validation";
 
@@ -51,23 +51,6 @@ const tmntPostPutOrDelEvents = async (origEvents: eventType[], events: eventType
 }
 
 /**
- * posts tmnt events
- * 
- * @param {eventType[]} events - events to save
- * @returns - array of saved current events or null
- */
-const tmntPostEvents = async (events: eventType[]): Promise<eventType[] | null> => { 
-  
-  const postedEvents: eventType[] = [];
-  for await (const event of events) {    
-    const postedEvent = await postEvent(event);
-    if (!postedEvent) return null
-    postedEvents.push(postedEvent);  
-  }  
-  return postedEvents;
-}
-
-/**
  * saves tmnt events
  * 
  * @param {eventType[]} origEvents - original events in tmnt
@@ -79,7 +62,7 @@ export const tmntSaveEvents = async (origEvents: eventType[], events: eventType[
 
   if (!origEvents || !events || !saveType) return null;
   if (saveType === 'CREATE') {
-    return await tmntPostEvents(events) 
+    return await postManyEvents(events) 
   } else if (saveType === 'UPDATE') {
     return await tmntPostPutOrDelEvents(origEvents, events)
   } else {  
@@ -88,6 +71,5 @@ export const tmntSaveEvents = async (origEvents: eventType[], events: eventType[
 }
 
 export const exportedForTesting = {  
-  tmntPostPutOrDelEvents,  
-  tmntPostEvents,
+  tmntPostPutOrDelEvents,    
 };

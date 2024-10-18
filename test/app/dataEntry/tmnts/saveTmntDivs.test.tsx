@@ -8,7 +8,7 @@ import { deleteAllTmntDivs, deleteDiv, postDiv, putDiv } from "@/lib/db/divs/div
 import { blankDiv } from "@/lib/db/initVals";
 import 'core-js/actual/structured-clone';
 
-const { tmntPostPutOrDelDivs, tmntPostDivs } = exportedForTesting;
+const { tmntPostPutOrDelDivs } = exportedForTesting;
 
 // before running this test, run the following commands in the terminal:
 // 1) clear and re-seed the database
@@ -36,84 +36,6 @@ describe('saveTmntDivs test', () => {
   const deleteTestDivs = async () => {
     await deleteAllTmntDivs(mockDivsToPost[0].tmnt_id);
   };
-
-  describe('tmntPostDivs(): new div(s)', () => { 
-    let createdDiv = false;
-
-    beforeEach(async () => {
-      await deleteTestDivs();
-    });
-
-    beforeEach(() => {
-      createdDiv = false;
-    });
-
-    afterEach(async () => {
-      if (createdDiv) {
-        await deleteTestDivs();
-      }
-    });
-
-    it('should create one new div when only one div to save', async () => { 
-      const newDivClone = structuredClone(mockDivsToPost[0]);
-      const newDivs = [
-        {
-          ...newDivClone
-        }        
-      ]
-      const result = await tmntPostDivs(newDivs);
-      expect(result).not.toBeNull();
-      createdDiv = true;
-      if (!result) return;
-      expect(result.length).toBe(1);
-      const postedDiv = result[0];
-      expect(postedDiv.id).toBe(newDivs[0].id);
-      expect(postedDiv.tmnt_id).toBe(newDivs[0].tmnt_id);
-      expect(postedDiv.div_name).toBe(newDivs[0].div_name);
-      expect(postedDiv.hdcp_per).toBe(newDivs[0].hdcp_per);      
-      expect(postedDiv.hdcp_from).toBe(newDivs[0].hdcp_from);
-      expect(postedDiv.int_hdcp).toBe(newDivs[0].int_hdcp);
-      expect(postedDiv.hdcp_for).toBe(newDivs[0].hdcp_for);
-      expect(postedDiv.sort_order).toBe(newDivs[0].sort_order);
-    })
-    it('should create multiple new divs when multiple divs to save', async () => {
-      const newDivs = structuredClone(mockDivsToPost);
-      const result = await tmntPostDivs(newDivs);
-      expect(result).not.toBeNull();
-      createdDiv = true;
-      if (!result) return;
-      expect(result.length).toBe(2);
-      const postedDivs = result as divType[];
-      let postedDiv
-      if (postedDivs[0].id === newDivs[0].id) {
-        postedDiv = postedDivs[0]
-      } else {
-        postedDiv = postedDivs[1]
-      }
-      expect(postedDiv.id).toBe(newDivs[0].id);
-      expect(postedDiv.tmnt_id).toBe(newDivs[0].tmnt_id);
-      expect(postedDiv.div_name).toBe(newDivs[0].div_name);
-      expect(postedDiv.hdcp_per).toBe(newDivs[0].hdcp_per);      
-      expect(postedDiv.hdcp_from).toBe(newDivs[0].hdcp_from);
-      expect(postedDiv.int_hdcp).toBe(newDivs[0].int_hdcp);
-      expect(postedDiv.hdcp_for).toBe(newDivs[0].hdcp_for);
-      expect(postedDiv.sort_order).toBe(newDivs[0].sort_order);
-
-      if (postedDivs[1].id === newDivs[1].id) {
-        postedDiv = postedDivs[1]
-      } else {
-        postedDiv = postedDivs[0]
-      }
-      expect(postedDiv.id).toBe(newDivs[1].id);
-      expect(postedDiv.tmnt_id).toBe(newDivs[1].tmnt_id);
-      expect(postedDiv.div_name).toBe(newDivs[1].div_name);
-      expect(postedDiv.hdcp_per).toBe(newDivs[1].hdcp_per);      
-      expect(postedDiv.hdcp_from).toBe(newDivs[1].hdcp_from);
-      expect(postedDiv.int_hdcp).toBe(newDivs[1].int_hdcp);
-      expect(postedDiv.hdcp_for).toBe(newDivs[1].hdcp_for);
-      expect(postedDiv.sort_order).toBe(newDivs[1].sort_order);
-    })
-  })
 
   describe('tmntPostPutOrDelDivs(): edited div(s)', () => { 
     const clonedDiv = structuredClone(mockDivsToEdit[0]);
@@ -145,7 +67,7 @@ describe('saveTmntDivs test', () => {
         await postDiv(mockDivsToEdit[2]);
       }      
     }
-    const removeEvent = async () => {
+    const removeDiv = async () => {
       await deleteDiv(toAddDiv.id);
     }
 
@@ -156,7 +78,7 @@ describe('saveTmntDivs test', () => {
     beforeEach(async () => {
       await doResetDiv();
       await rePostDiv();
-      await removeEvent();
+      await removeDiv();
     });
 
     beforeEach(() => {
@@ -167,7 +89,7 @@ describe('saveTmntDivs test', () => {
 
     afterEach(async () => {
       if (didPost) {
-        await removeEvent();
+        await removeDiv();
       }
       if (didPut) {
         await doResetDiv();
@@ -177,27 +99,27 @@ describe('saveTmntDivs test', () => {
       }
     });
 
-    it('should saved edited events, one event edited', async () => {
-      const eventsToEdit = structuredClone(mockDivsToEdit);
-      eventsToEdit[1].div_name = "Edited Div";
-      eventsToEdit[1].hdcp_per = .87;
-      eventsToEdit[1].hdcp_from = 222;
-      const savedEvents = await tmntPostPutOrDelDivs(mockDivsToEdit, eventsToEdit);
-      if (!savedEvents) {
-        expect(savedEvents).not.toBeNull();
+    it('should saved edited divs, one div edited', async () => {
+      const divsToEdit = structuredClone(mockDivsToEdit);
+      divsToEdit[1].div_name = "Edited Div";
+      divsToEdit[1].hdcp_per = .87;
+      divsToEdit[1].hdcp_from = 222;
+      const savedDivs = await tmntPostPutOrDelDivs(mockDivsToEdit, divsToEdit);
+      if (!savedDivs) {
+        expect(savedDivs).not.toBeNull();
         return;
       }
-      expect(savedEvents).toHaveLength(3);
+      expect(savedDivs).toHaveLength(3);
       didPut = true;
-      const found = savedEvents.find((e) => e.id === eventsToEdit[1].id);
+      const found = savedDivs.find((e) => e.id === divsToEdit[1].id);
       if (!found) {
         expect(found).not.toBeUndefined();
         return;
       }                  
-      expect(found.id).toBe(eventsToEdit[1].id);
-      expect(found.div_name).toBe(eventsToEdit[1].div_name);
-      expect(found.hdcp_per).toBe(eventsToEdit[1].hdcp_per);      
-      expect(found.hdcp_from).toBe(eventsToEdit[1].hdcp_from);
+      expect(found.id).toBe(divsToEdit[1].id);
+      expect(found.div_name).toBe(divsToEdit[1].div_name);
+      expect(found.hdcp_per).toBe(divsToEdit[1].hdcp_per);      
+      expect(found.hdcp_from).toBe(divsToEdit[1].hdcp_from);
     })
     it('should save edited divs, one div added', async () => { 
       const divsToEdit = structuredClone(mockDivsToEdit);
@@ -255,7 +177,7 @@ describe('saveTmntDivs test', () => {
       didPut = true;
       didPost = true;
       didDel = true;
-      const found = savedDivs.find((e) => e.id === divsToEdit[1].id);
+      const found = savedDivs.find((d) => d.id === divsToEdit[1].id);
       if (!found) {
         expect(found).not.toBeUndefined();
         return;

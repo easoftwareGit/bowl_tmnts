@@ -105,7 +105,7 @@ export async function POST(request: Request) {
     let errStatus: number
     switch (err.code) {
       case 'P2002': // Unique constraint
-        errStatus = 404 
+        errStatus = 409
         break;
       case 'P2003': // parent not found
         errStatus = 404

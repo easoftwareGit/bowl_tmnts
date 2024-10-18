@@ -13,10 +13,7 @@ export async function GET(
     const tmntId = params.tmntId;
     // check if tmntId is a valid tmnt id
     if (!isValidBtDbId(tmntId, 'tmt')) {
-      return NextResponse.json(
-        { error: "not found" },
-        { status: 404 }
-      );        
+      return NextResponse.json({ error: "not found" }, { status: 404 });        
     }
     const lanes = await prisma.lane.findMany({
       where: {
@@ -48,7 +45,6 @@ export async function GET(
   }
 }
 
-
 export async function DELETE(
   request: Request,
   { params }: { params: { tmntId: string } }
@@ -62,7 +58,7 @@ export async function DELETE(
         { status: 404 }
       );        
     }
-    const deleted = await prisma.lane.findMany({
+    const deleted = await prisma.lane.deleteMany({
       where: {
         squad_id: {
           in: await prisma.squad.findMany({

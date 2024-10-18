@@ -163,8 +163,6 @@ export const validDateString = (dateStr: string): boolean => {
   if (!dateStr || dateStr.length === 0) return false
   const noTimeDateStr = dateStr.split('T')[0];
   if (!noTimeDateStr || noTimeDateStr.length !== 10) return false 
-  
-  
   if (!dateStr || dateStr.length !== 10) return false
   if (dateStr[4] === '-') {
     const regex = /^\d{4}-(0[1-9]|1[0-2])-(0[1-9]|[12]\d|3[01])$/;

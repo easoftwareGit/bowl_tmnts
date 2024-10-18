@@ -3,7 +3,7 @@ import { baseEventsApi } from "@/lib/db/apiPaths";
 import { testBaseEventsApi } from "../../../testApi";
 import { eventType } from "@/lib/types/types";
 import { initEvent } from "@/lib/db/initVals";
-import { deleteAllTmntEvents, deleteEvent, postEvent, putEvent } from "@/lib/db/events/eventsAxios";
+import { deleteAllTmntEvents, deleteEvent, postEvent, postManyEvents, putEvent } from "@/lib/db/events/eventsAxios";
 import { mockEventsToPost } from "../../../mocks/tmnts/singlesAndDoubles/mockEvents";
 
 // before running this test, run the following commands in the terminal:
@@ -105,6 +105,97 @@ describe("eventsAxios", () => {
       const postedEvent = await postEvent(invalidEvent);
       expect(postedEvent).toBeNull();
     });
+  });
+
+  describe("postManyEvents", () => { 
+
+    let didPost = false;
+    
+    beforeAll(async () => {
+      await deleteAllTmntEvents(mockEventsToPost[0].tmnt_id);
+    });
+
+    beforeEach(() => {
+      didPost = false;
+    });
+
+    afterEach(async () => {
+      if (didPost) {
+        await deleteAllTmntEvents(mockEventsToPost[0].tmnt_id);
+      }
+    });
+
+    it("should post many events", async () => { 
+      const postedEvents = await postManyEvents(mockEventsToPost);
+      expect(postedEvents).not.toBeNull();
+      if (!postedEvents) return;
+      didPost = true;
+      expect(postedEvents.length).toBe(mockEventsToPost.length);
+      for (let i = 0; i < postedEvents.length; i++) {
+        expect(postedEvents[i].id).toEqual(mockEventsToPost[i].id);
+        expect(postedEvents[i].tmnt_id).toEqual(mockEventsToPost[i].tmnt_id);
+        expect(postedEvents[i].event_name).toEqual(mockEventsToPost[i].event_name);
+        expect(postedEvents[i].team_size).toEqual(mockEventsToPost[i].team_size);
+        expect(postedEvents[i].games).toEqual(mockEventsToPost[i].games);
+        expect(postedEvents[i].entry_fee).toEqual(mockEventsToPost[i].entry_fee);
+        expect(postedEvents[i].lineage).toEqual(mockEventsToPost[i].lineage);
+        expect(postedEvents[i].prize_fund).toEqual(mockEventsToPost[i].prize_fund);
+        expect(postedEvents[i].other).toEqual(mockEventsToPost[i].other);
+        expect(postedEvents[i].expenses).toEqual(mockEventsToPost[i].expenses);
+        expect(postedEvents[i].lpox).toEqual(mockEventsToPost[i].lpox);
+        expect(postedEvents[i].added_money).toEqual(mockEventsToPost[i].added_money);
+        expect(postedEvents[i].sort_order).toEqual(mockEventsToPost[i].sort_order);
+      }
+    })
+    it('should post sanitzied values', async () => {
+      const toSanitzie = [
+        {
+          ...mockEventsToPost[0],
+          event_name: '   ' + mockEventsToPost[0].event_name + '  **** ',
+        },
+        {
+          ...mockEventsToPost[1],
+          event_name: '<script>' + mockEventsToPost[1].event_name + '</script>',
+        }
+      ]
+      const postedEvents = await postManyEvents(toSanitzie);
+      expect(postedEvents).not.toBeNull();
+      if (!postedEvents) return;
+      didPost = true;
+      expect(postedEvents.length).toBe(toSanitzie.length);
+      expect(postedEvents[0].event_name).toEqual(mockEventsToPost[0].event_name);
+      expect(postedEvents[1].event_name).toEqual(mockEventsToPost[1].event_name);
+    })
+    it("should NOT post many events with no data", async () => {
+      const postedEvents = await postManyEvents([]);
+      expect(postedEvents).toBeNull();
+    })
+    it("should NOT post many events with invalid data", async () => {
+      const invalidEvents = [
+        {
+          ...mockEventsToPost[0],
+          event_name: "",
+        },
+        {
+          ...mockEventsToPost[1],          
+        },
+      ]
+      const postedEvents = await postManyEvents(invalidEvents);
+      expect(postedEvents).toBeNull();            
+    })    
+    it("should NOT post many events when all tmnt_ids are not the same", async () => {
+      const invalidEvents = [
+        {
+          ...mockEventsToPost[0],          
+        },
+        {
+          ...mockEventsToPost[1],               
+          tmnt_id: 'tmt_00000000000000000000000000000000',
+        },
+      ]
+      const postedEvents = await postManyEvents(invalidEvents);
+      expect(postedEvents).toBeNull();            
+    })    
   });
 
   describe("putEvent", () => {

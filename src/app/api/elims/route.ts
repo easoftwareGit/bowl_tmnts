@@ -2,7 +2,7 @@ import { NextResponse, NextRequest } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { validateElim, sanitizeElim } from "./validate";
 import { ErrorCode } from "@/lib/validation";
-import { elimType } from "@/lib/types/types";
+import { elimDataType, elimType } from "@/lib/types/types";
 import { initElim } from "@/lib/db/initVals";
 
 // routes /api/elims
@@ -66,15 +66,6 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: errMsg }, { status: 422 });
     }
     
-    type elimDataType = {
-      id: string;
-      div_id: string;
-      squad_id: string;
-      fee: string;
-      start: number;
-      games: number;
-      sort_order: number;      
-    };
     let elimData: elimDataType = {
       id: toPost.id,
       div_id: toPost.div_id, 

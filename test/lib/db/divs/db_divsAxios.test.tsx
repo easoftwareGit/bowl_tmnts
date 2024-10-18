@@ -3,7 +3,7 @@ import { baseDivsApi } from "@/lib/db/apiPaths";
 import { testBaseDivsApi } from "../../../testApi";
 import { divType, HdcpForTypes } from "@/lib/types/types";
 import { initDiv } from "@/lib/db/initVals";
-import { deleteAllTmntDivs, deleteDiv, postDiv, putDiv } from "@/lib/db/divs/divsAxios";
+import { deleteAllTmntDivs, deleteDiv, postDiv, postManyDivs, putDiv } from "@/lib/db/divs/divsAxios";
 import { mockDivsToPost } from "../../../mocks/tmnts/twoDivs/mockDivs";
 
 // before running this test, run the following commands in the terminal:
@@ -93,6 +93,93 @@ describe("divsAxios", () => {
       expect(postedDiv).toBeNull();
     });
   });
+
+  describe('postManyDivs', () => { 
+
+    let didPost = false;
+    
+    beforeAll(async () => {
+      await deleteAllTmntDivs(mockDivsToPost[0].tmnt_id);
+    });
+
+    beforeEach(() => {
+      didPost = false;
+    });
+
+    afterEach(async () => {
+      if (didPost) {
+        await deleteAllTmntDivs(mockDivsToPost[0].tmnt_id);
+      }
+    });
+
+    it('should post many divs', async () => { 
+      const postedDivs = await postManyDivs(mockDivsToPost);
+      expect(postedDivs).not.toBeNull();
+      if (!postedDivs) return;
+      didPost = true;
+      expect(postedDivs.length).toBe(mockDivsToPost.length);
+      for (let i = 0; i < mockDivsToPost.length; i++) {
+        expect(postedDivs[i].id).toBe(mockDivsToPost[i].id);
+        expect(postedDivs[i].tmnt_id).toBe(mockDivsToPost[i].tmnt_id);
+        expect(postedDivs[i].div_name).toBe(mockDivsToPost[i].div_name);
+        expect(postedDivs[i].hdcp_per).toBe(mockDivsToPost[i].hdcp_per);
+        expect(postedDivs[i].hdcp_from).toBe(mockDivsToPost[i].hdcp_from);
+        expect(postedDivs[i].int_hdcp).toBe(mockDivsToPost[i].int_hdcp);
+        expect(postedDivs[i].hdcp_for).toBe(mockDivsToPost[i].hdcp_for);
+        expect(postedDivs[i].sort_order).toBe(mockDivsToPost[i].sort_order);
+      }
+    })
+    it('should post sanitized values', async () => {
+      const toSanitzie = [
+        {
+          ...mockDivsToPost[0],
+          div_name: "    " + mockDivsToPost[0].div_name + "  ***  ",
+        }, 
+        {
+          ...mockDivsToPost[1],
+          div_name: "<script>" + mockDivsToPost[1].div_name + "</script>",
+        }
+      ]
+      const postedDivs = await postManyDivs(toSanitzie);
+      expect(postedDivs).not.toBeNull();
+      if (!postedDivs) return;
+      didPost = true;
+      expect(postedDivs.length).toBe(toSanitzie.length);
+      expect(postedDivs[0].div_name).toBe(mockDivsToPost[0].div_name);
+      expect(postedDivs[1].div_name).toBe(mockDivsToPost[1].div_name);
+    })
+    it('should NOT post many divs with no data', async () => {
+      const postedDivs = await postManyDivs([]);
+      expect(postedDivs).toBeNull();
+    })
+    it('should NOT post many divs with invalid data', async () => { 
+      const invalidDivs = [
+        {
+          ...mockDivsToPost[0],
+          div_name: '',
+        },
+        {
+          ...mockDivsToPost[1],
+        }
+      ]
+      const postedDivs = await postManyDivs(invalidDivs);
+      expect(postedDivs).toBeNull();
+    })
+    it("should NOT post many divs when all tmnt_id's are not the same", async () => { 
+      const invalidDivs = [
+        {
+          ...mockDivsToPost[0],
+        },
+        {
+          ...mockDivsToPost[1],
+          tmnt_id: 'tmt_00000000000000000000000000000000',
+        }
+      ]
+      const postedDivs = await postManyDivs(invalidDivs);
+      expect(postedDivs).toBeNull();
+    })
+    
+  })
 
   describe('putDiv', () => {
     const divToPut = {

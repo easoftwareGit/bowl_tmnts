@@ -5,7 +5,7 @@ import { AppDispatch, RootState, store } from "@/redux/store";
 import { fetchBowls, selectAllBowls, getBowlsStatus, getBowlsError } from "@/redux/features/bowls/bowlsSlice";
 import { isValidBtDbId, maxTmntNameLength } from "@/lib/validation";
 import { Accordion, AccordionItem } from "react-bootstrap";
-import { tmntType, tmntPropsType, saveTypes, eventType, divType, squadType } from "../../../lib/types/types";
+import { tmntType, tmntPropsType, saveTypes, eventType, divType, squadType, laneType, potType, brktType, elimType } from "../../../lib/types/types";
 import { noAcdnErr } from "./errors";
 import OneToNEvents, { validateEvents } from "./oneToNEvents";
 import OneToNDivs, { validateDivs } from "./oneToNDivs";
@@ -18,20 +18,18 @@ import ZeroToNBrackets, { validateBrkts } from "./zeroToNBrkts";
 import ZeroToNElims, { validateElims } from "./zeroToNElims";
 import ModalErrorMsg, { cannotSaveTitle } from "@/components/modal/errorModal";
 import { initModalObj } from "@/components/modal/modalObjType";
-import { postEvent } from "@/lib/db/events/eventsAxios";
-import { postDiv } from "@/lib/db/divs/divsAxios";
-import { postSquad } from "@/lib/db/squads/squadsAxios";
-import { postLane } from "@/lib/db/lanes/lanesAxios";
-import { postPot } from "@/lib/db/pots/potsAxios";
-import { postBrkt } from "@/lib/db/brkts/brktsAxios";
 import { postElim } from "@/lib/db/elims/elimsAxios";
 import { tmntSaveTmnt } from "./saveTmnt";
 import { tmntSaveEvents } from "./saveTmntEvents";
-
-import "./form.css";
-import { blankDiv, blankEvent, blankSquad, blankTmnt } from "@/lib/db/initVals";
+import { blankBrkt, blankDiv, blankElim, blankEvent, blankLane, blankPot, blankSquad, blankTmnt } from "@/lib/db/initVals";
 import { tmntSaveDivs } from "./saveTmntDivs";
 import { tmntSaveSquads } from "./saveTmntSquads";
+import { tmntSaveLanes } from "./saveTmntLanes";
+import { tmntSavePots } from "./saveTmntPots";
+import { tmntSaveBrkts } from "./saveTmntBrkts";
+
+import "./form.css";
+import { tmntSaveElims } from "./saveTmntElims";
 
 interface FormProps {
   tmntProps: tmntPropsType
@@ -65,6 +63,10 @@ const TmntDataForm: React.FC<FormProps> = ({ tmntProps }) => {
   let origEvents: eventType[] = [ { ...blankEvent } ];  
   let origDivs: divType[] = [{ ...blankDiv }];
   let origSquads: squadType[] = [{ ...blankSquad }];
+  let origLanes: laneType[] = [{ ...blankLane }];
+  let origPots: potType[] = [{ ...blankPot }];
+  let origBrkts: brktType[] = [{ ...blankBrkt }];
+  let origElims: elimType[] = [{ ...blankElim }];
 
   const bowlsStatus = useSelector(getBowlsStatus);
   const bowls = useSelector(selectAllBowls);
@@ -322,137 +324,131 @@ const TmntDataForm: React.FC<FormProps> = ({ tmntProps }) => {
     return lanesTitle
   }
 
-  const saveTmnt = async (): Promise<boolean> => {      
-    const savedTmnt = await tmntSaveTmnt(origTmnt, tmnt, saveType);
-    if (!savedTmnt) {
-      setErrModalObj({
-        show: true,
-        title: cannotSaveTitle,
-        message: `Cannot save Tournament "${tmnt.tmnt_name}".`,
-        id: initModalObj.id
-      })   
-      return false;
-    };    
-    origTmnt = {...tmnt};
-    return true;
-  }  
-  const saveEvents = async (): Promise<boolean> => {
-    const savedEvents = await tmntSaveEvents(origEvents, events, saveType);
-    if (!savedEvents) {
-      setErrModalObj({
-        show: true,
-        title: cannotSaveTitle,
-        message: `Cannot save Events.`,
-        id: initModalObj.id
-      }) 
-      return false;
-    }
-    origEvents = [...events];
-    return true;
-  }
-  const saveDivs = async (): Promise<boolean> => {
-    const savedDivs = await tmntSaveDivs(origDivs, divs, saveType);
-    if (!savedDivs) {
-      setErrModalObj({
-        show: true,
-        title: cannotSaveTitle,
-        message: `Cannot save Divisions.`,
-        id: initModalObj.id
-      }) 
-      return false;
-    }
-    origDivs = [...divs];
-    return true;
-  }  
-  const saveSquads = async (): Promise<boolean> => {
-    const savedSquads = await tmntSaveSquads(origSquads, squads, saveType);
-    if (!savedSquads) {
-      setErrModalObj({
-        show: true,
-        title: cannotSaveTitle,
-        message: `Cannot save Squads.`,
-        id: initModalObj.id
-      }) 
-      return false;
-    }
-    origSquads = [...squads];
-    return true;
-  }
-  const saveLanes = async (): Promise<boolean> => {
-    for (let i = 0; i < lanes.length; i++) {
-      const currentLaneId = lanes[i].id;
-      lanes[i].id = '';
-      const postedLane = await postLane(lanes[i]);
-      if (!postedLane) {
-        lanes[i].id = currentLaneId;
-        setErrModalObj({
-          show: true,
-          title: cannotSaveTitle,
-          message: `Cannot save Lane "${lanes[i].lane_number}".`,
-          id: initModalObj.id
-        }) 
-        return false;
-      }
-    }
-    return true;
-  }
-  const savePots = async (): Promise<boolean> => {
-    for (let i = 0; i < pots.length; i++) {
-      const currentPotId = pots[i].id;
-      pots[i].id = '';
-      const postedPot = await postPot(pots[i]);
-      if (!postedPot) { 
-        pots[i].id = currentPotId;
-        setErrModalObj({
-          show: true,
-          title: cannotSaveTitle,
-          message: `Cannot save Pot "${pots[i].pot_type}".`,
-          id: initModalObj.id
-        }) 
-        return false;
-      }
-    }
-    return true;
-  }
-  const saveBrkts = async (): Promise<boolean> => {
-    for (let i = 0; i < brkts.length; i++) {
-      const currentBrktId = brkts[i].id;
-      brkts[i].id = '';
-      const postedBrkt = await postBrkt(brkts[i]);
-      if (!postedBrkt) {
-        brkts[i].id = currentBrktId;
-        setErrModalObj({
-          show: true,
-          title: cannotSaveTitle,
-          message: `Cannot save Bracket starting game "${brkts[i].start}".`,
-          id: initModalObj.id
-        }) 
-        return false;
-      }
-    }
-    return true;
-  }
-  const saveElims = async (): Promise<boolean> => {
-    for (let i = 0; i < elims.length; i++) {
-      const currentElimId = elims[i].id;
-      elims[i].id = '';
-      const postedElim = await postElim(elims[i]);
-      if (!postedElim) {
-        elims[i].id = currentElimId;
-        setErrModalObj({
-          show: true,
-          title: cannotSaveTitle,
-          message: `Cannot save Eliminator starting game "${elims[i].start}".`,
-          id: initModalObj.id
-        }) 
-        return false;
-      }
-    }
-    return true;
-  }
-
   const save = async () => { 
 
+    const saveTmnt = async (): Promise<boolean> => {      
+      const savedTmnt = await tmntSaveTmnt(origTmnt, tmnt, saveType);
+      if (!savedTmnt) {
+        setErrModalObj({
+          show: true,
+          title: cannotSaveTitle,
+          message: `Cannot save Tournament "${tmnt.tmnt_name}".`,
+          id: initModalObj.id
+        })   
+        return false;
+      };    
+      origTmnt = {...tmnt};
+      return true;
+    }  
+    const saveEvents = async (): Promise<boolean> => {
+      const savedEvents = await tmntSaveEvents(origEvents, events, saveType);
+      if (!savedEvents) {
+        setErrModalObj({
+          show: true,
+          title: cannotSaveTitle,
+          message: `Cannot save Events.`,
+          id: initModalObj.id
+        }) 
+        return false;
+      }
+      origEvents = [...events];
+      return true;
+    }
+    const saveDivs = async (): Promise<boolean> => {
+      const savedDivs = await tmntSaveDivs(origDivs, divs, saveType);
+      if (!savedDivs) {
+        setErrModalObj({
+          show: true,
+          title: cannotSaveTitle,
+          message: `Cannot save Divisions.`,
+          id: initModalObj.id
+        }) 
+        return false;
+      }
+      origDivs = [...divs];
+      return true;
+    }  
+    const saveSquads = async (): Promise<boolean> => {
+      const savedSquads = await tmntSaveSquads(origSquads, squads, saveType);
+      if (!savedSquads) {
+        setErrModalObj({
+          show: true,
+          title: cannotSaveTitle,
+          message: `Cannot save Squads.`,
+          id: initModalObj.id
+        }) 
+        return false;
+      }
+      origSquads = [...squads];
+      return true;
+    }
+    const saveLanes = async (): Promise<boolean> => {
+      const savedLanes = await tmntSaveLanes(origLanes, lanes, saveType);
+      if (!savedLanes) {
+        setErrModalObj({
+          show: true,
+          title: cannotSaveTitle,
+          message: `Cannot save Lanes.`,
+          id: initModalObj.id
+        }) 
+        return false;
+      }
+      origLanes = [...lanes];
+      return true;
+    }  
+    const savePots = async (): Promise<boolean> => {
+      // start with all pots on first squad
+      pots.forEach(pot => {
+        pot.squad_id = squads[0].id
+      });
+      const savedPots = await tmntSavePots(origPots, pots, saveType);
+      if (!savedPots) {
+        setErrModalObj({
+          show: true,
+          title: cannotSaveTitle,
+          message: `Cannot save Pots.`,
+          id: initModalObj.id
+        }) 
+        return false;
+      }
+      origPots = [...pots];
+      return true;
+    }
+    const saveBrkts = async (): Promise<boolean> => {
+      // start with all brkts on first squad
+      brkts.forEach(brkt => {
+        brkt.squad_id = squads[0].id
+      })
+      const saveBrkts = await tmntSaveBrkts(origBrkts, brkts, saveType);
+      if (!saveBrkts) {
+        setErrModalObj({
+          show: true,
+          title: cannotSaveTitle,
+          message: `Cannot save Brackets.`,
+          id: initModalObj.id
+        }) 
+        return false;
+      }
+      origBrkts = [...brkts];
+      return true;
+    }
+    const saveElims = async (): Promise<boolean> => {
+      // start with all elims on first squad
+      elims.forEach(elim => {
+        elim.squad_id = squads[0].id
+      })
+      const savedElims = await tmntSaveElims(origElims, elims, saveType);
+      if (!savedElims) {
+        setErrModalObj({
+          show: true,
+          title: cannotSaveTitle,
+          message: `Cannot save Eliminations.`,
+          id: initModalObj.id
+        }) 
+        return false;
+      }
+      return true;
+    }
     let saved = false;
     saved = await saveTmnt();
     if (!saved) return false;
@@ -462,21 +458,23 @@ const TmntDataForm: React.FC<FormProps> = ({ tmntProps }) => {
     if (!saved) return false;
     saved = await saveSquads();
     if (!saved) return false;    
-    // if (!saveLanes()) return false;
-    // if (!savePots()) return false;
-    // if (!saveBrkts()) return false;
-    // if (!saveElims()) return false;    
+    saved = await saveLanes();
+    if (!saved) return false;
+    saved = await savePots();
+    if (!saved) return false;   
+    saved = await saveBrkts();
+    if (!saved) return false;    
+    saved = await saveElims();
+    if (!saved) return false;
     saveType = 'UPDATE';
     return true;
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
-    // console.log("Submitted");
+  const handleSubmit = (e: React.FormEvent) => {    
     e.preventDefault();
     if (showingModal) return;
     if (validateTmnt()) {      
-      save();
-      // console.log("Tournament valid");
+      save();      
     } else {
       // console.log("Tournament invalid");
     }

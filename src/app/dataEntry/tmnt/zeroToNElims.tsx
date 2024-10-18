@@ -254,6 +254,9 @@ const ZeroToNElims: React.FC<ChildProps> = ({
         div_id: parentId,
         div_err: "",
       }
+      if (updatedElim.start_err = duplicateElimErrMsg) {
+        updatedElim.start_err = "";
+      }
       if (createElim.div_err === duplicateElimErrMsg) {
         updatedElim.div_err = "";
       }

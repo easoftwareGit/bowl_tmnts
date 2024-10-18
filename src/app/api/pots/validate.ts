@@ -1,7 +1,7 @@
 import { isValidBtDbId, ErrorCode, maxMoney, validSortOrder, isNumber } from "@/lib/validation";
 import { sanitize, sanitizeCurrency } from "@/lib/sanitize";
-import { validMoney } from "@/lib/currency/validate";
-import { potType, PotCategories, idTypes } from "@/lib/types/types";
+import { validBtdbMoney, validMoney } from "@/lib/currency/validate";
+import { potType, PotCategories, idTypes, validPotsType } from "@/lib/types/types";
 import { blankPot } from "@/lib/db/initVals";
 
 /**
@@ -35,8 +35,8 @@ export const validPotType = (pot_type: PotCategories): boolean => {
   return (sanitized === 'Game' || sanitized === 'Last Game' || sanitized === 'Series');  
 }
 export const validPotMoney = (moneyStr: string): boolean => {
-  if (!moneyStr) return false;  
-  return validMoney(moneyStr, 1, maxMoney);
+  // min 1, max 999999
+  return validBtdbMoney(moneyStr, 1);
 };
 
 /**
@@ -107,8 +107,8 @@ export const sanitizePot = (pot: potType): potType => {
   if (validPotFkId(pot.squad_id, "sqd")) {
     sanitizedPot.squad_id = pot.squad_id
   };
-  if (validPotType(pot.pot_type)) {
-    sanitizedPot.pot_type = pot.pot_type
+  if (validPotType(pot.pot_type)) {    
+    sanitizedPot.pot_type = sanitize(pot.pot_type) as PotCategories;
   }
   // sanitizeCurrency removes trailing zeros
   if (validPotMoney(pot.fee)) {
@@ -123,7 +123,7 @@ export const sanitizePot = (pot: potType): potType => {
 /**
  * validates a pot object
  *
- * @param pot - pot to validate
+ * @param pot pot to validate
  * @returns {ErrorCode.None | ErrorCode.MissingData | ErrorCode.InvalidData | ErrorCode.OtherError} - error code
  */
 export function validatePot(pot: potType): ErrorCode {
@@ -136,6 +136,33 @@ export function validatePot(pot: potType): ErrorCode {
   } catch (pot) {
     return ErrorCode.OtherError;
   }
+}
+
+/**
+ * sanitizes and validates an array of pot objects
+ * 
+ * @param pots - array of pot objects to validate
+ * @returns {validPotsType} - {pots:potType[], errorCode: ErrorCode.None | ErrorCode.MissingData | ErrorCode.InvalidData | ErrorCode.OtherError}
+ */
+export const validatePots = (pots: potType[]): validPotsType => {
+  
+  const blankPots: potType[] = [];
+  const okPots: potType[] = [];
+  if (!Array.isArray(pots) || pots.length === 0) {
+    return { pots: blankPots, errorCode: ErrorCode.MissingData };
+  };
+  // cannot use forEach because if got an errror need exit loop
+  let i = 0;  
+  while (i < pots.length) {
+    const toPost = sanitizePot(pots[i]);
+    const errCode = validatePot(toPost);
+    if (errCode !== ErrorCode.None) {
+      return { pots: okPots, errorCode: errCode };
+    }
+    okPots.push(toPost);
+    i++;
+  }
+  return { pots: okPots, errorCode: ErrorCode.None };
 }
 
 export const exportedForTesting = {

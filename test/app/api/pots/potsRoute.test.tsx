@@ -1,9 +1,12 @@
 import axios, { AxiosError } from "axios";
-import { basePotsApi } from "@/lib/db/apiPaths";
-import { testBasePotsApi } from "../../../testApi";
-import { potType } from "@/lib/types/types";
-import { initPot } from "@/lib/db/initVals";
-import { isValidBtDbId } from "@/lib/validation";
+import { basePotsApi, baseSquadsApi, baseDivsApi } from "@/lib/db/apiPaths";
+import { testBasePotsApi, testBaseSquadsApi, testBaseDivsApi } from "../../../testApi";
+import { divType, PotCategories, potType, squadType } from "@/lib/types/types";
+import { initDiv, initPot, initSquad } from "@/lib/db/initVals";
+import { mockSquadsToPost, mockPotsToPost, mockDivs, tmntToDelId } from "../../../mocks/tmnts/singlesAndDoubles/mockSquads";
+import { deleteAllTmntSquads, postManySquads } from "@/lib/db/squads/squadsAxios";
+import { deleteAllTmntDivs, postManyDivs } from "@/lib/db/divs/divsAxios";
+import { deleteAllTmntPots } from "@/lib/db/pots/potsAxios";
 
 // before running this test, run the following commands in the terminal:
 // 1) clear and re-seed the database
@@ -24,59 +27,116 @@ const url = testBasePotsApi.startsWith("undefined")
   ? basePotsApi
   : testBasePotsApi;  
 const onePotUrl = url + "/pot/";
+const squadUrl = url + "/squad/";
+const divUrl = url + "/div/";
+const tmntUrl = url + "/tmnt/";
+const manyUrl = url + "/many";
+
+const urlForSquads = testBaseSquadsApi.startsWith("undefined")
+  ? baseSquadsApi
+  : testBaseSquadsApi;
+const oneSquadUrl = urlForSquads + "/squad/";
+
+const urlForDivs = testBaseDivsApi.startsWith("undefined")
+  ? baseDivsApi
+  : testBaseDivsApi;
+const oneDivUrl = urlForSquads + "/div/";
 
 const notFoundId = "pot_01234567890123456789012345678901";
+const notFoundDivId = "div_01234567890123456789012345678901";
+const notFoundSquadId = "sqd_01234567890123456789012345678901";
+const notFoundTmntId = "tmt_01234567890123456789012345678901";
 const nonPotId = "usr_01234567890123456789012345678901";
+
+const squadPotId1 = 'pot_98b3a008619b43e493abf17d9f462a65';
+const squadPotId2 = 'pot_ab80213899ea424b938f52a062deacfe';
 
 const pot3Id = 'pot_ab80213899ea424b938f52a062deacfe'
 
 const div2Id = 'div_1f42042f9ef24029a0a2d48cc276a087';
 const squad2Id = 'sqd_1a6c885ee19a49489960389193e8f819';
 
-describe('Pots - API: /api/pots', () => { 
+const testPot: potType = {
+  ...initPot,
+  id: "pot_b2a7b02d761b4f5ab5438be84f642c3b",
+  squad_id: "sqd_7116ce5f80164830830a7157eb093396",
+  div_id: "div_f30aea2c534f4cfe87f4315531cef8ef",
+  sort_order: 1,
+  fee: '20',
+  pot_type: "Game",
+}
 
-  const testPot: potType = {
-    ...initPot,
-    id: "pot_b2a7b02d761b4f5ab5438be84f642c3b",
-    squad_id: "sqd_7116ce5f80164830830a7157eb093396",
-    div_id: "div_f30aea2c534f4cfe87f4315531cef8ef",
-    sort_order: 1,
-    fee: '20',
-    pot_type: "Game",
+const delOnePot = async (id: string) => { 
+  try {
+    const delResponse = await axios({
+      method: "delete",
+      withCredentials: true,
+      url: onePotUrl + id
+    });
+  } catch (err) {
+    if (err instanceof AxiosError) { 
+      if (err.status !== 404) {
+        console.log(err.message);
+        return;
+      }
+    }
   }
+}
+
+const deletePostedPot = async () => { 
+  const response = await axios.get(url);
+  const pots = response.data.pots;
+  const toDel = pots.find((p: potType) => p.sort_order === 13);
+  if (toDel) {
+    await delOnePot(toDel.id);
+  }
+}
+
+const resetPot = async () => { 
+  // make sure test pot is reset in database
+  const potJSON = JSON.stringify(testPot);
+  const response = await axios({
+    method: "put",
+    data: potJSON,
+    withCredentials: true,
+    url: onePotUrl + testPot.id,
+  })
+}
+
+const rePostPot = async (pot: potType) => {
+  try {
+    // if pot already in database, then don't re-post
+    const getResponse = await axios.get(onePotUrl + pot.id);
+    const found = getResponse.data.pot;
+    if (found) return;
+  } catch (err) {
+    if (err instanceof AxiosError) { 
+      if (err.status !== 404) {
+        console.log(err.message);
+        return;
+      }
+    }
+  }
+  try {
+    // if not in database, then re-post
+    const potJSON = JSON.stringify(pot);
+    const response = await axios({
+      method: "post",
+      withCredentials: true,
+      url: url,
+      data: potJSON
+    });    
+  } catch (err) {
+    if (err instanceof AxiosError) console.log(err.message);
+  }
+}
+
+describe('Pots - API: /api/pots', () => { 
 
   const blankPot = {
     id: testPot.id,
     squad_id: testPot.squad_id,
     div_id: testPot.div_id,
-  }
-
-  const deletePostedPot = async () => { 
-    const response = await axios.get(url);
-    const pots = response.data.pots;
-    const toDel = pots.find((p: potType) => p.sort_order === 13);
-    if (toDel) {
-      try {
-        const delResponse = await axios({
-          method: "delete",
-          withCredentials: true,
-          url: onePotUrl + toDel.id          
-        });        
-      } catch (err) {
-        if (err instanceof AxiosError) console.log(err.message);
-      }
-    }
-  }
-
-  const resetPot = async () => { 
-    // make sure test pot is reset in database
-    const potJSON = JSON.stringify(testPot);
-    const response = await axios({
-      method: "put",
-      data: potJSON,
-      withCredentials: true,
-      url: onePotUrl + testPot.id,
-    })
   }
 
   describe('GET', () => { 
@@ -94,7 +154,59 @@ describe('Pots - API: /api/pots', () => {
 
   })
 
-  describe('GET pots for squad API: /api/pots/squad/:id', () => { 
+  describe('GET by id - API: /api/pots/pot/:id', () => { 
+
+    it('should get pot by id', async () => { 
+      const response = await axios.get(onePotUrl + testPot.id);
+      expect(response.status).toBe(200);
+      const pot = response.data.pot;
+      expect(pot.id).toBe(testPot.id);
+      expect(pot.squad_id).toBe(testPot.squad_id);
+      expect(pot.div_id).toBe(testPot.div_id);
+      expect(pot.fee).toBe(testPot.fee);
+      expect(pot.pot_type).toBe(testPot.pot_type);
+      expect(pot.sort_order).toBe(testPot.sort_order);
+    })
+    it('should NOT get pot by id when ID is invalid', async () => { 
+      try {
+        const response = await axios.get(onePotUrl + 'invalid');
+        expect(response.status).toBe(404);
+      } catch (err) {
+        if (err instanceof AxiosError) {
+          expect(err.response?.status).toBe(404);
+        } else {
+          expect(true).toBeFalsy();
+        }
+      }
+    })
+    it('should NOT get pot by id when ID is not found', async () => { 
+      try {
+        const response = await axios.get(onePotUrl + notFoundId);
+        expect(response.status).toBe(404);
+      } catch (err) {
+        if (err instanceof AxiosError) {
+          expect(err.response?.status).toBe(404);
+        } else {
+          expect(true).toBeFalsy();
+        }
+      }
+    })  
+    it('should NOT get pot by id when ID is valid, but not a pot ID', async () => { 
+      try {
+        const response = await axios.get(onePotUrl + nonPotId);
+        expect(response.status).toBe(404);
+      } catch (err) {
+        if (err instanceof AxiosError) {
+          expect(err.response?.status).toBe(404);
+        } else {
+          expect(true).toBeFalsy();
+        }
+      }
+    })
+
+  })
+
+  describe('GET all pots for squad API: /api/pots/squad/:squadId', () => { 
 
     beforeAll(async () => {
       await deletePostedPot();
@@ -103,10 +215,8 @@ describe('Pots - API: /api/pots', () => {
     it('should get all pots for squad', async () => { 
       // const values taken from prisma/seed.ts
       const multiPotSquadId = "sqd_1a6c885ee19a49489960389193e8f819";
-      const squadPotId1 = 'pot_98b3a008619b43e493abf17d9f462a65';
-      const squadPotId2 = 'pot_ab80213899ea424b938f52a062deacfe';
 
-      const multiPotUrl = url + "/squad/" + multiPotSquadId;
+      const multiPotUrl = squadUrl + multiPotSquadId;
       const response = await axios({
         method: "get",
         withCredentials: true,
@@ -121,10 +231,35 @@ describe('Pots - API: /api/pots', () => {
       expect(pots[0].id).toBe(squadPotId1);
       expect(pots[1].id).toBe(squadPotId2);
     })
+    it('should NOT get all pots for squad when ID is invalid', async () => {
+      try {
+        const response = await axios({
+          method: "get",
+          withCredentials: true,
+          url: squadUrl + 'test'
+        })
+        expect(response.status).toBe(404);
+      } catch (err) {
+        if (err instanceof AxiosError) {
+          expect(err.response?.status).toBe(404);
+        } else {
+          expect(true).toBeFalsy();
+        }
+      }
+    })
+    it('should return code 200 if pot is not found, 0 rows returned', async () => {     
+      const response = await axios({
+        method: "get",
+        withCredentials: true,
+        url: squadUrl + notFoundSquadId
+      })
+      expect(response.status).toBe(200);
+      expect(response.data.pots).toHaveLength(0);
+    })
 
   })
 
-  describe('GET pots for div API: /api/pots/div/:id', () => { 
+  describe('GET pots for div API: /api/pots/div/:divId', () => { 
 
     beforeAll(async () => {
       await deletePostedPot();
@@ -136,7 +271,7 @@ describe('Pots - API: /api/pots', () => {
       const divPotId1 = 'pot_98b3a008619b43e493abf17d9f462a65';
       const divPotId2 = 'pot_ab80213899ea424b938f52a062deacfe';
 
-      const multiPotUrl = url + "/div/" + multiPotDivId;
+      const multiPotUrl = divUrl + multiPotDivId;
       const response = await axios({
         method: "get",
         withCredentials: true,
@@ -150,6 +285,76 @@ describe('Pots - API: /api/pots', () => {
       // query in /api/pots/div/ GET sorts by sort_order
       expect(pots[0].id).toBe(divPotId1);
       expect(pots[1].id).toBe(divPotId2);
+    })
+    it('should NOT get all pots for div when ID is invalid', async () => {
+      try {
+        const response = await axios({
+          method: "get",
+          withCredentials: true,
+          url: divUrl + 'test'
+        })
+        expect(response.status).toBe(404);
+      } catch (err) {
+        if (err instanceof AxiosError) {
+          expect(err.response?.status).toBe(404);
+        } else {
+          expect(true).toBeFalsy();
+        }
+      }
+    })
+    it('should return code 200 if pot is not found, 0 rows returned', async () => {     
+      const response = await axios({
+        method: "get",
+        withCredentials: true,
+        url: divUrl + notFoundDivId
+      })
+      expect(response.status).toBe(200);
+      expect(response.data.pots).toHaveLength(0);
+    })
+
+  })
+
+  describe('GET pots for tmnt API: /api/pots/tmnt/:tmntId', () => {
+    
+    const tmntId = "tmt_56d916ece6b50e6293300248c6792316";
+    
+    it('should get all pots for tmnt', async () => {
+      const response = await axios({
+        method: "get",
+        withCredentials: true,
+        url: tmntUrl + tmntId
+      })
+      // 2 rows for squad for event for tmnt in prisma/seed.ts
+      expect(response.data.pots).toHaveLength(2);
+      const pots: potType[] = response.data.pots;
+      // query in /api/pots/tmnt/ GET sorts by sort_order
+      expect(pots[0].id).toBe(squadPotId1);
+      expect(pots[1].id).toBe(squadPotId2);
+    })
+    it('should NOT get all pots for tmnt when ID is invalid', async () => {
+      try {
+        const response = await axios({
+          method: "get",
+          withCredentials: true,
+          url: tmntUrl + 'test'
+        })
+        expect(response.status).toBe(404);
+      } catch (err) {
+        if (err instanceof AxiosError) {
+          expect(err.response?.status).toBe(404);
+        } else {
+          expect(true).toBeFalsy();
+        }
+      }
+    })
+    it('should return code 200 if pot is not found, 0 rows returned', async () => {     
+      const response = await axios({
+        method: "get",
+        withCredentials: true,
+        url: tmntUrl + notFoundTmntId
+      })
+      expect(response.status).toBe(200);
+      expect(response.data.pots).toHaveLength(0);
     })
 
   })
@@ -202,7 +407,7 @@ describe('Pots - API: /api/pots', () => {
     it('should create a new pot with a pot_type of "Last Game"', async () => {
       const lgPot = {
         ...potToPost,
-        pot_type: "Last Game",
+        pot_type: "Last Game" as PotCategories,
       }
       const potJSON = JSON.stringify(lgPot);
       const response = await axios({
@@ -600,10 +805,10 @@ describe('Pots - API: /api/pots', () => {
           withCredentials: true,
           url: url
         })
-        expect(response.status).toBe(404);
+        expect(response.status).toBe(409);
       } catch (err) {
         if (err instanceof AxiosError) {
-          expect(err.response?.status).toBe(404);
+          expect(err.response?.status).toBe(409);
         } else {
           expect(true).toBeFalsy();
         }
@@ -629,53 +834,144 @@ describe('Pots - API: /api/pots', () => {
 
   })
 
-  describe('GET by id - API: /api/pots/pot/:id', () => { 
+  describe('POST many pots for one tmnt API: /api/pots/many', () => { 
 
-    it('should get pot by id', async () => { 
-      const response = await axios.get(onePotUrl + testPot.id);
-      expect(response.status).toBe(200);
-      const pot = response.data.pot;
-      expect(pot.id).toBe(testPot.id);
-      expect(pot.squad_id).toBe(testPot.squad_id);
-      expect(pot.div_id).toBe(testPot.div_id);
-      expect(pot.fee).toBe(testPot.fee);
-      expect(pot.pot_type).toBe(testPot.pot_type);
-      expect(pot.sort_order).toBe(testPot.sort_order);
+    let createdPots = false;    
+
+    beforeAll(async () => { 
+      // remove any old test data      
+      await deleteAllTmntPots(tmntToDelId);
+      await deleteAllTmntSquads(tmntToDelId);      
+      await deleteAllTmntDivs(tmntToDelId);      
+
+      // make sure test data in database
+      await postManyDivs(mockDivs)
+      await postManySquads(mockSquadsToPost)
     })
-    it('should NOT get pot by id when ID is invalid', async () => { 
-      try {
-        const response = await axios.get(onePotUrl + 'invalid');
-        expect(response.status).toBe(404);
-      } catch (err) {
-        if (err instanceof AxiosError) {
-          expect(err.response?.status).toBe(404);
-        } else {
-          expect(true).toBeFalsy();
-        }
+
+    beforeEach(() => {
+      createdPots = false;
+    })
+
+    afterEach(async () => {
+      if (createdPots) {
+        await deleteAllTmntPots(tmntToDelId);
       }
     })
-    it('should NOT get pot by id when ID is not found', async () => { 
-      try {
-        const response = await axios.get(onePotUrl + notFoundId);
-        expect(response.status).toBe(404);
-      } catch (err) {
-        if (err instanceof AxiosError) {
-          expect(err.response?.status).toBe(404);
-        } else {
-          expect(true).toBeFalsy();
-        }
+
+    afterAll(async () => {
+      await deleteAllTmntPots(tmntToDelId);
+      await deleteAllTmntDivs(tmntToDelId);
+      await deleteAllTmntSquads(tmntToDelId);
+    })
+
+    it('should create many pots', async () => {
+      const potsJSON = JSON.stringify(mockPotsToPost);
+      const response = await axios({
+        method: "post",
+        data: potsJSON,
+        withCredentials: true,
+        url: manyUrl
+      })
+      expect(response.status).toBe(201);
+      const postedPots = response.data.pots;
+      createdPots = true;
+      expect(postedPots.length).toBe(mockPotsToPost.length);
+      for (let i = 0; i < postedPots.length; i++) {
+        expect(postedPots[i].id).toEqual(mockPotsToPost[i].id);
+        expect(postedPots[i].div_id).toEqual(mockPotsToPost[i].div_id);
+        expect(postedPots[i].squad_id).toEqual(mockPotsToPost[i].squad_id);
+        expect(postedPots[i].fee).toEqual(mockPotsToPost[i].fee);
+        expect(postedPots[i].pot_type).toEqual(mockPotsToPost[i].pot_type);
+        expect(postedPots[i].sort_order).toEqual(mockPotsToPost[i].sort_order);
       }
-    })  
-    it('should NOT get pot by id when ID is valid, but not a pot ID', async () => { 
+    })
+    it('should post many pots with sanitized pot type', async () => { 
+      const manyPots = [
+        {
+          ...mockPotsToPost[0],
+          pot_type: '<script>Game</script>',
+        },
+        {
+          ...mockPotsToPost[1],
+          pot_type: '   Last Game  **** ',
+        },
+        {
+          ...mockPotsToPost[2],
+          pot_type: '{} Series ক😀',
+        },
+      ]
+      const potsJSON = JSON.stringify(manyPots);
+      const response = await axios({
+        method: "post",
+        data: potsJSON,
+        withCredentials: true,
+        url: manyUrl
+      })
+      expect(response.status).toBe(201);
+      const postedPots = response.data.pots;
+      createdPots = true;
+      expect(postedPots.length).toBe(manyPots.length);
+      for (let i = 0; i < postedPots.length; i++) {
+        expect(postedPots[i].id).toEqual(mockPotsToPost[i].id);
+        expect(postedPots[i].pot_type).toEqual(mockPotsToPost[i].pot_type);
+      }
+    })
+    it('should not post pots with invalid data', async () => { 
+      const invalidPots = [
+        {
+          ...mockPotsToPost[0],
+          fee: '0',
+        },
+        {
+          ...mockPotsToPost[1],          
+        },
+      ]
+      const potsJSON = JSON.stringify(invalidPots);
       try {
-        const response = await axios.get(onePotUrl + nonPotId);
-        expect(response.status).toBe(404);
+        const response = await axios({
+          method: "post",
+          data: potsJSON,
+          withCredentials: true,
+          url: manyUrl
+        })
+        expect(response.status).toBe(422);
       } catch (err) {
         if (err instanceof AxiosError) {
-          expect(err.response?.status).toBe(404);
+          expect(err.response?.status).toBe(422);
         } else {
           expect(true).toBeFalsy();
-        }
+        }      
+      }
+    })
+    it('should not post pots with invalid data in other than 1st element', async () => { 
+      const invalidPots = [
+        {
+          ...mockPotsToPost[0],          
+        },
+        {
+          ...mockPotsToPost[1],
+          sort_order: 0,
+        },
+        {
+          ...mockPotsToPost[2],          
+        },
+      ]
+      const potsJSON = JSON.stringify(invalidPots);
+      try {
+        const response = await axios({
+          method: "post",
+          data: potsJSON,
+          withCredentials: true,
+          url: manyUrl
+        })
+        expect(response.status).toBe(422);
+      } catch (err) {
+        if (err instanceof AxiosError) {
+          expect(err.response?.status).toBe(422);
+        } else {
+          expect(true).toBeFalsy();
+        }      
       }
     })
 
@@ -1546,8 +1842,7 @@ describe('Pots - API: /api/pots', () => {
           data: potJSON,
           withCredentials: true,
           url: url
-        })
-        console.log('response.status: ', response.status)
+        })        
       } catch (err) {
         if (err instanceof Error) console.log(err.message);
       }
@@ -1637,5 +1932,540 @@ describe('Pots - API: /api/pots', () => {
     // })
 
   })  
+
+  describe('DELETE all pots for a squad API: /api/pots/squad/:squadId', () => { 
+
+    // squad id and div id are from squad to delete from prisma/seeds.ts        
+    const toDelPots = [
+      {
+        ...initPot,
+        id: "pot_ce24c5cc04f6463d89f24e6e19a12601",
+        squad_id: "sqd_3397da1adc014cf58c44e07c19914f72",
+        div_id: "div_66d39a83d7a84a8c85d28d8d1b2c7a90",
+        sort_order: 1,
+        fee: '20',
+        pot_type: "Game" as PotCategories,
+      },
+      {
+        ...initPot,
+        id: "pot_ce24c5cc04f6463d89f24e6e19a12602",
+        squad_id: "sqd_3397da1adc014cf58c44e07c19914f72",
+        div_id: "div_66d39a83d7a84a8c85d28d8d1b2c7a90",
+        sort_order: 2,
+        fee: '10',
+        pot_type: "Last Game" as PotCategories,
+      },
+      {
+        ...initPot,
+        id: "pot_ce24c5cc04f6463d89f24e6e19a12603",
+        squad_id: "sqd_3397da1adc014cf58c44e07c19914f72",
+        div_id: "div_66d39a83d7a84a8c85d28d8d1b2c7a90",
+        sort_order: 3,
+        fee: '10',
+        pot_type: "Series" as PotCategories,
+      },
+    ]
+
+    let didDel = false
+
+    beforeAll(async () => {
+      await rePostPot(toDelPots[0]);
+      await rePostPot(toDelPots[2]);
+      await rePostPot(toDelPots[1]);
+    })
+
+    beforeEach(() => {
+      didDel = false;
+    })
+
+    afterEach(async () => {
+      if (!didDel) return;
+      await rePostPot(toDelPots[0]);
+      await rePostPot(toDelPots[2]);
+      await rePostPot(toDelPots[1]);
+    })
+
+    afterAll(async () => {
+      await delOnePot(toDelPots[0].id);
+      await delOnePot(toDelPots[1].id);
+      await delOnePot(toDelPots[2].id);      
+    })
+
+    it('should delete all pots for a squad', async () => {       
+      const response = await axios({
+        method: "delete",
+        withCredentials: true,
+        url: squadUrl + toDelPots[0].squad_id
+      })
+      expect(response.status).toBe(200);
+      didDel = true;
+      const count = response.data.deleted.count;
+      expect(count).toBe(toDelPots.length);
+    })
+    it('should return 404 when a squad ID is invalid', async () => { 
+      try {
+        const response = await axios({
+          method: 'delete',
+          withCredentials: true,
+          url: squadUrl + "test"
+        })
+        expect(response.status).toBe(404);
+      } catch (err) {
+        if (err instanceof AxiosError) {
+          expect(err.response?.status).toBe(404);
+        } else {
+          expect(true).toBeFalsy();
+        }
+      }
+    })
+    it('should NOT delete all pots for a squad when squad ID is not found', async () => {
+      const response = await axios({
+        method: "delete",
+        withCredentials: true,
+        url: squadUrl + notFoundSquadId
+      })
+      expect(response.status).toBe(200);      
+      const count = response.data.deleted.count;
+      expect(count).toBe(0);
+    })
+    it('should return 404 when a squad id is valid, but not a squad id', async () => {
+      try {
+        const response = await axios({
+          method: 'delete',
+          withCredentials: true,
+          url: squadUrl + notFoundDivId
+        })
+        expect(response.status).toBe(404);
+      } catch (err) {
+        if (err instanceof AxiosError) {
+          expect(err.response?.status).toBe(404);
+        } else {
+          expect(true).toBeFalsy();
+        }
+      }
+    })
+    
+  })
+
+  describe('DELETE all pots for a div API: /api/pots/div/:divId', () => { 
+
+    // squad id and div id are from squad to delete from prisma/seeds.ts        
+    const toDelPots = [
+      {
+        ...initPot,
+        id: "pot_ce24c5cc04f6463d89f24e6e19a12601",
+        squad_id: "sqd_3397da1adc014cf58c44e07c19914f72",
+        div_id: "div_66d39a83d7a84a8c85d28d8d1b2c7a90",
+        sort_order: 1,
+        fee: '20',
+        pot_type: "Game" as PotCategories,
+      },
+      {
+        ...initPot,
+        id: "pot_ce24c5cc04f6463d89f24e6e19a12602",
+        squad_id: "sqd_3397da1adc014cf58c44e07c19914f72",
+        div_id: "div_66d39a83d7a84a8c85d28d8d1b2c7a90",
+        sort_order: 2,
+        fee: '10',
+        pot_type: "Last Game" as PotCategories,
+      },
+      {
+        ...initPot,
+        id: "pot_ce24c5cc04f6463d89f24e6e19a12603",
+        squad_id: "sqd_3397da1adc014cf58c44e07c19914f72",
+        div_id: "div_66d39a83d7a84a8c85d28d8d1b2c7a90",
+        sort_order: 3,
+        fee: '10',
+        pot_type: "Series" as PotCategories,
+      },
+    ]
+
+    let didDel = false
+
+    beforeAll(async () => {
+      await rePostPot(toDelPots[0]);
+      await rePostPot(toDelPots[2]);
+      await rePostPot(toDelPots[1]);
+    })
+
+    beforeEach(() => {
+      didDel = false;
+    })
+
+    afterEach(async () => {
+      if (!didDel) return;
+      await rePostPot(toDelPots[0]);
+      await rePostPot(toDelPots[2]);
+      await rePostPot(toDelPots[1]);
+    })
+
+    afterAll(async () => {
+      await delOnePot(toDelPots[0].id);
+      await delOnePot(toDelPots[1].id);
+      await delOnePot(toDelPots[2].id);
+    })
+
+    it('should delete all pots for a div', async () => {
+      const response = await axios({
+        method: "delete",
+        withCredentials: true,
+        url: divUrl + toDelPots[0].div_id
+      })
+      expect(response.status).toBe(200);
+      didDel = true;
+      const count = response.data.deleted.count;
+      expect(count).toBe(toDelPots.length);
+    })
+    it('should return 404 when a div when ID is invalid', async () => {
+      try {
+        const response = await axios({
+          method: 'delete',
+          withCredentials: true,
+          url: divUrl + "test"
+        })
+        expect(response.status).toBe(404);
+      } catch (err) {
+        if (err instanceof AxiosError) {
+          expect(err.response?.status).toBe(404);
+        } else {
+          expect(true).toBeFalsy();
+        }
+      }
+    })
+    it('should NOT delete all pots for a div when ID is not found', async () => {
+      const response = await axios({
+        method: "delete",
+        withCredentials: true,
+        url: divUrl + notFoundDivId
+      })
+      expect(response.status).toBe(200);
+      didDel = true;
+      const count = response.data.deleted.count;
+      expect(count).toBe(0);
+    })
+    it('should return 404 when a div id is valid, but not a div id', async () => {
+      try {
+        const response = await axios({
+          method: 'delete',
+          withCredentials: true,
+          url: divUrl + notFoundSquadId
+        })
+        expect(response.status).toBe(404);
+      } catch (err) {
+        if (err instanceof AxiosError) {
+          expect(err.response?.status).toBe(404);
+        } else {
+          expect(true).toBeFalsy();
+        }
+      }
+    })
+    
+  })
+
+  describe('DELETE all pots for a tmnt API: /api/pots/tmnt/:tmntId', () => { 
+    
+    // div ids and tmnt id from squad to delete from prisma/seeds.ts        
+    const tmntId = 'tmt_467e51d71659d2e412cbc64a0d19ecb4';
+
+    const tempDivs = [
+      {
+        ...initDiv,
+        id: "div_66d39a83d7a84a8c85d28d8d1b2c7a91",
+        tmnt_id: tmntId,
+        div_name: "Del Div A",
+        hdcp_per: 0,        
+        sort_order: 1,
+      },
+      {
+        ...initDiv,
+        id: "div_66d39a83d7a84a8c85d28d8d1b2c7a92",
+        tmnt_id: tmntId,
+        div_name: "Del Div B",
+        hdcp_per: 1,        
+        sort_order: 2,
+      }
+    ]
+
+    const tempSquads = [
+      {
+        ...initSquad,
+        id: "sqd_c2be0f9d527e4081972ce8877190489d",
+        event_id: 'evt_bd63777a6aee43be8372e4d008c1d6d0',
+        squad_name: "Del Squad A",      
+        squad_time: '10:00 AM',
+        lane_count: 4,
+        starting_lane: 1,
+        sort_order: 1,
+      },
+      {
+        ...initSquad,
+        id: "sqd_d2be0f9d527e4081972ce8877190489d",
+        event_id: 'evt_bd63777a6aee43be8372e4d008c1d6d0',
+        squad_name: "Del Squad B",      
+        squad_time: '03:00 PM',
+        lane_count: 4,
+        starting_lane: 1,
+        sort_order: 1,
+      }  
+    ]
+
+    const toDelPots = [
+      {
+        ...initPot,
+        id: "pot_ce24c5cc04f6463d89f24e6e19a12601",
+        squad_id: "sqd_c2be0f9d527e4081972ce8877190489d",
+        div_id: "div_66d39a83d7a84a8c85d28d8d1b2c7a91",
+        sort_order: 1,
+        fee: '20',
+        pot_type: "Game" as PotCategories,
+      },
+      {
+        ...initPot,
+        id: "pot_ce24c5cc04f6463d89f24e6e19a12602",
+        squad_id: "sqd_c2be0f9d527e4081972ce8877190489d",
+        div_id: "div_66d39a83d7a84a8c85d28d8d1b2c7a91",
+        sort_order: 2,
+        fee: '10',
+        pot_type: "Last Game" as PotCategories,
+      },
+      {
+        ...initPot,
+        id: "pot_ce24c5cc04f6463d89f24e6e19a12603",
+        squad_id: "sqd_c2be0f9d527e4081972ce8877190489d",
+        div_id: "div_66d39a83d7a84a8c85d28d8d1b2c7a91",
+        sort_order: 3,
+        fee: '10',
+        pot_type: "Series" as PotCategories,
+      },
+      {
+        ...initPot,
+        id: "pot_ce24c5cc04f6463d89f24e6e19a12604",
+        squad_id: "sqd_d2be0f9d527e4081972ce8877190489d",
+        div_id: "div_66d39a83d7a84a8c85d28d8d1b2c7a92",
+        sort_order: 4,
+        fee: '20',
+        pot_type: "Game" as PotCategories,
+      },
+      {
+        ...initPot,
+        id: "pot_ce24c5cc04f6463d89f24e6e19a12605",
+        squad_id: "sqd_d2be0f9d527e4081972ce8877190489d",
+        div_id: "div_66d39a83d7a84a8c85d28d8d1b2c7a92",
+        sort_order: 5,
+        fee: '10',
+        pot_type: "Last Game" as PotCategories,
+      },
+      {
+        ...initPot,
+        id: "pot_ce24c5cc04f6463d89f24e6e19a12606",
+        squad_id: "sqd_d2be0f9d527e4081972ce8877190489d",
+        div_id: "div_66d39a83d7a84a8c85d28d8d1b2c7a92",
+        sort_order: 6,
+        fee: '10',
+        pot_type: "Series" as PotCategories,
+      },
+    ]
+
+    const rePostSquad = async (squad: squadType) => {
+      try {
+        // if squad already in database, then don't re-post
+        const getResponse = await axios.get(oneSquadUrl + squad.id);
+        const found = getResponse.data.squad;
+        if (found) return;
+      } catch (err) {
+        if (err instanceof AxiosError) { 
+          if (err.status !== 404) {
+            console.log(err.message);
+            return;
+          }
+        }
+      }
+      try {
+        // if not in database, then re-post
+        const squadJSON = JSON.stringify(squad);
+        const response = await axios({
+          method: "post",
+          withCredentials: true,
+          data: squadJSON,
+          url: urlForSquads
+        })
+      } catch (err) {
+        if (err instanceof AxiosError) console.log(err.message);
+      }
+    }
+
+    const rePostDiv = async (div: divType) => {
+      try {
+        // if squad already in database, then don't re-post
+        const getResponse = await axios.get(oneDivUrl + div.id);
+        const found = getResponse.data.div;
+        if (found) return;
+      } catch (err) {
+        if (err instanceof AxiosError) { 
+          if (err.status !== 404) {
+            console.log(err.message);
+            return;
+          }
+        }
+      }
+      try {
+        // if not in database, then re-post
+        const divJSON = JSON.stringify(div);
+        const response = await axios({
+          method: "post",
+          withCredentials: true,
+          data: divJSON,
+          url: urlForDivs
+        })
+      } catch (err) {
+        if (err instanceof AxiosError) { 
+          if (err.status !== 404) {
+            console.log(err.message);
+            return;
+          }
+        }
+      }
+    }
+
+    const delOneSquad = async (id: string) => {
+      try {
+        const getResponse = await axios.get(oneSquadUrl + id);
+        const found = getResponse.data.squad;
+        if (!found) return;
+        const response = await axios({
+          method: 'delete',
+          withCredentials: true,
+          url: oneSquadUrl + id
+        })
+      } catch (err) {
+        if (err instanceof AxiosError) { 
+          if (err.status !== 404) {
+            console.log(err.message);
+            return;
+          }
+        }
+      }
+    }
+
+    const delOneDiv = async (id: string) => {
+      try {
+        const getResponse = await axios.get(oneDivUrl + id);
+        const found = getResponse.data.div;
+        if (!found) return;
+        const response = await axios({
+          method: 'delete',
+          withCredentials: true,
+          url: oneDivUrl + id
+        })
+      } catch (err) {
+        if (err instanceof AxiosError) { 
+          if (err.status !== 404) {
+            console.log(err.message);
+            return;
+          }
+        }
+      }
+    }
+
+    let didDel = false
+
+    beforeAll(async () => {      
+      await rePostSquad(tempSquads[0]);
+      await rePostSquad(tempSquads[1]);
+      await rePostDiv(tempDivs[0]);
+      await rePostDiv(tempDivs[1]);      
+      await rePostPot(toDelPots[0]);
+      await rePostPot(toDelPots[1]);
+      await rePostPot(toDelPots[2]);
+      await rePostPot(toDelPots[3]);
+      await rePostPot(toDelPots[4]);
+      await rePostPot(toDelPots[5]);
+    })
+
+    beforeEach(() => {
+      didDel = false
+    })
+
+    afterEach(async () => {
+      if (!didDel) return;
+      await rePostSquad(tempSquads[0]);
+      await rePostSquad(tempSquads[1]);
+      await rePostDiv(tempDivs[0]);
+      await rePostDiv(tempDivs[1]);      
+      await rePostPot(toDelPots[0]);
+      await rePostPot(toDelPots[1]);
+      await rePostPot(toDelPots[2]);
+      await rePostPot(toDelPots[3]);
+      await rePostPot(toDelPots[4]);
+      await rePostPot(toDelPots[5]);
+    })
+
+    afterAll(async () => {      
+      await delOnePot(toDelPots[0].id);
+      await delOnePot(toDelPots[1].id);
+      await delOnePot(toDelPots[2].id);
+      await delOnePot(toDelPots[3].id);
+      await delOnePot(toDelPots[4].id);
+      await delOnePot(toDelPots[5].id);
+      await deleteAllTmntDivs(tmntToDelId)
+      await deleteAllTmntSquads(tmntToDelId)
+    })
+
+    it('should delete all pots for a tmnt', async () => { 
+      const response = await axios({
+        method: "delete",
+        withCredentials: true,
+        url: tmntUrl + tmntId
+      })
+      expect(response.status).toBe(200);
+      didDel = true
+      const count = response.data.deleted.count;
+      expect(count).toBe(toDelPots.length);
+    })
+    it('should return 404 when tmnt ID is invalid', async () => {
+      try {
+        const response = await axios({
+          method: 'delete',
+          withCredentials: true,
+          url: tmntUrl + "test"
+        })
+        expect(response.status).toBe(404);
+      } catch (err) {
+        if (err instanceof AxiosError) {
+          expect(err.response?.status).toBe(404);
+        } else {
+          expect(true).toBeFalsy();
+        }
+      }    
+    })
+    it('should return code 200 when tmnt id is not found, but 0 rows deleted', async () => {       
+      const response = await axios({
+        method: "delete",
+        withCredentials: true,
+        url: tmntUrl + notFoundTmntId
+      })
+      expect(response.status).toBe(200);
+      didDel = true
+      const count = response.data.deleted.count;
+      expect(count).toBe(0);
+    })  
+    it('should return 404 when tmnt ID is valid, but not an tmnt ID', async () => {
+      try {
+        const response = await axios({
+          method: 'delete',
+          withCredentials: true,
+          url: tmntUrl + nonPotId
+        })
+        expect(response.status).toBe(404);
+      } catch (err) {
+        if (err instanceof AxiosError) {
+          expect(err.response?.status).toBe(404);
+        } else {
+          expect(true).toBeFalsy();
+        }
+      }    
+    })
+
+  })
 
 })

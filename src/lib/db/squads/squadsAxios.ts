@@ -4,6 +4,7 @@ import { testBaseSquadsApi } from "../../../../test/testApi";
 import { squadType } from "@/lib/types/types";
 import { validateSquad } from "@/app/api/squads/validate";
 import { ErrorCode, isValidBtDbId } from "@/lib/validation";
+import { removeTimeFromISODateStr, startOfDayFromString } from "@/lib/dateTools";
 
 const url = testBaseSquadsApi.startsWith("undefined")
   ? baseSquadsApi
@@ -11,6 +12,7 @@ const url = testBaseSquadsApi.startsWith("undefined")
 const oneSquadUrl = url + "/squad/"; 
 const oneEventUrl = url + "/event/";
 const oneTmntUrl = url + "/tmnt/";
+const manyUrl = url + "/many";
     
 /**
  * post a new squad
@@ -33,6 +35,42 @@ export const postSquad = async (squad: squadType): Promise<squadType | null> => 
     return (response.status === 201)
       ? response.data.squad
       : null
+  } catch (err) {
+    return null;
+  }
+}
+
+/**
+ * post many squads
+ * 
+ * @param {squadType[]} squads - array of squads to post
+ * @returns {squadType[] | null} - array of posted squads or null
+ */
+export const postManySquads = async (squads: squadType[]): Promise<squadType[] | null> => { 
+
+  try {
+    // sanatation and validation done in POST route
+    const squadJSON = JSON.stringify(squads);
+    const response = await axios({
+      method: "post",
+      data: squadJSON,
+      withCredentials: true,
+      url: manyUrl,
+    });
+
+    if (response.status === 201) {
+      const postedSquads: squadType[] = response.data.squads
+      postedSquads.forEach(squad => {
+        // json converted date to string, need to convert back to date
+        // cannot assume squad.squad_date_str is set 
+        const squadDateStr = squad.squad_date as unknown as string
+        const noTimeDateStr = removeTimeFromISODateStr(squadDateStr)        
+        squad.squad_date = startOfDayFromString(noTimeDateStr) as Date
+      })
+      return response.data.squads
+    } else {
+      return null
+    }
   } catch (err) {
     return null;
   }
@@ -67,8 +105,8 @@ export const putSquad = async (squad: squadType): Promise<squadType | null> => {
 /**
  * deletes a squad
  * 
- * @param id - id of squad to delete
- * @returns - 1 if deleted, -1 if not found or error
+ * @param {string} id - id of squad to delete
+ * @returns {number} - 1 if deleted, -1 if not found or error
  */
 export const deleteSquad = async (id: string): Promise<number> => {
 

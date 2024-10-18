@@ -9,7 +9,7 @@ import {
 } from "@/lib/validation";
 import { sanitizeCurrency } from "@/lib/sanitize";
 import { validMoney } from "@/lib/currency/validate";
-import { brktType, idTypes } from "@/lib/types/types";
+import { brktType, idTypes, validBrktsType } from "@/lib/types/types";
 import { blankBrkt, defaultBrktGames, defaultBrktPlayers } from "@/lib/db/initVals";
 
 /**
@@ -258,6 +258,33 @@ export function validateBrkt(brkt: brktType): ErrorCode {
   } catch (err) {
     return ErrorCode.OtherError;
   }
+}
+
+/**
+ * sanitizes and validates an array of brkts
+ * 
+ * @param {brktType[]} brkts - array of brkts to validate
+ * @returns {validBrktsType} - {brkts:brktType[], errorCode: ErrorCode.None | ErrorCode.MissingData | ErrorCode.InvalidData | ErrorCode.OtherError}
+ */
+export const validateBrkts = (brkts: brktType[]): validBrktsType => {
+  
+  const blankBrkts: brktType[] = [];
+  const okBrkts: brktType[] = [];
+  if (!Array.isArray(brkts) || brkts.length === 0) {
+    return { brkts: blankBrkts, errorCode: ErrorCode.MissingData };
+  };
+  // cannot use forEach because if got an error need exit loop
+  let i = 0;  
+  while (i < brkts.length) {
+    const toPost = sanitizeBrkt(brkts[i]);
+    const errCode = validateBrkt(toPost);
+    if (errCode !== ErrorCode.None) {
+      return { brkts: okBrkts, errorCode: errCode };
+    }
+    okBrkts.push(toPost);
+    i++;
+  }
+  return { brkts: okBrkts, errorCode: ErrorCode.None };
 }
 
 export const exportedForTesting = {

@@ -1,3 +1,5 @@
+import { ErrorCode } from "../validation"
+
 export type roleTypes = "ADMIN" | "DIRECTOR" | "USER"
 
 export type idTypes = 'usr' | 'bwl' | 'tmt' | 'evt' | 'div' | 'sqd' | 'lan' | 'hdc' | 'pot' | 'brk' | 'elm' | 'ply'
@@ -102,6 +104,11 @@ export type eventDataType = {
   id?: string
 }
 
+export type validEventsType = {
+  events: eventType[],
+  errorCode: ErrorCode
+}
+
 export type HdcpForTypes = "Game" | "Series";
 
 export type divType = {
@@ -119,6 +126,22 @@ export type divType = {
   hdcp_for: HdcpForTypes,
   sort_order: number,
   errClassName: string,
+}
+
+export type divDataType = {
+  id: string;
+  tmnt_id: string;
+  div_name: string;
+  hdcp_per: number;
+  hdcp_from: number;
+  int_hdcp: boolean;
+  hdcp_for: HdcpForTypes;
+  sort_order: number;      
+};
+
+export type validDivsType = {
+  divs: divType[],  
+  errorCode: ErrorCode
 }
 
 export type squadType = {
@@ -143,10 +166,38 @@ export type squadType = {
   errClassName: string,  
 }
   
+export type squadDataType = {
+  id: string,
+  event_id: string,            
+  squad_name: string,      
+  games: number,        
+  lane_count: number,      
+  starting_lane: number,      
+  squad_date: Date,      
+  squad_time: string | null,       
+  sort_order: number,      
+}
+
+export type validSquadsType = {
+  squads: squadType[],  
+  errorCode: ErrorCode
+}
+
 export type laneType = {  
   id: string,
   lane_number: number,
   squad_id: string,  
+}
+
+export type laneDataType = {
+  id: string,
+  squad_id: string,
+  lane_number: number,      
+}
+
+export type validLanesType = {
+  lanes: laneType[],
+  errorCode: ErrorCode
 }
 
 export type pairsOfLanesType = {
@@ -177,6 +228,20 @@ export type potType = {
   errClassName: string,
 }
 
+export type potDataType = {
+  id: string
+  div_id: string
+  squad_id: string
+  pot_type: PotCategories
+  fee: string
+  sort_order: number      
+}
+
+export type validPotsType = {
+  pots: potType[],
+  errorCode: ErrorCode
+}
+
 export type brktType = {
   id: string,
   div_id: string,  
@@ -203,6 +268,25 @@ export type brktType = {
   errClassName: string,
 }
 
+export type brktDataType = {
+  id: string;
+  div_id: string;
+  squad_id: string;
+  fee: string;
+  start: number;
+  games: number;
+  players: number;
+  first: string;
+  second: string;
+  admin: string;
+  sort_order: number;  
+};
+
+export type validBrktsType = {
+  brkts: brktType[],
+  errorCode: ErrorCode
+}
+
 export type elimType = {
   id: string,
   div_id: string,  
@@ -217,6 +301,21 @@ export type elimType = {
   sort_order: number,
   errClassName: string,
 }
+
+export type validElimsType = {
+  elims: elimType[],
+  errorCode: ErrorCode
+}
+
+export type elimDataType = {
+  id: string;
+  div_id: string;
+  squad_id: string;
+  fee: string;
+  start: number;
+  games: number;
+  sort_order: number;      
+};
 
 export type AcdnErrType = {
   errClassName: string,

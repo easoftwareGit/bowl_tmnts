@@ -209,18 +209,16 @@ export const updatedLanes = (lanes: laneType[], squad: squadType): laneType[] =>
   
   if (!lanes || !squad || squad.id === "") return [];
   const nonSquadLanes = lanesNotThisSquad(squad.id, lanes);
-  const newLlanesThisSquad: laneType[] = [];
-  for (let laneNum = squad.starting_lane; laneNum < squad.starting_lane + squad.lane_count; laneNum++) {
-    // create a temp id. lane id not linked to anthing
-    const laneId = btDbUuid('lan').replace('lan', 'zzz'); 
+  const newLanesThisSquad: laneType[] = [];
+  for (let laneNum = squad.starting_lane; laneNum < squad.starting_lane + squad.lane_count; laneNum++) {    
     const newLane: laneType = {
-      id: laneId,
+      id: btDbUuid('lan'),
       lane_number: laneNum,
       squad_id: squad.id,
     }      
-    newLlanesThisSquad.push(newLane);
+    newLanesThisSquad.push(newLane);
   }
-  return ([...nonSquadLanes, ...newLlanesThisSquad]);
+  return ([...nonSquadLanes, ...newLanesThisSquad]);
 }
 
 /**

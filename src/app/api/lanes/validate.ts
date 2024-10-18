@@ -5,7 +5,7 @@ import {
   ErrorCode,
   isNumber,    
 } from "@/lib/validation";
-import { idTypes, laneType } from "@/lib/types/types";
+import { idTypes, laneType, validLanesType } from "@/lib/types/types";
 import { blankLane } from "@/lib/db/initVals";
 
 /**
@@ -114,6 +114,33 @@ export function validateLane(lane: laneType): ErrorCode {
   } catch (error) {
     return ErrorCode.OtherError
   }
+}
+
+/**
+ * sanitizes and validates an array of lanes
+ * 
+ * @param {laneType[]} lanes - array of lanes to validate
+ * @returns {validLanesType} - {lanes:laneType[], errorCode: ErrorCode.None | ErrorCode.MissingData | ErrorCode.InvalidData | ErrorCode.OtherError}
+ */
+export const validateLanes = (lanes: laneType[]): validLanesType => { 
+
+  const blankLanes: laneType[] = []
+  const okLanes: laneType[] = [];
+  if (!Array.isArray(lanes) || lanes.length === 0) {
+    return { lanes: blankLanes, errorCode: ErrorCode.MissingData };
+  };
+  // cannot use forEach because if got an errror need exit loop
+  let i = 0;  
+  while (i < lanes.length) {
+    const toPost = sanitizeLane(lanes[i]);
+    const errCode = validateLane(toPost);
+    if (errCode !== ErrorCode.None) { 
+      return { lanes: okLanes, errorCode: errCode };
+    }
+    okLanes.push(toPost);
+    i++;
+  }
+  return { lanes: okLanes, errorCode: ErrorCode.None };
 }
 
 export const exportedForTesting = {

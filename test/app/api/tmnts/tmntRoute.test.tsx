@@ -3,7 +3,6 @@ import { baseTmntsApi } from "@/lib/db/apiPaths";
 import { testBaseTmntsApi } from "../../../testApi";
 import { tmntType, YearObj } from "@/lib/types/types";
 import { initTmnt } from "@/lib/db/initVals";
-import { isValidBtDbId } from "@/lib/validation";
 import { compareAsc, startOfToday } from "date-fns";
 import { startOfDayFromString } from "@/lib/dateTools";
 import { btDbUuid } from "@/lib/uuid";

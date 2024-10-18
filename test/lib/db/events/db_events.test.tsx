@@ -1,9 +1,6 @@
 import { prismaMock } from "../../../../singleton";
-import { findEventById, validateEvents } from "@/lib/db/events/events";
+import { findEventById } from "@/lib/db/events/events";
 import { mockPrimsmaEvents } from "../../../mocks/tmnts/twoDivs/mockEvent";
-import { mockEvents } from "../../../mocks/tmnts/singlesAndDoubles/mockEvents";
-import { ErrorCode } from "@/lib/validation";
-import { eventType } from "@/lib/types/types";
 
 // in @/lib/db/events/events.ts, make sure to use correct prisma client
 // import { prisma } from "@/lib/prisma"  // for production & developemnt
@@ -60,79 +57,5 @@ describe('events', () => {
       }
     })
   })  
-
-  describe('validateEvents', () => { 
-
-    it('should validate events', async () => { 
-      const validEvents = [...mockEvents];
-      const result = validateEvents(validEvents);
-      expect(result).toEqual(ErrorCode.None);
-    })
-    it('should return ErrorCode.MissingData when required data is missing', async () => { 
-      const invalidEvents = [
-        {
-          ...mockEvents[0],
-          event_name: ''
-        },
-        {
-          ...mockEvents[1],          
-        }
-      ]
-      const result = validateEvents(invalidEvents);
-      expect(result).toEqual(ErrorCode.MissingData);
-    })
-    it('should return ErroCode.MissingData when tmnt_id is not a valid tmnt id', async () => { 
-      const invalidEvents = [
-        {
-          ...mockEvents[0],
-          tmnt_id: user_id,
-        },
-        {
-          ...mockEvents[1],          
-        }
-      ]
-      const result = validateEvents(invalidEvents);
-      expect(result).toEqual(ErrorCode.MissingData);
-    })
-    it('should return ErroCode.InvalidData when required data is invalid', async () => { 
-      const invalidEvents = [
-        {
-          ...mockEvents[0],
-          games: 100
-        },
-        {
-          ...mockEvents[1],          
-        }
-      ]
-      const result = validateEvents(invalidEvents);
-      expect(result).toEqual(ErrorCode.InvalidData);
-    })
-    it('should return ErroCode.MissingData when id is not a valid event id', async () => { 
-      const invalidEvents = [
-        {
-          ...mockEvents[0],
-          id: user_id,
-        },
-        {
-          ...mockEvents[1],          
-        }
-      ]
-      const result = validateEvents(invalidEvents);
-      expect(result).toEqual(ErrorCode.MissingData);
-    })
-    it('should return ErrorCode.MissingData if empty array', async () => {
-      const emptyArray: eventType[] = []
-      const result = validateEvents(emptyArray);
-      expect(result).toEqual(ErrorCode.MissingData);      
-    })
-    it('should return ErrorCode.MissingData when passed null', async () => {
-      const result = validateEvents(null as any);
-      expect(result).toEqual(ErrorCode.MissingData);      
-    })
-    it('should return ErrorCode.MissingData when passed null', async () => {
-      const result = validateEvents(undefined as any);
-      expect(result).toEqual(ErrorCode.MissingData);      
-    })
-  })
 
 })

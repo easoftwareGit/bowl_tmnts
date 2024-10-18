@@ -4,7 +4,7 @@ import { testBaseEventsApi } from "../../../testApi";
 import { eventType } from "@/lib/types/types";
 import { initEvent } from "@/lib/db/initVals";
 import { mockEventsToPost, tmntToDelId } from "../../../mocks/tmnts/singlesAndDoubles/mockEvents";
-import { postEvent } from "@/lib/db/events/eventsAxios";
+import { postManyEvents } from "@/lib/db/events/eventsAxios";
 
 // before running this test, run the following commands in the terminal:
 // 1) clear and re-seed the database
@@ -2658,16 +2658,13 @@ describe('Events - PUT, PATCH, DELETE API: /api/events/event/:id', () => {
   })
 
   describe('DELETE all events for a tmnt - API: /api/events/tmnt/:tmntId', () => { 
-
+    
     const postEvents = async () => {      
       const response = await axios.get(eventTmntUrl + tmntToDelId);
       const tmntEvents = response.data.events;
       if (!tmntEvents || tmntEvents.length === 0) {
-        const eventsToPost = [...mockEventsToPost];        
-        for await (const event of eventsToPost) {    
-          const postedEvent = await postEvent(event);
-          if (!postedEvent) return null          
-        }  
+        const eventsToPost = [...mockEventsToPost];
+        await postManyEvents(eventsToPost);
       }
     }    
 

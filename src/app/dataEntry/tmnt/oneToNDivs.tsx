@@ -131,7 +131,7 @@ const OneToNDivs: React.FC<ChildProps> = ({
   elims,
   setAcdnErr
 }) => { 
-
+  
   const defaultTabKey = divs[0].id;
 
   const [confModalObj, setConfModalObj] = useState(initModalObj);
@@ -139,10 +139,13 @@ const OneToNDivs: React.FC<ChildProps> = ({
   const [tabKey, setTabKey] = useState(defaultTabKey);   
   const [sortOrder, setSortOrder] = useState(1); // id # used in initDivs in form.tsx
 
+  const tmntId = divs[0].tmnt_id; // index 0 always has tmnt_id
+
   const handleAdd = () => {
     const newDiv: divType = {
       ...initDiv,
       id: btDbUuid('div'),
+      tmnt_id: tmntId,
       div_name: "Division " + (sortOrder + 1),
       tab_title: "Division " + (sortOrder + 1),
       sort_order: sortOrder + 1,

@@ -8,10 +8,12 @@ import {
   exportedForTesting,
   validBrktMoney,
   validFsa,
+  validateBrkts,
 } from "@/app/api/brkts/validate";
 import { defaultBrktGames, defaultBrktPlayers, initBrkt } from "@/lib/db/initVals";
-import { brktType } from "@/lib/types/types";
+import { brktType, validBrktsType } from "@/lib/types/types";
 import { ErrorCode, maxGames, maxSortOrder } from "@/lib/validation";
+import { mockBrktsToPost } from "../../../mocks/tmnts/singlesAndDoubles/mockSquads";
 
 const { gotBrktData, validBrktData } = exportedForTesting;
 
@@ -654,6 +656,122 @@ describe("tests for bracket validation", () => {
         expect(validateBrkt(testBrkt)).toBe(ErrorCode.InvalidData);
       })
     })
+  })
+
+  describe('validateBrkts function', () => { 
+
+    it('should validate brkts', () => { 
+      const brktsToValidate = [...mockBrktsToPost];
+      const validBrkts: validBrktsType = validateBrkts(brktsToValidate);
+      expect(validBrkts.errorCode).toBe(ErrorCode.None);
+      expect(validBrkts.brkts.length).toBe(brktsToValidate.length);
+      for (let i = 0; i < validBrkts.brkts.length; i++) {
+        expect(validBrkts.brkts[i].id).toEqual(brktsToValidate[i].id);
+        expect(validBrkts.brkts[i].squad_id).toEqual(brktsToValidate[i].squad_id);
+        expect(validBrkts.brkts[i].div_id).toEqual(brktsToValidate[i].div_id);
+        expect(validBrkts.brkts[i].start).toEqual(brktsToValidate[i].start);
+        expect(validBrkts.brkts[i].games).toEqual(brktsToValidate[i].games);
+        expect(validBrkts.brkts[i].players).toEqual(brktsToValidate[i].players);
+        expect(validBrkts.brkts[i].fee).toEqual(brktsToValidate[i].fee);
+        expect(validBrkts.brkts[i].first).toEqual(brktsToValidate[i].first);
+        expect(validBrkts.brkts[i].second).toEqual(brktsToValidate[i].second);
+        expect(validBrkts.brkts[i].admin).toEqual(brktsToValidate[i].admin);
+        expect(validBrkts.brkts[i].fsa).toEqual(brktsToValidate[i].fsa);
+      }
+    })
+    // no sanitize test because there are no strings to sanitize
+    it('should return ErrorCode.InvalidData when data is invalid', () => { 
+      const invalidBrkts = [
+        {
+          ...mockBrktsToPost[0],
+          start: -1
+        },
+        {
+          ...mockBrktsToPost[1],
+        },
+        {
+          ...mockBrktsToPost[2],
+        },
+        {
+          ...mockBrktsToPost[3],
+        },
+      ]
+      const validBrkts: validBrktsType = validateBrkts(invalidBrkts);
+      expect(validBrkts.errorCode).toBe(ErrorCode.InvalidData);
+    })
+    it('should return ErrorCode.MissingData when data is invalid (sanitize clears invalid Fee', () => {
+      const invalidBrkts = [
+        {
+          ...mockBrktsToPost[0],
+          fee: '1234567'
+        },
+        {
+          ...mockBrktsToPost[1],
+        },
+        {
+          ...mockBrktsToPost[2],
+        },
+        {
+          ...mockBrktsToPost[3],
+        },
+      ]
+      const validBrkts: validBrktsType = validateBrkts(invalidBrkts);
+      expect(validBrkts.errorCode).toBe(ErrorCode.MissingData);
+    })
+    it('should return ErrorCode.MissingData when squad_id is not a valid squad_id', () => { 
+      const invalidBrkts = [
+        {
+          ...mockBrktsToPost[0],          
+        },
+        {
+          ...mockBrktsToPost[1],
+          squad_id: mockBrktsToPost[0].id 
+        },
+        {
+          ...mockBrktsToPost[2],
+        },
+        {
+          ...mockBrktsToPost[3],
+        },
+      ]
+      const validBrkts: validBrktsType = validateBrkts(invalidBrkts);
+      expect(validBrkts.errorCode).toBe(ErrorCode.MissingData);
+    })
+    it('should return ErrorCode.MissingData when div_id is not a valid div_id', () => { 
+      const invalidBrkts = [
+        {
+          ...mockBrktsToPost[0],          
+        },
+        {
+          ...mockBrktsToPost[1],          
+        },
+        {
+          ...mockBrktsToPost[2],
+          div_id: mockBrktsToPost[0].id 
+        },
+        {
+          ...mockBrktsToPost[3],
+        },
+      ]
+      const validBrkts: validBrktsType = validateBrkts(invalidBrkts);
+      expect(validBrkts.errorCode).toBe(ErrorCode.MissingData);
+    })
+    it('should return ErrorCode.MissingData when passed an empty array', async () => { 
+      const validBrkts = validateBrkts([]);
+      expect(validBrkts.errorCode).toBe(ErrorCode.MissingData);
+      expect(validBrkts.brkts.length).toBe(0);
+    })
+    it('should return ErrorCode.MissingData when passed null', async () => { 
+      const validBrkts = validateBrkts(null as any);
+      expect(validBrkts.errorCode).toBe(ErrorCode.MissingData);
+      expect(validBrkts.brkts.length).toBe(0);
+    })
+    it('should return ErrorCode.MissingData when passed undefined', async () => { 
+      const validBrkts = validateBrkts(undefined as any);
+      expect(validBrkts.errorCode).toBe(ErrorCode.MissingData);
+      expect(validBrkts.brkts.length).toBe(0);
+    })  
+
   })
 
 })

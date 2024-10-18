@@ -69,6 +69,7 @@ export const mockPrismaDivs: Div[] = [
 ]
 
 export const tmntToDelId = 'tmt_e134ac14c5234d708d26037ae812ac33';
+
 export const mockDivsToPost: divType[] = [
   {
     ...initDiv,

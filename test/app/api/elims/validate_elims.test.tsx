@@ -5,11 +5,13 @@ import {
   validGames,
   validElimFkId,
   validElimMoney,
-  exportedForTesting
+  exportedForTesting,
+  validateElims
 } from "@/app/api/elims/validate";
 import { initElim } from "@/lib/db/initVals";
-import { elimType } from "@/lib/types/types";
+import { elimType, validElimsType } from "@/lib/types/types";
 import { ErrorCode, minGames, maxGames } from "@/lib/validation";
+import { mockElimsToPost } from "../../../mocks/tmnts/singlesAndDoubles/mockSquads";
 
 const { gotElimData, validElimData } = exportedForTesting;
 
@@ -499,6 +501,117 @@ describe("tests for eliminator validation", () => {
         expect(validateElim(testElim)).toBe(ErrorCode.InvalidData);
       })
     })
+
+  })
+
+  describe('validateElims function', () => { 
+
+    it('should validate elims', () => { 
+      const elimsToValidate = [...mockElimsToPost];
+      const validElims: validElimsType = validateElims(elimsToValidate);
+      expect(validElims.errorCode).toBe(ErrorCode.None);
+      expect(validElims.elims.length).toBe(elimsToValidate.length);
+      for (let i = 0; i < validElims.elims.length; i++) {
+        expect(validElims.elims[i].id).toEqual(elimsToValidate[i].id);
+        expect(validElims.elims[i].squad_id).toEqual(elimsToValidate[i].squad_id);
+        expect(validElims.elims[i].div_id).toEqual(elimsToValidate[i].div_id);
+        expect(validElims.elims[i].start).toEqual(elimsToValidate[i].start);
+        expect(validElims.elims[i].games).toEqual(elimsToValidate[i].games);        
+        expect(validElims.elims[i].fee).toEqual(elimsToValidate[i].fee);
+      }
+    })
+    // no sanitize test because there are no strings to sanitize
+    it('should return ErrorCode.InvalidData when data is invalid', () => { 
+      const invalidElims = [
+        {
+          ...mockElimsToPost[0],
+          start: -1
+        },
+        {
+          ...mockElimsToPost[1],
+        },
+        {
+          ...mockElimsToPost[2],
+        },
+        {
+          ...mockElimsToPost[3],
+        },
+      ]
+      const validElims: validElimsType = validateElims(invalidElims);
+      expect(validElims.errorCode).toBe(ErrorCode.InvalidData);
+    })
+    it('should return ErrorCode.MissingData when data is invalid (sanitize clears invalid Fee', () => {
+      const invalidElims = [
+        {
+          ...mockElimsToPost[0],
+          fee: '1234567'
+        },
+        {
+          ...mockElimsToPost[1],
+        },
+        {
+          ...mockElimsToPost[2],
+        },
+        {
+          ...mockElimsToPost[3],
+        },
+      ]
+      const validElims: validElimsType = validateElims(invalidElims);
+      expect(validElims.errorCode).toBe(ErrorCode.MissingData);
+    })
+    it('should return ErrorCode.MissingData when squad_id is not a valid squad_id', () => { 
+      const invalidElims = [
+        {
+          ...mockElimsToPost[0],          
+        },
+        {
+          ...mockElimsToPost[1],
+          squad_id: mockElimsToPost[0].id 
+        },
+        {
+          ...mockElimsToPost[2],
+        },
+        {
+          ...mockElimsToPost[3],
+        },
+      ]
+      const validElims: validElimsType = validateElims(invalidElims);
+      expect(validElims.errorCode).toBe(ErrorCode.MissingData);
+    })
+    it('should return ErrorCode.MissingData when div_id is not a valid div_id', () => { 
+      const invalidElims = [
+        {
+          ...mockElimsToPost[0],          
+        },
+        {
+          ...mockElimsToPost[1],          
+        },
+        {
+          ...mockElimsToPost[2],
+          div_id: mockElimsToPost[0].id 
+        },
+        {
+          ...mockElimsToPost[3],
+        },
+      ]
+      const validElims: validElimsType = validateElims(invalidElims);
+      expect(validElims.errorCode).toBe(ErrorCode.MissingData);
+    })
+    it('should return ErrorCode.MissingData when passed an empty array', async () => { 
+      const validElims = validateElims([]);
+      expect(validElims.errorCode).toBe(ErrorCode.MissingData);
+      expect(validElims.elims.length).toBe(0);
+    })
+    it('should return ErrorCode.MissingData when passed null', async () => { 
+      const validElims = validateElims(null as any);
+      expect(validElims.errorCode).toBe(ErrorCode.MissingData);
+      expect(validElims.elims.length).toBe(0);
+    })
+    it('should return ErrorCode.MissingData when passed undefined', async () => { 
+      const validElims = validateElims(undefined as any);
+      expect(validElims.errorCode).toBe(ErrorCode.MissingData);
+      expect(validElims.elims.length).toBe(0);
+    })  
 
   })
 

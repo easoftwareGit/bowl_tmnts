@@ -11,7 +11,7 @@ import { deleteAllTmntEvents, deleteEvent, postEvent, putEvent } from "@/lib/db/
 import { blankEvent } from "@/lib/db/initVals";
 import 'core-js/actual/structured-clone';
 
-const { tmntPostPutOrDelEvents, tmntPostEvents } = exportedForTesting;
+const { tmntPostPutOrDelEvents } = exportedForTesting;
 
 // before running this test, run the following commands in the terminal:
 // 1) clear and re-seed the database
@@ -35,103 +35,6 @@ describe("saveTmntEvents tests", () => {
 
   const stCreate: saveTypes = "CREATE";
   const stUpdate: saveTypes = "UPDATE";
-
-  const deleteTestEvents = async () => {
-    await deleteAllTmntEvents(mockEventsToPost[0].tmnt_id);
-  };
- 
-  describe("tmntPostEvents(): new event(s)", () => {
-    let createdEvent = false;
-
-    beforeAll(async () => {
-      await deleteTestEvents();
-    });
-
-    beforeEach(() => {
-      createdEvent = false;
-    });
-
-    afterEach(async () => {
-      if (createdEvent) {
-        await deleteTestEvents();
-      }
-    });
-
-    it("should create one new event when only one event to save", async () => {
-      const newEventClone = structuredClone(mockEventsToPost[0]);
-      const newEvents = [
-        {
-          ...newEventClone,
-        },
-      ];
-      const result = await tmntPostEvents(newEvents);
-      expect(result).not.toBeNull();
-      createdEvent = true;
-      if (!result) return;
-      expect(result.length).toBe(1);
-      const postedEvent = result[0];
-      expect(postedEvent.id).toBe(newEvents[0].id);
-      expect(postedEvent.tmnt_id).toBe(newEvents[0].tmnt_id);
-      expect(postedEvent.event_name).toBe(newEvents[0].event_name);
-      expect(postedEvent.team_size).toBe(newEvents[0].team_size);
-      expect(postedEvent.games).toBe(newEvents[0].games);
-      expect(postedEvent.entry_fee).toBe(newEvents[0].entry_fee);
-      expect(postedEvent.lineage).toBe(newEvents[0].lineage);
-      expect(postedEvent.prize_fund).toBe(newEvents[0].prize_fund);
-      expect(postedEvent.other).toBe(newEvents[0].other);
-      expect(postedEvent.expenses).toBe(newEvents[0].expenses);
-      expect(postedEvent.added_money).toBe(newEvents[0].added_money);
-      expect(postedEvent.lpox).toBe(newEvents[0].lpox);
-      expect(postedEvent.sort_order).toBe(newEvents[0].sort_order);
-    });
-    it("should create multiple events when more one event to save", async () => {      
-      const newEvents = structuredClone(mockEventsToPost);
-      const result = await tmntPostEvents(newEvents);
-      expect(result).not.toBeNull();
-      createdEvent = true;
-      if (!result) return;
-      expect(result.length).toBe(2);
-      const postedEvents = result as eventType[];
-      let postedEvent
-      if (postedEvents[0].id === newEvents[0].id) {
-        postedEvent = postedEvents[0]
-      } else {
-        postedEvent = postedEvents[1]
-      }      
-      expect(postedEvent.id).toBe(newEvents[0].id);
-      expect(postedEvent.tmnt_id).toBe(newEvents[0].tmnt_id);
-      expect(postedEvent.event_name).toBe(newEvents[0].event_name);
-      expect(postedEvent.team_size).toBe(newEvents[0].team_size);
-      expect(postedEvent.games).toBe(newEvents[0].games);
-      expect(postedEvent.entry_fee).toBe(newEvents[0].entry_fee);
-      expect(postedEvent.lineage).toBe(newEvents[0].lineage);
-      expect(postedEvent.prize_fund).toBe(newEvents[0].prize_fund);
-      expect(postedEvent.other).toBe(newEvents[0].other);
-      expect(postedEvent.expenses).toBe(newEvents[0].expenses);
-      expect(postedEvent.added_money).toBe(newEvents[0].added_money);
-      expect(postedEvent.lpox).toBe(newEvents[0].lpox);
-      expect(postedEvent.sort_order).toBe(newEvents[0].sort_order);
-
-      if (postedEvents[1].id === newEvents[1].id) {
-        postedEvent = postedEvents[1]
-      } else {
-        postedEvent = postedEvents[0]
-      }      
-      expect(postedEvent.id).toBe(newEvents[1].id);
-      expect(postedEvent.tmnt_id).toBe(newEvents[1].tmnt_id);
-      expect(postedEvent.event_name).toBe(newEvents[1].event_name);
-      expect(postedEvent.team_size).toBe(newEvents[1].team_size);
-      expect(postedEvent.games).toBe(newEvents[1].games);
-      expect(postedEvent.entry_fee).toBe(newEvents[1].entry_fee);
-      expect(postedEvent.lineage).toBe(newEvents[1].lineage);
-      expect(postedEvent.prize_fund).toBe(newEvents[1].prize_fund);
-      expect(postedEvent.other).toBe(newEvents[1].other);
-      expect(postedEvent.expenses).toBe(newEvents[1].expenses);
-      expect(postedEvent.added_money).toBe(newEvents[1].added_money);
-      expect(postedEvent.lpox).toBe(newEvents[1].lpox);
-      expect(postedEvent.sort_order).toBe(newEvents[1].sort_order);
-    });
-  });
 
   describe("tmntPostPutOrDelEvents(): edited events ", () => {
     const clonedEvent = structuredClone(mockEventsToEdit[0]);
@@ -327,7 +230,7 @@ describe("saveTmntEvents tests", () => {
     let createdEvent = false;
 
     beforeAll(async () => {
-      await deleteTestEvents();
+      await deleteAllTmntEvents(mockEventsToPost[0].tmnt_id);
     });
 
     beforeEach(() => {
@@ -336,7 +239,7 @@ describe("saveTmntEvents tests", () => {
 
     afterEach(async () => {
       if (createdEvent) {
-        await deleteTestEvents();
+        await deleteAllTmntEvents(mockEventsToPost[0].tmnt_id);
       }
     });
 

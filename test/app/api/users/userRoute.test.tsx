@@ -4,7 +4,6 @@ import { testBaseUsersApi } from "../../../testApi";
 import { userType } from "@/lib/types/types";
 import { initUser } from "@/lib/db/initVals";
 import { User } from "@prisma/client";
-import { isValidBtDbId } from "@/lib/validation";
 
 // before running this test, run the following commands in the terminal:
 // 1) clear and re-seed the database

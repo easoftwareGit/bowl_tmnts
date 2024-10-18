@@ -2,7 +2,7 @@ import { NextResponse, NextRequest } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { validateDiv, sanitizeDiv, validIntHdcp } from "./validate";
 import { ErrorCode } from "@/lib/validation";
-import { divType, HdcpForTypes } from "@/lib/types/types";
+import { divDataType, divType, HdcpForTypes } from "@/lib/types/types";
 import { initDiv } from "@/lib/db/initVals";
 
 // routes /api/divs
@@ -45,7 +45,8 @@ export async function POST(request: Request) {
       sort_order,
     };
 
-    const errCode = validateDiv(toCheck);
+    const toPost = sanitizeDiv(toCheck);
+    const errCode = validateDiv(toPost);
     if (errCode !== ErrorCode.None) {
       let errMsg: string;
       switch (errCode) {
@@ -62,17 +63,6 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: errMsg }, { status: 422 });
     }
 
-    const toPost = sanitizeDiv(toCheck);
-    type divDataType = {
-      id: string;
-      tmnt_id: string;
-      div_name: string;
-      hdcp_per: number;
-      hdcp_from: number;
-      int_hdcp: boolean;
-      hdcp_for: HdcpForTypes;
-      sort_order: number;      
-    };
     let divData: divDataType = {
       id: toPost.id,
       tmnt_id: toPost.tmnt_id,

@@ -9,7 +9,7 @@ import {
 } from "@/lib/validation";
 import { sanitizeCurrency } from "@/lib/sanitize";
 import { validMoney } from "@/lib/currency/validate";
-import { elimType, idTypes } from "@/lib/types/types";
+import { elimType, idTypes, validElimsType } from "@/lib/types/types";
 import { blankElim } from "@/lib/db/initVals";
 
 /**
@@ -161,6 +161,33 @@ export function validateElim(elim: elimType): ErrorCode {
   } catch (err) {
     return ErrorCode.OtherError;
   }
+}
+
+/**
+ * sanitizes and validates an array of elim objects
+ * 
+ * @param {elimType[]} elims - array of elims to validate
+ * @returns {validElimsType} - {elims: [], errorCode: ErrorCode.None | ErrorCode.MissingData | ErrorCode.InvalidData | ErrorCode.OtherError}
+ */
+export const validateElims = (elims: elimType[]): validElimsType => {
+  
+  const blankElims: elimType[] = [];
+  const okElims: elimType[] = [];
+  if (!Array.isArray(elims) || elims.length === 0) {
+    return { elims: blankElims, errorCode: ErrorCode.MissingData };
+  };
+  // cannot use forEach because if got an error need exit loop
+  let i = 0;  
+  while (i < elims.length) {
+    const toPost = sanitizeElim(elims[i]);
+    const errCode = validateElim(toPost);
+    if (errCode !== ErrorCode.None) {
+      return { elims: okElims, errorCode: errCode };
+    }
+    okElims.push(toPost);
+    i++;
+  }
+  return { elims: okElims, errorCode: ErrorCode.None };
 }
 
 export const exportedForTesting = {

@@ -9,16 +9,17 @@ const url = testBaseDivsApi.startsWith("undefined")
   : testBaseDivsApi;   
 const oneDivUrl = url + "/div/";
 const oneTmntUrl = url + "/tmnt/";  
+const manyUrl = url + "/many";
 
 /**
- * posts a div
+ * post a new div
  * 
  * @param {divType} div - div to post
- * @returns - div posted or null
+ * @returns {divType | null} - div posted or null
  */  
 export const postDiv = async (div: divType): Promise<divType | null> => {
   
-  // further sanatation and validation done in POST route
+  // all sanatation and validation done in POST route
 
   try {
     const divJSON = JSON.stringify(div);
@@ -37,6 +38,31 @@ export const postDiv = async (div: divType): Promise<divType | null> => {
 }
 
 /**
+ * post many divs
+ * 
+ * @param {divType[]} divs - array of divs to post
+ * @returns {divType[] | null} - array of divs posted or null
+ */
+export const postManyDivs = async (divs: divType[]): Promise<divType[] | null> => { 
+
+  try {
+    // sanatation and validation done in POST route
+    const divsJSON = JSON.stringify(divs);
+    const response = await axios({
+      method: "post",
+      data: divsJSON,
+      withCredentials: true,
+      url: manyUrl,
+    });
+    return (response.status === 201)
+      ? response.data.divs
+      : null
+  } catch (err) {
+    return null;
+  }
+}
+
+/**
  * puts a div
  * 
  * @param {divType} event - div to put
@@ -44,7 +70,7 @@ export const postDiv = async (div: divType): Promise<divType | null> => {
  */  
 export const putDiv = async (div: divType): Promise<divType | null> => {
   
-  // further sanatation and validation done in PUT route
+  // all sanatation and validation done in PUT route
 
   try {
     const divJSON = JSON.stringify(div);

@@ -9,13 +9,13 @@ import {
   entryFeeEqualsLpox,
   validEventFkId,
   allEventMoneyValid,
+  validateEvents,
 } from "@/app/api/events/validate";
 import { initEvent } from "@/lib/db/initVals";
-import { eventType } from "@/lib/types/types";
+import { eventType, validEventsType } from "@/lib/types/types";
 import { ErrorCode, maxEventLength, maxSortOrder } from "@/lib/validation";
 import { startOfDayFromString, todayStr } from "@/lib/dateTools";
-import { add } from "date-fns";
-import e from "express";
+import { mockEvents } from "../../../mocks/tmnts/singlesAndDoubles/mockEvents";
 
 const { gotEventMoney, gotEventData, validEventData, sanitizedEventMoney } = exportedForTesting;
 
@@ -602,12 +602,12 @@ describe("tests for event validation", () => {
       }
       expect(allEventMoneyValid(okEvent)).toBe(true)
     })
-    it('should return true if added_money a valid number', () => {
+    it('should return false if added_money a valid number', () => {
       const invalidEvent = {
         ...validEvent,
         added_money: 0 as any,
       }
-      expect(allEventMoneyValid(invalidEvent)).toBe(true)
+      expect(allEventMoneyValid(invalidEvent)).toBe(false)
     })
     it('should return false if added_money is negative', () => {
       const invalidEvent = {
@@ -630,12 +630,12 @@ describe("tests for event validation", () => {
       }
       expect(allEventMoneyValid(invalidEvent)).toBe(false)
     })
-    it('should return true if entry_fee is valid number value', () => {
+    it('should return false if entry_fee is valid number value', () => {
       const okEvent = {
         ...validEvent,
         entry_fee: 100 as any,
       }
-      expect(allEventMoneyValid(okEvent)).toBe(true)
+      expect(allEventMoneyValid(okEvent)).toBe(false)
     })
     it('should return false if entry_fee is negative', () => {
       const invalidEvent = {
@@ -658,12 +658,12 @@ describe("tests for event validation", () => {
       }
       expect(allEventMoneyValid(invalidEvent)).toBe(false)
     })
-    it('should return true if lineage is valid number value', () => {
+    it('should return false if lineage is valid number value', () => {
       const okEvent = {
         ...validEvent,
         lineage: 10 as any,
       }
-      expect(allEventMoneyValid(okEvent)).toBe(true)
+      expect(allEventMoneyValid(okEvent)).toBe(false)
     })
     it('should return false if lineage is negative', () => {
       const invalidEvent = {
@@ -686,12 +686,12 @@ describe("tests for event validation", () => {
       }
       expect(allEventMoneyValid(invalidEvent)).toBe(false)
     })
-    it('should return true if prize_fund is valid number value', () => {
+    it('should return false if prize_fund is valid number value', () => {
       const okEvent = {
         ...validEvent,
         prize_fund: 70 as any,
       }
-      expect(allEventMoneyValid(okEvent)).toBe(true)
+      expect(allEventMoneyValid(okEvent)).toBe(false)
     })
     it('should return false if prize_fund is negative', () => {
       const invalidEvent = {
@@ -714,12 +714,12 @@ describe("tests for event validation", () => {
       }
       expect(allEventMoneyValid(invalidEvent)).toBe(false)
     })
-    it('should return true if other is valid number value', () => {
+    it('should return false if other is valid number value', () => {
       const okEvent = {
         ...validEvent,
         other: 7 as any,
       }
-      expect(allEventMoneyValid(okEvent)).toBe(true)
+      expect(allEventMoneyValid(okEvent)).toBe(false)
     })
     it('should return false if other is negative', () => {
       const invalidEvent = {
@@ -742,12 +742,12 @@ describe("tests for event validation", () => {
       }
       expect(allEventMoneyValid(invalidEvent)).toBe(false)
     })
-    it('should return true if expenses is valid number value', () => {
+    it('should return false if expenses is valid number value', () => {
       const okEvent = {
         ...validEvent,
         expenses: 5 as any,
       }
-      expect(allEventMoneyValid(okEvent)).toBe(true)
+      expect(allEventMoneyValid(okEvent)).toBe(false)
     })
     it('should return false if expenses is negative', () => {
       const invalidEvent = {
@@ -1569,5 +1569,145 @@ describe("tests for event validation", () => {
       });
     });
   });
+
+  describe('validateEvents', () => { 
+
+    it('should validate events', async () => { 
+      const eventsToValidate = [...mockEvents];
+      const validEvents: validEventsType = validateEvents(eventsToValidate);      
+      expect(validEvents.errorCode).toEqual(ErrorCode.None);
+      expect(validEvents.events.length).toEqual(mockEvents.length);
+
+      for (let i = 0; i < mockEvents.length; i++) {
+        expect(validEvents.events[i].id).toEqual(mockEvents[i].id);
+        expect(validEvents.events[i].tmnt_id).toEqual(mockEvents[i].tmnt_id);
+        expect(validEvents.events[i].event_name).toEqual(mockEvents[i].event_name);
+        expect(validEvents.events[i].team_size).toEqual(mockEvents[i].team_size);
+        expect(validEvents.events[i].games).toEqual(mockEvents[i].games);
+        expect(validEvents.events[i].entry_fee).toEqual(mockEvents[i].entry_fee);
+        expect(validEvents.events[i].lineage).toEqual(mockEvents[i].lineage);
+        expect(validEvents.events[i].prize_fund).toEqual(mockEvents[i].prize_fund);
+        expect(validEvents.events[i].other).toEqual(mockEvents[i].other);
+        expect(validEvents.events[i].expenses).toEqual(mockEvents[i].expenses);
+        expect(validEvents.events[i].added_money).toEqual(mockEvents[i].added_money);
+        expect(validEvents.events[i].lpox).toEqual(mockEvents[i].lpox);
+        expect(validEvents.events[i].sort_order).toEqual(mockEvents[i].sort_order);      
+      }      
+    })
+    it('should return ErrorCode.None and sanitize events', async () => { 
+      const toSanotzize = [
+        {
+          ...mockEvents[0],
+          event_name: ' Event 1 **** ',
+        },
+        {
+          ...mockEvents[1],
+          event_name: '<script>Event 2</script>',
+        }
+      ]
+      const validEvents = validateEvents(toSanotzize);
+      expect(validEvents.errorCode).toEqual(ErrorCode.None);  
+      expect(validEvents.events[0].event_name).toEqual('Event 1');
+      expect(validEvents.events[1].event_name).toEqual('Event 2');
+    })
+    it('should return ErrorCode.MissingData when required data is missing', async () => { 
+      const invalidEvents = [
+        {
+          ...mockEvents[0],
+          event_name: ''
+        },
+        {
+          ...mockEvents[1],          
+        }
+      ]
+      const validEvents = validateEvents(invalidEvents);
+      expect(validEvents.errorCode).toEqual(ErrorCode.MissingData);
+      expect(validEvents.events.length).toEqual(0);
+    })
+    it('should return ErroCode.MissingData when tmnt_id is not a valid tmnt id', async () => {       
+      // ErroCode.MissingData because sanitize will change invalid tmnt_id to ''
+      const invalidEvents = [
+        {
+          ...mockEvents[0],          
+        },
+        {
+          ...mockEvents[1],          
+          tmnt_id: eventId,
+        }
+      ]
+      const validEvents = validateEvents(invalidEvents);
+      expect(validEvents.errorCode).toEqual(ErrorCode.MissingData);      
+    })
+    it('should return ErroCode.MissingData and return events length 1 when 1st event is valid, 2nd is not', async () => { 
+      // ErroCode.MissingData because sanitize will change invalid tmnt_id to ''
+      const invalidEvents = [
+        {
+          ...mockEvents[0],          
+        },
+        {
+          ...mockEvents[1],          
+          tmnt_id: eventId,
+        }
+      ]
+      const validEvents = validateEvents(invalidEvents);
+      expect(validEvents.errorCode).toEqual(ErrorCode.MissingData);      
+      expect(validEvents.events.length).toEqual(1);
+    })
+    it("should return ErroCode.InvalidData when all tmnt_id's are not the same", async () => { 
+      const invalidEvents = [
+        {
+          ...mockEvents[0],
+        },
+        {
+          ...mockEvents[1],                    
+          tmnt_id: 'tmt_00000000000000000000000000000000',
+        }
+      ]
+      const validEvents = validateEvents(invalidEvents);
+      expect(validEvents.errorCode).toEqual(ErrorCode.InvalidData);
+      expect(validEvents.events.length).toEqual(1); // 1st event valid
+    })
+    it('should return ErroCode.InvalidData when required data is invalid', async () => { 
+      const invalidEvents = [
+        {
+          ...mockEvents[0],
+          games: 100
+        },
+        {
+          ...mockEvents[1],          
+        }
+      ]
+      const validEvents = validateEvents(invalidEvents);
+      expect(validEvents.errorCode).toEqual(ErrorCode.InvalidData);
+    })
+    it('should return ErroCode.MissingData when id is not a valid event id', async () => { 
+      const invalidEvents = [
+        {
+          ...mockEvents[0],
+          id: 'tmt_00000000000000000000000000000000',
+        },
+        {
+          ...mockEvents[1],          
+        }
+      ]
+      const validEvents = validateEvents(invalidEvents);
+      expect(validEvents.errorCode).toEqual(ErrorCode.MissingData);
+    })
+    it('should return ErrorCode.MissingData when passed empty array', async () => {
+      const validEvents = validateEvents([]);
+      expect(validEvents.errorCode).toEqual(ErrorCode.MissingData);      
+      expect(validEvents.events.length).toEqual(0);
+    })
+    it('should return ErrorCode.MissingData when passed null', async () => {
+      const validEvents = validateEvents(null as any);
+      expect(validEvents.errorCode).toEqual(ErrorCode.MissingData);      
+      expect(validEvents.events.length).toEqual(0);
+    })
+    it('should return ErrorCode.MissingData when passed undefined', async () => {
+      const validEvents = validateEvents(undefined as any);
+      expect(validEvents.errorCode).toEqual(ErrorCode.MissingData);      
+      expect(validEvents.events.length).toEqual(0);
+    })
+  })
 
 });

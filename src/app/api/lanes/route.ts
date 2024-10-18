@@ -2,7 +2,7 @@ import { NextResponse, NextRequest } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { validateLane, sanitizeLane } from "./validate";
 import { ErrorCode } from "@/lib/validation";
-import { laneType } from "@/lib/types/types";
+import { laneDataType, laneType } from "@/lib/types/types";
 import { initLane } from "@/lib/db/initVals";
 
 // routes /api/lanes
@@ -37,7 +37,6 @@ export const POST = async (request: NextRequest) => {
       lane_number,
       squad_id
     }
-
     const toPost = sanitizeLane(toCheck);
     const errCode = validateLane(toPost);
     if (errCode !== ErrorCode.None) {
@@ -59,11 +58,6 @@ export const POST = async (request: NextRequest) => {
       );
     }
     
-    type laneDataType = {
-      id: string,
-      squad_id: string,
-      lane_number: number,      
-    }
     let laneData: laneDataType = {
       id: toPost.id,
       squad_id: toPost.squad_id,
@@ -77,10 +71,10 @@ export const POST = async (request: NextRequest) => {
     let errStatus: number
     switch (err.code) {
       case 'P2002': // Unique constraint
-        errStatus = 422 
+        errStatus = 409
         break;
       case 'P2003': // Foreign key constraint
-        errStatus = 422
+        errStatus = 409
         break;    
       case 'P2025': // Record not found
         errStatus = 404

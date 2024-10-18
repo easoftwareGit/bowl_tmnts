@@ -2,7 +2,7 @@ import { NextResponse, NextRequest } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { validateBrkt, sanitizeBrkt } from "./validate";
 import { ErrorCode } from "@/lib/validation";
-import { brktType } from "@/lib/types/types";
+import { brktDataType, brktType } from "@/lib/types/types";
 import { initBrkt } from "@/lib/db/initVals";
 
 // routes /api/brkts
@@ -81,19 +81,6 @@ export async function POST(request: Request) {
     }
     
     // NO fsa in eventDataType
-    type brktDataType = {
-      div_id: string;
-      squad_id: string;
-      fee: string;
-      start: number;
-      games: number;
-      players: number;
-      first: string;
-      second: string;
-      admin: string;
-      sort_order: number;
-      id?: string;
-    };
     let brktData: brktDataType = {
       id: toPost.id,
       div_id: toPost.div_id,
@@ -113,17 +100,17 @@ export async function POST(request: Request) {
     // add in fsa
     const brkt = {
       ...postedBrkt,
-      fsa: (Number(postedBrkt.fee) * postedBrkt.players) + "",
+      fsa: (Number(postedBrkt.first) + Number(postedBrkt.second) + Number(postedBrkt.admin)) + "",
     };
     return NextResponse.json({ brkt }, { status: 201 });
   } catch (err: any) {
     let errStatus: number;
     switch (err.code) {
       case "P2002": // Unique constraint
-        errStatus = 422;
+        errStatus = 409;
         break;
       case "P2003": // Foreign key constraint
-        errStatus = 422;
+        errStatus = 404;
         break;
       default:
         errStatus = 500;

@@ -10,8 +10,8 @@ import {
   validSortOrder,  
 } from "@/lib/validation";
 import { sanitize, sanitizeCurrency } from "@/lib/sanitize";
-import { validMoney } from "@/lib/currency/validate";
-import { eventType, idTypes } from "@/lib/types/types";
+import { validBtdbMoney, validMoney } from "@/lib/currency/validate";
+import { eventType, idTypes, validEventsType } from "@/lib/types/types";
 import { blankEvent } from "@/lib/db/initVals";
 import { isNumber } from "@/lib/validation";
 
@@ -74,18 +74,8 @@ export const validGames = (games: number): boolean => {
   return Number.isInteger(games) && games >= minGames && games <= maxGames;
 };
 export const validEventMoney = (moneyStr: string): boolean => {
-  if (moneyStr === null
-    || moneyStr === undefined
-    || typeof moneyStr !== "string") return false;
-  // maxMoney is 999999, so max valid string is $999,999.99 or 11 chars 
-  if (moneyStr.length > 11) return false;
-  // a blank value for event money is OK
-  // all 0's is ok
-  if (moneyStr === "" || moneyStr.replace(/^0+/, '') === "") {
-    return true;
-  }
-  if (!moneyStr) return false;
-  return validMoney(moneyStr, 0, maxMoney);
+  // min 0, max 999999
+  return validBtdbMoney(moneyStr);
 };
 
 /**
@@ -292,6 +282,43 @@ export function validateEvent(event: eventType): ErrorCode {
     return ErrorCode.OtherError;
   }
 }
+
+/**
+ * sanitizea and validates an array of events
+ * 
+ * @param {eventType[]} events - array of event to validate
+ * @returns {validEventsType} - {events:eventType[], errorCode: ErrorCode.None | ErrorCode.MissingData | ErrorCode.InvalidData | ErrorCode.OtherError}
+ */
+export const validateEvents = (events: eventType[]): validEventsType => {
+
+  const blankEvents: eventType[] = [];
+  const okEvents: eventType[] = [];
+  if (!Array.isArray(events) || events.length === 0) {
+    return { events: blankEvents, errorCode: ErrorCode.MissingData };
+  };
+  // cannot use forEach because if got an errror need exit loop
+  let i = 0;
+  let tmntId = "";
+  while (i < events.length) {
+    const toPost = sanitizeEvent(events[i]);
+    const errCode = validateEvent(toPost);
+    if (errCode !== ErrorCode.None) { 
+      return { events: okEvents, errorCode: errCode };
+    }    
+    // all events MUST have same tmnt_id
+    if (i > 0 && tmntId !== toPost.tmnt_id) {
+      return { events: okEvents, errorCode: ErrorCode.InvalidData };
+    }
+    // push AFETER errCode is None
+    okEvents.push(toPost);    
+    // set tmnt_id AFTER 1st event sanitzied and validated
+    if (i === 0) {
+      tmntId = toPost.tmnt_id;
+    }
+    i++;
+  }
+  return { events: okEvents, errorCode: ErrorCode.None };
+};
 
 export const exportedForTesting = {
   gotEventMoney,

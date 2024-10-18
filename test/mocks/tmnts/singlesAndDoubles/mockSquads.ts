@@ -1,8 +1,45 @@
-import { laneType, squadType } from "@/lib/types/types";
+import { brktType, divType, elimType, laneType, PotCategories, potType, squadType } from "@/lib/types/types";
 import { startOfDayFromString, todayStr } from "@/lib/dateTools";
 import { Squad } from "@prisma/client";
-import { initSquad } from "@/lib/db/initVals";
+import { initBrkt, initPot, initSquad } from "@/lib/db/initVals";
 import { startOfToday } from "date-fns";
+
+export const tmntToDelId = 'tmt_467e51d71659d2e412cbc64a0d19ecb4'
+
+export const mockDivs: divType[] = [
+  {
+    id: "div_018834e04e5e4885bbae79229d8b96e8",
+    tmnt_id: tmntToDelId,
+    div_name: "Scratch",
+    div_name_err: "",
+    tab_title: "Scratch",
+    hdcp_per: 0,
+    hdcp_per_str: "0.00",
+    hdcp_per_err: "",
+    hdcp_from: 230,
+    int_hdcp: false,
+    hdcp_for: "Series",
+    hdcp_from_err: "",
+    sort_order: 1,
+    errClassName: "",
+  },
+  {
+    id: "div_02b1cd5dee0542038a1244fc2978e862",
+    tmnt_id: tmntToDelId,
+    div_name: "Hdcp",
+    div_name_err: "",
+    tab_title: "Hdcp",
+    hdcp_per: 1,
+    hdcp_per_str: "100.00",
+    hdcp_per_err: "",
+    hdcp_from: 230,
+    hdcp_from_err: "",
+    int_hdcp: true,
+    hdcp_for: "Game",
+    sort_order: 2,
+    errClassName: "",
+  }
+]
 
 export const mockSquads: squadType[] = [
   {
@@ -81,8 +118,8 @@ export const mockPrismaSquads: Squad[] = [
 export const mockSquadsToEdit: squadType[] = [
   {
     ...initSquad, 
-    id: "sqd_3397da1adc014cf58c44e07c19914f71",
-    event_id: "evt_9a58f0a486cb4e6c92ca3348702b1a62",
+    id: "sqd_3397da1adc014cf58c44e07c19914f01",
+    event_id: "evt_bd63777a6aee43be8372e4d008c1d6d0",
     squad_name: "Squad 1",
     squad_date: startOfDayFromString('2023-03-01') as Date,
     squad_time: '08:00 AM',
@@ -93,9 +130,9 @@ export const mockSquadsToEdit: squadType[] = [
   },
   {
     ...initSquad, 
-    id: "sqd_20c24199328447f8bbe95c05e1b84644",
-    event_id: "evt_cb55703a8a084acb86306e2944320e8d",
-    squad_name: "Squad 1",
+    id: "sqd_3397da1adc014cf58c44e07c19914f02",
+    event_id: "evt_bd63777a6aee43be8372e4d008c1d6d0",
+    squad_name: "Squad 2",
     squad_date: startOfDayFromString('2023-03-01') as Date,
     squad_time: '01:00 PM',
     games: 6,
@@ -103,9 +140,20 @@ export const mockSquadsToEdit: squadType[] = [
     starting_lane: 1,
     sort_order: 2,
   },
+  {
+    ...initSquad, 
+    id: "sqd_3397da1adc014cf58c44e07c19914f03",
+    event_id: "evt_bd63777a6aee43be8372e4d008c1d6d0",
+    squad_name: "Squad 3",
+    squad_date: startOfDayFromString('2023-03-01') as Date,
+    squad_time: '07:00 PM',
+    games: 6,
+    lane_count: 24,
+    starting_lane: 1,
+    sort_order: 3,
+  },
 ]
 
-export const tmntToDelId = 'tmt_e134ac14c5234d708d26037ae812ac33'
 export const mockSquadsToPost: squadType[] = [
   {
     ...initSquad,    
@@ -132,7 +180,6 @@ export const mockSquadsToPost: squadType[] = [
     sort_order: 1,
   },
 ]
-
 
 export const mockLanes: laneType[] = [
   {
@@ -285,4 +332,233 @@ export const mockLanes: laneType[] = [
     lane_number: 10,
     squad_id: 'sqd_c14918f162ac4acfa3ade3fdf90f17b6',
   }
+]
+
+export const mockLanesToEdit: laneType[] = [
+  {
+    id: 'lan_20c24199328447f8bbe95c05e1b84601',
+    lane_number: 1,
+    squad_id: 'sqd_20c24199328447f8bbe95c05e1b84645',
+  },
+  {
+    id: 'lan_20c24199328447f8bbe95c05e1b84602',
+    lane_number: 2,
+    squad_id: 'sqd_20c24199328447f8bbe95c05e1b84645',
+  },
+  {
+    id: 'lan_20c24199328447f8bbe95c05e1b84603',
+    lane_number: 3,
+    squad_id: 'sqd_20c24199328447f8bbe95c05e1b84645',
+  },
+  {
+    id: 'lan_20c24199328447f8bbe95c05e1b84604',
+    lane_number: 4,
+    squad_id: 'sqd_20c24199328447f8bbe95c05e1b84645',
+  },
+]
+
+export const mockLanesToPost: laneType[] = [
+  {
+    id: 'lan_20c24199328447f8bbe95c05e1b84601',
+    lane_number: 1,
+    squad_id: 'sqd_20c24199328447f8bbe95c05e1b84645',
+  },
+  {
+    id: 'lan_20c24199328447f8bbe95c05e1b84602',
+    lane_number: 2,
+    squad_id: 'sqd_20c24199328447f8bbe95c05e1b84645',
+  },
+  {
+    id: 'lan_20c24199328447f8bbe95c05e1b84603',
+    lane_number: 3,
+    squad_id: 'sqd_20c24199328447f8bbe95c05e1b84645',
+  },
+  {
+    id: 'lan_20c24199328447f8bbe95c05e1b84604',
+    lane_number: 4,
+    squad_id: 'sqd_20c24199328447f8bbe95c05e1b84645',
+  },
+  {
+    id: 'lan_20c24199328447f8bbe95c05e1b84605',
+    lane_number: 5,
+    squad_id: 'sqd_20c24199328447f8bbe95c05e1b84646',
+  },
+  {
+    id: 'lan_20c24199328447f8bbe95c05e1b84606',
+    lane_number: 6,
+    squad_id: 'sqd_20c24199328447f8bbe95c05e1b84646',
+  },
+  {
+    id: 'lan_20c24199328447f8bbe95c05e1b84607',
+    lane_number: 7,
+    squad_id: 'sqd_20c24199328447f8bbe95c05e1b84646', 
+  },
+  {
+    id: 'lan_20c24199328447f8bbe95c05e1b84608',
+    lane_number: 8,
+    squad_id: 'sqd_20c24199328447f8bbe95c05e1b84646',
+  },
+]
+
+export const mockPotsToPost: potType[] = [
+  {
+    ...initPot, 
+    id: "pot_01758d99c5494efabb3b0d273cf22e7a",
+    squad_id: mockSquadsToPost[0].id,
+    div_id: mockDivs[0].id,
+    sort_order: 1,
+    fee: '20',
+    pot_type: "Game" as PotCategories,
+  },
+  {
+    ...initPot, 
+    id: "pot_02758d99c5494efabb3b0d273cf22e7a",
+    squad_id: mockSquadsToPost[0].id,
+    div_id: mockDivs[0].id,
+    sort_order: 2,
+    fee: '10',
+    pot_type: "Last Game" as PotCategories,
+  },
+  {
+    ...initPot, 
+    id: "pot_03758d99c5494efabb3b0d273cf22e7a",
+    squad_id: mockSquadsToPost[0].id,
+    div_id: mockDivs[0].id,
+    sort_order: 3,
+    fee: '5',
+    pot_type: "Series" as PotCategories,
+  },
+  {
+    ...initPot, 
+    id: "pot_04758d99c5494efabb3b0d273cf22e7a",
+    squad_id: mockSquadsToPost[1].id,
+    div_id: mockDivs[1].id,
+    sort_order: 4,
+    fee: '20',
+    pot_type: "Game" as PotCategories,
+  },
+  {
+    ...initPot, 
+    id: "pot_05758d99c5494efabb3b0d273cf22e7a",
+    squad_id: mockSquadsToPost[1].id,
+    div_id: mockDivs[1].id,
+    sort_order: 5,
+    fee: '10',
+    pot_type: "Last Game" as PotCategories,
+  },
+  {
+    ...initPot, 
+    id: "pot_06758d99c5494efabb3b0d273cf22e7a",
+    squad_id: mockSquadsToPost[1].id,
+    div_id: mockDivs[1].id,
+    sort_order: 6,
+    fee: '5',
+    pot_type: "Series" as PotCategories,
+  },
+]
+
+export const mockBrktsToPost: brktType[] = [
+  {
+    ...initBrkt,
+    id: "brk_01758d99c5494efabb3b0d273cf22e7a",
+    squad_id: mockSquadsToPost[0].id,
+    div_id: mockDivs[0].id,
+    sort_order: 1,
+    start: 1,
+    games: 3,
+    players: 8,
+    fee: '5',
+    first: '25',
+    second: '10',
+    admin: '5',
+    fsa: '40',
+  },
+  {
+    ...initBrkt,
+    id: "brk_02758d99c5494efabb3b0d273cf22e7a",
+    squad_id: mockSquadsToPost[0].id,
+    div_id: mockDivs[0].id,
+    sort_order: 1,
+    start: 4,
+    games: 3,
+    players: 8,
+    fee: '5',
+    first: '25',
+    second: '10',
+    admin: '5',
+    fsa: '40',
+  },
+  {
+    ...initBrkt,
+    id: "brk_03758d99c5494efabb3b0d273cf22e7a",
+    squad_id: mockSquadsToPost[1].id,
+    div_id: mockDivs[1].id,
+    sort_order: 1,
+    start: 1,
+    games: 3,
+    players: 8,
+    fee: '5',
+    first: '25',
+    second: '10',
+    admin: '5',
+    fsa: '40',
+  },
+  {
+    ...initBrkt,
+    id: "brk_04758d99c5494efabb3b0d273cf22e7a",
+    squad_id: mockSquadsToPost[1].id,
+    div_id: mockDivs[1].id,
+    sort_order: 4,
+    start: 4,
+    games: 3,
+    players: 8,
+    fee: '5',
+    first: '25',
+    second: '10',
+    admin: '5',
+    fsa: '40',
+  },
+]
+
+export const mockElimsToPost: elimType[] = [
+  {
+    ...initBrkt,
+    id: "elm_01758d99c5494efabb3b0d273cf22e7b",
+    squad_id: mockSquadsToPost[0].id,
+    div_id: mockDivs[0].id,
+    sort_order: 1,
+    start: 1,
+    games: 3,
+    fee: '5',
+  },
+  {
+    ...initBrkt,
+    id: "elm_02758d99c5494efabb3b0d273cf22e7b",
+    squad_id: mockSquadsToPost[0].id,
+    div_id: mockDivs[0].id,
+    sort_order: 2,
+    start: 4,
+    games: 3,
+    fee: '5',
+  },
+  {
+    ...initBrkt,
+    id: "elm_03758d99c5494efabb3b0d273cf22e7b",
+    squad_id: mockSquadsToPost[1].id,
+    div_id: mockDivs[1].id,
+    sort_order: 1,
+    start: 3,
+    games: 3,
+    fee: '5',
+  },
+  {
+    ...initBrkt,
+    id: "elm_04758d99c5494efabb3b0d273cf22e7b",
+    squad_id: mockSquadsToPost[1].id,
+    div_id: mockDivs[1].id,
+    sort_order: 4,
+    start: 4,
+    games: 3,
+    fee: '5',
+  },
 ]

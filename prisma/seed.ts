@@ -1947,7 +1947,7 @@ async function laneUpsert() {
     const abCount = await laneUpsert_AandB()   
     const delCount = await laneUpsert_ToDelete()
     console.log("Upserted lanes: ", gpCount + yCount + abCount + delCount);
-    return gpCount + yCount + abCount + delCount; // 12 + 24 + 1 57
+    return gpCount + yCount + delCount; // 12 + 24 + 20 + 1 = 57
   } catch (error) {
     console.log(error);
     return -1;
@@ -2206,7 +2206,6 @@ async function brktUpsert() {
     return -1;
   }
 }
-
 async function elimUpsert() {
   try {
     let elim = await prisma.elim.upsert({
