@@ -10,6 +10,7 @@ export async function GET(
   { params }: {params: { year: string}}
 ) {
   const paramYear = params.year;
+
   if (!validYear(paramYear)) {
     return NextResponse.json({ error: 'Invalid parameter' }, { status: 400 });
   }
@@ -41,6 +42,7 @@ export async function GET(
       id: true,
       tmnt_name: true,
       start_date: true,
+      bowl_id: true,
       bowls: {
         select: {
           bowl_name: true,
@@ -53,7 +55,6 @@ export async function GET(
     skip: skip ? parseInt(skip, 10) : undefined,
     take: take ? parseInt(take, 10) : undefined,
   })
-  // return NextResponse.json(tmnts);
-
+  
   return NextResponse.json({ tmnts }, { status: 200 });
 }

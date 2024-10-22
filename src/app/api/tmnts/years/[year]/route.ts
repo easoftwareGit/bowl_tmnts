@@ -16,8 +16,7 @@ export async function GET(
     }
     
     const yearNum = Number(paramYear)
-    const lastDOY = endOfDayFromString(`${yearNum}-12-31`)
-    // const lastDOY = endOfDay(new Date(`${paramYear}-12-31`))
+    const lastDOY = endOfDayFromString(`${yearNum}-12-31`)    
 
     // ok to use queryRawUnsafe because call to validYear 
     const years = await prisma.$queryRawUnsafe(

@@ -9,7 +9,7 @@ import { initBrkt } from "@/lib/db/initVals";
 
 export async function GET(request: NextRequest) {
   try {
-    const gotBrkts = await prisma.brkt.findMany({
+    const prismaBrkts = await prisma.brkt.findMany({
       orderBy: [
         {
           div_id: "asc",
@@ -20,10 +20,23 @@ export async function GET(request: NextRequest) {
       ],
     });
     // add in fsa
-    const brkts = gotBrkts.map((gotBrkt) => ({
-      ...gotBrkt,
-      fsa: (Number(gotBrkt.fee) * gotBrkt.players) + "",
-    }));
+    const brkts: brktType[] = prismaBrkts.map(brkt => { 
+      return {
+        ...initBrkt,
+        id: brkt.id,
+        div_id: brkt.div_id,
+        squad_id: brkt.squad_id,
+        start: brkt.start,
+        games: brkt.games,
+        players: brkt.players,
+        fee: brkt.fee + '',
+        first: brkt.first + '',
+        second: brkt.second + '',
+        admin: brkt.admin + '',     
+        fsa: Number(brkt.first) + Number(brkt.second) + Number(brkt.admin) + '',
+        sort_order: brkt.sort_order
+      }
+    })
     return NextResponse.json({ brkts }, { status: 200 });
   } catch (err: any) {
     return NextResponse.json({ error: "error getting brkts" }, { status: 500 });

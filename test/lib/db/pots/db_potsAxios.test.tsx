@@ -4,7 +4,7 @@ import { testBasePotsApi } from "../../../testApi";
 import { PotCategories, potType } from "@/lib/types/types";
 import { initPot } from "@/lib/db/initVals";
 import { mockDivs, mockPotsToPost, mockSquadsToPost, tmntToDelId } from "../../../mocks/tmnts/singlesAndDoubles/mockSquads";
-import { deleteAllDivPots, deleteAllSquadPots, deleteAllTmntPots, deletePot, postManyPots, postPot, putPot } from "@/lib/db/pots/potsAxios";
+import { deleteAllDivPots, deleteAllSquadPots, deleteAllTmntPots, deletePot, getAllPotsForTmnt, postManyPots, postPot, putPot } from "@/lib/db/pots/potsAxios";
 import { deleteAllTmntSquads, deleteSquad, postManySquads, postSquad } from "@/lib/db/squads/squadsAxios";
 import { deleteAllTmntDivs, deleteDiv, postDiv, postManyDivs } from "@/lib/db/divs/divsAxios";
 
@@ -27,6 +27,8 @@ const url = testBasePotsApi.startsWith("undefined")
   ? basePotsApi
   : testBasePotsApi;   
 const onePotUrl = url + "/pot/";    
+
+const notFoundTmntId = 'tmt_00000000000000000000000000000000';
 
 describe('potsAxios', () => { 
 
@@ -57,6 +59,58 @@ describe('potsAxios', () => {
       if (err instanceof AxiosError) console.log(err.message);
     }
   }  
+
+  describe('getAllPotsForTmnt', () => { 
+
+    // from prisma/seed.ts
+    const tmntId = 'tmt_56d916ece6b50e6293300248c6792316';
+    const potsToGet: potType[] = [
+      {
+        ...initPot,
+        id: "pot_98b3a008619b43e493abf17d9f462a65",
+        squad_id: "sqd_1a6c885ee19a49489960389193e8f819",
+        div_id: "div_1f42042f9ef24029a0a2d48cc276a087",
+        sort_order: 1,
+        fee: '10',
+        pot_type: "Game",
+      }, 
+      {
+        ...initPot,
+        id: "pot_ab80213899ea424b938f52a062deacfe",
+        squad_id: "sqd_1a6c885ee19a49489960389193e8f819",
+        div_id: "div_1f42042f9ef24029a0a2d48cc276a087",
+        sort_order: 2,
+        fee: '10',
+        pot_type: "Last Game",
+      }
+    ]
+
+    it('should get all pots for tmnt', async () => { 
+      const pots = await getAllPotsForTmnt(tmntId);
+      expect(pots).toHaveLength(potsToGet.length);
+      if (!pots) return;
+      for (let i = 0; i < potsToGet.length; i++) {
+        expect(pots[i].id).toEqual(potsToGet[i].id);
+        expect(pots[i].squad_id).toEqual(potsToGet[i].squad_id);
+        expect(pots[i].div_id).toEqual(potsToGet[i].div_id);
+        expect(pots[i].sort_order).toEqual(potsToGet[i].sort_order);
+        expect(pots[i].fee).toEqual(potsToGet[i].fee);
+        expect(pots[i].pot_type).toEqual(potsToGet[i].pot_type);
+      }
+    })
+    it("should return 0 pots for not found tmnt", async () => { 
+      const pots = await getAllPotsForTmnt(notFoundTmntId);
+      expect(pots).toHaveLength(0);
+    })
+    it('should return null if tmnt id is invalid', async () => { 
+      const pots = await getAllPotsForTmnt('test');
+      expect(pots).toBeNull();
+    })
+    it('should return null if tmnt id is valid, but not a tmnt id', async () => { 
+      const pots = await getAllPotsForTmnt(potsToGet[0].id);
+      expect(pots).toBeNull();
+    })
+  })
 
   describe('postPot', () => { 
 
@@ -555,7 +609,7 @@ describe('potsAxios', () => {
       expect(deleted).toBe(-1);
     })
     it('should NOT delete all pots for a tmnt when tmnt ID is not found', async () => {
-      const deleted = await deleteAllTmntPots('tmt_00000000000000000000000000000000');
+      const deleted = await deleteAllTmntPots(notFoundTmntId);
       expect(deleted).toBe(0);
     })
     it('should NOT delete all pots for a tmnt when tmnt ID is valid, but not a tmnt id', async () => {

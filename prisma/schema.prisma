@@ -124,6 +124,7 @@ model Lane {
   id          String   @id @default(dbgenerated("concat('lan_', replace(cast(gen_random_uuid() as text), '-', ''))")) @db.Text
   lane_number Int
   squad_id    String   @db.Text
+  in_use      Boolean  @default(true)
   squad       Squad    @relation(fields: [squad_id], references: [id])
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt

@@ -16,18 +16,30 @@ export async function GET(
     if (!isValidBtDbId(id, "evt")) {
       return NextResponse.json({ error: "not found" }, { status: 404 });
     }
-    const gotEvent = await prisma.event.findUnique({
+    const prismaEvent = await prisma.event.findUnique({
       where: {
         id: id,
       },
     });
-    if (!gotEvent) {
+    if (!prismaEvent) {
       return NextResponse.json({ error: "not found" }, { status: 404 });
     }
     // add in lpox
-    const event = {
-      ...gotEvent,
-      lpox: gotEvent.entry_fee,
+    const event: eventType = {
+      ...initEvent,
+      id: prismaEvent.id,
+      tmnt_id: prismaEvent.tmnt_id,
+      event_name: prismaEvent.event_name,
+      team_size: prismaEvent.team_size,
+      games: prismaEvent.games,      
+      added_money: prismaEvent.added_money + '',
+      entry_fee: prismaEvent.entry_fee + '',
+      lineage: prismaEvent.lineage + '',
+      prize_fund: prismaEvent.prize_fund + '',
+      other: prismaEvent.other + '',
+      expenses: prismaEvent.expenses + '',      
+      lpox: prismaEvent.entry_fee + '',
+      sort_order: prismaEvent.sort_order,
     };
     return NextResponse.json({ event }, { status: 200 });
   } catch (err: any) {

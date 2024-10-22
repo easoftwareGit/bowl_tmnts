@@ -92,8 +92,11 @@ export async function POST(request: Request) {
   } catch (error: any) {
     let errStatus: number
     switch (error.code) {
+      case 'P2002': //unique constraint failed
+        errStatus = 400
+        break;
       case 'P2003': //parent row not found
-        errStatus = 404
+        errStatus = 409
         break;    
       case "P2025": // record not found
         errStatus = 404;

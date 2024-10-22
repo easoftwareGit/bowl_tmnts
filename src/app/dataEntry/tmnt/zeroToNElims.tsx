@@ -186,12 +186,17 @@ const ZeroToNElims: React.FC<ChildProps> = ({
     }
 
     setCreateElim({
-      ...newElim,
+      ...createElim,
       div_err: divErr,
       fee_err: feeErr,
       games_err: gamesErr,
       start_err: startErr,
     })
+
+    createElim.div_err = divErr;
+    createElim.fee_err = feeErr;
+    createElim.games_err = gamesErr;
+    createElim.start_err = startErr;
 
     return isElimValid;
   }
@@ -199,6 +204,19 @@ const ZeroToNElims: React.FC<ChildProps> = ({
   const handleAdd = (e: React.FormEvent) => { 
     e.preventDefault();
     if (validNewElim()) {
+      // if elim is valid, make sure errors are cleared
+      if (createElim.div_err !== '') {
+        createElim.div_err = '';
+      }
+      if (createElim.fee_err !== '') {
+        createElim.fee_err = '';
+      }
+      if (createElim.games_err !== '') {
+        createElim.games_err = '';
+      }
+      if (createElim.start_err !== '') {
+        createElim.start_err = '';
+      }
       const newElim = {
         ...createElim,
         id: btDbUuid('elm'),

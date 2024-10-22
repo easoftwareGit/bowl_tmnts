@@ -4,13 +4,15 @@ import tmntsReducer from './features/tmnts/tmntsSlice';
 import tmntYearsReducer from './features/tmnts/yearsSlice';
 import bowlsReducer from './features/bowls/bowlsSlice';
 import testdatesReducer from './features/testdates/testdatesSlice';
+import userTmntsReducer from './features/userTmnts/userTmntsSlice';
 
 // create the store, include reduces in object
 export const store = configureStore({
   reducer: {
     tmnts: tmntsReducer,
     tmntYears: tmntYearsReducer,
-    bowls: bowlsReducer,
+    bowls: bowlsReducer,    
+    userTmnts: userTmntsReducer,
     testdates: testdatesReducer,
   }
 });

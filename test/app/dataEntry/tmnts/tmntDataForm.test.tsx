@@ -14,6 +14,7 @@ import {
 import { startOfTodayUTC, dateTo_UTC_yyyyMMdd } from '@/lib/dateTools';
 import { tmntPropsType } from '@/lib/types/types';
 import userEvent from '@testing-library/user-event';
+import { startOfToday } from 'date-fns';
 
 const showingModal = false;
 const mockSetTmnts = jest.fn();
@@ -31,8 +32,8 @@ describe('TmntDataForm - Component', () => {
   const blankTmnt = {
     ...initTmnt,
     bowl_id: 'bwl_561540bd64974da9abdd97765fdb3659',
-    start_date: startOfTodayUTC(),
-    end_date: startOfTodayUTC(),
+    start_date: startOfToday(),
+    end_date: startOfToday(),
   };  
 
   const tmntFormProps: tmntPropsType = {

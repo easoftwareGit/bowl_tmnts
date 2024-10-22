@@ -173,7 +173,19 @@ describe('Brkts - GET and POST API: /api/brkts', () => {
       const brkts: brktType[] = response.data.brkts;
       // query in /api/brkts/squad/ GET sorts by sort_order
       expect(brkts[0].id).toBe(squadBrktId1);
-      expect(brkts[1].id).toBe(squadBrktId2);      
+      expect(brkts[1].id).toBe(squadBrktId2);   
+      expect(brkts[0].start).toBe(1);
+      expect(brkts[1].start).toBe(4);
+      expect(brkts[0].fee).toBe('5');
+      expect(brkts[1].fee).toBe('5');
+      expect(brkts[0].first).toBe('25');
+      expect(brkts[0].first).toBe('25');
+      expect(brkts[0].second).toBe('10');
+      expect(brkts[0].second).toBe('10');
+      expect(brkts[0].admin).toBe('5');
+      expect(brkts[0].admin).toBe('5');
+      expect(brkts[0].fsa).toBe('40');
+      expect(brkts[0].fsa).toBe('40');      
     })
     it('should NOT get all brkts for squad when squad ID is invalid', async () => {
       try {
@@ -235,6 +247,18 @@ describe('Brkts - GET and POST API: /api/brkts', () => {
       // query in /api/brkts/squad/ GET sorts by sort_order
       expect(brkts[0].id).toBe(divBrktId1);
       expect(brkts[1].id).toBe(divBrktId2);      
+      expect(brkts[0].start).toBe(1);
+      expect(brkts[1].start).toBe(4);
+      expect(brkts[0].fee).toBe('5');
+      expect(brkts[1].fee).toBe('5');
+      expect(brkts[0].first).toBe('25');
+      expect(brkts[0].first).toBe('25');
+      expect(brkts[0].second).toBe('10');
+      expect(brkts[0].second).toBe('10');
+      expect(brkts[0].admin).toBe('5');
+      expect(brkts[0].admin).toBe('5');
+      expect(brkts[0].fsa).toBe('40');
+      expect(brkts[0].fsa).toBe('40');
     })
     it('should NOT get all brkts for div when div ID is invalid', async () => {
       try {
@@ -292,6 +316,18 @@ describe('Brkts - GET and POST API: /api/brkts', () => {
       // query in /api/brkts/tmnt/ GET sorts by sort_order
       expect(brkts[0].id).toBe(tmntBrktId1);
       expect(brkts[1].id).toBe(tmntBrktId2);
+      expect(brkts[0].start).toBe(1);
+      expect(brkts[1].start).toBe(4);
+      expect(brkts[0].fee).toBe('5');
+      expect(brkts[1].fee).toBe('5');
+      expect(brkts[0].first).toBe('25');
+      expect(brkts[0].first).toBe('25');
+      expect(brkts[0].second).toBe('10');
+      expect(brkts[0].second).toBe('10');
+      expect(brkts[0].admin).toBe('5');
+      expect(brkts[0].admin).toBe('5');
+      expect(brkts[0].fsa).toBe('40');
+      expect(brkts[0].fsa).toBe('40');
     })
     it('should NOT get all brkts for tmnt when ID is invalid', async () => {
       try {

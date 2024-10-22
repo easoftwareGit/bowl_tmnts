@@ -36,11 +36,12 @@ export type BowlInTmntData = {
   url: string;
 }
 
-export type tmntListType = {
+export type tmntsListType = {
   id: string; 
+  user_id: string;
 	tmnt_name: string; 
 	start_date: Date; 
-	bowls: BowlInTmntData,
+  bowls: BowlInTmntData,  
 }
 
 export type tmntType = {
@@ -187,12 +188,14 @@ export type laneType = {
   id: string,
   lane_number: number,
   squad_id: string,  
+  in_use: boolean,
 }
 
 export type laneDataType = {
   id: string,
   squad_id: string,
-  lane_number: number,      
+  lane_number: number,   
+  in_use: boolean,
 }
 
 export type validLanesType = {
@@ -353,6 +356,51 @@ export type tmntPropsType = {
   showingModal: boolean;
   setShowingModal: (showingModal: boolean) => void;
 }
+
+export type allTmntDataType = {
+  tmnt: tmntType;
+  events: eventType[];
+  divs: divType[];
+  squads: squadType[];
+  lanes: laneType[];
+  pots: potType[];
+  brkts: brktType[];
+  elims: elimType[];
+}
+
+export type saveAllTmntDataType = {  
+  saveType: saveTypes;
+  origTmnt: tmntType;
+  tmnt: tmntType;
+  origEvents: eventType[];
+  events: eventType[];
+  origDivs: divType[];
+  divs: divType[];
+  origSquads: squadType[];
+  squads: squadType[];
+  origLanes: laneType[];
+  lanes: laneType[];
+  origPots: potType[];
+  pots: potType[];
+  origBrkts: brktType[];
+  brkts: brktType[];
+  origElims: elimType[];
+  elims: elimType[];
+}
+
+export enum ioDataErrorsType {
+  None = 0,
+  Tmnt = -1,
+  Events = -2,    
+  Divs = -3,
+  Squads = -4,
+  Lanes = -5,
+  Pots = -6,
+  Brkts = -7,
+  Elims = -8,
+  OtherError = -99,
+}
+
 
 export type testDateType = {
   id: number,

@@ -608,7 +608,7 @@ async function eventUpsert() {
         team_size: 3,
         games: 3,
         entry_fee: 160,
-        lineage: 26,
+        lineage: 36,
         prize_fund: 110,
         other: 4,
         expenses: 10,
@@ -1114,11 +1114,13 @@ async function laneUpsert() {
         update: {
           lane_number: 29,
           squad_id: "sqd_7116ce5f80164830830a7157eb093396",
+          in_use: true,
         },
         create: {
           id: "lan_7b5b9d9e6b6e4c5b9f6b7d9e7f9b6c5d",
           lane_number: 29,
           squad_id: "sqd_7116ce5f80164830830a7157eb093396",
+          in_use: true,
         },
       });
       lane = await prisma.lane.upsert({
@@ -1128,11 +1130,13 @@ async function laneUpsert() {
         update: {
           lane_number: 30,
           squad_id: "sqd_7116ce5f80164830830a7157eb093396",
+          in_use: true,
         },
         create: {
           id: "lan_8590d9693f8e45558b789a6595b1675b",
           lane_number: 30,
           squad_id: "sqd_7116ce5f80164830830a7157eb093396",
+          in_use: true,
         },
       });
       lane = await prisma.lane.upsert({
@@ -1142,11 +1146,13 @@ async function laneUpsert() {
         update: {          
           lane_number: 31,
           squad_id: "sqd_7116ce5f80164830830a7157eb093396",
+          in_use: true,
         },
         create: {
           id: "lan_8b78890d8b8e4c5b9f6b7d9e7f9b6c5d",
           lane_number: 31,
           squad_id: "sqd_7116ce5f80164830830a7157eb093396",
+          in_use: true,
         },
       });
       lane = await prisma.lane.upsert({
@@ -1156,11 +1162,13 @@ async function laneUpsert() {
         update: {          
           lane_number: 32,
           squad_id: "sqd_7116ce5f80164830830a7157eb093396",
+          in_use: true,
         },
         create: {
           id: "lan_8b78890d8b8e4c5b9f6b7d9e7f9b6123",
           lane_number: 32,
           squad_id: "sqd_7116ce5f80164830830a7157eb093396",
+          in_use: true,
         },
       });
       lane = await prisma.lane.upsert({
@@ -1170,11 +1178,13 @@ async function laneUpsert() {
         update: {          
           lane_number: 33,
           squad_id: "sqd_7116ce5f80164830830a7157eb093396",
+          in_use: true,
         },
         create: {
           id: "lan_8b78890d8b8e4c5b9f6b7d9e7f9b6234",
           lane_number: 33,
           squad_id: "sqd_7116ce5f80164830830a7157eb093396",
+          in_use: true,
         },
       });
       lane = await prisma.lane.upsert({
@@ -1184,11 +1194,13 @@ async function laneUpsert() {
         update: {          
           lane_number: 34,
           squad_id: "sqd_7116ce5f80164830830a7157eb093396",
+          in_use: true,
         },
         create: {
           id: "lan_8b78890d8b8e4c5b9f6b7d9e7f9b6345",
           lane_number: 34,
           squad_id: "sqd_7116ce5f80164830830a7157eb093396",
+          in_use: true,
         },
       });
       lane = await prisma.lane.upsert({
@@ -1198,11 +1210,13 @@ async function laneUpsert() {
         update: {          
           lane_number: 35,
           squad_id: "sqd_7116ce5f80164830830a7157eb093396",
+          in_use: true,
         },
         create: {
           id: "lan_8b78890d8b8e4c5b9f6b7d9e7f9b6456",
           lane_number: 35,
           squad_id: "sqd_7116ce5f80164830830a7157eb093396",
+          in_use: true,
         },
       });
       lane = await prisma.lane.upsert({
@@ -1212,11 +1226,13 @@ async function laneUpsert() {
         update: {          
           lane_number: 36,
           squad_id: "sqd_7116ce5f80164830830a7157eb093396",
+          in_use: true,
         },
         create: {
           id: "lan_8b78890d8b8e4c5b9f6b7d9e7f9b6567",
           lane_number: 36,
           squad_id: "sqd_7116ce5f80164830830a7157eb093396",
+          in_use: true,
         },
       });
       lane = await prisma.lane.upsert({
@@ -1226,11 +1242,13 @@ async function laneUpsert() {
         update: {          
           lane_number: 37,          
           squad_id: "sqd_7116ce5f80164830830a7157eb093396",
+          in_use: true,
         },
         create: {
           id: "lan_8b78890d8b8e4c5b9f6b7d9e7f9b6678",
           lane_number: 37,          
           squad_id: "sqd_7116ce5f80164830830a7157eb093396",
+          in_use: true,
         },
       });
       lane = await prisma.lane.upsert({
@@ -1240,11 +1258,13 @@ async function laneUpsert() {
         update: {          
           lane_number: 38,
           squad_id: "sqd_7116ce5f80164830830a7157eb093396",
+          in_use: true,
         },
         create: {
           id: "lan_8b78890d8b8e4c5b9f6b7d9e7f9b6789",
           lane_number: 38,
           squad_id: "sqd_7116ce5f80164830830a7157eb093396",
+          in_use: true,
         },
       });
       lane = await prisma.lane.upsert({
@@ -1254,11 +1274,13 @@ async function laneUpsert() {
         update: {          
           lane_number: 39,
           squad_id: "sqd_7116ce5f80164830830a7157eb093396",
+          in_use: true,
         },
         create: {
           id: "lan_8b78890d8b8e4c5b9f6b7d9e7f9b6890",
           lane_number: 39,
           squad_id: "sqd_7116ce5f80164830830a7157eb093396",
+          in_use: true,
         },
       });
       lane = await prisma.lane.upsert({
@@ -1268,11 +1290,13 @@ async function laneUpsert() {
         update: {          
           lane_number: 40,
           squad_id: "sqd_7116ce5f80164830830a7157eb093396",
+          in_use: true,
         },
         create: {
           id: "lan_8b78890d8b8e4c5b9f6b7d9e7f9b6abc",
           lane_number: 40,
           squad_id: "sqd_7116ce5f80164830830a7157eb093396",
+          in_use: true,
         },
       });
       return 12;
@@ -1291,11 +1315,13 @@ async function laneUpsert() {
         update: {          
           lane_number: 9,
           squad_id: "sqd_1a6c885ee19a49489960389193e8f819",
+          in_use: true,
         },
         create: {
           id: "lan_4e24c5cc04f6463d89f24e6e19a126a2",
           lane_number: 9,
           squad_id: "sqd_1a6c885ee19a49489960389193e8f819",
+          in_use: true,
         }
       })
       lane = await prisma.lane.upsert({
@@ -1305,11 +1331,13 @@ async function laneUpsert() {
         update: {          
           lane_number: 10,
           squad_id: "sqd_1a6c885ee19a49489960389193e8f819",
+          in_use: true,
         },
         create: {
           id: "lan_4e24c5cc04f6463d89f24e6e19a11234",
           lane_number: 10,
           squad_id: "sqd_1a6c885ee19a49489960389193e8f819",
+          in_use: true,
         }
       })
       lane = await prisma.lane.upsert({
@@ -1319,11 +1347,13 @@ async function laneUpsert() {
         update: {          
           lane_number: 11,
           squad_id: "sqd_1a6c885ee19a49489960389193e8f819",
+          in_use: true,
         },
         create: {
           id: "lan_4e24c5cc04f6463d89f24e6e19a11235",
           lane_number: 11,
           squad_id: "sqd_1a6c885ee19a49489960389193e8f819",
+          in_use: true,
         }
       })
       lane = await prisma.lane.upsert({
@@ -1333,11 +1363,13 @@ async function laneUpsert() {
         update: {          
           lane_number: 12,
           squad_id: "sqd_1a6c885ee19a49489960389193e8f819",
+          in_use: true,
         },
         create: {
           id: "lan_4e24c5cc04f6463d89f24e6e19a11236",
           lane_number: 12,
           squad_id: "sqd_1a6c885ee19a49489960389193e8f819",
+          in_use: true,
         }
       })
       lane = await prisma.lane.upsert({
@@ -1347,11 +1379,13 @@ async function laneUpsert() {
         update: {          
           lane_number: 13,
           squad_id: "sqd_1a6c885ee19a49489960389193e8f819",
+          in_use: true,
         },
         create: {
           id: "lan_4e24c5cc04f6463d89f24e6e19a11237",
           lane_number: 13,
           squad_id: "sqd_1a6c885ee19a49489960389193e8f819",
+          in_use: true,
         }
       })
       lane = await prisma.lane.upsert({
@@ -1361,11 +1395,13 @@ async function laneUpsert() {
         update: {          
           lane_number: 14,
           squad_id: "sqd_1a6c885ee19a49489960389193e8f819",
+          in_use: true,
         },
         create: {
           id: "lan_4e24c5cc04f6463d89f24e6e19a11238",
           lane_number: 14,
           squad_id: "sqd_1a6c885ee19a49489960389193e8f819",
+          in_use: true,
         }
       })
       lane = await prisma.lane.upsert({
@@ -1375,11 +1411,13 @@ async function laneUpsert() {
         update: {          
           lane_number: 15,
           squad_id: "sqd_1a6c885ee19a49489960389193e8f819",
+          in_use: true,
         },
         create: {
           id: "lan_4e24c5cc04f6463d89f24e6e19a11239",
           lane_number: 15,
           squad_id: "sqd_1a6c885ee19a49489960389193e8f819",
+          in_use: true,
         }
       })
       lane = await prisma.lane.upsert({
@@ -1389,11 +1427,13 @@ async function laneUpsert() {
         update: {          
           lane_number: 16,
           squad_id: "sqd_1a6c885ee19a49489960389193e8f819",
+          in_use: true,
         },
         create: {
           id: "lan_4e24c5cc04f6463d89f24e6e19a11240",
           lane_number: 16,
           squad_id: "sqd_1a6c885ee19a49489960389193e8f819",
+          in_use: true,
         }
       })
       lane = await prisma.lane.upsert({
@@ -1403,11 +1443,13 @@ async function laneUpsert() {
         update: {          
           lane_number: 17,
           squad_id: "sqd_1a6c885ee19a49489960389193e8f819",
+          in_use: true,
         },
         create: {
           id: "lan_4e24c5cc04f6463d89f24e6e19a11241",
           lane_number: 17,
           squad_id: "sqd_1a6c885ee19a49489960389193e8f819",
+          in_use: true,
         }
       })
       lane = await prisma.lane.upsert({
@@ -1417,11 +1459,13 @@ async function laneUpsert() {
         update: {          
           lane_number: 18,
           squad_id: "sqd_1a6c885ee19a49489960389193e8f819",
+          in_use: true,
         },
         create: {
           id: "lan_4e24c5cc04f6463d89f24e6e19a11242",
           lane_number: 18,
           squad_id: "sqd_1a6c885ee19a49489960389193e8f819",
+          in_use: true,
         }
       })
       lane = await prisma.lane.upsert({
@@ -1431,11 +1475,13 @@ async function laneUpsert() {
         update: {          
           lane_number: 19,
           squad_id: "sqd_1a6c885ee19a49489960389193e8f819",
+          in_use: true,
         },
         create: {
           id: "lan_4e24c5cc04f6463d89f24e6e19a11243",
           lane_number: 19,
           squad_id: "sqd_1a6c885ee19a49489960389193e8f819",
+          in_use: true,
         }
       })
       lane = await prisma.lane.upsert({
@@ -1445,11 +1491,13 @@ async function laneUpsert() {
         update: {          
           lane_number: 20,
           squad_id: "sqd_1a6c885ee19a49489960389193e8f819",
+          in_use: true,
         },
         create: {
           id: "lan_4e24c5cc04f6463d89f24e6e19a11244",
           lane_number: 20,
           squad_id: "sqd_1a6c885ee19a49489960389193e8f819",
+          in_use: true,
         }
       })
       lane = await prisma.lane.upsert({
@@ -1459,11 +1507,13 @@ async function laneUpsert() {
         update: {          
           lane_number: 21,
           squad_id: "sqd_1a6c885ee19a49489960389193e8f819",
+          in_use: true,
         },
         create: {
           id: "lan_4e24c5cc04f6463d89f24e6e19a11245",
           lane_number: 21,
           squad_id: "sqd_1a6c885ee19a49489960389193e8f819",
+          in_use: true,
         }
       })
       lane = await prisma.lane.upsert({
@@ -1473,11 +1523,13 @@ async function laneUpsert() {
         update: {          
           lane_number: 22,
           squad_id: "sqd_1a6c885ee19a49489960389193e8f819",
+          in_use: true,
         },
         create: {
           id: "lan_4e24c5cc04f6463d89f24e6e19a11246",
           lane_number: 22,
           squad_id: "sqd_1a6c885ee19a49489960389193e8f819",
+          in_use: true,
         }
       })
       lane = await prisma.lane.upsert({
@@ -1487,11 +1539,13 @@ async function laneUpsert() {
         update: {          
           lane_number: 23,
           squad_id: "sqd_1a6c885ee19a49489960389193e8f819",          
+          in_use: true,
         },
         create: {
           id: "lan_4e24c5cc04f6463d89f24e6e19a11247",
           lane_number: 23,
           squad_id: "sqd_1a6c885ee19a49489960389193e8f819",
+          in_use: true,
         }
       })
       lane = await prisma.lane.upsert({
@@ -1501,11 +1555,13 @@ async function laneUpsert() {
         update: {          
           lane_number: 24,
           squad_id: "sqd_1a6c885ee19a49489960389193e8f819",          
+          in_use: true,
         },
         create: {
           id: "lan_4e24c5cc04f6463d89f24e6e19a11248",
           lane_number: 24,
           squad_id: "sqd_1a6c885ee19a49489960389193e8f819",
+          in_use: true,
         }
       })
       lane = await prisma.lane.upsert({
@@ -1515,11 +1571,13 @@ async function laneUpsert() {
         update: {          
           lane_number: 25,
           squad_id: "sqd_1a6c885ee19a49489960389193e8f819",
+          in_use: true,
         },
         create: {
           id: "lan_4e24c5cc04f6463d89f24e6e19a11249",
           lane_number: 25,
           squad_id: "sqd_1a6c885ee19a49489960389193e8f819",
+          in_use: true,
         }
       })
       lane = await prisma.lane.upsert({
@@ -1529,11 +1587,13 @@ async function laneUpsert() {
         update: {          
           lane_number: 26,
           squad_id: "sqd_1a6c885ee19a49489960389193e8f819",
+          in_use: true,
         },
         create: {
           id: "lan_4e24c5cc04f6463d89f24e6e19a11250",
           lane_number: 26,
           squad_id: "sqd_1a6c885ee19a49489960389193e8f819",
+          in_use: true,
         }
       })
       lane = await prisma.lane.upsert({
@@ -1543,11 +1603,13 @@ async function laneUpsert() {
         update: {          
           lane_number: 27,
           squad_id: "sqd_1a6c885ee19a49489960389193e8f819",
+          in_use: true,
         },
         create: {
           id: "lan_4e24c5cc04f6463d89f24e6e19a11251",
           lane_number: 27,
           squad_id: "sqd_1a6c885ee19a49489960389193e8f819",
+          in_use: true,
         }
       })
       lane = await prisma.lane.upsert({
@@ -1557,11 +1619,13 @@ async function laneUpsert() {
         update: {          
           lane_number: 28,
           squad_id: "sqd_1a6c885ee19a49489960389193e8f819",
+          in_use: true,
         },
         create: {
           id: "lan_4e24c5cc04f6463d89f24e6e19a11252",
           lane_number: 28,
           squad_id: "sqd_1a6c885ee19a49489960389193e8f819",
+          in_use: true,
         }
       })
       lane = await prisma.lane.upsert({
@@ -1571,11 +1635,13 @@ async function laneUpsert() {
         update: {          
           lane_number: 29,
           squad_id: "sqd_1a6c885ee19a49489960389193e8f819",
+          in_use: true,
         },
         create: {
           id: "lan_4e24c5cc04f6463d89f24e6e19a11253",
           lane_number: 29,
           squad_id: "sqd_1a6c885ee19a49489960389193e8f819",
+          in_use: true,
         }
       })
       lane = await prisma.lane.upsert({
@@ -1585,11 +1651,13 @@ async function laneUpsert() {
         update: {          
           lane_number: 30,
           squad_id: "sqd_1a6c885ee19a49489960389193e8f819",
+          in_use: true,
         },
         create: {
           id: "lan_4e24c5cc04f6463d89f24e6e19a11254",
           lane_number: 30,
           squad_id: "sqd_1a6c885ee19a49489960389193e8f819",
+          in_use: true,
         }
       })
       lane = await prisma.lane.upsert({
@@ -1599,11 +1667,13 @@ async function laneUpsert() {
         update: {          
           lane_number: 31,
           squad_id: "sqd_1a6c885ee19a49489960389193e8f819",
+          in_use: true,
         },
         create: {
           id: "lan_4e24c5cc04f6463d89f24e6e19a11255",
           lane_number: 31,
           squad_id: "sqd_1a6c885ee19a49489960389193e8f819",
+          in_use: true,
         }
       })
       lane = await prisma.lane.upsert({
@@ -1613,11 +1683,13 @@ async function laneUpsert() {
         update: {
           lane_number: 32,
           squad_id: "sqd_1a6c885ee19a49489960389193e8f819",
+          in_use: true,
         },
         create: {
           id: "lan_4e24c5cc04f6463d89f24e6e19a11256",
           lane_number: 32,
           squad_id: "sqd_1a6c885ee19a49489960389193e8f819",
+          in_use: true,
         }
       })
 
@@ -1637,11 +1709,13 @@ async function laneUpsert() {
         update: {
           lane_number: 1,
           squad_id: "sqd_42be0f9d527e4081972ce8877190489d",
+          in_use: true,
         },
         create: {
           id: "lan_ae24c5cc04f6463d89f24e6e19a12601",
           lane_number: 1,
           squad_id: "sqd_42be0f9d527e4081972ce8877190489d",
+          in_use: true,
         }
       })
       lane = await prisma.lane.upsert({
@@ -1651,11 +1725,13 @@ async function laneUpsert() {
         update: {
           lane_number: 2,
           squad_id: "sqd_42be0f9d527e4081972ce8877190489d",
+          in_use: true,
         },
         create: {
           id: "lan_ae24c5cc04f6463d89f24e6e19a12602",
           lane_number: 2,
           squad_id: "sqd_42be0f9d527e4081972ce8877190489d",
+          in_use: true,
         }
       })
       lane = await prisma.lane.upsert({
@@ -1665,11 +1741,13 @@ async function laneUpsert() {
         update: {
           lane_number: 3,
           squad_id: "sqd_42be0f9d527e4081972ce8877190489d",
+          in_use: true,
         },
         create: {
           id: "lan_ae24c5cc04f6463d89f24e6e19a12603",
           lane_number: 3,
           squad_id: "sqd_42be0f9d527e4081972ce8877190489d",
+          in_use: true,
         }
       })
       lane = await prisma.lane.upsert({
@@ -1679,11 +1757,13 @@ async function laneUpsert() {
         update: {
           lane_number: 4,
           squad_id: "sqd_42be0f9d527e4081972ce8877190489d",
+          in_use: true,
         },
         create: {
           id: "lan_ae24c5cc04f6463d89f24e6e19a12604",
           lane_number: 4,
           squad_id: "sqd_42be0f9d527e4081972ce8877190489d",
+          in_use: true,
         }
       })
       lane = await prisma.lane.upsert({
@@ -1693,11 +1773,13 @@ async function laneUpsert() {
         update: {
           lane_number: 5,
           squad_id: "sqd_42be0f9d527e4081972ce8877190489d",
+          in_use: true,
         },
         create: {
           id: "lan_ae24c5cc04f6463d89f24e6e19a12605",
           lane_number: 5,
           squad_id: "sqd_42be0f9d527e4081972ce8877190489d",
+          in_use: true,
         }
       })
       lane = await prisma.lane.upsert({
@@ -1707,11 +1789,13 @@ async function laneUpsert() {
         update: {
           lane_number: 6,
           squad_id: "sqd_42be0f9d527e4081972ce8877190489d",
+          in_use: true,
         },
         create: {
           id: "lan_ae24c5cc04f6463d89f24e6e19a12606",
           lane_number: 6,
           squad_id: "sqd_42be0f9d527e4081972ce8877190489d",
+          in_use: true,
         }
       })
       lane = await prisma.lane.upsert({
@@ -1721,11 +1805,13 @@ async function laneUpsert() {
         update: {
           lane_number: 7,
           squad_id: "sqd_42be0f9d527e4081972ce8877190489d",
+          in_use: true,
         },
         create: {
           id: "lan_ae24c5cc04f6463d89f24e6e19a12607",
           lane_number: 7,
           squad_id: "sqd_42be0f9d527e4081972ce8877190489d",
+          in_use: true,
         }
       })
       lane = await prisma.lane.upsert({
@@ -1735,11 +1821,13 @@ async function laneUpsert() {
         update: {
           lane_number: 8,
           squad_id: "sqd_42be0f9d527e4081972ce8877190489d",
+          in_use: true,
         },
         create: {
           id: "lan_ae24c5cc04f6463d89f24e6e19a12608",
           lane_number: 8,
           squad_id: "sqd_42be0f9d527e4081972ce8877190489d",
+          in_use: true,
         }
       })
       lane = await prisma.lane.upsert({
@@ -1749,11 +1837,13 @@ async function laneUpsert() {
         update: {
           lane_number: 9,
           squad_id: "sqd_42be0f9d527e4081972ce8877190489d",
+          in_use: true,
         },
         create: {
           id: "lan_ae24c5cc04f6463d89f24e6e19a12609",
           lane_number: 9,
           squad_id: "sqd_42be0f9d527e4081972ce8877190489d",
+          in_use: true,
         }
       })
       lane = await prisma.lane.upsert({
@@ -1763,11 +1853,13 @@ async function laneUpsert() {
         update: {
           lane_number: 10,
           squad_id: "sqd_42be0f9d527e4081972ce8877190489d",
+          in_use: true,
         },
         create: {
-          id: "lan_ae24c5cc04f6463d89f24e6e19a126010",
+          id: "lan_ae24c5cc04f6463d89f24e6e19a12610",
           lane_number: 10,
           squad_id: "sqd_42be0f9d527e4081972ce8877190489d",
+          in_use: true,
         }
       })
       lane = await prisma.lane.upsert({
@@ -1777,11 +1869,13 @@ async function laneUpsert() {
         update: {
           lane_number: 1,
           squad_id: "sqd_796c768572574019a6fa79b3b1c8fa57",
+          in_use: true,
         },
         create: {
           id: "lan_be24c5cc04f6463d89f24e6e19a12601",
           lane_number: 1,
           squad_id: "sqd_796c768572574019a6fa79b3b1c8fa57",
+          in_use: true,
         }
       })
       lane = await prisma.lane.upsert({
@@ -1791,11 +1885,13 @@ async function laneUpsert() {
         update: {
           lane_number: 2,
           squad_id: "sqd_796c768572574019a6fa79b3b1c8fa57",
+          in_use: true,
         },
         create: {
           id: "lan_be24c5cc04f6463d89f24e6e19a12602",
           lane_number: 2,
           squad_id: "sqd_796c768572574019a6fa79b3b1c8fa57",
+          in_use: true,
         }
       })
       lane = await prisma.lane.upsert({
@@ -1805,11 +1901,13 @@ async function laneUpsert() {
         update: {
           lane_number: 3,
           squad_id: "sqd_796c768572574019a6fa79b3b1c8fa57",
+          in_use: true,
         },
         create: {
           id: "lan_be24c5cc04f6463d89f24e6e19a12603",
           lane_number: 3,
           squad_id: "sqd_796c768572574019a6fa79b3b1c8fa57",
+          in_use: true,
         }
       })
       lane = await prisma.lane.upsert({
@@ -1819,11 +1917,13 @@ async function laneUpsert() {
         update: {
           lane_number: 4,
           squad_id: "sqd_796c768572574019a6fa79b3b1c8fa57",
+          in_use: true,
         },
         create: {
           id: "lan_be24c5cc04f6463d89f24e6e19a12604",
           lane_number: 4,
           squad_id: "sqd_796c768572574019a6fa79b3b1c8fa57",
+          in_use: true,
         }
       })
       lane = await prisma.lane.upsert({
@@ -1833,11 +1933,13 @@ async function laneUpsert() {
         update: {
           lane_number: 5,
           squad_id: "sqd_796c768572574019a6fa79b3b1c8fa57",
+          in_use: true,
         },
         create: {
           id: "lan_be24c5cc04f6463d89f24e6e19a12605",
           lane_number: 5,
           squad_id: "sqd_796c768572574019a6fa79b3b1c8fa57",
+          in_use: true,
         }
       })
       lane = await prisma.lane.upsert({
@@ -1847,11 +1949,13 @@ async function laneUpsert() {
         update: {
           lane_number: 6,
           squad_id: "sqd_796c768572574019a6fa79b3b1c8fa57",
+          in_use: true,
         },
         create: {
           id: "lan_be24c5cc04f6463d89f24e6e19a12606",
           lane_number: 6,
           squad_id: "sqd_796c768572574019a6fa79b3b1c8fa57",
+          in_use: true,
         }
       })
       lane = await prisma.lane.upsert({
@@ -1861,11 +1965,13 @@ async function laneUpsert() {
         update: {
           lane_number: 7,
           squad_id: "sqd_796c768572574019a6fa79b3b1c8fa57",
+          in_use: true,
         },
         create: {
           id: "lan_be24c5cc04f6463d89f24e6e19a12607",
           lane_number: 7,
           squad_id: "sqd_796c768572574019a6fa79b3b1c8fa57",
+          in_use: true,
         }
       })
       lane = await prisma.lane.upsert({
@@ -1875,11 +1981,13 @@ async function laneUpsert() {
         update: {
           lane_number: 8,
           squad_id: "sqd_796c768572574019a6fa79b3b1c8fa57",
+          in_use: true,
         },
         create: {
           id: "lan_be24c5cc04f6463d89f24e6e19a12608",
           lane_number: 8,
           squad_id: "sqd_796c768572574019a6fa79b3b1c8fa57",
+          in_use: true,
         }
       })
       lane = await prisma.lane.upsert({
@@ -1889,11 +1997,13 @@ async function laneUpsert() {
         update: {
           lane_number: 9,
           squad_id: "sqd_796c768572574019a6fa79b3b1c8fa57",
+          in_use: true,
         },
         create: {
           id: "lan_be24c5cc04f6463d89f24e6e19a12609",
           lane_number: 9,
           squad_id: "sqd_796c768572574019a6fa79b3b1c8fa57",
+          in_use: true,
         }
       })
       lane = await prisma.lane.upsert({
@@ -1903,11 +2013,13 @@ async function laneUpsert() {
         update: {
           lane_number: 10,
           squad_id: "sqd_796c768572574019a6fa79b3b1c8fa57",
+          in_use: true,
         },
         create: {
-          id: "lan_be24c5cc04f6463d89f24e6e19a126010",
+          id: "lan_be24c5cc04f6463d89f24e6e19a12610",
           lane_number: 10,
           squad_id: "sqd_796c768572574019a6fa79b3b1c8fa57",
+          in_use: true,
         }
       })      
 
@@ -1927,11 +2039,13 @@ async function laneUpsert() {
         update: {          
           lane_number: 99,
           squad_id: "sqd_20c24199328447f8bbe95c05e1b84644",
+          in_use: true,
         },
         create: {
           id: "lan_255dd3b8755f4dea956445e7a3511d91",
           lane_number: 99,
           squad_id: "sqd_20c24199328447f8bbe95c05e1b84644",
+          in_use: true,
         }
       })
       return 1
@@ -2206,6 +2320,7 @@ async function brktUpsert() {
     return -1;
   }
 }
+
 async function elimUpsert() {
   try {
     let elim = await prisma.elim.upsert({

@@ -13,6 +13,29 @@ const oneTmntUrl = url + "/tmnt/";
 const manyUrl = url + "/many";
 
 /**
+ * gets events for a tmnt
+ * 
+ * @param {string} tmntId - id of tmnt to get events for
+ * @returns {eventType[] | null} - array of events or null
+ */
+export const getAllEventsForTmnt = async (tmntId: string): Promise<eventType[] | null> => {
+
+  try {
+    if (!tmntId || !isValidBtDbId(tmntId, "tmt")) return null
+    const response = await axios({
+      method: "get",
+      withCredentials: true,
+      url: oneTmntUrl + tmntId,
+    });
+    return (response.status === 200)
+      ? response.data.events
+      : null
+  } catch (err) {
+    return null;
+  }
+}
+
+/**
  * posts an event
  * 
  * @param {eventType} event - event to post

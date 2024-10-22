@@ -1,11 +1,12 @@
 import axios, { AxiosError } from "axios";
 import { baseTmntsApi } from "@/lib/db/apiPaths";
 import { testBaseTmntsApi } from "../../../testApi";
-import { tmntType, YearObj } from "@/lib/types/types";
-import { initTmnt } from "@/lib/db/initVals";
+import { bowlType, tmntType, YearObj } from "@/lib/types/types";
+import { initBowl, initTmnt } from "@/lib/db/initVals";
 import { compareAsc, startOfToday } from "date-fns";
-import { startOfDayFromString } from "@/lib/dateTools";
+import { startOfDayFromString, todayStr } from "@/lib/dateTools";
 import { btDbUuid } from "@/lib/uuid";
+import exp from "constants";
 
 // before running this test, run the following commands in the terminal:
 // 1) clear and re-seed the database
@@ -26,6 +27,11 @@ const url = testBaseTmntsApi.startsWith("undefined")
   ? baseTmntsApi
   : testBaseTmntsApi;   
 const oneTmntUrl = url + "/tmnt/"
+const oneUserUrl = url + "/user/"
+const yearsUrl = url + "/years/";
+const allResultsUrl = url + "/results"
+const resultsUrl = url + "/results/"
+
 
 describe('Tmnts - API: /api/tmnts', () => { 
 
@@ -43,6 +49,14 @@ describe('Tmnts - API: /api/tmnts', () => {
     bowl_id: "bwl_561540bd64974da9abdd97765fdb3659",
     start_date: startOfDayFromString('2022-10-23') as Date, 
     end_date: startOfDayFromString('2022-10-23') as Date,
+  }
+  const testBowl: bowlType = {
+    ...initBowl,
+    id: "bwl_561540bd64974da9abdd97765fdb3659",
+    bowl_name: "Earl Anthony's Dublin Bowl",
+    city: "Dublin",
+    state: "CA",
+    url: "https://www.earlanthonysdublinbowl.com",
   }
 
   const blankTmnt = {
@@ -104,19 +118,140 @@ describe('Tmnts - API: /api/tmnts', () => {
 
   })
 
-  describe('GET tmnt lists subsets', () => {  
+  describe('GET tmnt by ID - API: API: /api/tmnts/tmnt/:id', () => {
+    
+    it('should get a tmnt by ID', async () => {
+      const urlToUse = oneTmntUrl + testTmnt.id;
+      // const urlToUse = url + '/' + testTmnt.id;
+      const response = await axios.get(urlToUse);
+      const tmnt = response.data.tmnt;
+      expect(response.status).toBe(200);
+      expect(tmnt.id).toBe(testTmnt.id);
+      expect(tmnt.tmnt_name).toBe(testTmnt.tmnt_name);
+      expect(tmnt.bowl_id).toBe(testTmnt.bowl_id);
+      expect(tmnt.user_id).toBe(testTmnt.user_id);
+      const gotStartDate = new Date(tmnt.start_date);
+      expect(compareAsc(gotStartDate, testTmnt.start_date)).toBe(0);
+      const gotEndDate = new Date(tmnt.start_date);
+      expect(compareAsc(gotEndDate, testTmnt.end_date)).toBe(0);
+      expect(tmnt.bowls).not.toBeNull();
+      expect(tmnt.bowls.bowl_name).toBe(testBowl.bowl_name);
+      expect(tmnt.bowls.city).toBe(testBowl.city);
+      expect(tmnt.bowls.state).toBe(testBowl.state);
+      expect(tmnt.bowls.url).toBe(testBowl.url);
+    })
+    it('should NOT get a tmnt by ID when ID is invalid', async () => {
+      try {
+        const response = await axios.get(oneTmntUrl + 'test');        
+        expect(response.status).toBe(404);
+      } catch (err) {
+        if (err instanceof AxiosError) {
+          expect(err.response?.status).toBe(404);
+        } else {
+          expect(true).toBeFalsy();
+        }
+      }
+    })
+    it('should NOT get a tmnt by ID when ID is valid, but not a tmnt ID', async () => {
+      try {
+        const response = await axios.get(oneTmntUrl + nonTmntId);
+        // const response = await axios.get(url + '/' + nonTmntId);
+        expect(response.status).toBe(404);
+      } catch (err) {
+        if (err instanceof AxiosError) {
+          expect(err.response?.status).toBe(404);
+        } else {
+          expect(true).toBeFalsy();
+        }
+      }
+    })
+    it('should NOT get a tmnt by ID when ID is not found', async () => {
+      try {
+        const response = await axios.get(oneTmntUrl + notFoundId);
+        // const response = await axios.get(url + '/' + notFoundId);
+        expect(response.status).toBe(404);
+      } catch (err) {
+        if (err instanceof AxiosError) {
+          expect(err.response?.status).toBe(404);
+        } else {
+          expect(true).toBeFalsy();
+        }
+      }
+    })
+
+  })
+
+  describe('GET tmnts for user - API: API: /api/tmnts/user/:userId', () => { 
+
+    it('should get all tmnts for user', async () => {
+      const response = await axios.get(oneUserUrl + userId);
+      expect(response.status).toBe(200);
+      // 7 tmnt rows for user in prisma/seed.ts
+      expect(response.data.tmnts).toHaveLength(7);
+      const tmnts = response.data.tmnts;
+      expect(tmnts[0].user_id).toBe(userId);
+      expect(tmnts[6].user_id).toBe(userId);
+      // tmnts sorted by date, newest to oldest
+      expect(tmnts[0].id).toBe('tmt_e134ac14c5234d708d26037ae812ac33')
+      expect(compareAsc(tmnts[0].start_date, startOfDayFromString('2025-08-19'))).toBe(0)
+      expect(tmnts[1].id).toBe('tmt_9a34a65584f94f548f5ce3b3becbca19')
+      expect(compareAsc(tmnts[1].start_date, startOfDayFromString('2024-01-05'))).toBe(0)
+      expect(tmnts[2].id).toBe('tmt_fe8ac53dad0f400abe6354210a8f4cd1')
+      expect(compareAsc(tmnts[2].start_date, startOfDayFromString('2023-12-31'))).toBe(0)
+      expect(tmnts[3].id).toBe('tmt_718fe20f53dd4e539692c6c64f991bbe')
+      expect(compareAsc(tmnts[3].start_date, startOfDayFromString('2023-12-20'))).toBe(0)
+      expect(tmnts[4].id).toBe('tmt_467e51d71659d2e412cbc64a0d19ecb4')
+      expect(compareAsc(tmnts[4].start_date, startOfDayFromString('2023-09-16'))).toBe(0)
+      expect(tmnts[5].id).toBe('tmt_a78f073789cc0f8a9a0de8c6e273eab1')
+      expect(compareAsc(tmnts[5].start_date, startOfDayFromString('2023-01-02'))).toBe(0)
+      expect(tmnts[6].id).toBe('tmt_fd99387c33d9c78aba290286576ddce5')
+      expect(compareAsc(tmnts[6].start_date, startOfDayFromString('2022-10-23'))).toBe(0)
+
+      expect(tmnts[0].bowls).not.toBeNull();
+    })
+    it('should NOT get all tmnts for user when user_id is invalid', async () => {
+      try {
+        const response = await axios.get(oneUserUrl + 'test');
+        expect(response.status).toBe(404);
+      } catch (err) {
+        if (err instanceof AxiosError) {
+          expect(err.response?.status).toBe(404);
+        } else {
+          expect(true).toBeFalsy();
+        }
+      }
+    })
+    it('should NOT get all tmnts for user when user_id is valid, but not a user ID', async () => {
+      try {
+        const response = await axios.get(oneUserUrl + tmntId);
+        expect(response.status).toBe(404);
+      } catch (err) {
+        if (err instanceof AxiosError) {
+          expect(err.response?.status).toBe(404);
+        } else {
+          expect(true).toBeFalsy();
+        }
+      }
+    })
+    it('should NOT get all tmnts for user when user_id is not found', async () => {
+      const response = await axios.get(oneUserUrl + notFoundUserId);
+      expect(response.status).toBe(200);
+      expect(response.data.tmnts).toHaveLength(0);
+    })
+  })
+
+  describe('GET list of years from tmnts - API: /api/tmnts/years/year', () => { 
 
     beforeAll(async () => {
       // if row left over from post test, then delete it
       await deletePostedTmnt();
     })    
 
-    it('should get array of years API: /api/tmnts/years/yyyy', async () => {
-      const yearsUrl = url + "/years/2023";
+    it('should get array of years from 2023 and older API: /api/tmnts/years/yyyy', async () => {      
       const response = await axios({
         method: "get",
         withCredentials: true,
-        url: yearsUrl,
+        url: yearsUrl + '2023',
       });
       expect(response.status).toBe(200);
       expect(response.data.years).toHaveLength(2);
@@ -125,39 +260,73 @@ describe('Tmnts - API: /api/tmnts', () => {
       expect(years[0].year).toBe('2023');
       expect(years[1].year).toBe('2022');
     })
-    it('should get array of tmnt results API: /api/tmnts/results', async () => {
-      const resultsUrl = url + "/results"
+    it('should get array of all years from today and before API: /api/tmnts/years/yyyy', async () => {
+      const yearStr = todayStr.substring(0, 4);
       const response = await axios({
         method: "get",
         withCredentials: true,
-        url: resultsUrl,
+        url: yearsUrl + yearStr,
+      });
+      expect(response.status).toBe(200);
+      expect(response.data.years.length).toBeGreaterThanOrEqual(1)
+      const years: YearObj[] = response.data.years;
+      // years sorted newest to oldest
+      for (let i = 0; i < years.length -1; i++) {
+        expect(Number(years[i].year)).toBeGreaterThan(Number(years[i+1].year));
+      }
+    })
+  })
+
+  describe('GET all tmnt results - API: /api/tmnts/results', () => { 
+
+    beforeAll(async () => {
+      // if row left over from post test, then delete it
+      await deletePostedTmnt();
+    })    
+
+    it('should get array of all tmnt results API: /api/tmnts/results', async () => {
+      const response = await axios({
+        method: "get",
+        withCredentials: true,
+        url: allResultsUrl,
       });
       expect(response.status).toBe(200);
       // 9 rows for results in prisma/seed.ts
       expect(response.data.tmnts).toHaveLength(9);
+      const tmnts = response.data.tmnts;
+      expect(tmnts[0].bowls).not.toBeNull();      
     })
-    it('should get array of tmnt results by year API: /api/tmnts/results/yyyy', async () => {
-      const resultsUrl = url + "/results/2022";
+    it('should get array of tmnt results by year for 2022 API: /api/tmnts/results/yyyy', async () => {
       const response = await axios({
         method: "get",
         withCredentials: true,
-        url: resultsUrl,
+        url: resultsUrl + '2022',
       });
       expect(response.status).toBe(200);
       // 3 rows for results in prisma/seed.ts for 2022
       expect(response.data.tmnts).toHaveLength(3);
+      const tmnts = response.data.tmnts;
+      expect(tmnts[0].bowls).not.toBeNull();
     })
-    it('should get array of tmnt results by year API: /api/tmnts/results/yyyy', async () => {
-      const resultsUrl = url + "/results/2000";
+    it('should get array of tmnt results by year for 2000 API: /api/tmnts/results/yyyy', async () => {      
       const response = await axios({
         method: "get",
         withCredentials: true,
-        url: resultsUrl,
+        url: resultsUrl + '2000',
       });
       expect(response.status).toBe(200);
       // 0 rows for results in prisma/seed.ts for 2022
       expect(response.data.tmnts).toHaveLength(0);
     })
+  })
+
+  describe('GET upcoming tmnt - API: /api/tmnts/upcoming', () => { 
+
+    beforeAll(async () => {
+      // if row left over from post test, then delete it
+      await deletePostedTmnt();
+    })    
+
     it('should get array of upcoming tmnts API: /api/tmnts/upcoming', async () => {
       const upcomingUrl = url + "/upcoming";
       const response = await axios({
@@ -168,8 +337,9 @@ describe('Tmnts - API: /api/tmnts', () => {
       expect(response.status).toBe(200);
       // 1 rows for upcoming in prisma/seed.ts
       expect(response.data.tmnts).toHaveLength(1);
+      const tmnts = response.data.tmnts;
+      expect(tmnts[0].bowls).not.toBeNull();
     }) 
-    
   })
 
   describe('POST', () => {
@@ -234,10 +404,10 @@ describe('Tmnts - API: /api/tmnts', () => {
           withCredentials: true,
           url: url,
         })
-        expect(response.status).toBe(404);
+        expect(response.status).toBe(409);
       } catch (err) {
         if (err instanceof AxiosError) {
-          expect(err.response?.status).toBe(404);
+          expect(err.response?.status).toBe(409);
         } else {
           expect(true).toBeFalsy();
         }
@@ -256,10 +426,10 @@ describe('Tmnts - API: /api/tmnts', () => {
           withCredentials: true,
           url: url,
         })
-        expect(response.status).toBe(404);
+        expect(response.status).toBe(409);
       } catch (err) {
         if (err instanceof AxiosError) {
-          expect(err.response?.status).toBe(404);
+          expect(err.response?.status).toBe(409);
         } else {
           expect(true).toBeFalsy();
         }
@@ -551,28 +721,6 @@ describe('Tmnts - API: /api/tmnts', () => {
         }
       }
     })
-    it('should NOT create a new tmnt with valid bowl_id, but bowl_id not found', async () => { 
-      const invalidTmnt = {
-        ...tmntToPost,
-        bowl_id: notFoundBowlId,
-      }
-      const tmntJSON = JSON.stringify(invalidTmnt);
-      try {
-        const response = await axios({
-          method: "post",
-          data: tmntJSON,
-          withCredentials: true,
-          url: url,
-        })
-        expect(response.status).toBe(404);
-      } catch (err) {
-        if (err instanceof AxiosError) {
-          expect(err.response?.status).toBe(404);
-        } else {
-          expect(true).toBeFalsy();
-        }
-      }
-    })
     it('should NOT create a new tmnt with invalid user_id', async () => { 
       const invalidTmnt = {
         ...tmntToPost,
@@ -617,28 +765,32 @@ describe('Tmnts - API: /api/tmnts', () => {
         }
       }
     })
-    it('should NOT create a new tmnt with valid user_id, but user_id not found', async () => { 
-      const invalidTmnt = {
-        ...tmntToPost,
-        user_id: notFoundUserId,
-      }
-      const tmntJSON = JSON.stringify(invalidTmnt);
+    it('should not create a new tmnt with duplicate id', async () => { 
+      const tmntJSON = JSON.stringify(tmntToPost);
+      const response = await axios({
+        method: "post",
+        data: tmntJSON,
+        withCredentials: true,
+        url: url,
+      });
+      expect(response.status).toBe(201);
+      createdTmnt = true;
       try {
-        const response = await axios({
+        const response2 = await axios({
           method: "post",
-          data: tmntJSON,
+          data: tmntJSON, 
           withCredentials: true,
           url: url,
         })
-        expect(response.status).toBe(404);
+        expect(response2.status).toBe(400);
       } catch (err) {
         if (err instanceof AxiosError) {
-          expect(err.response?.status).toBe(404);
+          expect(err.response?.status).toBe(400);
         } else {
           expect(true).toBeFalsy();
         }
       }
-    })      
+    })    
     it('should create a new tmnt with sanitized data', async () => {
       const toSanitizeTmnt = {
         ...tmntToPost,
@@ -661,64 +813,6 @@ describe('Tmnts - API: /api/tmnts', () => {
       expect(compareAsc(postedTmnt.end_date, tmntToPost.end_date)).toBe(0);      
     })
     
-  })
-
-  describe('GET by ID - API: API: /api/tmnts/tmnt/:id', () => {
-    
-    it('should get a tmnt by ID', async () => {
-      const urlToUse = oneTmntUrl + testTmnt.id;
-      // const urlToUse = url + '/' + testTmnt.id;
-      const response = await axios.get(urlToUse);
-      const tmnt = response.data.tmnt;
-      expect(response.status).toBe(200);
-      expect(tmnt.id).toBe(testTmnt.id);
-      expect(tmnt.tmnt_name).toBe(testTmnt.tmnt_name);
-      expect(tmnt.bowl_id).toBe(testTmnt.bowl_id);
-      expect(tmnt.user_id).toBe(testTmnt.user_id);
-      const gotStartDate = new Date(tmnt.start_date);
-      expect(compareAsc(gotStartDate, testTmnt.start_date)).toBe(0);
-      const gotEndDate = new Date(tmnt.start_date);
-      expect(compareAsc(gotEndDate, testTmnt.end_date)).toBe(0);
-    })
-    it('should NOT get a tmnt by ID when ID is invalid', async () => {
-      try {
-        const response = await axios.get(oneTmntUrl + 'test');        
-        expect(response.status).toBe(404);
-      } catch (err) {
-        if (err instanceof AxiosError) {
-          expect(err.response?.status).toBe(404);
-        } else {
-          expect(true).toBeFalsy();
-        }
-      }
-    })
-    it('should NOT get a tmnt by ID when ID is valid, but not a tmnt ID', async () => {
-      try {
-        const response = await axios.get(oneTmntUrl + nonTmntId);
-        // const response = await axios.get(url + '/' + nonTmntId);
-        expect(response.status).toBe(404);
-      } catch (err) {
-        if (err instanceof AxiosError) {
-          expect(err.response?.status).toBe(404);
-        } else {
-          expect(true).toBeFalsy();
-        }
-      }
-    })
-    it('should NOT get a tmnt by ID when ID is not found', async () => {
-      try {
-        const response = await axios.get(oneTmntUrl + notFoundId);
-        // const response = await axios.get(url + '/' + notFoundId);
-        expect(response.status).toBe(404);
-      } catch (err) {
-        if (err instanceof AxiosError) {
-          expect(err.response?.status).toBe(404);
-        } else {
-          expect(true).toBeFalsy();
-        }
-      }
-    })
-
   })
 
   describe('PUT by ID - API: API: /api/tmnts/tmnt/:id', () => {

@@ -13,6 +13,29 @@ const oneTmntUrl = url + "/tmnt/";
 const manyUrl = url + "/many";
 
 /**
+ * get all lanes for a tmnt
+ * 
+ * @param {string} tmntId - id of tmnt to get lanes for
+ * @returns {laneType[] | null} - array of lanes or null
+ */
+export const getAllLanesForTmnt = async (tmntId: string): Promise<laneType[] | null> => {
+
+  try {
+    if (!tmntId || !isValidBtDbId(tmntId, "tmt")) return null
+    const response = await axios({
+      method: "get",
+      withCredentials: true,
+      url: oneTmntUrl + tmntId,
+    });
+    return (response.status === 200)
+      ? response.data.lanes
+      : null
+  } catch (err) {
+    return null;
+  }
+}
+
+/**
  * post a new lane
  * 
  * @param {laneType} lane - lane to post

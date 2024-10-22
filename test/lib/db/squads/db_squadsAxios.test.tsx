@@ -3,7 +3,7 @@ import { baseSquadsApi, baseEventsApi } from "@/lib/db/apiPaths";
 import { testBaseSquadsApi, testBaseEventsApi } from "../../../testApi";
 import { eventType, squadType } from "@/lib/types/types";
 import { initEvent, initSquad } from "@/lib/db/initVals";
-import { deleteAllEventSquads, deleteAllTmntSquads, deleteSquad, postManySquads, postSquad, putSquad } from "@/lib/db/squads/squadsAxios";
+import { deleteAllEventSquads, deleteAllTmntSquads, deleteSquad, getAllSquadsForTmnt, postManySquads, postSquad, putSquad } from "@/lib/db/squads/squadsAxios";
 import { compareAsc } from "date-fns";
 import { startOfDayFromString } from "@/lib/dateTools";
 import { mockSquadsToPost } from "../../../mocks/tmnts/singlesAndDoubles/mockSquads";
@@ -32,6 +32,8 @@ const urlForEvents = testBaseEventsApi.startsWith("undefined")
   ? baseEventsApi
   : testBaseEventsApi;   
 const oneEventUrl = urlForEvents + "/event/"  
+
+const notFoundTmntId = 'tmt_00000000000000000000000000000000';
 
 describe('squadsAxios', () => { 
 
@@ -62,6 +64,67 @@ describe('squadsAxios', () => {
       if (err instanceof AxiosError) console.log(err.message);
     }
   }  
+
+  describe('getAllSquadsForTmnt', () => { 
+
+    // from prisma/seed.ts
+    const tmntId = 'tmt_d9b1af944d4941f65b2d2d4ac160cdea';
+    const squadsToGet: squadType[] = [
+      {
+        ...initSquad,
+        id: "sqd_42be0f9d527e4081972ce8877190489d",
+        event_id: "evt_06055deb80674bd592a357a4716d8ef2",
+        squad_name: "A Squad",
+        squad_date: startOfDayFromString('2022-08-21') as Date, 
+        squad_time: '10:00 AM',
+        games: 6,
+        lane_count: 24,
+        starting_lane: 1,
+        sort_order: 1,
+      },
+      {
+        ...initSquad,
+        id: "sqd_796c768572574019a6fa79b3b1c8fa57",
+        event_id: "evt_06055deb80674bd592a357a4716d8ef2",
+        squad_name: "B Squad",
+        squad_date: startOfDayFromString('2022-08-21') as Date, 
+        squad_time: '02:00 PM',
+        games: 6,
+        lane_count: 24, 
+        starting_lane: 1,
+        sort_order: 2,
+      }
+    ]
+
+    it('gets all squads for tmnt', async () => { 
+      const squads = await getAllSquadsForTmnt(tmntId);      
+      expect(squads).toHaveLength(squadsToGet.length);
+      if (!squads) return;
+      for (let i = 0; i < squads.length; i++) {
+        expect(squads[i].id).toBe(squadsToGet[i].id);
+        expect(squads[i].event_id).toBe(squadsToGet[i].event_id);
+        expect(squads[i].squad_name).toBe(squadsToGet[i].squad_name);
+        expect(compareAsc(squads[i].squad_date, squadsToGet[i].squad_date)).toBe(0);        
+        expect(squads[i].squad_time).toBe(squadsToGet[i].squad_time);
+        expect(squads[i].games).toBe(squadsToGet[i].games);
+        expect(squads[i].starting_lane).toBe(squadsToGet[i].starting_lane);
+        expect(squads[i].lane_count).toBe(squadsToGet[i].lane_count);
+        expect(squads[i].sort_order).toBe(squadsToGet[i].sort_order);
+      }
+    })
+    it("should return 0 squads for not found tmnt", async () => { 
+      const squads = await getAllSquadsForTmnt(notFoundTmntId);
+      expect(squads).toHaveLength(0);
+    })
+    it('should return null if tmnt id is invalid', async () => { 
+      const squads = await getAllSquadsForTmnt('test');
+      expect(squads).toBeNull();
+    })
+    it('should return null if tmnt id is valid, but not a tmnt id', async () => { 
+      const squads = await getAllSquadsForTmnt(squadsToGet[0].id);
+      expect(squads).toBeNull();
+    })
+  })
 
   describe('postSquad', () => { 
 
@@ -564,7 +627,7 @@ describe('squadsAxios', () => {
       expect(deleted).toBe(-1);
     })
     it('should NOT delete all squads for a tmnt when tmnt ID is not found', async () => {
-      const deleted = await deleteAllTmntSquads('tmt_00000000000000000000000000000000');
+      const deleted = await deleteAllTmntSquads(notFoundTmntId);
       expect(deleted).toBe(0);
     })
     it('should NOT delete all squads for a tmnt when tmnt ID is valid, but not a tmnt id', async () => {

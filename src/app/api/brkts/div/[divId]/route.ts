@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { isValidBtDbId } from "@/lib/validation";
+import { initBrkt } from "@/lib/db/initVals";
 
 // routes /api/brkts/div/:divId
 
@@ -14,7 +15,7 @@ export async function GET(
     if (!isValidBtDbId(divId, "div")) {
       return NextResponse.json({ error: "not found" }, { status: 404 });
     }
-    const gotBrkts = await prisma.brkt.findMany({
+    const prismaBrkts = await prisma.brkt.findMany({
       where: {
         div_id: divId,
       },
@@ -23,9 +24,19 @@ export async function GET(
       }, 
     });
     // add in fsa
-    const brkts = gotBrkts.map((gotBrkt) => ({
-      ...gotBrkt,
-      fsa: (Number(gotBrkt.fee) * gotBrkt.players) + "",
+    const brkts = prismaBrkts.map((brkt) => ({
+      ...initBrkt,
+      id: brkt.id,
+      div_id: brkt.div_id,
+      squad_id: brkt.squad_id,
+      start: brkt.start,
+      games: brkt.games,
+      players: brkt.players,
+      fee: brkt.fee + "",
+      first: brkt.first + "",
+      second: brkt.second + "",
+      admin: brkt.admin + "",
+      fsa: Number(brkt.first) + Number(brkt.second) + Number(brkt.admin) + "",
     }));
 
     // no matching rows is ok

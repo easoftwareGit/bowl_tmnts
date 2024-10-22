@@ -3,7 +3,7 @@ import { baseElimsApi } from "@/lib/db/apiPaths";
 import { testBaseElimsApi } from "../../../testApi";
 import { elimType } from "@/lib/types/types";
 import { initElim } from "@/lib/db/initVals";
-import { deleteAllDivElims, deleteAllSquadElims, deleteAllTmntElims, deleteElim, postElim, postManyElims, putElim } from "@/lib/db/elims/elimsAxios";
+import { deleteAllDivElims, deleteAllSquadElims, deleteAllTmntElims, deleteElim, getAllElimsForTmnt, postElim, postManyElims, putElim } from "@/lib/db/elims/elimsAxios";
 import { mockElimsToPost, mockSquadsToPost, mockDivs, tmntToDelId } from "../../../mocks/tmnts/singlesAndDoubles/mockSquads";
 import { deleteAllTmntSquads, deleteSquad, postManySquads, postSquad } from "@/lib/db/squads/squadsAxios";
 import { deleteAllTmntDivs, deleteDiv, postDiv, postManyDivs } from "@/lib/db/divs/divsAxios";
@@ -28,6 +28,8 @@ const url = testBaseElimsApi.startsWith("undefined")
   : testBaseElimsApi;
 const oneElimUrl = url + "/elim/";
   
+const notFoundTmntId = 'tmt_00000000000000000000000000000000';
+
 describe('elimsAxios', () => { 
 
   const rePostElim = async (elim: elimType) => {
@@ -57,6 +59,62 @@ describe('elimsAxios', () => {
       if (err instanceof AxiosError) console.log(err.message);
     }
   }  
+
+  describe('getAllElimsForTmnt', () => { 
+
+    // from prisma/seed.ts
+    const tmntId = 'tmt_fd99387c33d9c78aba290286576ddce5';
+    const elimsToGet: elimType[] = [
+      {
+        ...initElim,
+        id: "elm_45d884582e7042bb95b4818ccdd9974c",
+        squad_id: "sqd_7116ce5f80164830830a7157eb093396",
+        div_id: "div_f30aea2c534f4cfe87f4315531cef8ef",
+        sort_order: 1,
+        start: 1,
+        games: 3,
+        fee: '5',
+      },
+      {
+        ...initElim,
+        id: "elm_9d01015272b54962a375cf3c91007a12",
+        squad_id: "sqd_7116ce5f80164830830a7157eb093396",
+        div_id: "div_f30aea2c534f4cfe87f4315531cef8ef",
+        sort_order: 2,
+        start: 4,
+        games: 3,
+        fee: '5',
+      }
+    ]
+
+    it('should get all elims for tmnt', async () => { 
+      const elims = await getAllElimsForTmnt(tmntId);
+      expect(elims).toHaveLength(elimsToGet.length);
+      if (!elims) return;
+      for (let i = 0; i < elims.length; i++) {
+        expect(elims[i].id).toEqual(elimsToGet[i].id);
+        expect(elims[i].squad_id).toEqual(elimsToGet[i].squad_id);
+        expect(elims[i].div_id).toEqual(elimsToGet[i].div_id);
+        expect(elims[i].sort_order).toEqual(elimsToGet[i].sort_order);
+        expect(elims[i].start).toEqual(elimsToGet[i].start);
+        expect(elims[i].games).toEqual(elimsToGet[i].games);
+        expect(elims[i].fee).toEqual(elimsToGet[i].fee);
+      }      
+    })
+    it("should return 0 elims for not found tmnt", async () => { 
+      const elims = await getAllElimsForTmnt(notFoundTmntId);
+      expect(elims).toHaveLength(0);
+    })
+    it('should return null if tmnt id is invalid', async () => { 
+      const elims = await getAllElimsForTmnt('test');
+      expect(elims).toBeNull();
+    })
+    it('should return null if tmnt id is valid, but not a tmnt id', async () => { 
+      const elims = await getAllElimsForTmnt(elimsToGet[0].id);
+      expect(elims).toBeNull();
+    })
+
+  })
 
   describe('postElim', () => {
 
@@ -539,7 +597,7 @@ describe('elimsAxios', () => {
       expect(deleted).toBe(-1);
     })
     it('should NOT delete all elims for a tmnt when tmnt ID is not found', async () => {
-      const deleted = await deleteAllTmntElims('tmt_00000000000000000000000000000000');
+      const deleted = await deleteAllTmntElims(notFoundTmntId);
       expect(deleted).toBe(0);
     })
     it('should NOT delete all elims for a tmnt when tmnt ID is valid, but not a tmnt id', async () => {

@@ -16,18 +16,28 @@ export async function GET(
     if (!isValidBtDbId(id, "brk")) {
       return NextResponse.json({ error: "not found" }, { status: 404 });
     }
-    const gotBrkt = await prisma.brkt.findUnique({
+    const prismaBrkt = await prisma.brkt.findUnique({
       where: {
         id: id,
       },
     });
-    if (!gotBrkt) {
+    if (!prismaBrkt) {
       return NextResponse.json({ error: "not found" }, { status: 404 });
     }
     // add in lpox
-    const brkt = {
-      ...gotBrkt,
-      fsa: (Number(gotBrkt.fee) * gotBrkt.players) + "",
+    const brkt: brktType = {
+      ...initBrkt,
+      id: prismaBrkt.id,
+      div_id: prismaBrkt.div_id,
+      squad_id: prismaBrkt.squad_id,
+      start: prismaBrkt.start,
+      games: prismaBrkt.games,
+      players: prismaBrkt.players,
+      fee: prismaBrkt.fee + "",
+      first: prismaBrkt.first + "",
+      second: prismaBrkt.second + "",
+      admin: prismaBrkt.admin + "",
+      fsa: Number(prismaBrkt.first) + Number(prismaBrkt.second) + Number(prismaBrkt.admin) + "",
     };
     return NextResponse.json({ brkt }, { status: 200 });
   } catch (err: any) {

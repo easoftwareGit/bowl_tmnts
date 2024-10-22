@@ -1,6 +1,8 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { isValidBtDbId } from "@/lib/validation";
+import { brktType } from "@/lib/types/types";
+import { initBrkt } from "@/lib/db/initVals";
 
 // routes /api/brkts/tmnt/:tmntId
 
@@ -14,7 +16,7 @@ export async function GET(
     if (!isValidBtDbId(tmntId, "tmt")) {
       return NextResponse.json({ error: "not found" }, { status: 404 });
     }
-    const brkts = await prisma.brkt.findMany({
+    const prismaBrkts = await prisma.brkt.findMany({
       where: {
         squad_id: {
           in: await prisma.squad.findMany({
@@ -34,6 +36,24 @@ export async function GET(
         sort_order: 'asc',
       },
     });
+    const brkts: brktType[] = prismaBrkts.map(brkt => { 
+      return {
+        ...initBrkt,
+        id: brkt.id,
+        div_id: brkt.div_id,
+        squad_id: brkt.squad_id,
+        start: brkt.start,
+        games: brkt.games,
+        players: brkt.players,
+        fee: brkt.fee + '',
+        first: brkt.first + '',
+        second: brkt.second + '',
+        admin: brkt.admin + '',     
+        fsa: Number(brkt.first) + Number(brkt.second) + Number(brkt.admin) + '',
+        sort_order: brkt.sort_order
+      }
+    })
+          
     return NextResponse.json({brkts}, {status: 200});
   } catch (err: any) {
     return NextResponse.json({ err: "error getting brkts for tmnt" },

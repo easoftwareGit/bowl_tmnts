@@ -7,11 +7,34 @@ import { isValidBtDbId } from "@/lib/validation";
 const url = testBaseElimsApi.startsWith("undefined")
   ? baseElimsApi
   : testBaseElimsApi;   
-  const oneElimUrl = url + "/elim/";
-  const oneSquadUrl = url + "/squad/";
-  const oneDivUrl = url + "/div/";
-  const oneTmntUrl = url + "/tmnt/";
-  const manyUrl = url + "/many";   
+const oneElimUrl = url + "/elim/";
+const oneSquadUrl = url + "/squad/";
+const oneDivUrl = url + "/div/";
+const oneTmntUrl = url + "/tmnt/";
+const manyUrl = url + "/many";   
+
+/**
+ * get all elims for a tmnt
+ * 
+ * @param {string} tmntId - id of tmnt to get all elims for
+ * @returns {elimType[] | null} - array of elims or null
+ */
+export const getAllElimsForTmnt = async (tmntId: string): Promise<elimType[] | null> => {
+
+  try {
+    if (!tmntId || !isValidBtDbId(tmntId, 'tmt')) return null
+    const response = await axios({
+      method: "get",
+      withCredentials: true,
+      url: oneTmntUrl + tmntId,
+    });
+    return (response.status === 200)
+      ? response.data.elims
+      : null
+  } catch (err) {
+    return null;
+  }
+}
 
 /**
  * post a new elim
@@ -48,7 +71,8 @@ export const postElim = async (elim: elimType): Promise<elimType | null> => {
 export const postManyElims = async (elims: elimType[]): Promise<elimType[] | null> => { 
 
   try {
-    if (!elims || elims.length === 0) return null
+    if (!elims) return null
+    if (elims.length === 0) return []
     // further sanatation and validation done in POST route
     const elimJSON = JSON.stringify(elims);
     const response = await axios({

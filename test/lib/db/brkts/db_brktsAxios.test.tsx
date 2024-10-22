@@ -4,7 +4,7 @@ import { testBaseBrktsApi } from "../../../testApi";
 import { brktType } from "@/lib/types/types";
 import { initBrkt } from "@/lib/db/initVals";
 import { mockBrktsToPost, mockSquadsToPost, tmntToDelId, mockDivs } from "../../../mocks/tmnts/singlesAndDoubles/mockSquads";
-import { deleteAllDivBrkts, deleteAllSquadBrkts, deleteAllTmntBrkts, deleteBrkt, postBrkt, postManyBrkts, putBrkt } from "@/lib/db/brkts/brktsAxios";
+import { deleteAllDivBrkts, deleteAllSquadBrkts, deleteAllTmntBrkts, deleteBrkt, getAllBrktsForTmnt, postBrkt, postManyBrkts, putBrkt } from "@/lib/db/brkts/brktsAxios";
 import { deleteAllTmntSquads, deleteSquad, postManySquads, postSquad } from "@/lib/db/squads/squadsAxios";
 import { deleteAllTmntDivs, deleteDiv, postDiv, postManyDivs } from "@/lib/db/divs/divsAxios";
 
@@ -26,7 +26,9 @@ import { deleteAllTmntDivs, deleteDiv, postDiv, postManyDivs } from "@/lib/db/di
 const url = testBaseBrktsApi.startsWith("undefined")
   ? baseBrktsApi
   : testBaseBrktsApi;    
-const oneBrktUrl = url + "/brkt/";    
+const oneBrktUrl = url + "/brkt/";
+
+const notFoundTmntId = 'tmt_00000000000000000000000000000000';
 
 describe('brktsAxios', () => { 
 
@@ -57,6 +59,77 @@ describe('brktsAxios', () => {
       if (err instanceof AxiosError) console.log(err.message);
     }
   }  
+  
+  describe('getAllBrktsForTmnt', () => {
+
+    // from prisma/seed.ts
+    const tmntId = 'tmt_fd99387c33d9c78aba290286576ddce5';
+    const brktsToGet: brktType[] = [
+      {
+        ...initBrkt,
+        id: "brk_5109b54c2cc44ff9a3721de42c80c8c1",
+        squad_id: "sqd_7116ce5f80164830830a7157eb093396",
+        div_id: "div_f30aea2c534f4cfe87f4315531cef8ef",
+        sort_order: 1,
+        start: 1,
+        games: 3,
+        players: 8,
+        fee: '5',
+        first: '25',
+        second: '10',
+        admin: '5',
+        fsa: '40',
+      },
+      {
+        ...initBrkt,
+        id: "brk_6ede2512c7d4409ca7b055505990a499",
+        squad_id: "sqd_7116ce5f80164830830a7157eb093396",
+        div_id: "div_f30aea2c534f4cfe87f4315531cef8ef",
+        sort_order: 2,
+        start: 4,
+        games: 3,
+        players: 8,
+        fee: '5',
+        first: '25',
+        second: '10',
+        admin: '5',
+        fsa: '40',
+      },
+    ]
+
+    it('should get all brkts for tmnt', async () => { 
+      const brkts = await getAllBrktsForTmnt(tmntId);
+      expect(brkts).toHaveLength(brktsToGet.length);
+      if (!brkts) return;
+      for (let i = 0; i < brkts.length; i++) {
+        expect(brkts[i].id).toEqual(brktsToGet[i].id);
+        expect(brkts[i].squad_id).toEqual(brktsToGet[i].squad_id);
+        expect(brkts[i].div_id).toEqual(brktsToGet[i].div_id);
+        expect(brkts[i].sort_order).toEqual(brktsToGet[i].sort_order);
+        expect(brkts[i].start).toEqual(brktsToGet[i].start);
+        expect(brkts[i].games).toEqual(brktsToGet[i].games);
+        expect(brkts[i].players).toEqual(brktsToGet[i].players);
+        expect(brkts[i].fee).toEqual(brktsToGet[i].fee);
+        expect(brkts[i].first).toEqual(brktsToGet[i].first);
+        expect(brkts[i].second).toEqual(brktsToGet[i].second);
+        expect(brkts[i].admin).toEqual(brktsToGet[i].admin);
+        expect(brkts[i].fsa).toEqual(brktsToGet[i].fsa);
+      }
+    })
+    it("should return 0 brkts for not found tmnt", async () => { 
+      const brkts = await getAllBrktsForTmnt(notFoundTmntId);
+      expect(brkts).toHaveLength(0);
+    })
+    it('should return null if tmnt id is invalid', async () => { 
+      const brkts = await getAllBrktsForTmnt('test');
+      expect(brkts).toBeNull();
+    })
+    it('should return null if tmnt id is valid, but not a tmnt id', async () => { 
+      const brkts = await getAllBrktsForTmnt(brktsToGet[0].id);
+      expect(brkts).toBeNull();
+    })
+
+  })
 
   describe('postBrkt', () => { 
 
@@ -566,7 +639,7 @@ describe('brktsAxios', () => {
       expect(deleted).toBe(-1);
     })
     it('should NOT delete all brkts for a tmnt when tmnt ID is not found', async () => {
-      const deleted = await deleteAllTmntBrkts('tmt_00000000000000000000000000000000');
+      const deleted = await deleteAllTmntBrkts(notFoundTmntId);
       expect(deleted).toBe(0);
     })
     it('should NOT delete all brkts for a tmnt when tmnt ID is valid, but not a tmnt id', async () => {

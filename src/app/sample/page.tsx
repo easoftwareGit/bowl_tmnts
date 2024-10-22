@@ -62,13 +62,13 @@ export const SamplePage: React.FC<FormProps> = ({ tmnt = blankTmnt }) => {
         {/* <Form3 events={events} setEvents={setEvents} /> */}
         {/* <Form4 tmntProps={tmntFormProps} /> */}
         {/* <Form5 tmntProps={tmntFormProps} /> */}
-        {/* <Form6 /> */}
+        <Form6 />
         {/* <Form7 /> */}
         {/* <Form8 /> */}
         {/* <Form9 /> */}
         {/* <Form10 /> */}
         {/* <Form12 /> */}
-        <Form13 />
+        {/* <Form13 /> */}
       </div>
     </div>
   )

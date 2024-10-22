@@ -8,6 +8,7 @@ import { btDbUuid } from "@/lib/uuid";
 interface LanesListProps {
   squadId: string,
   lanes: laneType[],
+  setLanes: (lanes: laneType[]) => void
 }
 
 /**
@@ -20,26 +21,27 @@ interface LanesListProps {
 export const getLanesFromPairs = (pairs: pairsOfLanesType[], squadId: string): laneType[] => {
   if (!pairs || pairs.length === 0) return [];
   const lanes: laneType[] = [];
-  const inUsePairs = pairs.filter(pair => pair.in_use);
-  // make sure got valid data
-  inUsePairs.forEach(pair => {
-    if (!pair.left_id || !pair.left_lane || !pair.right_id || !pair.right_lane) return [];    
-  })
-  inUsePairs.forEach(pair => {
-    if (pair.in_use) {
-      lanes.push(
-        {
-          id: pair.left_id,
-          lane_number: pair.left_lane,
-          squad_id: squadId
-        },
-        {
-          id: pair.right_id,
-          lane_number: pair.right_lane,
-          squad_id: squadId
-        }
-      )
-    }
+  // const inUsePairs = pairs.filter(pair => pair.in_use);
+  // // make sure got valid data
+  // inUsePairs.forEach(pair => {
+  //   if (!pair.left_id || !pair.left_lane || !pair.right_id || !pair.right_lane) return [];
+  // })
+  const validPairs = pairs.filter(pair => pair.left_id && pair.left_lane && pair.right_id && pair.right_lane);
+  validPairs.forEach(pair => {
+    lanes.push(
+      {
+        id: pair.left_id,
+        lane_number: pair.left_lane,
+        squad_id: squadId,
+        in_use: pair.in_use
+      },
+      {
+        id: pair.right_id,
+        lane_number: pair.right_lane,
+        squad_id: squadId,
+        in_use: pair.in_use
+      }
+    )
   })
   return lanes
 }
@@ -86,7 +88,7 @@ export const pairsOfLanes = (squadId: string, lanes: laneType[]): pairsOfLanesTy
         left_lane: squadLanes[i].lane_number,
         right_id: squadLanes[i + 1].id,
         right_lane: squadLanes[i + 1].lane_number,
-        in_use: true,
+        in_use: squadLanes[i].in_use,
       }  
     )
   }
@@ -94,7 +96,7 @@ export const pairsOfLanes = (squadId: string, lanes: laneType[]): pairsOfLanesTy
 }
 
 const LanesList: FC<LanesListProps> = (props) => {
-  const { squadId, lanes } = props;
+  const { squadId, lanes, setLanes } = props;
   const initPairs = pairsOfLanes(squadId, lanes);
 
   const [pairs, setPairs] = useState(initPairs);
@@ -123,6 +125,8 @@ const LanesList: FC<LanesListProps> = (props) => {
         tempPairs.pop();    
       }
       setPairs(tempPairs);
+      // setLanes(pairsToLanes(tempPairs));
+      setLanes(getLanesFromPairs(tempPairs, squadId));
     } else {
       const newPairs = pairs.map((pair) => {
         if (pair.left_id === id) {          
@@ -144,6 +148,8 @@ const LanesList: FC<LanesListProps> = (props) => {
       }
       newPairs.push(newPair);
       setPairs(newPairs);
+      // setLanes(pairsToLanes(newPairs));
+      setLanes(getLanesFromPairs(newPairs, squadId));
     }
   }
 

@@ -4,7 +4,7 @@ import { useSelector, useDispatch } from "react-redux";
 import { AppDispatch, RootState } from "@/redux/store";
 import { fetchTmnts } from "@/redux/features/tmnts/tmntsSlice";
 import { fetchTmntYears } from "@/redux/features/tmnts/yearsSlice";
-import { YearObj, tmntListType } from "../../lib/types/types";
+import { YearObj, tmntsListType } from "../../lib/types/types";
 import TmntsList from "@/components/tmnts/tmntsList";
 import { todayYearStr } from "@/lib/dateTools";
 
@@ -18,14 +18,14 @@ export default function TmntResultsPage() {
   }, [tmntYear, dispatch]);
 
   const stateTmnts = useSelector((state: RootState) => state.tmnts); 
-  const tmntsArr: tmntListType[] = stateTmnts.tmnts;
+  const tmnts: tmntsListType[] = stateTmnts.tmnts;
 
   useEffect(() => {
     dispatch(fetchTmntYears());    
   }, [dispatch])
   
   const stateYears = useSelector((state: RootState) => state.tmntYears);
-  const yearsArr: YearObj[] = stateYears.data;  
+  const years: YearObj[] = stateYears.data;  
 
   function yearChanged(year: string): void {
     setTmntYear(year)
@@ -35,8 +35,8 @@ export default function TmntResultsPage() {
     <div>
       <h1 className="d-flex justify-content-center">Tournament Results</h1>
       <TmntsList
-        yearsArr={yearsArr}
-        tmntsArr={tmntsArr}
+        years={years}
+        tmnts={tmnts}
         onYearChange={yearChanged}
       />
     </div>

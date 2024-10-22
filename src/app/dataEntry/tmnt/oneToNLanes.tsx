@@ -6,6 +6,7 @@ import LanesList from "@/components/tmnts/lanesList";
 
 interface ChildProps {
   lanes: laneType[];  
+  setLanes: (lanes: laneType[]) => void;
   squads: squadType[];  
 }
 
@@ -13,6 +14,7 @@ interface ChildProps {
 
 const OneToNLanes: React.FC<ChildProps> = ({
   lanes,  
+  setLanes,
   squads,  
 }) => {
   
@@ -46,6 +48,7 @@ const OneToNLanes: React.FC<ChildProps> = ({
             <LanesList
               squadId={squad.id}
               lanes={lanes}
+              setLanes={setLanes}
             />
           </Tab>
         )}

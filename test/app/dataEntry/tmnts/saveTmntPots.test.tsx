@@ -256,7 +256,7 @@ describe('saveTmntDivs test', () => {
     })
 
     const origClone = structuredClone(blankPot);
-    const origLanes: potType[] = [
+    const origPots: potType[] = [
       {
         ...origClone,
       }
@@ -269,7 +269,7 @@ describe('saveTmntDivs test', () => {
           ...newPotClone,
         }
       ]
-      const result = await tmntSavePots(origLanes, newPots, stCreate);
+      const result = await tmntSavePots(origPots, newPots, stCreate);
       expect(result).not.toBeNull();
       didCreate = true;
       if (!result) return;
@@ -283,8 +283,8 @@ describe('saveTmntDivs test', () => {
       expect(postedPot.sort_order).toBe(newPots[0].sort_order);      
     })
     it('should create multiple new pots when multiple pots to save', async () => { 
-      const newLanes = structuredClone(mockPotsToPost);
-      const result = await tmntSavePots(origLanes, newLanes, stCreate);
+      const newPots = structuredClone(mockPotsToPost);
+      const result = await tmntSavePots(origPots, newPots, stCreate);
       expect(result).not.toBeNull();
       didCreate = true;
       if (!result) return;
@@ -292,7 +292,7 @@ describe('saveTmntDivs test', () => {
       const postedPots = result as potType[];
       for (let i = 0; i < postedPots.length; i++) {  
         const postedPot = postedPots[i];
-        const foundPot = newLanes.find((p) => p.id === postedPot.id);
+        const foundPot = newPots.find((p) => p.id === postedPot.id);
         if (!foundPot) {
           expect(foundPot).not.toBeUndefined();
           return;
@@ -305,7 +305,13 @@ describe('saveTmntDivs test', () => {
         expect(postedPot.sort_order).toBe(foundPot.sort_order);        
       }
     })
-  
+    it('should create no new pots when no new pots to save, and return empty array', async () => {
+      const noPots: potType[] = []
+      const result = await tmntSavePots(origPots, noPots, stCreate);
+      expect(result).not.toBeNull();
+      if (!result) return;
+      expect(result.length).toBe(0);
+    })
   })
 
   describe('tmntSavePots(): edited pots(s)', () => { 
@@ -320,7 +326,7 @@ describe('saveTmntDivs test', () => {
 
     // 1 deleted - Series, sort order 2, index[2]
     // 1 edited - Last Game. sort order 2, index[1]
-    // 1 left along - Lane 1, sort order 1 - index[0]
+    // 1 left along - Game, sort order 1 - index[0]
     // 1 created - Last Game $100, sort order 99 - index[4]
     
     let didPost = false;

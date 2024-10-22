@@ -3,8 +3,9 @@ import { baseDivsApi } from "@/lib/db/apiPaths";
 import { testBaseDivsApi } from "../../../testApi";
 import { divType, HdcpForTypes } from "@/lib/types/types";
 import { initDiv } from "@/lib/db/initVals";
-import { deleteAllTmntDivs, deleteDiv, postDiv, postManyDivs, putDiv } from "@/lib/db/divs/divsAxios";
+import { deleteAllTmntDivs, deleteDiv, getAllDivsForTmnt, postDiv, postManyDivs, putDiv } from "@/lib/db/divs/divsAxios";
 import { mockDivsToPost } from "../../../mocks/tmnts/twoDivs/mockDivs";
+import exp from "constants";
 
 // before running this test, run the following commands in the terminal:
 // 1) clear and re-seed the database
@@ -26,7 +27,67 @@ const url = testBaseDivsApi.startsWith("undefined")
   : testBaseDivsApi;
 const oneDivUrl = url + "/div/";
 
+const notFoundId = "div_00000000000000000000000000000000";
+const notFoundTmntId = "tmt_00000000000000000000000000000000"
+
 describe("divsAxios", () => {
+
+  describe('getAllDivsForTmnt', () => { 
+
+    // from prisma/seeds.ts
+    const divsToGet: divType[] = [
+      {
+        ...initDiv,
+        id: "div_1f42042f9ef24029a0a2d48cc276a087",
+        tmnt_id: "tmt_56d916ece6b50e6293300248c6792316",
+        div_name: "Scratch",
+        hdcp_per: 0,
+        hdcp_from: 230,
+        int_hdcp: true, 
+        hdcp_for: 'Game',
+        sort_order: 1,
+      },
+      {
+        ...initDiv,
+        id: "div_29b9225d8dd44a4eae276f8bde855729",
+        tmnt_id: "tmt_56d916ece6b50e6293300248c6792316",
+        div_name: "50+ Scratch",
+        hdcp_per: 0,
+        hdcp_from: 230,
+        int_hdcp: true, 
+        hdcp_for: 'Game',
+        sort_order: 2,
+      },
+    ]
+
+    it("should get divs for tmnt", async () => { 
+      const divs = await getAllDivsForTmnt(divsToGet[0].tmnt_id);
+      expect(divs).toHaveLength(divsToGet.length);
+      if (!divs) return;      
+      for (let i = 0; i < divs.length; i++) {
+        expect(divs[i].id).toBe(divsToGet[i].id);
+        expect(divs[i].tmnt_id).toBe(divsToGet[i].tmnt_id);
+        expect(divs[i].div_name).toBe(divsToGet[i].div_name);
+        expect(divs[i].hdcp_per).toBe(divsToGet[i].hdcp_per);
+        expect(divs[i].hdcp_from).toBe(divsToGet[i].hdcp_from);
+        expect(divs[i].int_hdcp).toBe(divsToGet[i].int_hdcp);
+        expect(divs[i].hdcp_for).toBe(divsToGet[i].hdcp_for);
+        expect(divs[i].sort_order).toBe(divsToGet[i].sort_order);
+      }
+    })
+    it("should return 0 divs for not found tmnt", async () => { 
+      const divs = await getAllDivsForTmnt(notFoundTmntId);
+      expect(divs).toHaveLength(0);
+    })
+    it('should return null if tmnt id is invalid', async () => { 
+      const divs = await getAllDivsForTmnt('test');
+      expect(divs).toBeNull();
+    })
+    it('should return null if tmnt id is valid, but not a tmnt id', async () => { 
+      const divs = await getAllDivsForTmnt(divsToGet[0].id);
+      expect(divs).toBeNull();
+    })
+  })
 
   describe("postDiv", () => {
     const divToPost = {
@@ -274,8 +335,7 @@ describe("divsAxios", () => {
       hdcp_for: 'Game',
       sort_order: 4,
     }
-    const nonFoundId = "div_00000000000000000000000000000000";
-
+    
     const rePostToDel = async () => {
       const response = await axios.get(url);
       const divs = response.data.divs;
@@ -319,7 +379,7 @@ describe("divsAxios", () => {
       didDel = true;
     });
     it("should NOT delete a div when ID is not found", async () => {
-      const deleted = await deleteDiv(nonFoundId);
+      const deleted = await deleteDiv(notFoundId);
       expect(deleted).toBe(-1);
     });
     it("should NOT delete a div when ID is invalid", async () => {
@@ -394,7 +454,7 @@ describe("divsAxios", () => {
       expect(deleted).toBe(-1);
     })
     it("should NOT delete all divs for a tmnt when ID is not found", async () => {
-      const deleted = await deleteAllTmntDivs("tmt_00000000000000000000000000000000");
+      const deleted = await deleteAllTmntDivs(notFoundTmntId);
       expect(deleted).toBe(0);
     })
     it('should NOT delete all divs for a tmnt when ID is valid, but not a tmnt id', async () => { 

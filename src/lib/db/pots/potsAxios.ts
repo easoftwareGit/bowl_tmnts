@@ -14,6 +14,29 @@ const oneTmntUrl = url + "/tmnt/";
 const manyUrl = url + "/many";   
 
 /**
+ * gets all pots for a tmnt
+ * 
+ * @param {string} tmntId - id of tmnt to get all pots for
+ * @returns {potType[] | null} - pot array or null
+ */
+export const getAllPotsForTmnt = async (tmntId: string): Promise<potType[] | null> => {
+
+  try {
+    if (!tmntId || !isValidBtDbId(tmntId, 'tmt')) return null
+    const response = await axios({
+      method: "get",
+      withCredentials: true,
+      url: oneTmntUrl + tmntId,
+    });
+    return (response.status === 200)
+      ? response.data.pots
+      : null
+  } catch (err) {
+    return null;
+  }  
+}
+
+/**
  * post a new pot
  * 
  * @param {potType} pot - pot to post
@@ -48,7 +71,8 @@ export const postPot = async (pot: potType): Promise<potType | null> => {
 export const postManyPots = async (pots: potType[]): Promise<potType[] | null> => {
 
   try {
-    if (!pots || pots.length === 0) return null
+    if (!pots) return null            
+    if (pots.length === 0) return []
     // further sanatation and validation done in POST route
     const potJSON = JSON.stringify(pots);
     const response = await axios({

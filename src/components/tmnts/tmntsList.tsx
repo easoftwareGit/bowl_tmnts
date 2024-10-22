@@ -1,10 +1,10 @@
 "use client";
 import { FC, useState, useEffect } from "react";
-import { tmntType, YearObj, tmntListType } from "@/lib/types/types";
+import { tmntType, YearObj, tmntsListType } from "@/lib/types/types";
 
 interface TmntListProps {
-  yearsArr: YearObj[];
-  tmntsArr: tmntListType[];
+  years: YearObj[];
+  tmnts: tmntsListType[];
   onYearChange: (val: string) => void | undefined;
 }
 
@@ -49,10 +49,10 @@ function sortedIndex(
 /**
  * gets an array of sorted state objects, no duplicates
  *
- * @param {tmntListType[]} tmnts
+ * @param {tmntsListType[]} tmnts
  * @return {*}  {SelectOption[]}
  */
-export function getSortedStateOptions(tmnts: tmntListType[]): SelectOption[] {
+export function getSortedStateOptions(tmnts: tmntsListType[]): SelectOption[] {
   if (!tmnts) return [];
   const stateOptions: SelectOption[] = [];
   tmnts.forEach((tmnt) => {
@@ -72,24 +72,24 @@ export function getSortedStateOptions(tmnts: tmntListType[]): SelectOption[] {
 }
 
 const TmntsList: FC<TmntListProps> = (props) => {
-  const { yearsArr, tmntsArr } = props;
+  const { years, tmnts } = props;
 
   let stateFilter: string = "all";
-  const [filteredTmnts, setFilteredTmnts] = useState(tmntsArr);
-  const [tmntYear, setTmntYear] = useState(yearsArr[0]?.year);  
+  const [filteredTmnts, setFilteredTmnts] = useState(tmnts);
+  const [tmntYear, setTmntYear] = useState(years[0]?.year);  
 
   useEffect(() => {
-    setFilteredTmnts(tmntsArr)
-    setTmntYear(yearsArr[0]?.year)    
-  }, [tmntsArr, yearsArr])
+    setFilteredTmnts(tmnts)
+    setTmntYear(years[0]?.year)    
+  }, [tmnts, years])
 
-  function filterTmnt(tmnt: tmntListType): boolean {
+  function filterTmnt(tmnt: tmntsListType): boolean {
     if (stateFilter === "all") return true;
     return tmnt.bowls.state === stateFilter;
   }
 
   // populate array of states (no duplicates), keeping array sorted
-  const sortedStates = getSortedStateOptions(tmntsArr);
+  const sortedStates = getSortedStateOptions(tmnts);
   // add "all" at top
   sortedStates.splice(0, 0, { value: "all", text: "all" });
 
@@ -107,7 +107,7 @@ const TmntsList: FC<TmntListProps> = (props) => {
   function handleStateFilterChange(e: any): void {
     const { value } = e.target;
     stateFilter = value;
-    setFilteredTmnts(tmntsArr.filter(filterTmnt));
+    setFilteredTmnts(tmnts.filter(filterTmnt));
   }
 
   return (
@@ -126,14 +126,14 @@ const TmntsList: FC<TmntListProps> = (props) => {
                   Tournament
                 </th>
                 <th style={{ width: 150 }}>   
-                  {yearsArr.length ? (
+                  {years.length ? (
                     <select
                       className="form-select w-auto"
                       id="yearSelect"
                       onChange={handleYearChange}
                       data-testid="yearSelect"
                     >
-                      {yearsArr.map((yearObj) => (
+                      {years.map((yearObj) => (
                         <option
                           key={yearObj.year}
                           value={yearObj.year}

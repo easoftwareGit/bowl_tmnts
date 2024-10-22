@@ -26,8 +26,8 @@ export default function TmntUpcomingPage() {
     <div>
       <h1 className="d-flex justify-content-center">Upcoming Tournaments</h1>
       <TmntsList
-        yearsArr={yearsArr}        
-        tmntsArr={stateTmnts.tmnts}
+        years={yearsArr}        
+        tmnts={stateTmnts.tmnts}
         onYearChange={yearChanged}
       />
     </div>

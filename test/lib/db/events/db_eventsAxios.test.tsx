@@ -3,7 +3,7 @@ import { baseEventsApi } from "@/lib/db/apiPaths";
 import { testBaseEventsApi } from "../../../testApi";
 import { eventType } from "@/lib/types/types";
 import { initEvent } from "@/lib/db/initVals";
-import { deleteAllTmntEvents, deleteEvent, postEvent, postManyEvents, putEvent } from "@/lib/db/events/eventsAxios";
+import { deleteAllTmntEvents, deleteEvent, getAllEventsForTmnt, postEvent, postManyEvents, putEvent } from "@/lib/db/events/eventsAxios";
 import { mockEventsToPost } from "../../../mocks/tmnts/singlesAndDoubles/mockEvents";
 
 // before running this test, run the following commands in the terminal:
@@ -26,7 +26,93 @@ const url = testBaseEventsApi.startsWith("undefined")
   : testBaseEventsApi;
 const oneEventUrl = url + "/event/";  
 
+const notFoundTmntId = "tmt_00000000000000000000000000000000";
+
 describe("eventsAxios", () => {
+
+  describe('getAllEventsForTmnt', () => { 
+
+    // from prisma/seeds.ts
+    const eventsToGet: eventType[] = [
+      {
+        ...initEvent,
+        id: "evt_9a58f0a486cb4e6c92ca3348702b1a62",
+        tmnt_id: "tmt_fe8ac53dad0f400abe6354210a8f4cd1",
+        event_name: "Singles",
+        team_size: 1,
+        games: 6,
+        entry_fee: '80',
+        lineage: '18',
+        prize_fund: '55',
+        other: '2',
+        expenses: '5',
+        added_money: '0',
+        sort_order: 1,
+      },
+      {
+        ...initEvent,
+        id: "evt_cb55703a8a084acb86306e2944320e8d",
+        tmnt_id: "tmt_fe8ac53dad0f400abe6354210a8f4cd1",
+        event_name: "Doubles",
+        team_size: 2,
+        games: 6,
+        entry_fee: '160',
+        lineage: '36',
+        prize_fund: '110',
+        other: '4',
+        expenses: '10',
+        added_money: '0',
+        sort_order: 2,
+      },
+      {
+        ...initEvent,
+        id: "evt_adfcff4846474a25ad2936aca121bd37",
+        tmnt_id: "tmt_fe8ac53dad0f400abe6354210a8f4cd1",
+        event_name: "Trios",
+        team_size: 3,
+        games: 3,
+        entry_fee: '160',
+        lineage: '36',
+        prize_fund: '110',
+        other: '4',
+        expenses: '10',
+        added_money: '0',
+        sort_order: 3,
+      }
+    ]
+
+    it("should get events for tmnt", async () => {
+      const events = await getAllEventsForTmnt(eventsToGet[0].tmnt_id);
+      expect(events).toHaveLength(eventsToGet.length); 
+      if (!events) return;           
+      for (let i = 0; i < events.length; i++) {
+        expect(events[i].id).toEqual(eventsToGet[i].id);
+        expect(events[i].tmnt_id).toEqual(eventsToGet[i].tmnt_id);
+        expect(events[i].event_name).toEqual(eventsToGet[i].event_name);
+        expect(events[i].team_size).toEqual(eventsToGet[i].team_size);
+        expect(events[i].games).toEqual(eventsToGet[i].games);
+        expect(events[i].entry_fee).toEqual(eventsToGet[i].entry_fee);
+        expect(events[i].lineage).toEqual(eventsToGet[i].lineage);
+        expect(events[i].prize_fund).toEqual(eventsToGet[i].prize_fund);
+        expect(events[i].other).toEqual(eventsToGet[i].other);
+        expect(events[i].expenses).toEqual(eventsToGet[i].expenses);
+        expect(events[i].added_money).toEqual(eventsToGet[i].added_money);
+        expect(events[i].sort_order).toEqual(eventsToGet[i].sort_order);
+      }
+    })
+    it("should return 0 events for not found tmnt", async () => { 
+      const events = await getAllEventsForTmnt(notFoundTmntId);
+      expect(events).toHaveLength(0);
+    })
+    it('should return null if tmnt id is invalid', async () => { 
+      const events = await getAllEventsForTmnt('test');
+      expect(events).toBeNull();
+    })
+    it('should return null if tmnt id is valid, but not a tmnt id', async () => { 
+      const events = await getAllEventsForTmnt(eventsToGet[0].id);
+      expect(events).toBeNull();
+    })
+  })
 
   describe("postEvent", () => {
     const eventToPost = {
@@ -431,7 +517,7 @@ describe("eventsAxios", () => {
       expect(deleted).toBe(-1);
     })
     it("should NOT delete all events for a tmnt when ID is not found", async () => {
-      const deleted = await deleteAllTmntEvents("tmt_00000000000000000000000000000000");
+      const deleted = await deleteAllTmntEvents(notFoundTmntId);
       expect(deleted).toBe(0);
     })
     it('should NOT delete all events for a tmnt when ID is valid, but not a tmnt id', async () => { 

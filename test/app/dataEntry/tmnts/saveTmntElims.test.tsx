@@ -311,6 +311,14 @@ describe('saveTmntDivs test', () => {
         expect(postedElim.sort_order).toBe(foundElim.sort_order);        
       }
     })
+    it('should NOT create new elims when no elims to save, and return empty array', async () => { 
+      const noElims: elimType[] = []
+      const result = await tmntSaveElims(origElims, noElims, stCreate);
+      expect(result).not.toBeNull();
+      didCreate = true;
+      if (!result) return;
+      expect(result.length).toBe(0);
+    })
   
   })
 

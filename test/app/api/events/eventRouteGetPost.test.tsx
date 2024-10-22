@@ -52,8 +52,7 @@ describe('Events - GETs and POST API: /api/events', () => {
   const notFoundId = "evt_01234567890123456789012345678901";
   const notFoundTmntId = "tmt_01234567890123456789012345678901";
   const nonEventId = "usr_01234567890123456789012345678901";
-
-  const event2Id = 'evt_dadfd0e9c11a4aacb87084f1609a0afd';
+  
   const tmnt1Id = 'tmt_fd99387c33d9c78aba290286576ddce5';
 
   const deletePostedEvent = async () => {
@@ -84,6 +83,11 @@ describe('Events - GETs and POST API: /api/events', () => {
       expect(response.status).toBe(200);
       // 8 rows in prisma/seed.ts
       expect(response.data.events).toHaveLength(8);
+      const events: eventType[] = response.data.events;
+      events.forEach((event: eventType) => {
+        expect(event.lpox).not.toBeNull();
+        expect(event.lpox).not.toBe('');
+      })
     })
 
   })
@@ -104,6 +108,7 @@ describe('Events - GETs and POST API: /api/events', () => {
       expect(event.other).toEqual(testEvent.other);
       expect(event.expenses).toEqual(testEvent.expenses);
       expect(event.added_money).toEqual(testEvent.added_money);
+      expect(event.lpox).toEqual(testEvent.lpox);
       expect(event.sort_order).toEqual(testEvent.sort_order);
     })
     it('should NOT get an event by ID when ID is invalid', async () => {
@@ -166,11 +171,20 @@ describe('Events - GETs and POST API: /api/events', () => {
       expect(response.status).toBe(200);
       // 3 event rows for tmnt in prisma/seed.ts
       expect(response.data.events).toHaveLength(3);
-      const events: Event[] = response.data.events;
+      const events: eventType[] = response.data.events;
       // query in /api/events/tmnt GET sorts by sort_order
       expect(events[0].id).toBe(tmntEvent1Id);
       expect(events[1].id).toBe(tmntEvent2Id);
       expect(events[2].id).toBe(tmntEvent3Id);
+      expect(events[0].tmnt_id).toBe(miltiEventTmntId);
+      expect(events[1].tmnt_id).toBe(miltiEventTmntId);
+      expect(events[2].tmnt_id).toBe(miltiEventTmntId);
+      expect(events[0].lpox).not.toBeNull();
+      expect(events[1].lpox).not.toBeNull();
+      expect(events[2].lpox).not.toBeNull();
+      expect(events[0].lpox).not.toBe('');
+      expect(events[1].lpox).not.toBe('');
+      expect(events[2].lpox).not.toBe('');
     })
     it('should return status 404 when tmntId is invalid', async () => { 
       try {

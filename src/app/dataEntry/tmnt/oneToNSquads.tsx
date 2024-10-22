@@ -215,6 +215,7 @@ export const updatedLanes = (lanes: laneType[], squad: squadType): laneType[] =>
       id: btDbUuid('lan'),
       lane_number: laneNum,
       squad_id: squad.id,
+      in_use: true
     }      
     newLanesThisSquad.push(newLane);
   }

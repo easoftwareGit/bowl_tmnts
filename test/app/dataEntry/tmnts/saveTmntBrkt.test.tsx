@@ -341,7 +341,15 @@ describe('saveTmntDivs test', () => {
         expect(postedBrkt.sort_order).toBe(foundBrkt.sort_order);        
       }
     })
-  
+    it('should not create any new brkts when no brkts to save, and return empty array', async () => { 
+      const noBrkts: brktType[] = [];
+      const result = await tmntSaveBrkts(origBrkts, noBrkts, stCreate);
+      expect(result).not.toBeNull();
+      didCreate = true;
+      if (!result) return;
+      expect(result.length).toBe(0);
+    })
+
   })
 
   describe('tmntSaveBrkts(): edited brkt(s)', () => { 

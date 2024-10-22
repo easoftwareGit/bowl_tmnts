@@ -60,7 +60,7 @@ describe("OneToNLanes - Component", () => {
 
     it('should render checkboxes in the "In Use" column with correct values', () => {
       render(<OneToNLanes {...mockOneToNLanesProps} />)
-      const checkboxes = screen.getAllByRole('checkbox');
+      const checkboxes = screen.getAllByRole('checkbox') as HTMLInputElement[];
       const s1pairs = pairsOfLanes(mockSquads[0].id, mockLanes);
       expect(s1pairs).toHaveLength(10);
       s1pairs.forEach((pair, index) => {      

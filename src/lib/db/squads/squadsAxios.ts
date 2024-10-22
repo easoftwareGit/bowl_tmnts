@@ -13,7 +13,29 @@ const oneSquadUrl = url + "/squad/";
 const oneEventUrl = url + "/event/";
 const oneTmntUrl = url + "/tmnt/";
 const manyUrl = url + "/many";
-    
+   
+/**
+ * gets all squads for a tmnt
+ * 
+ * @param {string} tmntId - id of tmnt to get squads for
+ * @returns {squadType[] | null} - array of squads or null
+ */
+export const getAllSquadsForTmnt = async (tmntId: string): Promise<squadType[] | null> => {
+
+  try {
+    const response = await axios({
+      method: "get",
+      withCredentials: true,
+      url: oneTmntUrl + tmntId 
+    });
+    return (response.status === 200)
+      ? response.data.squads
+      : null
+  } catch (err) {
+    return null;
+  }  
+}
+
 /**
  * post a new squad
  * 

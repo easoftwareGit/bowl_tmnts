@@ -3,7 +3,7 @@ import { baseLanesApi, baseSquadsApi } from "@/lib/db/apiPaths";
 import { testBaseLanesApi, testBaseSquadsApi } from "../../../testApi";
 import { laneType } from "@/lib/types/types";
 import { initLane } from "@/lib/db/initVals";
-import { deleteAllSquadLanes, deleteAllTmntLanes, deleteLane, postLane, postManyLanes, putLane } from "@/lib/db/lanes/lanesAxios";
+import { deleteAllSquadLanes, deleteAllTmntLanes, deleteLane, getAllLanesForTmnt, postLane, postManyLanes, putLane } from "@/lib/db/lanes/lanesAxios";
 import { mockLanesToPost, mockSquadsToPost, tmntToDelId } from "../../../mocks/tmnts/singlesAndDoubles/mockSquads";
 import { deleteAllTmntSquads, deleteSquad, postManySquads, postSquad } from "@/lib/db/squads/squadsAxios";
 
@@ -29,6 +29,8 @@ const oneLaneUrl = url + "/lane/";
 const urlForSquads = testBaseSquadsApi.startsWith("undefined")
   ? baseSquadsApi
   : testBaseSquadsApi; 
+
+const notFoundTmntId = 'tmt_00000000000000000000000000000000';
 
 describe('lanesAxios', () => {
 
@@ -59,6 +61,122 @@ describe('lanesAxios', () => {
       if (err instanceof AxiosError) console.log(err.message);
     }
   }  
+
+  describe('getAllLanesForTmnt', () => { 
+
+    // from prisma/seed.ts
+    const tmntId = 'tmt_fd99387c33d9c78aba290286576ddce5';
+    const lanesToGet: laneType[] = [
+      {
+        ...initLane,    
+        id: "lan_7b5b9d9e6b6e4c5b9f6b7d9e7f9b6c5d",
+        lane_number: 29,
+        squad_id: "sqd_7116ce5f80164830830a7157eb093396",
+        in_use: true,
+      },
+      {
+        ...initLane,    
+        id: "lan_8590d9693f8e45558b789a6595b1675b",
+        lane_number: 30,
+        squad_id: "sqd_7116ce5f80164830830a7157eb093396",
+        in_use: true,
+      },
+      {
+        ...initLane,    
+        id: "lan_8b78890d8b8e4c5b9f6b7d9e7f9b6c5d",
+        lane_number: 31,
+        squad_id: "sqd_7116ce5f80164830830a7157eb093396",
+        in_use: true,
+      },
+      {
+        ...initLane,    
+        id: "lan_8b78890d8b8e4c5b9f6b7d9e7f9b6123",
+        lane_number: 32,
+        squad_id: "sqd_7116ce5f80164830830a7157eb093396",
+        in_use: true,
+      }, 
+      {
+        ...initLane,
+        id: "lan_8b78890d8b8e4c5b9f6b7d9e7f9b6234",
+        lane_number: 33,
+        squad_id: "sqd_7116ce5f80164830830a7157eb093396",
+        in_use: true,
+      },
+      {
+        ...initLane,
+        id: "lan_8b78890d8b8e4c5b9f6b7d9e7f9b6345",
+        lane_number: 34,
+        squad_id: "sqd_7116ce5f80164830830a7157eb093396",
+        in_use: true,
+      },
+      {
+        ...initLane,
+        id: "lan_8b78890d8b8e4c5b9f6b7d9e7f9b6456",
+        lane_number: 35,
+        squad_id: "sqd_7116ce5f80164830830a7157eb093396",
+        in_use: true,
+      }, 
+      {
+        ...initLane,
+        id: "lan_8b78890d8b8e4c5b9f6b7d9e7f9b6567",
+        lane_number: 36,
+        squad_id: "sqd_7116ce5f80164830830a7157eb093396",
+        in_use: true,
+      },
+      {
+        ...initLane,
+        id: "lan_8b78890d8b8e4c5b9f6b7d9e7f9b6678",
+        lane_number: 37,          
+        squad_id: "sqd_7116ce5f80164830830a7157eb093396",
+        in_use: true,
+      },
+      {
+        ...initLane,
+        id: "lan_8b78890d8b8e4c5b9f6b7d9e7f9b6789",
+        lane_number: 38,          
+        squad_id: "sqd_7116ce5f80164830830a7157eb093396",
+        in_use: true,
+      },
+      {
+        ...initLane,
+        id: "lan_8b78890d8b8e4c5b9f6b7d9e7f9b6890",
+        lane_number: 39,          
+        squad_id: "sqd_7116ce5f80164830830a7157eb093396",
+        in_use: true,
+      },
+      {
+        ...initLane,
+        id: "lan_8b78890d8b8e4c5b9f6b7d9e7f9b6abc",
+        lane_number: 40,          
+        squad_id: "sqd_7116ce5f80164830830a7157eb093396",
+        in_use: true,
+      },
+    ]
+
+    it('should get all lanes for a tmnt', async () => { 
+      const lanes = await getAllLanesForTmnt(tmntId);
+      expect(lanes).toHaveLength(lanesToGet.length);
+      if (!lanes) return;
+      for (let i = 0; i < lanesToGet.length; i++) {
+        expect(lanes[i].id).toEqual(lanesToGet[i].id);
+        expect(lanes[i].lane_number).toEqual(lanesToGet[i].lane_number);
+        expect(lanes[i].squad_id).toEqual(lanesToGet[i].squad_id);
+        expect(lanes[i].in_use).toEqual(lanesToGet[i].in_use);
+      }
+    })
+    it("should return 0 lanes for not found tmnt", async () => { 
+      const lanes = await getAllLanesForTmnt(notFoundTmntId);
+      expect(lanes).toHaveLength(0);
+    })
+    it('should return null if tmnt id is invalid', async () => { 
+      const lanes = await getAllLanesForTmnt('test');
+      expect(lanes).toBeNull();
+    })
+    it('should return null if tmnt id is valid, but not a tmnt id', async () => { 
+      const lanes = await getAllLanesForTmnt(lanesToGet[0].id);
+      expect(lanes).toBeNull();
+    })
+  })
 
   describe('postLane', () => { 
 
@@ -426,7 +544,7 @@ describe('lanesAxios', () => {
       expect(deleted).toBe(-1);
     })
     it('should NOT delete all lanes for a tmnt when tmnt ID is not found', async () => {
-      const deleted = await deleteAllTmntLanes('tmt_00000000000000000000000000000000');
+      const deleted = await deleteAllTmntLanes(notFoundTmntId);
       expect(deleted).toBe(0);
     })
     it('should NOT delete all lanes for a tmnt when tmnt ID is valid, but not a tmnt id', async () => {

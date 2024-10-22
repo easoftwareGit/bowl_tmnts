@@ -1,6 +1,6 @@
 import { initPrismaTmnt } from "@/lib/db/initVals";
 import { startOfDayFromString } from "@/lib/dateTools";
-import { tmntListType, tmntType, userType } from "@/lib/types/types";
+import { tmntsListType, tmntType, userType } from "@/lib/types/types";
 import { Tmnt } from "@prisma/client";
 import { startOfToday } from "date-fns";
 
@@ -64,7 +64,7 @@ export const mockPrismaTmnts: Tmnt[] = [
   },
 ]
 
-export const mockPrismaTmntsList: tmntListType[] = [
+export const mockPrismaTmntsList: tmntsListType[] = [
   {
     id: "tmt_fe8ac53dad0f400abe6354210a8f4cd1",    
     tmnt_name: "New Year's Eve 6 Gamer",

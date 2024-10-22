@@ -7,12 +7,35 @@ import { isValidBtDbId } from "@/lib/validation";
 const url = testBaseBrktsApi.startsWith("undefined")
   ? baseBrktsApi
   : testBaseBrktsApi;   
-  const oneBrktUrl = url + "/brkt/";
-  const oneSquadUrl = url + "/squad/";
-  const oneDivUrl = url + "/div/";
-  const oneTmntUrl = url + "/tmnt/";
-  const manyUrl = url + "/many";   
-  
+const oneBrktUrl = url + "/brkt/";
+const oneSquadUrl = url + "/squad/";
+const oneDivUrl = url + "/div/";
+const oneTmntUrl = url + "/tmnt/";
+const manyUrl = url + "/many";   
+
+/**
+ * get all brkts for tmnt
+ * 
+ * @param {string} tmntId - id of tmnt to get brkts for
+ * @returns {brktType[] | null} - array of brkts or null
+ */
+export const getAllBrktsForTmnt = async (tmntId: string): Promise<brktType[] | null> => {
+
+  try {
+    if (!tmntId || !isValidBtDbId(tmntId, 'tmt')) return null
+    const response = await axios({
+      method: "get",
+      withCredentials: true,
+      url: oneTmntUrl + tmntId,
+    });
+    return (response.status === 200)
+      ? response.data.brkts
+      : null
+  } catch (err) {
+    return null;
+  }
+}
+
 /**
  * post a new brkt
  *
@@ -48,7 +71,8 @@ export const postBrkt = async (brkt: brktType): Promise<brktType | null> => {
 export const postManyBrkts = async (brkts: brktType[]): Promise<brktType[] | null> => { 
 
   try {
-    if (!brkts || brkts.length === 0) return null
+    if (!brkts) return null
+    if (brkts.length === 0) return []
     // further sanatation and validation done in POST route
     const brktJSON = JSON.stringify(brkts);
     const response = await axios({

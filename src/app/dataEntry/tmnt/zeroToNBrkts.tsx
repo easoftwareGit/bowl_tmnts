@@ -184,11 +184,15 @@ const ZeroToNBrackets: React.FC<ChildProps> = ({
     }
 
     setCreateBrkt({
-      ...newBrkt,      
+      ...createBrkt,
       start_err: startErr,
       div_err: divErr,
       fee_err: feeErr,
     })
+
+    createBrkt.start_err = startErr;
+    createBrkt.div_err = divErr;
+    createBrkt.fee_err = feeErr;
 
     return isBrktValid;
   };
@@ -196,6 +200,16 @@ const ZeroToNBrackets: React.FC<ChildProps> = ({
   const handleAdd = (e: React.FormEvent) => {
     e.preventDefault();
     if (validNewBrkt()) {
+      // if brket is valid, make sure error are cleared 
+      if (createBrkt.div_err !== '') {
+        createBrkt.div_err = '';
+      }
+      if (createBrkt.fee_err !== '') {
+        createBrkt.fee_err = '';
+      }
+      if (createBrkt.start_err !== '') {
+        createBrkt.start_err = '';
+      }
       const newBrkt = {
         ...createBrkt,
         id: btDbUuid('brk'),

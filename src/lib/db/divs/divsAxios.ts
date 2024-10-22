@@ -12,6 +12,28 @@ const oneTmntUrl = url + "/tmnt/";
 const manyUrl = url + "/many";
 
 /**
+ * get all divs for a tmnt
+ * 
+ * @param {string} tmntId - id of tmnt with divs to get
+ * @returns {divType[] | null} - array of divs or null
+ */
+export const getAllDivsForTmnt = async (tmntId: string): Promise<divType[] | null> => {
+
+  try {
+    const response = await axios({
+      method: "get",
+      withCredentials: true,
+      url: oneTmntUrl + tmntId,
+    });
+    return (response.status === 200)
+      ? response.data.divs
+      : null
+  } catch (err) {
+    return null;
+  }
+}
+
+/**
  * post a new div
  * 
  * @param {divType} div - div to post

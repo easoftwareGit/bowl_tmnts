@@ -21,6 +21,22 @@ export async function GET(
       where: {
         id: id,
       },
+      select: {
+        id: true,
+        tmnt_name: true,
+        start_date: true,
+        end_date: true,
+        bowl_id: true,
+        user_id: true,
+        bowls: {
+          select: {
+            bowl_name: true,
+            city: true,
+            state: true,
+            url: true,
+          },
+        },
+      },  
     });
     if (!tmnt) {
       return NextResponse.json({ error: "not found" }, { status: 404 });

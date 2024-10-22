@@ -1,10 +1,10 @@
 import { createAsyncThunk, createSlice } from "@reduxjs/toolkit";
 import { loadStatusType } from "@/redux/statusTypes";
-import { getTmnts } from "@/lib/db/tmnts/tmnts";
-import { tmntType, tmntListType } from "@/lib/types/types";
+import { getTmnts } from "@/lib/db/tmnts/tmntsAxios";
+import { tmntsListType } from "@/lib/types/types";
 
 export interface TmntSliceState {
-  tmnts: tmntListType[];
+  tmnts: tmntsListType[];
   status: loadStatusType;  
   error: string | undefined;
 }
@@ -20,9 +20,8 @@ const initialState: TmntSliceState = {
  * gets tmnts with results for a year or all upcoming tmnts
  *
  * @param {year: string} - 'XXXX' get tmnts for year 'XXXX'; '' get tmnts upcoming
- * @return {*}  {Tmnt[]} array of tmnts from database
+ * @return {tmntsListType[]} - array of tmnts from database
  */
-
 export const fetchTmnts = createAsyncThunk(
   "tmnts/fetchTmnts",
   async (year: string) => {

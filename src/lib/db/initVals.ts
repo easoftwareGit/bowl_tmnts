@@ -203,8 +203,9 @@ export const blankSquad: squadType = {
 
 export const initLane: laneType = {
   id: btDbUuid('lan'),
-  squad_id: "1",
+  squad_id: "",
   lane_number: 1,
+  in_use: true,
 };
 
 export const blankLane: laneType = {
@@ -311,11 +312,13 @@ export const initLanes: laneType[] = [
     id: btDbUuid('lan'),    
     lane_number: 1,
     squad_id: "",
+    in_use: true,
   },
   {
     id: btDbUuid('lan'),
     lane_number: 2,
     squad_id: "",
+    in_use: true,
   },
 ];
 
