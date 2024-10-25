@@ -299,6 +299,12 @@ export const deleteTmnt = async (id: string): Promise<boolean> => {
   }
 }
 
+/**
+ * deletes all data for tmnt
+ * 
+ * @param {string} tmntId - id of tmnt to delete all data for
+ * @returns {ioDataErrorsType} - save code: 0 for good delete, <0 for error
+ */
 export const deleteAllDataForTmnt = async (tmntId: string): Promise<ioDataErrorsType> => {
   const elimDelCount = await deleteAllTmntElims(tmntId);
   const brktsDelCount = await deleteAllTmntBrkts(tmntId);  

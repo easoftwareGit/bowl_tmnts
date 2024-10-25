@@ -1,13 +1,17 @@
 import React from "react";
 import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import ZeroToNBrackets from "../../../../src/app/dataEntry/tmnt/zeroToNBrkts";
+import ZeroToNBrackets, { exportedForTesting, validateBrkts } from "../../../../src/app/dataEntry/tmnt/zeroToNBrkts";
 import { mockBrkts, mockDivs, mockSquads } from "../../../mocks/tmnts/twoDivs/mockDivs";
 import { localConfig } from "@/lib/currency/const";
 import { formatValueSymbSep2Dec } from "@/lib/currency/formatValue";
 import { defaultBrktGames, defaultBrktPlayers } from "@/lib/db/initVals";
 import { getDivName } from "@/lib/getName";
-import { brktType } from "@/lib/types/types";
+import { brktType, divType, squadType } from "@/lib/types/types";
+import { btDbUuid } from "@/lib/uuid";
+import { maxGames } from "@/lib/validation";
+import { minFeeText } from "@/components/currency/eaCurrencyInput";
+const { validateBrkt } = exportedForTesting;
 
 const mockSetBrkts = jest.fn();
 const mockSetAcdnErr = jest.fn();
@@ -652,6 +656,48 @@ describe("ZeroToNBrackets - Component", () => {
         expect(startError).toHaveTextContent('');
       })
     })
+
+    describe('render the "Scratch 1-3" with errors', () => { 
+      it('render errors', async () => { 
+        // ARRANGE
+        const brktsWithErrors = [
+          {
+            ...mockBrkts[0],
+            start: 5,
+            start_err: 'Start cannot be more than 4',
+            fee: '0',
+            fee_err: "Fee cannot be less than " + minFeeText,
+          },
+          {
+            ...mockBrkts[1],
+          },
+          {
+            ...mockBrkts[2],
+          },
+          {
+            ...mockBrkts[3],
+          },
+        ]
+        const dataWithErrs = {
+          brkts: brktsWithErrors, 
+          setBrkts: mockSetBrkts,
+          divs: mockDivs,
+          squads: mockSquads,
+          setAcdnErr: mockSetAcdnErr,
+          setShowingModal: mockSetShowingModal,
+        }
+        dataWithErrs.brkts = brktsWithErrors;
+        const user = userEvent.setup();        
+        render(<ZeroToNBrackets {...dataWithErrs} />);
+        // ACT              
+        const feeError = screen.queryByTestId(`dangerBrktFee${brktsWithErrors[0].id}`);
+        const startError = screen.queryByTestId(`dangerViewBrktStart${brktsWithErrors[0].id}`);
+        // ASSERT              
+        expect(feeError).toHaveTextContent('Fee cannot be less than $1.00');
+        expect(startError).toHaveTextContent('Start cannot be more than 4');
+      })
+    })
+
   })
 
   describe('add a bracket', () => { 
@@ -713,5 +759,149 @@ describe("ZeroToNBrackets - Component", () => {
       // ASSERT
       expect(mockZeroToNBrktsProps.setBrkts).toHaveBeenCalled();                    
     })      
+  })
+
+  describe('validateBrkt()', () => { 
+
+    it('validate a bracket with empty brackets array', () => { 
+      const vBrkt = validateBrkt(mockBrkts[0], [], 4);
+      expect(vBrkt.div_err).toBe("");
+      expect(vBrkt.start_err).toBe("");
+      expect(vBrkt.fee_err).toBe("");
+    })
+    it('validate a bracket with populated brackets array', () => { 
+      const validBrkt = {
+        ...mockBrkts[0],
+        id: btDbUuid('brk'),
+        start: 2
+      };
+      const vBrkt = validateBrkt(validBrkt, mockBrkts, 4);
+      expect(vBrkt.div_err).toBe("");
+      expect(vBrkt.start_err).toBe("");
+      expect(vBrkt.fee_err).toBe("");
+    })
+    it('should not validate a brkt with no division', () => { 
+      const invalidBrkt = {
+        ...mockBrkts[0],
+        id: btDbUuid('brk'),
+      };
+      invalidBrkt.div_id = "";
+      const vBrkt = validateBrkt(invalidBrkt, mockBrkts, 4);
+      expect(vBrkt.div_err).not.toBe("");
+    })
+    it('should not validate a brkt with start game too low', () => { 
+      const invalidBrkt = {
+        ...mockBrkts[0],
+        id: btDbUuid('brk'),
+      };
+      invalidBrkt.start = 0;
+      const vBrkt = validateBrkt(invalidBrkt, mockBrkts, 4);
+      expect(vBrkt.start_err).not.toBe("");
+    })
+    it('should not validate a brkt with start game too high', () => { 
+      const invalidBrkt = {
+        ...mockBrkts[0],
+        id: btDbUuid('brk'),
+      };
+      invalidBrkt.start = 5; // more than max games, last param in validateBrkt
+      const vBrkt = validateBrkt(invalidBrkt, mockBrkts, 4);
+      expect(vBrkt.start_err).not.toBe("");
+    })
+    it('should not validate a brkt with no fee', () => { 
+      const invalidBrkt = {
+        ...mockBrkts[0],
+        id: btDbUuid('brk'),
+        fee: "",
+      };      
+      const vBrkt = validateBrkt(invalidBrkt, mockBrkts, 4);
+      expect(vBrkt.fee_err).not.toBe("");
+    })
+    it('should not validate a brkt with fee as not a number', () => { 
+      const invalidBrkt = {
+        ...mockBrkts[0],
+        id: btDbUuid('brk'),
+        fee: "abc",
+      };      
+      const vBrkt = validateBrkt(invalidBrkt, mockBrkts, 4);
+      expect(vBrkt.fee_err).not.toBe("");
+    })
+    it('should not validate a brkt with fee too low', () => { 
+      const invalidBrkt = {
+        ...mockBrkts[0],
+        id: btDbUuid('brk'),
+        fee: "0",
+      };      
+      const vBrkt = validateBrkt(invalidBrkt, mockBrkts, 4);
+      expect(vBrkt.fee_err).not.toBe("");
+    })
+    it('should not validate a brkt with fee too high', () => { 
+      const invalidBrkt = {
+        ...mockBrkts[0],
+        id: btDbUuid('brk'),
+        fee: "123456789",
+      };            
+      const vBrkt = validateBrkt(invalidBrkt, mockBrkts, 4);
+      expect(vBrkt.fee_err).not.toBe("");
+    })
+    it('should not validate a duplicate brkt', () => { 
+      const duplicateBrkt ={
+        ...mockBrkts[0],
+        id: btDbUuid('brk'),
+      };      
+      const vBrkt = validateBrkt(duplicateBrkt, mockBrkts, 4);
+      expect(vBrkt.start_err).not.toBe("");      
+    })
+  })
+
+  describe('validateBrkts()', () => { 
+    it('should validate brackets', () => { 
+      const isValid = validateBrkts(mockBrkts, mockSetBrkts, mockDivs, 6, mockSetAcdnErr);
+      expect(isValid).toBe(true);
+    })
+    it('should validate empty brackets', () => { 
+      const isValid = validateBrkts([] as brktType[], mockSetBrkts, mockDivs, 6, mockSetAcdnErr);
+      expect(isValid).toBe(true);
+    })
+    it('should not validate brackts with null params', () => {
+      let isValid = validateBrkts(null as any, mockSetBrkts, mockDivs, 6, mockSetAcdnErr);
+      expect(isValid).toBe(false);
+      isValid = validateBrkts(mockBrkts, null as any, mockDivs, 6, mockSetAcdnErr);
+      expect(isValid).toBe(false);
+      isValid = validateBrkts(mockBrkts, mockSetBrkts, null as any, 6, mockSetAcdnErr);
+      expect(isValid).toBe(false);
+      isValid = validateBrkts(mockBrkts, mockSetBrkts, mockDivs, null as any, mockSetAcdnErr);
+      expect(isValid).toBe(false);
+      isValid = validateBrkts(mockBrkts, mockSetBrkts, mockDivs, 6, null as any);
+      expect(isValid).toBe(false);
+    })
+    it('should not validate brackts with empty divs', () => {
+      let isValid = validateBrkts(mockBrkts, mockSetBrkts, [] as divType[], 6, mockSetAcdnErr);
+      expect(isValid).toBe(false);
+    })
+    it('should not validate brackts with invalid maxStartGame', () => {
+      let isValid = validateBrkts(mockBrkts, mockSetBrkts, [] as divType[], 0, mockSetAcdnErr);
+      expect(isValid).toBe(false);
+      isValid = validateBrkts(mockBrkts, mockSetBrkts, [] as divType[], maxGames + 1, mockSetAcdnErr);
+      expect(isValid).toBe(false);
+      isValid = validateBrkts(mockBrkts, mockSetBrkts, [] as divType[], 'abc' as any, mockSetAcdnErr);
+      expect(isValid).toBe(false);
+    })
+    it('should not validate duplicate brackts', () => { 
+      const duplicateBrkts = [
+        {
+          ...mockBrkts[0],
+        }, 
+        {
+          ...mockBrkts[1],
+        },
+        {
+          ...mockBrkts[0],
+          id: btDbUuid('brk'),
+        }      
+      ] 
+      const isValid = validateBrkts(duplicateBrkts, mockSetBrkts, mockDivs, 6, mockSetAcdnErr);
+      expect(isValid).toBe(false);
+    })
+
   })
 })

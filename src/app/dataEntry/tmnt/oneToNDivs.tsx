@@ -154,11 +154,12 @@ const OneToNDivs: React.FC<ChildProps> = ({
     setDivs([...divs, newDiv]);
   };
 
-  const confirmedDelete = () => {    
+  const confirmedDelete = () => {   
+    const idToDel = confModalObj.id
     setConfModalObj(initModalObj)   // reset modal object (hides modal)    
 
     // filter out deleted div
-    const updatedData = divs.filter((div) => div.id !== confModalObj.id);
+    const updatedData = divs.filter((div) => div.id !== idToDel);
     setDivs(updatedData);    
     
     // deleted div might have an acdn error, get next acdn error

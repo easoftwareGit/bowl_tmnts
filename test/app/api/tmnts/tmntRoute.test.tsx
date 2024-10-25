@@ -6,7 +6,6 @@ import { initBowl, initTmnt } from "@/lib/db/initVals";
 import { compareAsc, startOfToday } from "date-fns";
 import { startOfDayFromString, todayStr } from "@/lib/dateTools";
 import { btDbUuid } from "@/lib/uuid";
-import exp from "constants";
 
 // before running this test, run the following commands in the terminal:
 // 1) clear and re-seed the database
@@ -31,7 +30,6 @@ const oneUserUrl = url + "/user/"
 const yearsUrl = url + "/years/";
 const allResultsUrl = url + "/results"
 const resultsUrl = url + "/results/"
-
 
 describe('Tmnts - API: /api/tmnts', () => { 
 

@@ -285,10 +285,11 @@ const OneToNEvents: React.FC<ChildProps> = ({
   };
 
   const confirmedDelete = () => {    
+    const idToDel = confModalObj.id;
     setConfModalObj(initModalObj); // reset modal object (hides modal)
 
     // filter out deleted event
-    const updatedData = events.filter((event) => event.id !== confModalObj.id);
+    const updatedData = events.filter((event) => event.id !== idToDel);
     setEvents(updatedData);
 
     // deleted event might have an acdn error, get next acdn error

@@ -1,4 +1,4 @@
-import React, { useState, ChangeEvent, Dispatch, SetStateAction } from "react";
+import React, { useState, ChangeEvent } from "react";
 import { divType, squadType, AcdnErrType, PotCategoryObjType, potType, PotCategories } from "../../../lib/types/types";
 import ModalConfirm, { delConfTitle } from "@/components/modal/confirmModal";
 import { Tab, Tabs } from "react-bootstrap";
@@ -206,9 +206,10 @@ const ZeroToNPots: React.FC<ChildProps> = ({
   };
 
   const confirmedDelete = () => {
+    const idToDel = modalObj.id
     setShowingModal(false);
     setModalObj(initModalObj); // reset modal object (hides modal)
-    const updatedData = pots.filter((pot) => pot.id !== modalObj.id);
+    const updatedData = pots.filter((pot) => pot.id !== idToDel);
     setPots(updatedData);
     setTabKey(defaultTabKey); // refocus create pot
   };

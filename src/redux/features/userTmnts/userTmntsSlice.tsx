@@ -1,13 +1,12 @@
 import { createAsyncThunk, createSlice } from "@reduxjs/toolkit";
-import { Tmnt } from "@prisma/client";
-import { loadStatusType } from "@/redux/statusTypes";
+import { ioStatusType } from "@/redux/statusTypes";
 import { RootState } from "@/redux/store";
-import { getUserTmnts } from "@/lib/db/tmnts/tmntsAxios";
+import { deleteAllDataForTmnt, getUserTmnts } from "@/lib/db/tmnts/tmntsAxios";
 import { tmntsListType } from "@/lib/types/types";
 
 export interface userTmntSliceState {
   userTmnts: tmntsListType[];
-  status: loadStatusType;  
+  status: ioStatusType;  
   error: string | undefined;
 }
 
@@ -35,6 +34,20 @@ export const fetchUserTmnts = createAsyncThunk(
   }
 )
 
+/**
+ * deletes all data for a tmnt
+ * 
+ * @param {string} tmntId - id of tmnt to delete data from
+ * @returns {string} - id of deleted tmnt
+ */
+export const deleteUserTmnt = createAsyncThunk(
+  "userTmnts/deleteUserTmnt",
+  async (tmntId: string) => {
+    await deleteAllDataForTmnt(tmntId);    
+    return tmntId;
+  }
+)
+
 export const userTmntsSlice = createSlice({
   name: "userTmnts",
   initialState,
@@ -52,7 +65,20 @@ export const userTmntsSlice = createSlice({
     builder.addCase(fetchUserTmnts.rejected, (state: userTmntSliceState, action) => {
       state.status = "failed";
       state.error = action.error.message;
-    })
+    });
+    builder.addCase(deleteUserTmnt.pending, (state: userTmntSliceState) => {
+      state.status = "deleting";
+      state.error = "";
+    });
+    builder.addCase(deleteUserTmnt.fulfilled, (state: userTmntSliceState, action) => {
+      state.status = "succeeded";
+      state.userTmnts = state.userTmnts.filter((tmnt) => tmnt.id !== action.payload);
+      state.error = "";
+    });
+    builder.addCase(deleteUserTmnt.rejected, (state: userTmntSliceState, action) => {
+      state.status = "failed";
+      state.error = action.error.message;
+    });
   },
 });
 

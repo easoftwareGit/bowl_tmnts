@@ -251,10 +251,12 @@ const TmntDataForm: React.FC<FormProps> = ({ tmntProps }) => {
     if (!validatePots(pots, setPots, divs, setPotAcdnErr)) {
       isTmntValid = false;
     }
-    if (!validateBrkts(brkts, setBrkts, divs, setBrktAcdnErr)) {
+    // right now only 1 squad is allowed, so just grab games the first one
+    if (!validateBrkts(brkts, setBrkts, divs, squads[0].games, setBrktAcdnErr)) {
       isTmntValid = false;
     }
-    if (!validateElims(elims, setElims, divs, setElimAcdnErr)) { 
+    // right now only 1 squad is allowed, so just grab games the first one
+    if (!validateElims(elims, setElims, divs, squads[0].games, setElimAcdnErr)) { 
       isTmntValid = false;
     }
     return isTmntValid;
@@ -645,8 +647,7 @@ const TmntDataForm: React.FC<FormProps> = ({ tmntProps }) => {
                   }`}
                   id="inputStartDate"
                   name="start_date"
-                  data-testid="inputStartDate"
-                  // value={dateTo_UTC_yyyyMMdd(tmnt.start_date)}
+                  data-testid="inputStartDate"                  
                   value={dateStrs.start_date_str}
                   onChange={handleInputChange}
                   onBlur={handleBlur}
@@ -669,8 +670,7 @@ const TmntDataForm: React.FC<FormProps> = ({ tmntProps }) => {
                   }`}
                   id="inputEndDate"
                   name="end_date"
-                  data-testid="inputEndDate"
-                  // value={dateTo_UTC_yyyyMMdd(tmnt.end_date)}
+                  data-testid="inputEndDate"                  
                   value={dateStrs.end_date_str}
                   onChange={handleInputChange}
                   onBlur={handleBlur}

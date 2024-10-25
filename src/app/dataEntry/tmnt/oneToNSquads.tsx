@@ -1,5 +1,5 @@
 import React, { useState, ChangeEvent } from "react";
-import { squadType, AcdnErrType, eventType, laneType, pairsOfLanesType } from "../../../lib/types/types";
+import { squadType, AcdnErrType, eventType, laneType } from "../../../lib/types/types";
 import { initSquad } from "../../../lib/db/initVals";
 import { Tabs, Tab } from "react-bootstrap";
 import ModalConfirm, { delConfTitle } from "@/components/modal/confirmModal";
@@ -13,7 +13,7 @@ import {
   isDuplicateDateTime,
 } from "./errors";
 import { maxEventLength, minGames, maxGames, minStartLane, maxStartLane, minLaneCount, maxLaneCount, isOdd, isEven } from "@/lib/validation";
-import { dateTo_UTC_MMddyyyy, dateTo_UTC_yyyyMMdd, dateTo_yyyyMMdd, getYearMonthDays, startOfDayFromString, startOfTodayUTC, todayStr, twelveHourto24Hour } from "@/lib/dateTools";
+import { dateTo_UTC_MMddyyyy, getYearMonthDays, startOfDayFromString, startOfTodayUTC, todayStr, twelveHourto24Hour } from "@/lib/dateTools";
 import { btDbUuid } from "@/lib/uuid";
 import { compareAsc, isValid } from "date-fns";
 import { lanesNotThisSquad } from "@/components/tmnts/lanesList";
@@ -276,14 +276,15 @@ const OneToNSquads: React.FC<ChildProps> = ({
   };
 
   const confirmedDelete = () => {
+    const idToDel = modalObj.id
     setModalObj(initModalObj); // reset modal object (hides modal)
 
     // filter out deleted squad
-    const updatedData = squads.filter((squad) => squad.id !== modalObj.id);
+    const updatedData = squads.filter((squad) => squad.id !== idToDel);
     setSquads(updatedData);
 
     // filter out lanes for deleted squad 
-    const updatedLanes = lanes.filter((lane) => lane.squad_id !== modalObj.id);
+    const updatedLanes = lanes.filter((lane) => lane.squad_id !== idToDel);
     setLanes(updatedLanes);    
 
     // if had multiple squads, then squad time is manditory

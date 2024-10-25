@@ -9,6 +9,7 @@ import EaCurrencyInput, {
 } from "@/components/currency/eaCurrencyInput";
 import { defaultBrktGames, defaultBrktPlayers, initBrkt } from "../../../lib/db/initVals";
 import {  
+  maxGames,
   maxMoney,
   minFee,  
   zeroAmount,
@@ -31,9 +32,6 @@ interface ChildProps {
   squads: squadType[];
   setAcdnErr: (objAcdnErr: AcdnErrType) => void;
   setShowingModal: (showingModal: boolean) => void;
-}
-interface FeeProps {
-  brkt: brktType;
 }
 interface NumberProps {
   brkt: brktType;
@@ -74,18 +72,84 @@ const getNextBrktAcdnErrMsg = (
   return acdnErrMsg;
 };
 
+/**
+ * validate a brkt
+ * 
+ * @param {brktType} brkt - brkt to validate
+ * @param {brktType[]} brkts - all current brkts for tmnt
+ * @param {number} maxStartGame - max start game for brkt
+ * @returns {brktType} - brkt with errors messages if present 
+ */
+const validateBrkt = (
+  brkt: brktType,
+  brkts: brktType[],
+  maxStartGame: number): brktType =>
+{
+  if (!brkt || !brkts || !maxStartGame ) return null as any;
+  if (typeof maxStartGame !== "number"
+      || isNaN(maxStartGame)
+      || maxStartGame < 1
+      || maxStartGame > maxGames) {
+    return null as any;
+  }
+  const vBrkt = {
+    ...brkt,
+    div_err: "",
+    start_err: "",
+    fee_err: "",
+  };  
+
+  if (brkt.div_id === "") {
+    vBrkt.div_err = "Division is required";        
+  }
+  const feeNum = Number(brkt.fee);
+  if (typeof feeNum !== "number" || isNaN(feeNum)) {
+    vBrkt.fee_err = "Invalid Fee";
+  } else if (feeNum < minFee) {
+    vBrkt.fee_err = "Fee cannot be less than " + minFeeText;
+  } else if (feeNum > maxMoney) {
+    vBrkt.fee_err = "Fee cannot be more than " + maxMoneyText;
+  }
+  if (brkt.start < 1) {
+    vBrkt.start_err = "Start cannot be less than 1";        
+  } else if (brkt.start > maxStartGame) {
+    vBrkt.start_err = "Start cannot be more than " + maxStartGame;        
+  }
+  if (!vBrkt.div_err && !vBrkt.start_err && !vBrkt.fee_err) {      
+    const duplicateBrkt = brkts.find(
+      (brkt) =>
+        (brkt.id !== vBrkt.id
+        && brkt.start === vBrkt.start        
+        && brkt.div_id === vBrkt.div_id)
+    );
+    if (duplicateBrkt) {
+      vBrkt.start_err = duplicateBrktErrMsg;      
+    }
+  }
+  return vBrkt
+};
+
 export const validateBrkts = (
   brkts: brktType[],
-  setBrkts: (brkts: brktType[]) => void,
+  setBrkts: (brkts: brktType[]) => void,  
   divs: divType[],  
+  maxStartGame: number,
   setAcdnErr: (objAcdnErr: AcdnErrType) => void
 ): boolean => {
+  if (!brkts || !divs || !maxStartGame || !setBrkts || !setAcdnErr) return false;
+  if (typeof maxStartGame !== "number"
+      || isNaN(maxStartGame)
+      || maxStartGame < 1
+      || maxStartGame > maxGames) {
+    return false;
+  }
+  // brkts.length === 0 is OK
+  if (divs.length < 1) return false;
+
   let areBrktsValid = true;
-  let feeErr = "";
   let brktErrClassName = "";  
 
   const newBrktErrMsg = getBrktErrMsg(brkts[0]);
-
   const setError = (brktName: string, errMsg: string) => {
     if (areBrktsValid && !newBrktErrMsg) {
       setAcdnErr({
@@ -99,24 +163,20 @@ export const validateBrkts = (
 
   setBrkts(
     brkts.map((brkt) => {
-      feeErr = "";
-      brktErrClassName = "";
-      const feeNum = Number(brkt.fee);
-      if (typeof feeNum !== "number") {
-        feeErr = "Invalid Fee";
-      } else if (feeNum < minFee) {
-        feeErr = "Fee cannot be less than " + minFeeText;
-      } else if (feeNum > maxMoney) {
-        feeErr = "Fee cannot be more than " + maxMoneyText;
+      const vBrkt = validateBrkt(brkt, brkts, maxStartGame);
+      if (vBrkt.div_err) {
+        setError(getBrktOrElimName(brkt, divs), vBrkt.div_err);
+        vBrkt.errClassName = objErrClassName
+      } else if (vBrkt.fee_err) {
+        setError(getBrktOrElimName(brkt, divs), vBrkt.fee_err);
+        vBrkt.errClassName = objErrClassName
+      } else if (vBrkt.start_err) {
+        setError(getBrktOrElimName(brkt, divs), vBrkt.start_err);
+        vBrkt.errClassName = objErrClassName
+      } else {
+        vBrkt.errClassName = '';
       }
-      if (feeErr) {
-        setError(getBrktOrElimName(brkt, divs), feeErr);
-      }
-      return {
-        ...brkt,
-        fee_err: feeErr,
-        errClassName: feeErr ? objErrClassName : "",
-      };      
+      return vBrkt;
     })
   );
   if (areBrktsValid) {
@@ -141,60 +201,22 @@ const ZeroToNBrackets: React.FC<ChildProps> = ({
   const [sortOrder, setSortOrder] = useState(1); 
   const [createBrkt, setCreateBrkt] = useState(initBrkt);
 
+  // right now only 1 squad is allowed, so just grab the first one
   const maxStartGame = squads[0].games - (defaultBrktGames - 1);
 
   const validNewBrkt = () => {
-    const newBrkt = {...createBrkt};
-    let isBrktValid = true;
-    let startErr = "";
-    let divErr = "";
-    let feeErr = "";    
 
-    if (newBrkt.start < 1) {
-      startErr = "Start cannot be less than 1";
-      isBrktValid = false;
-    } else if (newBrkt.start > maxStartGame) {
-      startErr = "Start cannot be more than " + maxStartGame;
-      isBrktValid = false;
-    }
-    if (newBrkt.div_id === "") {
-      divErr = "Division is required";
-      isBrktValid = false;
-    }
-    const feeNum = Number(newBrkt.fee);
-    if (typeof feeNum !== "number") {
-      feeErr = "Invalid Fee";
-      isBrktValid = false;
-    } else if (feeNum < minFee) {
-      feeErr = "Fee cannot be less than " + minFeeText;
-      isBrktValid = false;
-    } else if (feeNum > maxMoney) {
-      feeErr = "Fee cannot be more than " + maxMoneyText;
-      isBrktValid = false;
-    }
-
-    if (isBrktValid) {      
-      const duplicateBrkt = brkts.find(
-        (brkt) => brkt.start === newBrkt.start && brkt.div_id === newBrkt.div_id
-      );
-      if (duplicateBrkt) {
-        startErr = duplicateBrktErrMsg;
-        isBrktValid = false;
-      }
-    }
-
+    const vBrkt = validateBrkt(createBrkt, brkts, maxStartGame); 
     setCreateBrkt({
-      ...createBrkt,
-      start_err: startErr,
-      div_err: divErr,
-      fee_err: feeErr,
+      ...vBrkt,
     })
 
-    createBrkt.start_err = startErr;
-    createBrkt.div_err = divErr;
-    createBrkt.fee_err = feeErr;
-
-    return isBrktValid;
+    // make sure values are updated in createBrkt
+    createBrkt.start_err = vBrkt.start_err;
+    createBrkt.div_err = vBrkt.div_err;
+    createBrkt.fee_err = vBrkt.fee_err;
+    // returns true if all error messages are blank
+    return (vBrkt.start_err === "" && vBrkt.div_err === "" && vBrkt.fee_err === "");
   };
 
   const handleAdd = (e: React.FormEvent) => {
@@ -228,9 +250,10 @@ const ZeroToNBrackets: React.FC<ChildProps> = ({
   };
 
   const confirmedDelete = () => {
+    const idToDel = modalObj.id
     setShowingModal(false);
     setModalObj(initModalObj); // reset modal object (hides modal)
-    const updatedData = brkts.filter((brkt) => brkt.id !== modalObj.id);
+    const updatedData = brkts.filter((brkt) => brkt.id !== idToDel);
     setBrkts(updatedData);
     setTabKey(defaultTabKey); // refocus create brkt
   };
@@ -282,7 +305,7 @@ const ZeroToNBrackets: React.FC<ChildProps> = ({
   };
 
   const handlCreateBrktAmountValueChange = (id: string) => (value: string | undefined): void => {
-    let rawValue = value === undefined ? "undefined" : value;
+  let rawValue = value === undefined ? "undefined" : value;
     rawValue = rawValue || " ";
     if (rawValue && Number.isNaN(Number(rawValue))) {
       rawValue = "";
@@ -367,7 +390,8 @@ const ZeroToNBrackets: React.FC<ChildProps> = ({
       formattedValue = "";
     }
     const valueNum = Number(formattedValue);
-    if (valueNum < zeroAmount || valueNum > maxMoney) {
+    // * 1000000 so to large values show error, but dont allow huge values
+    if (valueNum < zeroAmount || valueNum > maxMoney * 1000000) {
       formattedValue = "";
     }
     const temp_brkt = {
@@ -692,17 +716,35 @@ const ZeroToNBrackets: React.FC<ChildProps> = ({
                     />
                     <div
                       className="text-danger"                            
-                      data-testid={`dangerBrktFee${brkt.sort_order}`}
+                      data-testid={`dangerBrktFee${brkt.id}`}
                     >
                       {brkt.fee_err}
                     </div>
                   </div>
-                  <NumberEntry
-                    brkt={brkt}
-                    LabelText="Start"
-                    property="start"
-                    value={brkt.start}
-                  />
+                  <div className="col-sm-3">
+                    <label
+                      htmlFor={`viewBrktStart${brkt.id}`}
+                      className="form-label"
+                    >
+                      Start
+                    </label>
+                    <input
+                      type="number"
+                      id={`viewBrktStart${brkt.id}`}
+                      name="start"
+                      className={`form-control ${
+                        brkt.start_err && "is-invalid"
+                      }`}                      
+                      value={brkt.start}
+                      disabled
+                    />
+                    <div
+                      className="text-danger"
+                      data-testid={`dangerViewBrktStart${brkt.id}`}
+                    >
+                      {brkt.start_err}
+                    </div>
+                  </div>
                   <NumberEntry
                     brkt={brkt}
                     LabelText="Games"
@@ -761,3 +803,7 @@ const ZeroToNBrackets: React.FC<ChildProps> = ({
 };
 
 export default ZeroToNBrackets;
+
+export const exportedForTesting = {
+  validateBrkt,
+};
