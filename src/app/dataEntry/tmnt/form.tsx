@@ -1,8 +1,7 @@
 "use client";
 import React, { useState, ChangeEvent, useEffect } from "react";
-import { useSelector, useDispatch } from "react-redux";
-import { AppDispatch, RootState, store } from "@/redux/store";
-import { fetchBowls, selectAllBowls, getBowlsStatus, getBowlsError } from "@/redux/features/bowls/bowlsSlice";
+import { useSelector } from "react-redux";
+import { selectAllBowls } from "@/redux/features/bowls/bowlsSlice";
 import { maxTmntNameLength } from "@/lib/validation";
 import { Accordion, AccordionItem } from "react-bootstrap";
 import { tmntType, tmntPropsType, saveTypes, eventType, divType, squadType, laneType, potType, brktType, elimType, ioDataErrorsType } from "../../../lib/types/types";
@@ -38,11 +37,10 @@ const TmntDataForm: React.FC<FormProps> = ({ tmntProps }) => {
     brkts, setBrkts,
     elims, setElims,
     showingModal, setShowingModal,
+    tmntSaveType,
   } = tmntProps;
 
-  let saveType: saveTypes = 'CREATE';
-  
-  const dispatch = useDispatch<AppDispatch>();
+  let saveType: saveTypes = tmntSaveType;
 
   const [eventAcdnErr, setEventAcdnErr] = useState(noAcdnErr);
   const [divAcdnErr, setDivAcdnErr] = useState(noAcdnErr);
@@ -60,9 +58,18 @@ const TmntDataForm: React.FC<FormProps> = ({ tmntProps }) => {
   let origBrkts: brktType[] = [{ ...blankBrkt }];
   let origElims: elimType[] = [{ ...blankElim }];
 
-  const bowlsStatus = useSelector(getBowlsStatus);
+  if (saveType === 'UPDATE') { 
+    origTmnt = { ...tmnt };
+    origEvents = [ ...events ];  
+    origDivs = [ ...divs ];    
+    origSquads = [ ...squads ];  
+    origLanes = [ ...lanes ];
+    origPots = [ ...pots ];
+    origBrkts = [ ...brkts ];
+    origElims = [ ...elims ];
+  }
+
   const bowls = useSelector(selectAllBowls);
-  const bowlsError = useSelector(getBowlsError);  
 
   const initDateStrs = {
     start_date_str: dateTo_yyyyMMdd(tmnt.start_date),
@@ -71,10 +78,6 @@ const TmntDataForm: React.FC<FormProps> = ({ tmntProps }) => {
 
   const [dateStrs, setDateStrs] = useState(initDateStrs);
   const [errModalObj, setErrModalObj] = useState(initModalObj);
-
-  useEffect(() => {
-    dispatch(fetchBowls());
-  }, [dispatch]);
 
   const bowlOptions = bowls.map(bowl => (
     <option key={bowl.id} value={bowl.id}>
@@ -581,242 +584,236 @@ const TmntDataForm: React.FC<FormProps> = ({ tmntProps }) => {
         onCancel={canceledModalErr}
       />      
       <form onSubmit={handleSubmit}>      
-        {(bowlsStatus === 'loading' ) && <div>Loading...</div>}
-        {bowlsStatus !== 'loading' && bowlsError ? (
-          <div>Error: {bowlsError}</div>
-        ) : null}      
-        {(bowlsStatus === 'succeeded') ? (        
-          <div className="form_container">
-            <div className="row g-3 mb-3">
-              <div className="col-md-6">
-                <label htmlFor="inputTmntName" className="form-label">
-                  Tournament Name
-                </label>
-                <input
-                  type="text"
-                  className={`form-control ${
-                    tmnt.tmnt_name_err && "is-invalid"
-                  }`}
-                  id="inputTmntName"                
-                  name="tmnt_name"
-                  value={tmnt.tmnt_name}
-                  maxLength={maxTmntNameLength}
-                  onChange={handleInputChange}
-                />
-                <div
-                  className="text-danger"
-                  data-testid="dangerTmntName"
-                >
-                  {tmnt.tmnt_name_err}
-                </div>
-              </div>
-              <div className="col-md-6">
-                <label htmlFor="inputBowlName" className="form-label">
-                  Bowl Name
-                </label>
-                <select
-                  id="inputBowlName"
-                  data-testid="inputBowlName"
-                  name="bowl_id"
-                  className={`form-select ${tmnt.bowl_id_err && "is-invalid"}`}
-                  onChange={handleBowlSelectChange}
-                  value={tmnt.bowl_id === '' ? 'Choose...' : tmnt.bowl_id}
-                >
-                  <option disabled>                
-                    Choose...
-                  </option>
-                  {bowlOptions}
-                </select>
-                <div
-                  className="text-danger"
-                  data-testid="dangerBowlName"
-                >
-                  {tmnt.bowl_id_err}
-                </div>
+        <div className="form_container">
+          <div className="row g-3 mb-3">
+            <div className="col-md-6">
+              <label htmlFor="inputTmntName" className="form-label">
+                Tournament Name
+              </label>
+              <input
+                type="text"
+                className={`form-control ${
+                  tmnt.tmnt_name_err && "is-invalid"
+                }`}
+                id="inputTmntName"                
+                name="tmnt_name"
+                value={tmnt.tmnt_name}
+                maxLength={maxTmntNameLength}
+                onChange={handleInputChange}
+              />
+              <div
+                className="text-danger"
+                data-testid="dangerTmntName"
+              >
+                {tmnt.tmnt_name_err}
               </div>
             </div>
-            <div className="row g-3 mb-3">
-              <div className="col-md-3">
-                <label htmlFor="inputStartDate" className="form-label">
-                  Start Date
-                </label>
-                <input
-                  type="date"
-                  className={`form-control ${
-                    tmnt.start_date_err && "is-invalid"
-                  }`}
-                  id="inputStartDate"
-                  name="start_date"
-                  data-testid="inputStartDate"                  
-                  value={dateStrs.start_date_str}
-                  onChange={handleInputChange}
-                  onBlur={handleBlur}
-                />
-                <div
-                  className="text-danger"
-                  data-testid="dangerStartDate"
-                >
-                  {tmnt.start_date_err}
-                </div>
-              </div>
-              <div className="col-md-3">
-                <label htmlFor="inputEndDate" className="form-label">
-                  End Date
-                </label>
-                <input
-                  type="date"
-                  className={`form-control ${
-                    tmnt.end_date_err && "is-invalid"
-                  }`}
-                  id="inputEndDate"
-                  name="end_date"
-                  data-testid="inputEndDate"                  
-                  value={dateStrs.end_date_str}
-                  onChange={handleInputChange}
-                  onBlur={handleBlur}
-                />
-                <div
-                  className="text-danger"
-                  data-testid="dangerEndDate"
-                >
-                  {tmnt.end_date_err}
-                </div>
-              </div>
-              <div className="col-md-6 d-flex justify-content-center align-items-center">
-                <button
-                  className="btn btn-success"
-                  onClick={handleSubmit}
-                >
-                  Save Tournament
-                </button>
-              </div>
-              <div className="col-sm-3">
-                <button 
-                  className="btn btn-info"
-                  onClick={handleDebug}
-                  onFocus={() => console.log("Debug button: got focus")}
-                >
-                  Debug
-                </button>
+            <div className="col-md-6">
+              <label htmlFor="inputBowlName" className="form-label">
+                Bowl Name
+              </label>
+              <select
+                id="inputBowlName"
+                data-testid="inputBowlName"
+                name="bowl_id"
+                className={`form-select ${tmnt.bowl_id_err && "is-invalid"}`}
+                onChange={handleBowlSelectChange}
+                value={tmnt.bowl_id === '' ? 'Choose...' : tmnt.bowl_id}
+              >
+                <option disabled>                
+                  Choose...
+                </option>
+                {bowlOptions}
+              </select>
+              <div
+                className="text-danger"
+                data-testid="dangerBowlName"
+              >
+                {tmnt.bowl_id_err}
               </div>
             </div>
-            <Accordion>
-              <AccordionItem eventKey="events" >
-                <Accordion.Header className={eventAcdnErr.errClassName} data-testid="acdnEvents">
-                  Events - {events.length} {eventAcdnErr.message}
-                </Accordion.Header>
-                <Accordion.Body data-testid="eventAcdn">
-                  <OneToNEvents
-                    events={events}
-                    setEvents={setEvents}
-                    squads={squads}
-                    setSquads={setSquads}
-                    setAcdnErr={setEventAcdnErr}                    
-                  />
-                </Accordion.Body>
-              </AccordionItem>
-            </Accordion>
-            <Accordion>
-              <AccordionItem eventKey="divs">
-                <Accordion.Header className={divAcdnErr.errClassName}>
-                  Divisions - {divs.length} {divAcdnErr.message}
-                </Accordion.Header>
-                <Accordion.Body>
-                  <OneToNDivs
-                    divs={divs}
-                    setDivs={setDivs}
-                    pots={pots}
-                    brkts={brkts}
-                    elims={elims}
-                    setAcdnErr={setDivAcdnErr}
-                  />
-                </Accordion.Body>
-              </AccordionItem>
-            </Accordion>
-            <Accordion>
-              <AccordionItem eventKey="squads">
-                <Accordion.Header className={squadAcdnErr.errClassName}>
-                  Squads - {squads.length} {squadAcdnErr.message}
-                </Accordion.Header>
-                <Accordion.Body>
-                  <OneToNSquads
-                    squads={squads}
-                    setSquads={setSquads}
-                    lanes={lanes}
-                    setLanes={setLanes}
-                    events={events}
-                    setAcdnErr={setSquadAcdnErr}
-                  />
-                </Accordion.Body>
-              </AccordionItem>
-            </Accordion>
-            <Accordion>
-              <AccordionItem eventKey="lanes">
-                {/* <no errors in Lanes */}
-                <Accordion.Header>
-                  Lanes - {getLanesTabTilte()}
-                </Accordion.Header>
-                <Accordion.Body>
-                  <OneToNLanes  
-                    lanes={lanes} 
-                    setLanes={setLanes}
-                    squads={squads}                  
-                  />
-                </Accordion.Body>
-              </AccordionItem>
-            </Accordion>
-            <Accordion>
-              <AccordionItem eventKey="pots">
-                <Accordion.Header className={potAcdnErr.errClassName}>
-                  Pots - {pots.length} {potAcdnErr.message}
-                </Accordion.Header>
-                <Accordion.Body>
-                  <ZeroToNPots
-                    pots={pots}
-                    setPots={setPots}
-                    divs={divs}                  
-                    setAcdnErr={setPotAcdnErr}
-                    setShowingModal={setShowingModal}
-                  />
-                </Accordion.Body>
-              </AccordionItem>
-            </Accordion>
-            <Accordion>
-              <AccordionItem eventKey="brkts">
-                <Accordion.Header className={brktAcdnErr.errClassName}>
-                  Brackets - {brkts.length} {brktAcdnErr.message}
-                </Accordion.Header>
-                <Accordion.Body>
-                  <ZeroToNBrackets
-                    brkts={brkts}
-                    setBrkts={setBrkts}
-                    divs={divs}
-                    squads={squads}
-                    setAcdnErr={setBrktAcdnErr}
-                    setShowingModal={setShowingModal}
-                  />
-                </Accordion.Body>
-              </AccordionItem>
-            </Accordion>
-            <Accordion>
-              <AccordionItem eventKey="elims">
-                <Accordion.Header className={elimAcdnErr.errClassName}>
-                  Eliminators - {elims.length} {elimAcdnErr.message}
-                </Accordion.Header>
-                <Accordion.Body>
-                  <ZeroToNElims
-                    elims={elims}
-                    setElims={setElims}
-                    divs={divs}
-                    squads={squads}
-                    setAcdnErr={setElimAcdnErr}
-                    setShowingModal={setShowingModal}
-                  />
-                </Accordion.Body>
-              </AccordionItem>
-            </Accordion>
           </div>
-        ) : null}
+          <div className="row g-3 mb-3">
+            <div className="col-md-3">
+              <label htmlFor="inputStartDate" className="form-label">
+                Start Date
+              </label>
+              <input
+                type="date"
+                className={`form-control ${
+                  tmnt.start_date_err && "is-invalid"
+                }`}
+                id="inputStartDate"
+                name="start_date"
+                data-testid="inputStartDate"                  
+                value={dateStrs.start_date_str}
+                onChange={handleInputChange}
+                onBlur={handleBlur}
+              />
+              <div
+                className="text-danger"
+                data-testid="dangerStartDate"
+              >
+                {tmnt.start_date_err}
+              </div>
+            </div>
+            <div className="col-md-3">
+              <label htmlFor="inputEndDate" className="form-label">
+                End Date
+              </label>
+              <input
+                type="date"
+                className={`form-control ${
+                  tmnt.end_date_err && "is-invalid"
+                }`}
+                id="inputEndDate"
+                name="end_date"
+                data-testid="inputEndDate"                  
+                value={dateStrs.end_date_str}
+                onChange={handleInputChange}
+                onBlur={handleBlur}
+              />
+              <div
+                className="text-danger"
+                data-testid="dangerEndDate"
+              >
+                {tmnt.end_date_err}
+              </div>
+            </div>
+            <div className="col-md-6 d-flex justify-content-center align-items-center">
+              <button
+                className="btn btn-success"
+                onClick={handleSubmit}
+              >
+                Save Tournament
+              </button>
+            </div>
+            <div className="col-sm-3">
+              <button 
+                className="btn btn-info"
+                onClick={handleDebug}
+                onFocus={() => console.log("Debug button: got focus")}
+              >
+                Debug
+              </button>
+            </div>
+          </div>
+          <Accordion>
+            <AccordionItem eventKey="events" >
+              <Accordion.Header className={eventAcdnErr.errClassName} data-testid="acdnEvents">
+                Events - {events.length} {eventAcdnErr.message}
+              </Accordion.Header>
+              <Accordion.Body data-testid="eventAcdn">
+                <OneToNEvents
+                  events={events}
+                  setEvents={setEvents}
+                  squads={squads}
+                  setSquads={setSquads}
+                  setAcdnErr={setEventAcdnErr}                    
+                />
+              </Accordion.Body>
+            </AccordionItem>
+          </Accordion>
+          <Accordion>
+            <AccordionItem eventKey="divs">
+              <Accordion.Header className={divAcdnErr.errClassName}>
+                Divisions - {divs.length} {divAcdnErr.message}
+              </Accordion.Header>
+              <Accordion.Body>
+                <OneToNDivs
+                  divs={divs}
+                  setDivs={setDivs}
+                  pots={pots}
+                  brkts={brkts}
+                  elims={elims}
+                  setAcdnErr={setDivAcdnErr}
+                />
+              </Accordion.Body>
+            </AccordionItem>
+          </Accordion>
+          <Accordion>
+            <AccordionItem eventKey="squads">
+              <Accordion.Header className={squadAcdnErr.errClassName}>
+                Squads - {squads.length} {squadAcdnErr.message}
+              </Accordion.Header>
+              <Accordion.Body>
+                <OneToNSquads
+                  squads={squads}
+                  setSquads={setSquads}
+                  lanes={lanes}
+                  setLanes={setLanes}
+                  events={events}
+                  setAcdnErr={setSquadAcdnErr}
+                />
+              </Accordion.Body>
+            </AccordionItem>
+          </Accordion>
+          <Accordion>
+            <AccordionItem eventKey="lanes">
+              {/* <no errors in Lanes */}
+              <Accordion.Header>
+                Lanes - {getLanesTabTilte()}
+              </Accordion.Header>
+              <Accordion.Body>
+                <OneToNLanes  
+                  lanes={lanes} 
+                  setLanes={setLanes}
+                  squads={squads}                  
+                />
+              </Accordion.Body>
+            </AccordionItem>
+          </Accordion>
+          <Accordion>
+            <AccordionItem eventKey="pots">
+              <Accordion.Header className={potAcdnErr.errClassName}>
+                Pots - {pots.length} {potAcdnErr.message}
+              </Accordion.Header>
+              <Accordion.Body>
+                <ZeroToNPots
+                  pots={pots}
+                  setPots={setPots}
+                  divs={divs}                  
+                  setAcdnErr={setPotAcdnErr}
+                  setShowingModal={setShowingModal}
+                />
+              </Accordion.Body>
+            </AccordionItem>
+          </Accordion>
+          <Accordion>
+            <AccordionItem eventKey="brkts">
+              <Accordion.Header className={brktAcdnErr.errClassName}>
+                Brackets - {brkts.length} {brktAcdnErr.message}
+              </Accordion.Header>
+              <Accordion.Body>
+                <ZeroToNBrackets
+                  brkts={brkts}
+                  setBrkts={setBrkts}
+                  divs={divs}
+                  squads={squads}
+                  setAcdnErr={setBrktAcdnErr}
+                  setShowingModal={setShowingModal}
+                />
+              </Accordion.Body>
+            </AccordionItem>
+          </Accordion>
+          <Accordion>
+            <AccordionItem eventKey="elims">
+              <Accordion.Header className={elimAcdnErr.errClassName}>
+                Eliminators - {elims.length} {elimAcdnErr.message}
+              </Accordion.Header>
+              <Accordion.Body>
+                <ZeroToNElims
+                  elims={elims}
+                  setElims={setElims}
+                  divs={divs}
+                  squads={squads}
+                  setAcdnErr={setElimAcdnErr}
+                  setShowingModal={setShowingModal}
+                />
+              </Accordion.Body>
+            </AccordionItem>
+          </Accordion>
+        </div>
       </form>
     </>
   );

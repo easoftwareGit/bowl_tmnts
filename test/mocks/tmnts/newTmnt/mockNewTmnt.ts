@@ -1,5 +1,5 @@
 import { initBrkt, initDiv, initElim, initEvent, initLane, initPot, initSquad, initTmnt } from "@/lib/db/initVals";
-import { brktType, divType, elimType, eventType, laneType, potType, squadType, tmntType } from "@/lib/types/types";
+import { brktType, divType, elimType, eventType, laneType, pairsOfLanesType, potType, squadType, tmntType } from "@/lib/types/types";
 import { startOfToday } from "date-fns";
 
 export const mockTmnt: tmntType = {
@@ -149,6 +149,51 @@ export const mockLanes: laneType[] = [
     lane_number: 12,
     squad_id: "sqd_1234ce5f80164830830a7157eb093396",
   },
+]
+
+export const mockPairs: pairsOfLanesType[] = [
+  {
+    left_id: mockLanes[0].id,
+    left_lane: mockLanes[0].lane_number,
+    right_id: mockLanes[1].id,
+    right_lane: mockLanes[1].lane_number,
+    in_use: true
+  },
+  {
+    left_id: mockLanes[2].id,
+    left_lane: mockLanes[2].lane_number,
+    right_id: mockLanes[3].id,
+    right_lane: mockLanes[3].lane_number,
+    in_use: true
+  },
+  {
+    left_id: mockLanes[4].id,
+    left_lane: mockLanes[4].lane_number,
+    right_id: mockLanes[5].id,
+    right_lane: mockLanes[5].lane_number,
+    in_use: true
+  },
+  {
+    left_id: mockLanes[6].id,
+    left_lane: mockLanes[6].lane_number,
+    right_id: mockLanes[7].id,
+    right_lane: mockLanes[7].lane_number,
+    in_use: true
+  },
+  {
+    left_id: mockLanes[8].id,
+    left_lane: mockLanes[8].lane_number,
+    right_id: mockLanes[9].id,
+    right_lane: mockLanes[9].lane_number,
+    in_use: true
+  },
+  {
+    left_id: mockLanes[10].id,
+    left_lane: mockLanes[10].lane_number,
+    right_id: mockLanes[11].id,
+    right_lane: mockLanes[11].lane_number,
+    in_use: true
+  }
 ]
 
 export const mockPots: potType[] = [

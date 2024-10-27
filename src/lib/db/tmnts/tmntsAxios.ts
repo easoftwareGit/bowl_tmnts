@@ -1,7 +1,7 @@
 import axios from "axios";
 import { baseTmntsApi } from "@/lib/db/apiPaths";
 import { testBaseTmntsApi } from "../../../../test/testApi";
-import { allTmntDataType, ioDataErrorsType, tmntsListType, tmntType, YearObj } from "@/lib/types/types";
+import { allDataOneTmntType, ioDataErrorsType, tmntsListType, tmntType, YearObj } from "@/lib/types/types";
 import { validateTmnt } from "@/app/api/tmnts/valildate";
 import { ErrorCode, isValidBtDbId, validYear } from "@/lib/validation";
 import { todayYearStr } from "@/lib/dateTools";
@@ -170,13 +170,13 @@ export const getTmnts = async (
  * get all data for a tmnt
  * 
  * @param {string} tmntId - id of tmnt to get data for
- * @returns {allTmntDataType | null} - all data for tmnt
+ * @returns {allDataOneTmntType | null} - all data for tmnt
  */
-export const getAllDataForTmnt = async (tmntId: string): Promise<allTmntDataType | null> => {
+export const getAllDataForTmnt = async (tmntId: string): Promise<allDataOneTmntType | null> => {
 
   if (!tmntId || !isValidBtDbId(tmntId, 'tmt')) return null
   try {
-    const allTmntData: allTmntDataType = {
+    const allTmntData: allDataOneTmntType = {
       tmnt: { ...blankTmnt },
       events: [],
       divs: [],

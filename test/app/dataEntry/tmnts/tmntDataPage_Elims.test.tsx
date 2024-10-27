@@ -14,7 +14,7 @@ import {
   initPots,
   initSquads,
 } from "@/lib/db/initVals";
-import { fullTmntDataType } from "@/lib/types/types";
+import { allDataOneTmntType } from "@/lib/types/types";
 
 describe("TmntDataPage - Eliminators Component", () => { 
 
@@ -37,7 +37,7 @@ describe("TmntDataPage - Eliminators Component", () => {
   })
 
   describe('click the eliminator division radio buttons', () => { 
-    const mockFullTmnt: fullTmntDataType = {
+    const mockFullTmnt: allDataOneTmntType = {
       tmnt: mockTmnt,
       events: initEvents,
       divs: mockDivs,
@@ -137,7 +137,7 @@ describe("TmntDataPage - Eliminators Component", () => {
   })
 
   describe('render eliminator divison error', () => { 
-    const mockFullTmnt: fullTmntDataType = {
+    const mockFullTmnt: allDataOneTmntType = {
       tmnt: mockTmnt,
       events: initEvents,
       divs: initDivs,
@@ -206,7 +206,7 @@ describe("TmntDataPage - Eliminators Component", () => {
   })
 
   describe('render eliminator fee error', () => { 
-    const mockFullTmnt: fullTmntDataType = {
+    const mockFullTmnt: allDataOneTmntType = {
       tmnt: mockTmnt,
       events: initEvents,
       divs: initDivs,
@@ -317,7 +317,7 @@ describe("TmntDataPage - Eliminators Component", () => {
   })
 
   describe('render the eliminator start error', () => { 
-    const mockFullTmnt: fullTmntDataType = {
+    const mockFullTmnt: allDataOneTmntType = {
       tmnt: mockTmnt,
       events: initEvents,
       divs: initDivs,
@@ -446,7 +446,7 @@ describe("TmntDataPage - Eliminators Component", () => {
   })
 
   describe('render the eliminator games error', () => { 
-    const mockFullTmnt: fullTmntDataType = {
+    const mockFullTmnt: allDataOneTmntType = {
       tmnt: mockTmnt,
       events: initEvents,
       divs: initDivs,
@@ -601,7 +601,7 @@ describe("TmntDataPage - Eliminators Component", () => {
   })
 
   describe('render edited eliminator fee errors', () => {
-    const mockFullTmnt: fullTmntDataType = {
+    const mockFullTmnt: allDataOneTmntType = {
       tmnt: mockTmnt,
       events: initEvents,
       divs: mockDivs,
@@ -699,7 +699,7 @@ describe("TmntDataPage - Eliminators Component", () => {
   })
 
   describe('render multiple errors', () => { 
-    const mockFullTmnt: fullTmntDataType = {
+    const mockFullTmnt: allDataOneTmntType = {
       tmnt: mockTmnt,
       events: initEvents,
       divs: mockDivs,
@@ -761,7 +761,7 @@ describe("TmntDataPage - Eliminators Component", () => {
   })
 
   describe('delete eliminator', () => {
-    const mockFullTmnt: fullTmntDataType = {
+    const mockFullTmnt: allDataOneTmntType = {
       tmnt: mockTmnt,
       events: initEvents,
       divs: mockDivs,

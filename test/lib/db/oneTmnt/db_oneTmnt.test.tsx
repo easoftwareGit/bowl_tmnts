@@ -1,18 +1,19 @@
-import { saveAllTmntData } from '@/app/dataEntry/tmnt/saveTmnt';
-import { brktType, divType, elimType, eventType, laneType, potType, saveAllTmntDataType, ioDataErrorsType, squadType, tmntPropsType, tmntType } from '@/lib/types/types';
-import { mockTmnt, mockEvents, mockDivs, mockSquads, mockLanes, mockPots, mockBrkts, mockElims } from '../../../mocks/tmnts/newTmnt/mockNewTmnt';
-import { IntlConfig } from '@/lib/currency/components/CurrencyInputProps';
-import { getLocaleConfig } from '@/lib/currency/components/utils';
-import { deleteAllTmntElims, getAllElimsForTmnt } from '@/lib/db/elims/elimsAxios';
-import { deleteAllTmntBrkts, getAllBrktsForTmnt } from '@/lib/db/brkts/brktsAxios';
-import { deleteAllTmntPots, getAllPotsForTmnt } from '@/lib/db/pots/potsAxios';
-import { deleteAllTmntLanes, getAllLanesForTmnt } from '@/lib/db/lanes/lanesAxios';
-import { deleteAllTmntSquads, getAllSquadsForTmnt } from '@/lib/db/squads/squadsAxios';
-import { deleteAllTmntDivs, getAllDivsForTmnt } from '@/lib/db/divs/divsAxios';
-import { deleteAllTmntEvents, getAllEventsForTmnt } from '@/lib/db/events/eventsAxios';
-import { deleteTmnt, getTmnt } from '@/lib/db/tmnts/tmntsAxios';
-import { compareAsc } from 'date-fns';
-import { blankTmnt } from '@/lib/db/initVals';
+import { IntlConfig } from "@/lib/currency/components/CurrencyInputProps";
+import { getLocaleConfig } from "@/lib/currency/components/utils";
+import { mockBrkts, mockDivs, mockElims, mockEvents, mockLanes, mockPots, mockSquads, mockTmnt } from "../../../mocks/tmnts/newTmnt/mockNewTmnt";
+import { deleteAllTmntElims, getAllElimsForTmnt } from "@/lib/db/elims/elimsAxios";
+import { deleteAllTmntBrkts, getAllBrktsForTmnt } from "@/lib/db/brkts/brktsAxios";
+import { deleteAllTmntPots, getAllPotsForTmnt } from "@/lib/db/pots/potsAxios";
+import { deleteAllTmntLanes, getAllLanesForTmnt } from "@/lib/db/lanes/lanesAxios";
+import { deleteAllTmntSquads, getAllSquadsForTmnt } from "@/lib/db/squads/squadsAxios";
+import { deleteAllTmntDivs, getAllDivsForTmnt } from "@/lib/db/divs/divsAxios";
+import { deleteAllTmntEvents, getAllEventsForTmnt } from "@/lib/db/events/eventsAxios";
+import { deleteTmnt, getTmnt } from "@/lib/db/tmnts/tmntsAxios";
+import { blankTmnt } from "@/lib/db/initVals";
+import { brktType, divType, elimType, eventType, ioDataErrorsType, laneType, potType, saveAllTmntDataType, squadType, tmntType } from "@/lib/types/types";
+import { saveAllDataOneTmnt } from "@/lib/db/oneTmnt/oneTmnt";
+import { compareAsc } from "date-fns";
+import { saveAllTmntData } from "@/app/dataEntry/tmnt/saveTmnt";
 import 'core-js/actual/structured-clone';
 
 // before running this test, run the following commands in the terminal:
@@ -95,7 +96,7 @@ describe('Save New Tmnt', () => {
 
     it('saves new tmnt', async () => {       
 
-      const savedError = await saveAllTmntData(allTmntData);
+      const savedError = await saveAllDataOneTmnt(allTmntData);
       expect(savedError).toBe(ioDataErrorsType.None);
 
       const gotTmntData = await getTmnt(mockTmnt.id);

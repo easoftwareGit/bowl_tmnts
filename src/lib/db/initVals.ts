@@ -10,6 +10,7 @@ import {
   brktType,
   potType,  
   testDateType,
+  allDataOneTmntType,
 } from "../types/types";
 import { User, Bowl, Tmnt } from "@prisma/client";
 import { todayStr } from "@/lib/dateTools";
@@ -93,6 +94,17 @@ export const blankTmnt = {
   end_date: startOfToday(),
 }
 
+export const blankAllDataOneTmnt: allDataOneTmntType = {  
+  tmnt: { ...blankTmnt },
+  events: [],
+  divs: [],
+  squads: [],
+  lanes: [],
+  pots: [],
+  brkts: [],
+  elims: [],
+}
+
 export const initPrismaTmnt: Tmnt = {
   id: "",
   user_id: "",
@@ -172,7 +184,7 @@ export const defaultStartingLane = 1;
 export const defaultLaneCount = 2;
 export const initSquad: squadType = {
   id: btDbUuid('sqd'),
-  event_id: "1",
+  event_id: "",
   event_id_err: "",
   tab_title: "Squad 1",
   squad_name: "Squad 1",

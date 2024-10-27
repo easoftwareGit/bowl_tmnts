@@ -1,7 +1,7 @@
 import axios, { AxiosError } from "axios";
 import { baseTmntsApi } from "@/lib/db/apiPaths";
 import { testBaseTmntsApi } from "../../../testApi";
-import { brktType, divType, elimType, eventType, allTmntDataType, laneType, potType, saveAllTmntDataType, ioDataErrorsType, squadType, tmntType } from "@/lib/types/types";
+import { brktType, divType, elimType, eventType, allDataOneTmntType, laneType, potType, saveAllTmntDataType, ioDataErrorsType, squadType, tmntType } from "@/lib/types/types";
 import { blankBrkt, blankDiv, blankElim, blankEvent, blankLane, blankPot, blankSquad, blankTmnt, initTmnt } from "@/lib/db/initVals";
 import { deleteTmnt, getTmnt, getTmnts, getTmntYears, getUserTmnts, postTmnt, putTmnt, exportedForTesting, getAllDataForTmnt, deleteAllDataForTmnt } from "@/lib/db/tmnts/tmntsAxios";
 import { compareAsc, startOfToday } from "date-fns";
@@ -267,13 +267,13 @@ describe("tmntsAxios", () => {
   describe('getAllDataForTmnt', () => {
 
     const origTmnt: tmntType = { ...blankTmnt };
-    const origEvents: eventType[] = [ { ...blankEvent } ];  
-    const origDivs: divType[] = [{ ...blankDiv }];
-    const origSquads: squadType[] = [{ ...blankSquad }];
-    const origLanes: laneType[] = [{ ...blankLane }];
-    const origPots: potType[] = [{ ...blankPot }];
-    const origBrkts: brktType[] = [{ ...blankBrkt }];
-    const origElims: elimType[] = [{ ...blankElim }];
+    const origEvents: eventType[] = [];  
+    const origDivs: divType[] = [];
+    const origSquads: squadType[] = [];
+    const origLanes: laneType[] = [];
+    const origPots: potType[] = [];
+    const origBrkts: brktType[] = [];
+    const origElims: elimType[] = [];
   
     const toSaveTmntData: saveAllTmntDataType = {
       saveType: 'CREATE',
@@ -481,7 +481,7 @@ describe("tmntsAxios", () => {
       const postedTmnt = await postTmnt(invalidTmnt);
       expect(postedTmnt).toBeNull();
     });
-  });
+  });  
 
   describe("putTmnt", () => {
     const tmntToPut = {
@@ -618,13 +618,13 @@ describe("tmntsAxios", () => {
   describe('deleteAllDataForTmnt', () => { 
 
     const origTmnt: tmntType = { ...blankTmnt };
-    const origEvents: eventType[] = [ { ...blankEvent } ];  
-    const origDivs: divType[] = [{ ...blankDiv }];
-    const origSquads: squadType[] = [{ ...blankSquad }];
-    const origLanes: laneType[] = [{ ...blankLane }];
-    const origPots: potType[] = [{ ...blankPot }];
-    const origBrkts: brktType[] = [{ ...blankBrkt }];
-    const origElims: elimType[] = [{ ...blankElim }];
+    const origEvents: eventType[] = [];  
+    const origDivs: divType[] = [];
+    const origSquads: squadType[] = [];
+    const origLanes: laneType[] = [];
+    const origPots: potType[] = [];
+    const origBrkts: brktType[] = [];
+    const origElims: elimType[] = [];
   
     const toSaveTmntData: saveAllTmntDataType = {
       saveType: 'CREATE',

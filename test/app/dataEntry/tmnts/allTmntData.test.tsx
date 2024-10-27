@@ -40,7 +40,7 @@ describe('Save New Tmnt', () => {
     setDivs: mockSetDivs,
     squads: mockSquads,
     setSquads: mockSetSquads,
-    lanes: mockLanes, 
+    lanes: mockLanes,
     setLanes: mockSetLanes,
     pots: mockPots,
     setPots: mockSetPots,
@@ -49,7 +49,8 @@ describe('Save New Tmnt', () => {
     elims: mockElims,
     setElims: mockSetElims,
     showingModal,
-    setShowingModal: mockSetShowingModal
+    setShowingModal: mockSetShowingModal,
+    tmntSaveType: 'CREATE'
   };
 
   const ic: IntlConfig = {
@@ -268,7 +269,7 @@ describe('Save New Tmnt', () => {
 
     })
 
-    describe('render lanes data', () => {
+    describe('render Lanes data', () => {
 
       it('render lanes items after loaded Bowls', async () => {
         const user = userEvent.setup()
@@ -308,7 +309,7 @@ describe('Save New Tmnt', () => {
 
     })
 
-    describe('render the pots data', () => { 
+    describe('render the Pots data', () => { 
 
       it('render pots items after loaded Bowls', async () => {
         const user = userEvent.setup()
@@ -375,7 +376,7 @@ describe('Save New Tmnt', () => {
 
     })
 
-    describe('render the brkts data', () => {
+    describe('render the Brackets data', () => {
 
       it('render brkts items after loaded Bowls', async () => {
         const user = userEvent.setup()
@@ -471,7 +472,7 @@ describe('Save New Tmnt', () => {
 
     })
 
-    describe('render the elims data', () => {
+    describe('render the Eliminators data', () => {
 
       it('render elims items after loaded Bowls', async () => {
         const user = userEvent.setup()
@@ -529,5 +530,4 @@ describe('Save New Tmnt', () => {
 
   })
  
-
 })

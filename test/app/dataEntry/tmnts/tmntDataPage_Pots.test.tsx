@@ -15,7 +15,7 @@ import {
   initPots,
   initSquads,
 } from "@/lib/db/initVals";
-import { fullTmntDataType } from "@/lib/types/types";
+import { allDataOneTmntType } from "@/lib/types/types";
 
 describe("TmntDataPage - Pots Component", () => {
 
@@ -117,7 +117,7 @@ describe("TmntDataPage - Pots Component", () => {
   });
 
   describe("click on the division radios", () => {
-    const mockFullTmnt: fullTmntDataType = {
+    const mockFullTmnt: allDataOneTmntType = {
       tmnt: mockTmnt,
       events: mockEvent,
       divs: mockDivs,
@@ -419,7 +419,7 @@ describe("TmntDataPage - Pots Component", () => {
   })
 
   describe('render multiple errors', () => { 
-    const mockFullTmnt: fullTmntDataType = {
+    const mockFullTmnt: allDataOneTmntType = {
       tmnt: mockTmnt,
       events: mockEvent,
       divs: mockDivs,
@@ -491,7 +491,7 @@ describe("TmntDataPage - Pots Component", () => {
   })
   
   describe('render and click the delete button', () => { 
-    const mockFullTmnt: fullTmntDataType = {
+    const mockFullTmnt: allDataOneTmntType = {
       tmnt: mockTmnt,
       events: mockEvent,
       divs: mockDivs,

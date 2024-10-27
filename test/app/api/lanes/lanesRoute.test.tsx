@@ -47,6 +47,7 @@ const testLane: laneType = {
   id: "lan_7b5b9d9e6b6e4c5b9f6b7d9e7f9b6c5d",
   lane_number: 29,
   squad_id: "sqd_7116ce5f80164830830a7157eb093396",
+  in_use: true,
 }
 
 const delOneLane = async (id: string) => { 
@@ -265,7 +266,7 @@ describe('Lanes - API: /api/lanes', () => {
       const lanes: laneType[] = response.data.lanes;
       // query in /api/lanes/tmnt/:tmntId GET sorts by squadid, then sort_order
       expect(lanes[0].id).toBe('lan_ae24c5cc04f6463d89f24e6e19a12601');
-      expect(lanes[19].id).toBe('lan_be24c5cc04f6463d89f24e6e19a126010');
+      expect(lanes[19].id).toBe('lan_be24c5cc04f6463d89f24e6e19a12610');
     })
     it('should return empty array if tmnt not found', async () => { 
       const response = await axios({

@@ -21,11 +21,6 @@ interface LanesListProps {
 export const getLanesFromPairs = (pairs: pairsOfLanesType[], squadId: string): laneType[] => {
   if (!pairs || pairs.length === 0) return [];
   const lanes: laneType[] = [];
-  // const inUsePairs = pairs.filter(pair => pair.in_use);
-  // // make sure got valid data
-  // inUsePairs.forEach(pair => {
-  //   if (!pair.left_id || !pair.left_lane || !pair.right_id || !pair.right_lane) return [];
-  // })
   const validPairs = pairs.filter(pair => pair.left_id && pair.left_lane && pair.right_id && pair.right_lane);
   validPairs.forEach(pair => {
     lanes.push(

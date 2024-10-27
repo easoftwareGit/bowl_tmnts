@@ -41,6 +41,14 @@ describe("tests for lane validation", () => {
       }
       expect(gotLaneData(testLane)).toBe(ErrorCode.MissingData);
     })
+    it('should return ErrorCode.MissingData when in_use is missing', () => {
+      const testLane = {
+        ...validLane,
+        in_use: null as any
+      }
+      expect(gotLaneData(testLane)).toBe(ErrorCode.MissingData);
+    })
+
   })
 
   describe('validLaneNumber function', () => { 
@@ -108,6 +116,20 @@ describe("tests for lane validation", () => {
       const testLane = {
         ...validLane,
         squad_id: 'usr_12345678901234567890123456789012'
+      }
+      expect(validLaneData(testLane)).toBe(ErrorCode.InvalidData);
+    })
+    it('should return ErrorCode.InvalidData when lane_number is missing', () => {
+      const testLane = {
+        ...validLane,
+        lane_number: 201
+      }
+      expect(validLaneData(testLane)).toBe(ErrorCode.InvalidData);
+    })
+    it('should return ErrorCode.InvalidData when in_use is missing', () => {
+      const testLane = {
+        ...validLane,
+        in_use: null as any 
       }
       expect(validLaneData(testLane)).toBe(ErrorCode.InvalidData);
     })
@@ -190,6 +212,14 @@ describe("tests for lane validation", () => {
       const sanitizedLane = sanitizeLane(testLane)
       expect(sanitizedLane.lane_number).toEqual(201)
     })    
+    it('should return a sanitized lane when boolean fields are non-boolean', () => {
+      const testLane = {
+        ...validLane,
+        in_use: 'abc' as any,
+      }
+      const sanitizedLane = sanitizeLane(testLane)
+      expect(sanitizedLane.in_use).toBe(true)
+    })    
     it('should return null when pass a null lane', () => {
       expect(sanitizeLane(null as any)).toBe(null)
     })
@@ -222,6 +252,13 @@ describe("tests for lane validation", () => {
         }
         expect(validateLane(testLane)).toBe(ErrorCode.MissingData);
       })
+      it('should return ErrorCode.MissingData when in_use is missing', () => {
+        const testLane = {
+          ...validLane,
+          in_use: null as any
+        }
+        expect(validateLane(testLane)).toBe(ErrorCode.MissingData);        
+      })
     })
 
     describe('validLane function - invalid data', () => { 
@@ -239,6 +276,13 @@ describe("tests for lane validation", () => {
         }
         expect(validateLane(testLane)).toBe(ErrorCode.InvalidData);
       })
+      it('should return ErrorCode.MissingData when in_use is invalid', () => {
+        const testLane = {
+          ...validLane,
+          in_use: 'abc_123' as any
+        }
+        expect(validateLane(testLane)).toBe(ErrorCode.MissingData);
+      })
     })  
   })
 
@@ -253,6 +297,7 @@ describe("tests for lane validation", () => {
         expect(validLanes.lanes[i].id).toEqual(lanesToValidate[i].id);
         expect(validLanes.lanes[i].squad_id).toEqual(lanesToValidate[i].squad_id);
         expect(validLanes.lanes[i].lane_number).toEqual(lanesToValidate[i].lane_number);
+        expect(validLanes.lanes[i].in_use).toEqual(lanesToValidate[i].in_use);
       }
     })
     // no test for sanitized data, since there is no strings to sanitize
@@ -324,6 +369,26 @@ describe("tests for lane validation", () => {
         {
           ...mockLanesToPost[1],    
           squad_id: laneId
+        },
+        {
+          ...mockLanesToPost[2],
+        },
+        {
+          ...mockLanesToPost[3],
+        },
+      ]
+      const validLanes = validateLanes(invalidLanes)
+      expect(validLanes.errorCode).toEqual(ErrorCode.MissingData);
+      expect(validLanes.lanes.length).toEqual(1);
+    })
+    it('should return ErrorCode.MissingData when in_use is missing', () => { 
+      const invalidLanes = [
+        {
+          ...mockLanesToPost[0],          
+        },
+        {
+          ...mockLanesToPost[1],
+          in_use: null as any
         },
         {
           ...mockLanesToPost[2],

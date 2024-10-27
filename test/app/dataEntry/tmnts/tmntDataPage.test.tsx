@@ -6,7 +6,7 @@ import TmntDataPage from "../../../../src/app/dataEntry/tmnt/page";
 import { dateTo_UTC_MMddyyyy, startOfDayFromString, todayStr } from "@/lib/dateTools";
 import { mockTmnt } from "../../../mocks/tmnts/mockTmnt";
 import { initBrkts, initDivs, initElims, initEvents, initLanes, initPots, initSquads, initTmnt } from "@/lib/db/initVals";
-import { fullTmntDataType } from "@/lib/types/types";
+import { allDataOneTmntType } from "@/lib/types/types";
 
 describe('TmntDataPage - Event Component', () => { 
   describe('render the tournement title', () => {       
@@ -90,7 +90,7 @@ describe('TmntDataPage - Event Component', () => {
   })
 
   describe('render the tournament errors', () => { 
-    const mockFullTmnt: fullTmntDataType = {
+    const mockFullTmnt: allDataOneTmntType = {
       tmnt: mockTmnt,
       events: initEvents,
       divs: initDivs,
@@ -131,7 +131,7 @@ describe('TmntDataPage - Event Component', () => {
   })
 
   describe('render tournament name and bowl name', () => { 
-    const mockFullTmnt: fullTmntDataType = {
+    const mockFullTmnt: allDataOneTmntType = {
       tmnt: mockTmnt,
       events: initEvents,
       divs: initDivs,
@@ -155,7 +155,7 @@ describe('TmntDataPage - Event Component', () => {
   })
 
   describe('try to save invalid data', () => {     
-    const mockFullTmnt: fullTmntDataType = {
+    const mockFullTmnt: allDataOneTmntType = {
       tmnt: initTmnt,
       events: initEvents,
       divs: initDivs,
@@ -188,7 +188,7 @@ describe('TmntDataPage - Event Component', () => {
   })
 
   describe('show tournament name error and then remove error', () => { 
-    const mockFullTmnt: fullTmntDataType = {
+    const mockFullTmnt: allDataOneTmntType = {
       tmnt: initTmnt,
       events: initEvents,
       divs: initDivs,
@@ -219,7 +219,7 @@ describe('TmntDataPage - Event Component', () => {
   })
 
   describe('show bowl name error and then remove error', () => {
-    const mockFullTmnt: fullTmntDataType = {
+    const mockFullTmnt: allDataOneTmntType = {
       tmnt: initTmnt,
       events: initEvents,
       divs: initDivs,
@@ -249,7 +249,7 @@ describe('TmntDataPage - Event Component', () => {
   })
 
   describe('show start date error and then remove error', () => {
-    const mockFullTmnt: fullTmntDataType = {
+    const mockFullTmnt: allDataOneTmntType = {
       tmnt: mockTmnt,
       events: initEvents,
       divs: initDivs,
@@ -280,7 +280,7 @@ describe('TmntDataPage - Event Component', () => {
   })
 
   describe('show end date error and then remove error', () => {
-    const mockFullTmnt: fullTmntDataType = {
+    const mockFullTmnt: allDataOneTmntType = {
       tmnt: mockTmnt,
       events: initEvents,
       divs: initDivs,
@@ -313,7 +313,7 @@ describe('TmntDataPage - Event Component', () => {
   })
 
   describe('enter invalid end date before start date', () => { 
-    const mockFullTmnt: fullTmntDataType = {
+    const mockFullTmnt: allDataOneTmntType = {
       tmnt: mockTmnt,
       events: initEvents,
       divs: initDivs,

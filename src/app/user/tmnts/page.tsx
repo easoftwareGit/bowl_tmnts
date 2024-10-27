@@ -9,7 +9,7 @@ import { tmntsListType } from "@/lib/types/types";
 import { dateTo_UTC_MMddyyyy } from "@/lib/dateTools";
 import ModalConfirm from "@/components/modal/confirmModal";
 import { initModalObj } from "@/components/modal/modalObjType";
-import { deleteAllDataForTmnt } from "@/lib/db/tmnts/tmntsAxios";
+import { fetchBowls, getBowlsError, getBowlsStatus } from "@/redux/features/bowls/bowlsSlice";
 import "./userTmnts.css";
 
 export default function UserTmntsPage() { 
@@ -22,11 +22,18 @@ export default function UserTmntsPage() {
     dispatch(fetchUserTmnts(userId));
   }, [userId, dispatch]);
 
+  useEffect(() => { 
+    dispatch(fetchBowls());
+  }, [dispatch]);
+
+
   const stateUserTmnts = useSelector((state: RootState) => state.userTmnts); 
   const userTmnts: tmntsListType[] = stateUserTmnts.userTmnts
 
   const userTmntsStatus = useSelector(getUserTmntStatus);  
   const userTmntsError = useSelector(getUserTmntError);
+  const bowlsStatus = useSelector(getBowlsStatus);
+  const bowlsError = useSelector(getBowlsError);  
 
   const [confModalObj, setConfModalObj] = useState(initModalObj);
 
@@ -65,11 +72,14 @@ export default function UserTmntsPage() {
         onConfirm={confirmedDelete}
         onCancel={canceledDelete}
       />
-      {(userTmntsStatus === 'loading') && <div>Loading...</div>}      
+      {(userTmntsStatus === 'loading' || bowlsStatus === 'loading') && <div>Loading...</div>}
       {userTmntsStatus !== 'loading' && userTmntsError
         ? (<div>Error: {userTmntsError}</div>
         ) : null}
-      {(userTmntsStatus === 'succeeded') ? ( 
+      {bowlsStatus !== 'loading' && bowlsError
+        ? (<div>Error: {bowlsError}</div>
+        ) : null}
+      {(userTmntsStatus === 'succeeded' && bowlsStatus === 'succeeded') ? ( 
         <div className="container">
           <div className="row g-3 mb-3 justify-content-md-center align-items-center">      
             <div className="col-md-auto">
@@ -108,13 +118,19 @@ export default function UserTmntsPage() {
                       <td className="align-middle">{tmnt.tmnt_name}</td>                      
                       <td className="align-middle">{dateTo_UTC_MMddyyyy(new Date(tmnt.start_date))}</td>
                       <td className="align-middle">{tmnt.bowls.bowl_name}</td>                      
-                      <td className="align-middle" style={{textAlign: "center" }}>
-                        <button
+                      <td className="align-middle" style={{ textAlign: "center" }}>
+                        <Link
+                          className="btn btn-info"
+                          href={`/dataEntry/editTmnt/${tmnt.id}`}
+                        >
+                          Edit
+                        </Link>&nbsp;&nbsp;
+                      {/*<button
                           type="button"
                           className="btn btn-info"                          
                         >
                           Edit
-                        </button>&nbsp;&nbsp;
+                        </button>&nbsp;&nbsp; */}
                         <button
                           type="button"
                           className="btn btn-primary"

@@ -14,7 +14,7 @@ import {
   initPots,
   initSquads,
 } from "@/lib/db/initVals";
-import { fullTmntDataType } from "@/lib/types/types";
+import { allDataOneTmntType } from "@/lib/types/types";
 
 describe("TmntDataPage - Brackets Component", () => { 
 
@@ -37,7 +37,7 @@ describe("TmntDataPage - Brackets Component", () => {
   });  
 
   describe('click the bracket division radio buttons', () => { 
-    const mockFullTmnt: fullTmntDataType = {
+    const mockFullTmnt: allDataOneTmntType = {
       tmnt: mockTmnt,
       events: initEvents,
       divs: mockDivs,
@@ -127,7 +127,7 @@ describe("TmntDataPage - Brackets Component", () => {
 
   describe('render bracket divison error', () => { 
 
-    const mockFullTmnt: fullTmntDataType = {
+    const mockFullTmnt: allDataOneTmntType = {
       tmnt: mockTmnt,
       events: initEvents,
       divs: initDivs,
@@ -196,7 +196,7 @@ describe("TmntDataPage - Brackets Component", () => {
   })
 
   describe('render bracket fee error', () => { 
-    const mockFullTmnt: fullTmntDataType = {
+    const mockFullTmnt: allDataOneTmntType = {
       tmnt: mockTmnt,
       events: initEvents,
       divs: initDivs,
@@ -301,7 +301,7 @@ describe("TmntDataPage - Brackets Component", () => {
   })
   
   describe('render the bracket start error', () => { 
-    const mockFullTmnt: fullTmntDataType = {
+    const mockFullTmnt: allDataOneTmntType = {
       tmnt: mockTmnt,
       events: initEvents,
       divs: initDivs,
@@ -421,7 +421,7 @@ describe("TmntDataPage - Brackets Component", () => {
   })
 
   describe('render edited bracket fee errors', () => {
-    const mockFullTmnt: fullTmntDataType = {
+    const mockFullTmnt: allDataOneTmntType = {
       tmnt: mockTmnt,
       events: initEvents,
       divs: mockDivs,
@@ -513,7 +513,7 @@ describe("TmntDataPage - Brackets Component", () => {
   })
 
   describe('render multiple errors', () => { 
-    const mockFullTmnt: fullTmntDataType = {
+    const mockFullTmnt: allDataOneTmntType = {
       tmnt: mockTmnt,
       events: initEvents,
       divs: mockDivs,
@@ -572,7 +572,7 @@ describe("TmntDataPage - Brackets Component", () => {
   })
 
   describe('delete bracket', () => {
-    const mockFullTmnt: fullTmntDataType = {
+    const mockFullTmnt: allDataOneTmntType = {
       tmnt: mockTmnt,
       events: initEvents,
       divs: mockDivs,

@@ -23,6 +23,7 @@ export async function POST(request: NextRequest) {
         id: lane.id,
         squad_id: lane.squad_id,
         lane_number: lane.lane_number,
+        in_use: lane.in_use
       })
     });      
 

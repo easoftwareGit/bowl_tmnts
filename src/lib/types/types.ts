@@ -325,7 +325,7 @@ export type AcdnErrType = {
   message: string,
 }
 
-export type fullTmntDataType = {
+export type allDataOneTmntType = {
   tmnt: tmntType;
   events: eventType[];
   divs: divType[];
@@ -355,17 +355,7 @@ export type tmntPropsType = {
   setBrkts: (brkts: brktType[]) => void;  
   showingModal: boolean;
   setShowingModal: (showingModal: boolean) => void;
-}
-
-export type allTmntDataType = {
-  tmnt: tmntType;
-  events: eventType[];
-  divs: divType[];
-  squads: squadType[];
-  lanes: laneType[];
-  pots: potType[];
-  brkts: brktType[];
-  elims: elimType[];
+  tmntSaveType: saveTypes;
 }
 
 export type saveAllTmntDataType = {  

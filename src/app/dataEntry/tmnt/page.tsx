@@ -1,6 +1,7 @@
 "use client";
-import React, { useState } from "react";
+import React, { use, useEffect, useState } from "react";
 import { useSession } from "next-auth/react"; 
+import { AppDispatch } from "@/redux/store";
 import TmntDataForm from "./form";
 import {
   initBrkts,
@@ -12,13 +13,15 @@ import {
   initSquads,
   initTmnt,  
 } from "../../../lib/db/initVals";
-import { fullTmntDataType, tmntPropsType } from "../../../lib/types/types";
+import { allDataOneTmntType, saveTypes, tmntPropsType } from "../../../lib/types/types";
+import { useDispatch, useSelector } from "react-redux";
+import { fetchBowls, getBowlsError, getBowlsStatus, selectAllBowls } from "@/redux/features/bowls/bowlsSlice";
 
 interface FormProps {
-  fullTmntData?: fullTmntDataType;
+  fullTmntData?: allDataOneTmntType;
 }
 
-const blankFullTmnt: fullTmntDataType = {
+const blankFullTmnt: allDataOneTmntType = {
   tmnt: initTmnt,
   events: initEvents,
   divs: initDivs,
@@ -32,6 +35,8 @@ const blankFullTmnt: fullTmntDataType = {
 export const TmntDataPage: React.FC<FormProps> = ({
   fullTmntData = blankFullTmnt,
 }) => {
+
+  const dispatch = useDispatch<AppDispatch>();
 
   const { status, data } = useSession();
   // link the tmnt data types
@@ -51,7 +56,7 @@ export const TmntDataPage: React.FC<FormProps> = ({
   const [brkts, setBrkts] = useState(fullTmntData.brkts);
   const [elims, setElims] = useState(fullTmntData.elims);
   const [showingModal, setShowingModal] = useState(false);  
-
+  
   const tmntFormProps: tmntPropsType = {
     tmnt: tmntData,
     setTmnt: setTmntData,
@@ -71,7 +76,8 @@ export const TmntDataPage: React.FC<FormProps> = ({
     setElims,
     showingModal,
     setShowingModal,
-  };
+    tmntSaveType: 'CREATE'
+  };  
 
   return (
     <>      

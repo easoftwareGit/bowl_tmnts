@@ -20,6 +20,7 @@ const gotLaneData = (lane: laneType): ErrorCode => {
       || !lane.id 
       || !lane.squad_id      
       || (typeof lane.lane_number !== 'number')
+      || (typeof lane.in_use !== 'boolean')
     ) {
       return ErrorCode.MissingData;
     }
@@ -68,6 +69,9 @@ const validLaneData = (lane: laneType): ErrorCode => {
     if (!validLaneNumber(lane.lane_number)) {
       return ErrorCode.InvalidData;
     }
+    if (typeof lane.in_use !== 'boolean') {
+      return ErrorCode.InvalidData;
+    }
     return ErrorCode.None;
   } catch (error) {
     return ErrorCode.OtherError;
@@ -94,6 +98,9 @@ export const sanitizeLane = (lane: laneType): laneType => {
   }
   if ((lane.lane_number === null) || isNumber(lane.lane_number)) {
     sanitizedLane.lane_number = lane.lane_number
+  }
+  if (typeof lane.in_use === 'boolean') {
+    sanitizedLane.in_use = lane.in_use
   }
   return sanitizedLane    
 }
@@ -132,8 +139,12 @@ export const validateLanes = (lanes: laneType[]): validLanesType => {
   // cannot use forEach because if got an errror need exit loop
   let i = 0;  
   while (i < lanes.length) {
+    let errCode = gotLaneData(lanes[i])
+    if (errCode !== ErrorCode.None) { 
+      return { lanes: okLanes, errorCode: errCode };
+    }
     const toPost = sanitizeLane(lanes[i]);
-    const errCode = validateLane(toPost);
+    errCode = validateLane(toPost);
     if (errCode !== ErrorCode.None) { 
       return { lanes: okLanes, errorCode: errCode };
     }
