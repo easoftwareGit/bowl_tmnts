@@ -1,9 +1,9 @@
 import axios from "axios";
 import { baseBrktsApi } from "@/lib/db/apiPaths";
 import { testBaseBrktsApi } from "../../../testApi";
-import { tmntSaveBrkts, exportedForTesting } from "@/app/dataEntry/tmnt/saveTmntBrkts";
+import { tmntSaveBrkts, exportedForTesting } from "@/lib/db/oneTmnt/oneTmnt";
 import { mockBrktsToPost, mockSquadsToPost, mockDivs, tmntToDelId } from "../../../mocks/tmnts/singlesAndDoubles/mockSquads";
-import { brktType, saveTypes } from "@/lib/types/types";
+import { brktType } from "@/lib/types/types";
 import { deleteAllTmntBrkts, deleteBrkt, postManyBrkts, postBrkt, putBrkt } from "@/lib/db/brkts/brktsAxios";
 import { deleteAllTmntSquads, postManySquads } from "@/lib/db/squads/squadsAxios";
 import { deleteAllTmntDivs, postManyDivs } from "@/lib/db/divs/divsAxios";
@@ -31,9 +31,6 @@ describe('saveTmntDivs test', () => {
     ? baseBrktsApi
     : testBaseBrktsApi;
   
-  const stCreate: saveTypes  = "CREATE";
-  const stUpdate: saveTypes = "UPDATE";
-
   const mockBrktsToEdit: brktType[] = [
     {
       ...mockBrktsToPost[0],
@@ -293,7 +290,7 @@ describe('saveTmntDivs test', () => {
           ...newBrktClone,
         }
       ]
-      const result = await tmntSaveBrkts(origBrkts, newBrkts, stCreate);
+      const result = await tmntSaveBrkts(origBrkts, newBrkts);
       expect(result).not.toBeNull();
       didCreate = true;
       if (!result) return;
@@ -314,7 +311,7 @@ describe('saveTmntDivs test', () => {
     })
     it('should create multiple new brkts when multiple brkts to save', async () => { 
       const newLanes = structuredClone(mockBrktsToPost);
-      const result = await tmntSaveBrkts(origBrkts, newLanes, stCreate);
+      const result = await tmntSaveBrkts(origBrkts, newLanes);
       expect(result).not.toBeNull();
       didCreate = true;
       if (!result) return;
@@ -343,7 +340,7 @@ describe('saveTmntDivs test', () => {
     })
     it('should not create any new brkts when no brkts to save, and return empty array', async () => { 
       const noBrkts: brktType[] = [];
-      const result = await tmntSaveBrkts(origBrkts, noBrkts, stCreate);
+      const result = await tmntSaveBrkts(origBrkts, noBrkts);
       expect(result).not.toBeNull();
       didCreate = true;
       if (!result) return;
@@ -414,7 +411,7 @@ describe('saveTmntDivs test', () => {
     it('should save edited brkts, one brkt edited', async () => { 
       const brktsToEdit = structuredClone(mockBrktsToEdit);
       brktsToEdit[1].start = 2;
-      const savedBrkts = await tmntSaveBrkts(mockBrktsToEdit, brktsToEdit, stUpdate);
+      const savedBrkts = await tmntSaveBrkts(mockBrktsToEdit, brktsToEdit);
       if (!savedBrkts) {
         expect(savedBrkts).not.toBeNull();
         return;
@@ -438,7 +435,7 @@ describe('saveTmntDivs test', () => {
     it('should save edited brkts, one brkt added', async () => { 
       const brktsToEdit = structuredClone(mockBrktsToEdit);
       brktsToEdit.push(toAddBrkt);
-      const savedBrkts = await tmntSaveBrkts(mockBrktsToEdit, brktsToEdit, stUpdate);
+      const savedBrkts = await tmntSaveBrkts(mockBrktsToEdit, brktsToEdit);
       if (!savedBrkts) {
         expect(savedBrkts).not.toBeNull();
         return;
@@ -466,7 +463,7 @@ describe('saveTmntDivs test', () => {
     it('should save edited brkts, one brkt deleted', async () => { 
       const brktsToEdit = structuredClone(mockBrktsToEdit);
       brktsToEdit.pop();
-      const savedBrkts = await tmntSaveBrkts(mockBrktsToEdit, brktsToEdit, stUpdate);
+      const savedBrkts = await tmntSaveBrkts(mockBrktsToEdit, brktsToEdit);
       if (!savedBrkts) {
         expect(savedBrkts).not.toBeNull();
         return;
@@ -489,7 +486,7 @@ describe('saveTmntDivs test', () => {
       brktsToEdit[1].start = 2;
       // add 
       brktsToEdit.push(toAddBrkt);
-      const savedBrkts = await tmntSaveBrkts(mockBrktsToEdit, brktsToEdit, stUpdate);
+      const savedBrkts = await tmntSaveBrkts(mockBrktsToEdit, brktsToEdit);
       if (!savedBrkts) {
         expect(savedBrkts).not.toBeNull();
         return;

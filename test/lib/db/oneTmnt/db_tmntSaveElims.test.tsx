@@ -1,15 +1,16 @@
 import axios from "axios";
 import { baseElimsApi } from "@/lib/db/apiPaths";
 import { testBaseElimsApi } from "../../../testApi";
-import { tmntSaveElims, exportedForTesting } from "@/app/dataEntry/tmnt/saveTmntElims";
+import { tmntSaveElims, exportedForTesting } from "@/lib/db/oneTmnt/oneTmnt";
 import { deleteAllTmntElims, deleteElim, postElim, postManyElims, putElim } from "@/lib/db/elims/elimsAxios";
 import { mockElimsToPost, mockSquadsToPost, mockDivs, tmntToDelId } from "../../../mocks/tmnts/singlesAndDoubles/mockSquads";
-import { elimType, saveTypes } from "@/lib/types/types";
+import { elimType } from "@/lib/types/types";
 import { deleteAllTmntSquads, postManySquads } from "@/lib/db/squads/squadsAxios";
 import { deleteAllTmntDivs, postManyDivs } from "@/lib/db/divs/divsAxios";
 import { blankElim } from "@/lib/db/initVals";
 import 'core-js/actual/structured-clone';
 const { tmntPostPutOrDelElims } = exportedForTesting;
+
 
 // before running this test, run the following commands in the terminal:
 // 1) clear and re-seed the database
@@ -31,9 +32,6 @@ describe('saveTmntDivs test', () => {
     ? baseElimsApi
     : testBaseElimsApi;
   
-  const stCreate: saveTypes  = "CREATE";
-  const stUpdate: saveTypes = "UPDATE";
-
   const mockElimsToEdit: elimType[] = [
     {
       ...mockElimsToPost[0],
@@ -273,7 +271,7 @@ describe('saveTmntDivs test', () => {
           ...newElimClone,
         }
       ]
-      const result = await tmntSaveElims(origElims, newElims, stCreate);
+      const result = await tmntSaveElims(origElims, newElims);
       expect(result).not.toBeNull();
       didCreate = true;
       if (!result) return;
@@ -289,7 +287,7 @@ describe('saveTmntDivs test', () => {
     })
     it('should create multiple new elims when multiple elims to save', async () => { 
       const newLanes = structuredClone(mockElimsToPost);
-      const result = await tmntSaveElims(origElims, newLanes, stCreate);
+      const result = await tmntSaveElims(origElims, newLanes);
       expect(result).not.toBeNull();
       didCreate = true;
       if (!result) return;
@@ -313,7 +311,7 @@ describe('saveTmntDivs test', () => {
     })
     it('should NOT create new elims when no elims to save, and return empty array', async () => { 
       const noElims: elimType[] = []
-      const result = await tmntSaveElims(origElims, noElims, stCreate);
+      const result = await tmntSaveElims(origElims, noElims);
       expect(result).not.toBeNull();
       didCreate = true;
       if (!result) return;
@@ -384,7 +382,7 @@ describe('saveTmntDivs test', () => {
     it('should save edited elims, one elim edited', async () => { 
       const elimsToEdit = structuredClone(mockElimsToEdit);
       elimsToEdit[1].start = 2;
-      const savedElims = await tmntSaveElims(mockElimsToEdit, elimsToEdit, stUpdate);
+      const savedElims = await tmntSaveElims(mockElimsToEdit, elimsToEdit);
       if (!savedElims) {
         expect(savedElims).not.toBeNull();
         return;
@@ -403,7 +401,7 @@ describe('saveTmntDivs test', () => {
     it('should save edited elims, one elim added', async () => { 
       const elimsToEdit = structuredClone(mockElimsToEdit);
       elimsToEdit.push(toAddElim);
-      const savedElims = await tmntSaveElims(mockElimsToEdit, elimsToEdit, stUpdate);
+      const savedElims = await tmntSaveElims(mockElimsToEdit, elimsToEdit);
       if (!savedElims) {
         expect(savedElims).not.toBeNull();
         return;
@@ -426,7 +424,7 @@ describe('saveTmntDivs test', () => {
     it('should save edited elims, one elim deleted', async () => { 
       const elimsToEdit = structuredClone(mockElimsToEdit);
       elimsToEdit.pop();
-      const savedElims = await tmntSaveElims(mockElimsToEdit, elimsToEdit, stUpdate);
+      const savedElims = await tmntSaveElims(mockElimsToEdit, elimsToEdit);
       if (!savedElims) {
         expect(savedElims).not.toBeNull();
         return;
@@ -449,7 +447,7 @@ describe('saveTmntDivs test', () => {
       elimsToEdit[1].start = 2;
       // add 
       elimsToEdit.push(toAddElim);
-      const savedElims = await tmntSaveElims(mockElimsToEdit, elimsToEdit, stUpdate);
+      const savedElims = await tmntSaveElims(mockElimsToEdit, elimsToEdit);
       if (!savedElims) {
         expect(savedElims).not.toBeNull();
         return;

@@ -1,9 +1,9 @@
 import axios from "axios";
 import { basePotsApi } from "@/lib/db/apiPaths";
 import { testBasePotsApi } from "../../../testApi";
-import { tmntSavePots, exportedForTesting } from "@/app/dataEntry/tmnt/saveTmntPots";
+import { tmntSavePots, exportedForTesting } from "@/lib/db/oneTmnt/oneTmnt";
 import { mockPotsToPost, mockSquadsToPost, mockDivs, tmntToDelId } from "../../../mocks/tmnts/singlesAndDoubles/mockSquads";
-import { PotCategories, potType, saveTypes } from "@/lib/types/types";
+import { PotCategories, potType } from "@/lib/types/types";
 import { deleteAllTmntPots, deletePot, postManyPots, postPot, putPot } from "@/lib/db/pots/potsAxios";
 import { deleteAllTmntSquads, postManySquads } from "@/lib/db/squads/squadsAxios";
 import { deleteAllTmntDivs, postManyDivs } from "@/lib/db/divs/divsAxios";
@@ -31,9 +31,6 @@ describe('saveTmntDivs test', () => {
     ? basePotsApi
     : testBasePotsApi;
   
-  const stCreate: saveTypes = "CREATE";
-  const stUpdate: saveTypes = "UPDATE";
-
   const mockPotsToEdit: potType[] = [
     {
       ...mockPotsToPost[0],
@@ -55,7 +52,7 @@ describe('saveTmntDivs test', () => {
     const found = pots.find((p: potType) => p.id === mockPotsToEdit[2].id);
     if (!found) {
       await postPot(mockPotsToEdit[2]);
-    }      
+    }
   }
 
   describe('tmntPostPutOrDelPots(): edited pots(s)', () => { 
@@ -269,7 +266,7 @@ describe('saveTmntDivs test', () => {
           ...newPotClone,
         }
       ]
-      const result = await tmntSavePots(origPots, newPots, stCreate);
+      const result = await tmntSavePots(origPots, newPots);
       expect(result).not.toBeNull();
       didCreate = true;
       if (!result) return;
@@ -284,7 +281,7 @@ describe('saveTmntDivs test', () => {
     })
     it('should create multiple new pots when multiple pots to save', async () => { 
       const newPots = structuredClone(mockPotsToPost);
-      const result = await tmntSavePots(origPots, newPots, stCreate);
+      const result = await tmntSavePots(origPots, newPots);
       expect(result).not.toBeNull();
       didCreate = true;
       if (!result) return;
@@ -307,7 +304,7 @@ describe('saveTmntDivs test', () => {
     })
     it('should create no new pots when no new pots to save, and return empty array', async () => {
       const noPots: potType[] = []
-      const result = await tmntSavePots(origPots, noPots, stCreate);
+      const result = await tmntSavePots(origPots, noPots);
       expect(result).not.toBeNull();
       if (!result) return;
       expect(result.length).toBe(0);
@@ -377,7 +374,7 @@ describe('saveTmntDivs test', () => {
     it('should save edited pots, one pot edited', async () => { 
       const potsToEdit = structuredClone(mockPotsToEdit);
       potsToEdit[1].fee = '13';
-      const savedPots = await tmntSavePots(mockPotsToEdit, potsToEdit, stUpdate);
+      const savedPots = await tmntSavePots(mockPotsToEdit, potsToEdit);
       if (!savedPots) {
         expect(savedPots).not.toBeNull();
         return;
@@ -395,7 +392,7 @@ describe('saveTmntDivs test', () => {
     it('should save edited pots, one pot added', async () => { 
       const potsToEdit = structuredClone(mockPotsToEdit);
       potsToEdit.push(toAddPot);
-      const savedPots = await tmntSavePots(mockPotsToEdit, potsToEdit, stUpdate);
+      const savedPots = await tmntSavePots(mockPotsToEdit, potsToEdit);
       if (!savedPots) {
         expect(savedPots).not.toBeNull();
         return;
@@ -417,7 +414,7 @@ describe('saveTmntDivs test', () => {
     it('should save edited pots, one pot deleted', async () => { 
       const potsToEdit = structuredClone(mockPotsToEdit);
       potsToEdit.pop();
-      const savedPots = await tmntSavePots(mockPotsToEdit, potsToEdit, stUpdate);
+      const savedPots = await tmntSavePots(mockPotsToEdit, potsToEdit);
       if (!savedPots) {
         expect(savedPots).not.toBeNull();
         return;
@@ -440,7 +437,7 @@ describe('saveTmntDivs test', () => {
       potsToEdit[1].fee = '13';
       // add series pot
       potsToEdit.push(toAddPot);
-      const savedPots = await tmntSavePots(mockPotsToEdit, potsToEdit, stUpdate);
+      const savedPots = await tmntSavePots(mockPotsToEdit, potsToEdit);
       if (!savedPots) {
         expect(savedPots).not.toBeNull();
         return;

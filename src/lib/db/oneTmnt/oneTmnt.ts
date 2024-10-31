@@ -1,4 +1,4 @@
-import { brktType, divType, elimType, eventType, ioDataErrorsType, laneType, potType, saveAllTmntDataType, saveTypes, squadType, tmntType } from "@/lib/types/types";
+import { brktType, divType, elimType, eventType, ioDataErrorsType, laneType, potType, allDataOneTmntType, squadType, tmntType } from "@/lib/types/types";
 import { deleteTmnt, postTmnt, putTmnt } from "../tmnts/tmntsAxios";
 import { isValidBtDbId } from "@/lib/validation";
 import { deleteAllTmntEvents, deleteEvent, postEvent, postManyEvents, putEvent } from "../events/eventsAxios";
@@ -13,23 +13,21 @@ import { deleteElim, postElim, postManyElims, putElim } from "../elims/elimsAxio
  * saves a tournament
  * 
  * @param {tmntType} origTmnt - original tmnt
- * @param {tmntType} tmnt - tmnt to save
- * @param {saveTypes} saveType - save type, 'CREATE' or 'UPDATE'
+ * @param {tmntType} tmnt - tmnt to save 
  * @returns {tmntType | null} - tmnt saved or null
  */
-export const tmntSaveTmnt = async (origTmnt: tmntType, tmnt: tmntType, saveType: saveTypes): Promise<tmntType | null> => { 
+export const tmntSaveTmnt = async (origTmnt: tmntType, tmnt: tmntType): Promise<tmntType | null> => { 
  
   // data error sanitize/vailadtion done in postTmnt or putTmnt
-  if (!tmnt || !saveType) return null;
-  if (saveType === 'CREATE') {    
+  if (!origTmnt || !tmnt) return null;
+  // if no original id, then a new tmnt is being created
+  if (origTmnt.id === '') {
     return await postTmnt(tmnt)
-  } else if (saveType === 'UPDATE') {
+  } else {
     // if tmnt not edited, return original tmnt
     if (JSON.stringify(origTmnt) === JSON.stringify(tmnt)) return tmnt;
     // if tmnt edited, put it
     return await putTmnt(tmnt)  
-  } else {
-    return null
   }
 }
 
@@ -85,19 +83,17 @@ const tmntPostPutOrDelEvents = async (origEvents: eventType[], events: eventType
  * saves tmnt events
  * 
  * @param {eventType[]} origEvents - original events in tmnt
- * @param {eventType[]} events - current events to save
- * @param {saveTypes} saveType - 'CREATE' or 'UPDATE'
+ * @param {eventType[]} events - current events to save 
  * @returns - array of saved current events or null (if an event is not edited, it will be included in the returned array)  
  */
-export const tmntSaveEvents = async (origEvents: eventType[], events: eventType[], saveType: saveTypes): Promise<eventType[] | null> => { 
+export const tmntSaveEvents = async (origEvents: eventType[], events: eventType[]): Promise<eventType[] | null> => { 
 
-  if (!origEvents || !events || !saveType) return null;
-  if (saveType === 'CREATE') {
+  if (!origEvents || !events) return null;
+  // if no original id, then a new events are being created
+  if (origEvents.length === 1 && origEvents[0].id === '') {    
     return await postManyEvents(events) 
-  } else if (saveType === 'UPDATE') {
+  } else {
     return await tmntPostPutOrDelEvents(origEvents, events)
-  } else {  
-    return null
   }
 }
 
@@ -152,19 +148,17 @@ const tmntPostPutOrDelDivs = async (origDivs: divType[], divs: divType[]): Promi
  * saves tmnt divs
  * 
  * @param {divType[]} origDivs - original divs in tmnts
- * @param {divType[]} divs - current divs to save
- * @param {saveTypes} saveType - 'CREATE' or 'UPDATE'
+ * @param {divType[]} divs - current divs to save 
  * @returns {divType[] | null} - array of saved current divs or null
  */
-export const tmntSaveDivs = async (origDivs: divType[], divs: divType[], saveType: saveTypes): Promise<divType[] | null> => {
+export const tmntSaveDivs = async (origDivs: divType[], divs: divType[]): Promise<divType[] | null> => {
 
-  if (!origDivs || !divs || !saveType) return null;
-  if (saveType === 'CREATE') {
+  if (!origDivs || !divs) return null;
+  // if no original id, then a new events are being created
+  if (origDivs.length === 1 && origDivs[0].id === '') {
     return await postManyDivs(divs); 
-  } else if (saveType === 'UPDATE') {
+  } else {
     return await tmntPostPutOrDelDivs(origDivs, divs)
-  } else {  
-    return null
   }
 }
 
@@ -219,19 +213,17 @@ const tmntPostPutOrDelSquads = async (origSquads: squadType[], squads: squadType
  * saves tmnt squads
  * 
  * @param {squadType[]} origSquads - original squads in tmnts
- * @param {squadType[]} squads - current squads to save
- * @param {saveTypes} saveType - 'CREATE' or 'UPDATE'
+ * @param {squadType[]} squads - current squads to save 
  * @returns {squadType[] | null} - array of saved current squads or null
  */
-export const tmntSaveSquads = async (origSquads: squadType[], squads: squadType[], saveType: saveTypes): Promise<squadType[] | null> => { 
+export const tmntSaveSquads = async (origSquads: squadType[], squads: squadType[]): Promise<squadType[] | null> => { 
 
-  if (!origSquads || !squads || !saveType) return null;
-  if (saveType === 'CREATE') {
+  if (!origSquads || !squads) return null;
+  // if no original id, then a new events are being created
+  if (origSquads.length === 1 && origSquads[0].id === '') {
     return await postManySquads(squads)
-  } else if (saveType === 'UPDATE') {
+  } else {
     return await tmntPostPutOrDelSquads(origSquads, squads)
-  } else {  
-    return null
   }
 }
 
@@ -292,19 +284,18 @@ const tmntPostPutOrDelLanes = async (origLanes: laneType[], lanes: laneType[]): 
  * saves tmnt lanes
  * 
  * @param {laneType[]} origLanes - original lanes in tmnts
- * @param {laneType[]} lanes - current lanes to save
- * @param {saveTypes} saveType - 'CREATE' or 'UPDATE'
+ * @param {laneType[]} lanes - current lanes to save 
  * @returns {laneType[] | null} - array of saved current lanes or null
  */
-export const tmntSaveLanes = async (origLanes: laneType[], lanes: laneType[], saveType: saveTypes): Promise<laneType[] | null> => { 
+export const tmntSaveLanes = async (origLanes: laneType[], lanes: laneType[]): Promise<laneType[] | null> => { 
 
-  if (!origLanes || !lanes || !saveType) return null;
-  if (saveType === 'CREATE') {
+  if (!origLanes || !lanes) return null;
+  // if no original id, then a new events are being created
+  // origLanes will have even # of rows 
+  if (origLanes.length === 2 && origLanes[0].id === '' && origLanes[1].id === '') {
     return await postManyLanes(lanes)
-  } else if (saveType === 'UPDATE') {
+  } else {
     return await tmntPostPutOrDelLanes(origLanes, lanes)
-  } else {  
-    return null
   }
 }
 
@@ -365,19 +356,16 @@ const tmntPostPutOrDelPots = async (origPots: potType[], pots: potType[]): Promi
  * saves tmnt pots
  * 
  * @param {potType[]} origPots - original pots in tmnts
- * @param {potType[]} pots - current pots to save
- * @param {saveTypes} saveType - 'CREATE' or 'UPDATE'
+ * @param {potType[]} pots - current pots to save 
  * @returns {potType[] | null} - array of saved current pots or null
  */
-export const tmntSavePots = async (origPots: potType[], pots: potType[], saveType: saveTypes): Promise<potType[] | null> => { 
+export const tmntSavePots = async (origPots: potType[], pots: potType[]): Promise<potType[] | null> => { 
 
-  if (!origPots || !pots || !saveType) return null;
-  if (saveType === 'CREATE') {
+  if (!origPots || !pots) return null;
+  if (origPots.length === 0) {
     return await postManyPots(pots)
-  } else if (saveType === 'UPDATE') {
+  } else {
     return await tmntPostPutOrDelPots(origPots, pots)
-  } else {  
-    return null
   }
 }
 
@@ -439,18 +427,15 @@ const tmntPostPutOrDelBrkts = async (origBrkts: brktType[], brkts: brktType[]): 
  * 
  * @param {brktType[]} origBrkts - original brkts in tmnts
  * @param {brktType[]} brkts - current brkts to save
- * @param {saveTypes} saveType - 'CREATE' or 'UPDATE'
  * @returns {brktType[] | null} - array of saved current brkts or null
  */
-export const tmntSaveBrkts = async (origBrkts: brktType[], brkts: brktType[], saveType: saveTypes): Promise<brktType[] | null> => { 
+export const tmntSaveBrkts = async (origBrkts: brktType[], brkts: brktType[]): Promise<brktType[] | null> => { 
 
-  if (!origBrkts || !brkts || !saveType) return null;
-  if (saveType === 'CREATE') {
+  if (!origBrkts || !brkts) return null;
+  if (origBrkts.length === 0) {
     return await postManyBrkts(brkts)
-  } else if (saveType === 'UPDATE') {
+  } else {
     return await tmntPostPutOrDelBrkts(origBrkts, brkts)
-  } else {  
-    return null
   }
 }
 
@@ -511,57 +496,53 @@ const tmntPostPutOrDelElims = async (origElims: elimType[], elims: elimType[]): 
  * saves tmnt elims
  * 
  * @param {elimType[]} origElims - original elims in tmnts
- * @param {elimType[]} elims - current elims to save
- * @param {saveTypes} saveType - 'CREATE' or 'UPDATE'
+ * @param {elimType[]} elims - current elims to save 
  * @returns {elimType[] | null} - array of saved current elims or null
  */
-export const tmntSaveElims = async (origElims: elimType[], elims: elimType[], saveType: saveTypes): Promise<elimType[] | null> => { 
+export const tmntSaveElims = async (origElims: elimType[], elims: elimType[]): Promise<elimType[] | null> => { 
 
-  if (!origElims || !elims || !saveType) return null;
-  if (saveType === 'CREATE') {
+  if (!origElims || !elims) return null;
+  if (origElims.length === 0) {
     return await postManyElims(elims)
-  } else if (saveType === 'UPDATE') {
+  } else {
     return await tmntPostPutOrDelElims(origElims, elims)
-  } else {  
-    return null
   }
 }
 
 /**
  * saves all data for one tournament post, put or delete as needed
  * 
- * @param {saveAllTmntDataType} allTmntData - data to save
+ * @param {allDataOneTmntType} allTmntData - data to save
  * @returns {ioDataErrorsType} - save result 
  */
-export const saveAllDataOneTmnt = async(allTmntData: saveAllTmntDataType): Promise<ioDataErrorsType> => { 
-  const {
-    saveType, 
-    origTmnt, tmnt,
-    origEvents, events,
-    origDivs, divs, 
-    origSquads, squads, 
-    origLanes, lanes,
-    origPots, pots, 
-    origBrkts, brkts,
-    origElims, elims
-  } = allTmntData
-  
-  const savedTmnt = await tmntSaveTmnt(origTmnt, tmnt, saveType);
+export const saveAllDataOneTmnt = async (allTmntData: allDataOneTmntType): Promise<ioDataErrorsType> => { 
+  const { origData, curData } = allTmntData  
+  const origTmnt = origData.tmnt
+  const origEvents = origData.events
+  const origDivs = origData.divs
+  const origSquads = origData.squads
+  const origLanes = origData.lanes
+  const origPots = origData.pots
+  const origBrkts = origData.brkts
+  const origElims = origData.elims
+  const { tmnt, events, divs, squads, lanes, pots, brkts, elims } = curData
+
+  const savedTmnt = await tmntSaveTmnt(origTmnt, tmnt);
   if (!savedTmnt) return ioDataErrorsType.Tmnt;
-  const savedEvents = await tmntSaveEvents(origEvents, events, saveType);
+  const savedEvents = await tmntSaveEvents(origEvents, events);
   if (!savedEvents) { 
     // delete saved tmnt data
     await deleteTmnt(tmnt.id);            
     return ioDataErrorsType.Events;
   } 
-  const savedDivs = await tmntSaveDivs(origDivs, divs, saveType);
+  const savedDivs = await tmntSaveDivs(origDivs, divs);
   if (!savedDivs) { 
     // delete saved tmnt data
     await deleteAllTmntEvents(tmnt.id);   
     await deleteTmnt(tmnt.id);            
     return ioDataErrorsType.Divs;
   } 
-  const savedSquads = await tmntSaveSquads(origSquads, squads, saveType);
+  const savedSquads = await tmntSaveSquads(origSquads, squads);
   if (!savedSquads) { 
     // delete saved tmnt data
     await deleteAllTmntDivs(tmnt.id);
@@ -569,7 +550,7 @@ export const saveAllDataOneTmnt = async(allTmntData: saveAllTmntDataType): Promi
     await deleteTmnt(tmnt.id);            
     return ioDataErrorsType.Squads;
   }
-  const savedLanes = await tmntSaveLanes(origLanes, lanes, saveType);
+  const savedLanes = await tmntSaveLanes(origLanes, lanes);
   if (!savedLanes) { 
     // delete saved tmnt data
     await deleteAllTmntSquads(tmnt.id);
@@ -578,7 +559,7 @@ export const saveAllDataOneTmnt = async(allTmntData: saveAllTmntDataType): Promi
     await deleteTmnt(tmnt.id);
     return ioDataErrorsType.Lanes;
   }
-  const savedPots = await tmntSavePots(origPots, pots, saveType);
+  const savedPots = await tmntSavePots(origPots, pots);
   if (!savedPots) { 
     // delete saved tmnt data
     await deleteAllTmntLanes(tmnt.id);
@@ -588,7 +569,7 @@ export const saveAllDataOneTmnt = async(allTmntData: saveAllTmntDataType): Promi
     await deleteTmnt(tmnt.id);
     return ioDataErrorsType.Pots;
   }
-  const savedBrkts = await tmntSaveBrkts(origBrkts, brkts, saveType);
+  const savedBrkts = await tmntSaveBrkts(origBrkts, brkts);
   if (!savedBrkts) { 
     // delete saved tmnt data
     await deleteAllTmntPots(tmnt.id);
@@ -599,7 +580,7 @@ export const saveAllDataOneTmnt = async(allTmntData: saveAllTmntDataType): Promi
     await deleteTmnt(tmnt.id);
     return ioDataErrorsType.Brkts;
   }
-  const savedElims = await tmntSaveElims(origElims, elims, saveType);
+  const savedElims = await tmntSaveElims(origElims, elims);
   if (!savedElims) { 
     // delete saved tmnt data
     await deleteAllTmntBrkts(tmnt.id);

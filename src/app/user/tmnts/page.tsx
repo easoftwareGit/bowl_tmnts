@@ -9,7 +9,7 @@ import { tmntsListType } from "@/lib/types/types";
 import { dateTo_UTC_MMddyyyy } from "@/lib/dateTools";
 import ModalConfirm from "@/components/modal/confirmModal";
 import { initModalObj } from "@/components/modal/modalObjType";
-import { fetchBowls, getBowlsError, getBowlsStatus } from "@/redux/features/bowls/bowlsSlice";
+import { fetchBowls, getBowlsError, getBowlsLoadStatus } from "@/redux/features/bowls/bowlsSlice";
 import "./userTmnts.css";
 
 export default function UserTmntsPage() { 
@@ -32,7 +32,7 @@ export default function UserTmntsPage() {
 
   const userTmntsStatus = useSelector(getUserTmntStatus);  
   const userTmntsError = useSelector(getUserTmntError);
-  const bowlsStatus = useSelector(getBowlsStatus);
+  const bowlsStatus = useSelector(getBowlsLoadStatus);
   const bowlsError = useSelector(getBowlsError);  
 
   const [confModalObj, setConfModalObj] = useState(initModalObj);

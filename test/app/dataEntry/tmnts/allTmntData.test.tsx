@@ -29,7 +29,7 @@ const mockSetBrkts = jest.fn();
 const mockSetElims = jest.fn();
 const mockSetShowingModal = jest.fn();
 
-describe('Save New Tmnt', () => {
+describe('Render Tmnt data', () => {
 
   const tmntFormProps: tmntPropsType = {
     tmnt: mockTmnt,
@@ -49,8 +49,7 @@ describe('Save New Tmnt', () => {
     elims: mockElims,
     setElims: mockSetElims,
     showingModal,
-    setShowingModal: mockSetShowingModal,
-    tmntSaveType: 'CREATE'
+    setShowingModal: mockSetShowingModal,    
   };
 
   const ic: IntlConfig = {

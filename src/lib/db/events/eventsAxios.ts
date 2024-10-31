@@ -44,8 +44,8 @@ export const getAllEventsForTmnt = async (tmntId: string): Promise<eventType[] |
 export const postEvent = async (event: eventType): Promise<eventType | null> => {
   
   try {
+    if (!event || !isValidBtDbId(event.id, 'evt')) return null
     // further sanatation and validation done in POST route
-    if (validateEvent(event) !== ErrorCode.None) return null
     const eventJSON = JSON.stringify(event);    
     const response = await axios({
       method: "post",
@@ -95,8 +95,8 @@ export const postManyEvents = async (events: eventType[]): Promise<eventType[] |
 export const putEvent = async (event: eventType): Promise<eventType | null> => {
   
   try {
-    // further sanatation and validation done in PUT route
-    if (validateEvent(event) !== ErrorCode.None) return null
+    if (!event || !isValidBtDbId(event.id, 'evt')) return null
+    // further sanatation and validation done in POST route
     const eventJSON = JSON.stringify(event);    
     const response = await axios({
       method: "put",

@@ -1,7 +1,7 @@
 import axios from "axios";
 import { baseTmntsApi } from "@/lib/db/apiPaths";
 import { testBaseTmntsApi } from "../../../../test/testApi";
-import { allDataOneTmntType, ioDataErrorsType, tmntsListType, tmntType, YearObj } from "@/lib/types/types";
+import { dataOneTmntType, ioDataErrorsType, tmntsListType, tmntType, YearObj } from "@/lib/types/types";
 import { validateTmnt } from "@/app/api/tmnts/valildate";
 import { ErrorCode, isValidBtDbId, validYear } from "@/lib/validation";
 import { todayYearStr } from "@/lib/dateTools";
@@ -170,13 +170,13 @@ export const getTmnts = async (
  * get all data for a tmnt
  * 
  * @param {string} tmntId - id of tmnt to get data for
- * @returns {allDataOneTmntType | null} - all data for tmnt
+ * @returns {dataOneTmntType | null} - all data for tmnt
  */
-export const getAllDataForTmnt = async (tmntId: string): Promise<allDataOneTmntType | null> => {
+export const getAllDataForTmnt = async (tmntId: string): Promise<dataOneTmntType | null> => {
 
   if (!tmntId || !isValidBtDbId(tmntId, 'tmt')) return null
   try {
-    const allTmntData: allDataOneTmntType = {
+    const allTmntData: dataOneTmntType = {
       tmnt: { ...blankTmnt },
       events: [],
       divs: [],
@@ -235,7 +235,8 @@ export const postTmnt = async (tmnt: tmntType): Promise<tmntType | null> => {
   // all sanatation and validation done in POST route
 
   try {
-    if (validateTmnt(tmnt) !== ErrorCode.None) return null
+    if (!tmnt || !isValidBtDbId(tmnt.id, 'tmt')) return null
+    // further sanatation and validation done in POST route
     const tmntJSON = JSON.stringify(tmnt);
     const response = await axios({
       method: "post",
@@ -258,11 +259,10 @@ export const postTmnt = async (tmnt: tmntType): Promise<tmntType | null> => {
  * @returns putted tmnt or null
  */
 export const putTmnt = async (tmnt: tmntType): Promise<tmntType | null> => { 
-
-  // all sanatation and validation done in PUT route
   
   try {
-    if (validateTmnt(tmnt) !== ErrorCode.None) return null
+    if (!tmnt || !isValidBtDbId(tmnt.id, 'tmt')) return null
+    // further sanatation and validation done in POST route
     const tmntJSON = JSON.stringify(tmnt);
     const response = await axios({
       method: "put",

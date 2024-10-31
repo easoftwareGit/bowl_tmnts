@@ -6,7 +6,7 @@ import TmntDataPage from "@/app/dataEntry/tmnt/page";
 import { mockSDTmnt } from "../../../mocks/tmnts/singlesAndDoubles/mockSinglesDoublesTmnt";
 import { mockEvents } from "../../../mocks/tmnts/singlesAndDoubles/mockEvents";
 import { mockSquads } from "../../../mocks/tmnts/singlesAndDoubles/mockSquads";
-import { allDataOneTmntType } from "@/lib/types/types";
+import { dataOneTmntType } from "@/lib/types/types";
 import { initBrkts, initDivs, initElims, initEvents, initLanes, initPots, initSquads } from "@/lib/db/initVals";
 import { dateTo_UTC_MMddyyyy, startOfDayFromString, startOfTodayUTC, todayStr } from "@/lib/dateTools";
 
@@ -48,7 +48,7 @@ describe('TmntDataPage - Squads Component', () => {
   })
 
   describe('render multiple squads', () => {
-    const mockFullTmnt: allDataOneTmntType = {
+    const mockFullTmnt: dataOneTmntType = {
       tmnt: mockSDTmnt,
       events: mockEvents,
       divs: initDivs,
@@ -98,7 +98,7 @@ describe('TmntDataPage - Squads Component', () => {
   })
 
   describe('render the squad name errors', () => {
-    const mockFullTmnt: allDataOneTmntType = {
+    const mockFullTmnt: dataOneTmntType = {
       tmnt: mockSDTmnt,
       events: mockEvents,
       divs: initDivs,
@@ -509,7 +509,7 @@ describe('TmntDataPage - Squads Component', () => {
 
   describe('render the squad date day error', () => {
 
-    const mockFullTmnt: allDataOneTmntType = {
+    const mockFullTmnt: dataOneTmntType = {
       tmnt: mockSDTmnt,
       events: mockEvents,
       divs: initDivs,
@@ -616,7 +616,7 @@ describe('TmntDataPage - Squads Component', () => {
 
   describe('render the squad time error', () => {
 
-    const mockFullTmnt: allDataOneTmntType = {
+    const mockFullTmnt: dataOneTmntType = {
       tmnt: mockSDTmnt,
       events: mockEvents,
       divs: initDivs,
@@ -784,7 +784,7 @@ describe('TmntDataPage - Squads Component', () => {
 
   describe('show accordian error for next squad', () => {
 
-    const mockFullTmnt: allDataOneTmntType = {
+    const mockFullTmnt: dataOneTmntType = {
       tmnt: mockSDTmnt,
       events: mockEvents,
       divs: initDivs,
@@ -856,7 +856,7 @@ describe('TmntDataPage - Squads Component', () => {
   })
 
   describe('add squad', () => { 
-    const mockFullTmnt: allDataOneTmntType = {
+    const mockFullTmnt: dataOneTmntType = {
       tmnt: mockSDTmnt,
       events: initEvents,
       divs: initDivs,
@@ -880,7 +880,7 @@ describe('TmntDataPage - Squads Component', () => {
   })
 
   describe('delete squad', () => { 
-    const mockFullTmnt: allDataOneTmntType = {
+    const mockFullTmnt: dataOneTmntType = {
       tmnt: mockSDTmnt,
       events: mockEvents,
       divs: initDivs,

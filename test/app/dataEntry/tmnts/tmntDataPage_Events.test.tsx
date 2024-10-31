@@ -6,7 +6,7 @@ import TmntDataPage from "@/app/dataEntry/tmnt/page";
 import { mockSDTmnt } from "../../../mocks/tmnts/singlesAndDoubles/mockSinglesDoublesTmnt";
 import { mockEvents } from "../../../mocks/tmnts/singlesAndDoubles/mockEvents";
 import { mockSquads } from "../../../mocks/tmnts/singlesAndDoubles/mockSquads";
-import { allDataOneTmntType } from "@/lib/types/types";
+import { dataOneTmntType } from "@/lib/types/types";
 import { initBrkts, initDivs, initElims, initEvents, initLanes, initPots, initSquads } from "@/lib/db/initVals";
 
 describe('TmntDataPage - Event Component', () => { 
@@ -77,7 +77,7 @@ describe('TmntDataPage - Event Component', () => {
   })
 
   describe('changing Event Games changes squad event games', () => {
-    const mockFullTmnt: allDataOneTmntType = {
+    const mockFullTmnt: dataOneTmntType = {
       tmnt: mockSDTmnt,
       events: mockEvents,
       divs: initDivs,
@@ -146,7 +146,7 @@ describe('TmntDataPage - Event Component', () => {
 
   describe('enter the added $ value', () => {
     
-    const mockFullTmnt: allDataOneTmntType = {
+    const mockFullTmnt: dataOneTmntType = {
       tmnt: mockSDTmnt,
       events: initEvents,
       divs: initDivs,
@@ -308,7 +308,7 @@ describe('TmntDataPage - Event Component', () => {
   })
 
   describe('render multiple events', () => {
-    const mockFullTmnt: allDataOneTmntType = {
+    const mockFullTmnt: dataOneTmntType = {
       tmnt: mockSDTmnt,
       events: mockEvents,
       divs: initDivs,
@@ -332,7 +332,7 @@ describe('TmntDataPage - Event Component', () => {
   })
 
   describe('render the event name errors', () => {
-    const mockFullTmnt: allDataOneTmntType = {
+    const mockFullTmnt: dataOneTmntType = {
       tmnt: mockSDTmnt,
       events: mockEvents,
       divs: initDivs,
@@ -417,7 +417,7 @@ describe('TmntDataPage - Event Component', () => {
 
   describe('render the team size errors', () => {
 
-    const mockFullTmnt: allDataOneTmntType = {
+    const mockFullTmnt: dataOneTmntType = {
       tmnt: mockSDTmnt,
       events: initEvents,
       divs: initDivs,
@@ -661,7 +661,7 @@ describe('TmntDataPage - Event Component', () => {
 
   describe('render the event errors', () => { 
 
-    const mockFullTmnt: allDataOneTmntType = {
+    const mockFullTmnt: dataOneTmntType = {
       tmnt: mockSDTmnt,
       events: initEvents,
       divs: initDivs,
@@ -906,7 +906,7 @@ describe('TmntDataPage - Event Component', () => {
 
   describe('render multiple errors', () => { 
 
-    const mockFullTmnt: allDataOneTmntType = {
+    const mockFullTmnt: dataOneTmntType = {
       tmnt: mockSDTmnt,
       events: initEvents,
       divs: initDivs,
@@ -976,7 +976,7 @@ describe('TmntDataPage - Event Component', () => {
 
   describe('show accordian error for next event', () => {
 
-    const mockFullTmnt: allDataOneTmntType = {
+    const mockFullTmnt: dataOneTmntType = {
       tmnt: mockSDTmnt,
       events: mockEvents,
       divs: initDivs,
@@ -1048,7 +1048,7 @@ describe('TmntDataPage - Event Component', () => {
 
   describe('add event', () => {
 
-    const mockFullTmnt: allDataOneTmntType = {
+    const mockFullTmnt: dataOneTmntType = {
       tmnt: mockSDTmnt,
       events: initEvents,
       divs: initDivs,
@@ -1079,7 +1079,7 @@ describe('TmntDataPage - Event Component', () => {
   describe('delete event error, when deleted event has a squad', () => {
    
     it('delete event error, when deleted event has a squad', async () => { 
-      const mockFullTmnt: allDataOneTmntType = {
+      const mockFullTmnt: dataOneTmntType = {
         tmnt: mockSDTmnt,
         events: mockEvents,
         divs: initDivs,
@@ -1109,7 +1109,7 @@ describe('TmntDataPage - Event Component', () => {
 
     it('delete event confirmation', async () => { 
 
-      const mockFullTmnt: allDataOneTmntType = {
+      const mockFullTmnt: dataOneTmntType = {
         tmnt: mockSDTmnt,
         events: mockEvents,
         divs: initDivs,

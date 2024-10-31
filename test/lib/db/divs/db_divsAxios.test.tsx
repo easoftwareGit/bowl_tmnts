@@ -5,7 +5,6 @@ import { divType, HdcpForTypes } from "@/lib/types/types";
 import { initDiv } from "@/lib/db/initVals";
 import { deleteAllTmntDivs, deleteDiv, getAllDivsForTmnt, postDiv, postManyDivs, putDiv } from "@/lib/db/divs/divsAxios";
 import { mockDivsToPost } from "../../../mocks/tmnts/twoDivs/mockDivs";
-import exp from "constants";
 
 // before running this test, run the following commands in the terminal:
 // 1) clear and re-seed the database

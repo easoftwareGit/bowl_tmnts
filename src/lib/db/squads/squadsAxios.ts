@@ -45,8 +45,8 @@ export const getAllSquadsForTmnt = async (tmntId: string): Promise<squadType[] |
 export const postSquad = async (squad: squadType): Promise<squadType | null> => {
 
   try {
+    if (!squad || !isValidBtDbId(squad.id, 'sqd')) return null
     // further sanatation and validation done in POST route
-    if (validateSquad(squad) !== ErrorCode.None) return null
     const squadJSON = JSON.stringify(squad);
     const response = await axios({
       method: "post",
@@ -107,8 +107,8 @@ export const postManySquads = async (squads: squadType[]): Promise<squadType[] |
 export const putSquad = async (squad: squadType): Promise<squadType | null> => { 
 
   try {
-    // further sanatation and validation done in PUT route
-    if (validateSquad(squad) !== ErrorCode.None) return null
+    if (!squad || !isValidBtDbId(squad.id, 'sqd')) return null
+    // further sanatation and validation done in POST route
     const squadJSON = JSON.stringify(squad);
     const response = await axios({
       method: "put",

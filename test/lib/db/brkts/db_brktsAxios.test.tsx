@@ -261,7 +261,8 @@ describe('brktsAxios', () => {
     // no text values to sanitize
     it('should not post many brkts with no data', async () => { 
       const postedBrkts = await postManyBrkts([]);
-      expect(postedBrkts).toBeNull();
+      expect(postedBrkts).not.toBeNull();
+      expect(postedBrkts).toHaveLength(0);
     })
     it('should NOT post many brkts with invalid data', async () => { 
       const invalidBrkts = [

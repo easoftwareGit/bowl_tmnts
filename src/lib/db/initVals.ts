@@ -10,7 +10,7 @@ import {
   brktType,
   potType,  
   testDateType,
-  allDataOneTmntType,
+  dataOneTmntType,
 } from "../types/types";
 import { User, Bowl, Tmnt } from "@prisma/client";
 import { todayStr } from "@/lib/dateTools";
@@ -92,17 +92,6 @@ export const blankTmnt = {
   id: '',
   start_date: startOfToday(),
   end_date: startOfToday(),
-}
-
-export const blankAllDataOneTmnt: allDataOneTmntType = {  
-  tmnt: { ...blankTmnt },
-  events: [],
-  divs: [],
-  squads: [],
-  lanes: [],
-  pots: [],
-  brkts: [],
-  elims: [],
 }
 
 export const initPrismaTmnt: Tmnt = {
@@ -339,6 +328,31 @@ export const initPots: potType[] = [];
 export const initBrkts: brktType[] = [];
 
 export const initElims: elimType[] = [];
+
+export const blankDataOneTmnt = (): dataOneTmntType => {
+  const initData: dataOneTmntType = {    
+    tmnt:
+    {
+      ...blankTmnt,      
+    },
+    events: [{
+      ...blankEvent,      
+    }],
+    divs: [{
+      ...blankDiv,
+    }],
+    squads: [{
+      ...blankSquad,
+    }],
+    lanes: [{
+      ...blankLane,
+    }],
+    pots: [],
+    brkts: [],
+    elims: [],
+  }
+  return initData;
+};
 
 export const initTestDate: testDateType = {
   id: 0,

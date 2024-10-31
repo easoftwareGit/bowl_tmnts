@@ -1,14 +1,14 @@
 import axios, { AxiosError } from "axios";
 import { baseTmntsApi } from "@/lib/db/apiPaths";
 import { testBaseTmntsApi } from "../../../testApi";
-import { tmntSaveTmnt } from "@/app/dataEntry/tmnt/saveTmnt";
-import { mockTmnt } from "../../../mocks/tmnts/twoDivs/mockTmnt";
+import { tmntSaveTmnt } from "@/lib/db/oneTmnt/oneTmnt";
+import { mockTmnt } from "../../../mocks/tmnts/newTmnt/mockNewTmnt";
 import { blankTmnt, initTmnt } from "@/lib/db/initVals";
-import { saveTypes, tmntType } from "@/lib/types/types";
-import { startOfDayFromString } from "@/lib/dateTools";
+import { tmntType } from "@/lib/types/types";
+import { deleteTmnt, putTmnt } from "@/lib/db/tmnts/tmntsAxios";
 import { btDbUuid } from "@/lib/uuid";
 import { compareAsc } from "date-fns";
-import { deleteTmnt, putTmnt } from "@/lib/db/tmnts/tmntsAxios";
+import { startOfDayFromString } from "@/lib/dateTools";
 
 // before running this test, run the following commands in the terminal:
 // 1) clear and re-seed the database
@@ -25,22 +25,24 @@ import { deleteTmnt, putTmnt } from "@/lib/db/tmnts/tmntsAxios";
 //      d) directly to the left of the drop down select, click the green play button
 //         This will start the server in debug mode.
 
-describe("saveTmnt", () => {
+describe("save just tmnt data", () => { 
+
   const url = testBaseTmntsApi.startsWith("undefined")
     ? baseTmntsApi
     : testBaseTmntsApi;
+
+  const userId = 'usr_5bcefb5d314fff1ff5da6521a2fa7bde';
   
   describe("new tournament", () => {
-    const origTmnt = { ...blankTmnt }; 
-    const createTmnt: saveTypes = "CREATE";
+    const origTmnt = { ...blankTmnt };    
     let createdTmnt = false;
-
+  
     const delTestTmnt = async () => {
       try {
         const response = await axios.get(url);
         const tmnts = response.data.tmnts;
         const toDel = tmnts.find(
-          (t: tmntType) => t.tmnt_name === "Test Tournament"
+          (t: tmntType) => t.tmnt_name === mockTmnt.tmnt_name
         );
         if (toDel) {
           await deleteTmnt(toDel.id);
@@ -49,15 +51,15 @@ describe("saveTmnt", () => {
         if (error instanceof AxiosError) console.log(error.message);
       }
     };
-
+  
     beforeAll(async () => {
       await delTestTmnt();
     });
-
+  
     beforeEach(() => {
       createdTmnt = false;
     });
-
+  
     afterEach(async () => {
       if (createdTmnt) {
         await delTestTmnt();
@@ -67,12 +69,11 @@ describe("saveTmnt", () => {
     it("should post the tournament", async () => {          
       const newTmnt = {
         ...mockTmnt,
-        id: btDbUuid("tmt"),
-        tmnt_name: "Test Tournament",
-        user_id: "usr_5bcefb5d314fff1ff5da6521a2fa7bde",
+        id: btDbUuid("tmt"),        
+        user_id: userId
       };      
 
-      const result = await tmntSaveTmnt(origTmnt, newTmnt, createTmnt); 
+      const result = await tmntSaveTmnt(origTmnt, newTmnt); 
       expect(result).not.toBeNull();
       createdTmnt = true;
       const postedTmnt = result as tmntType;
@@ -97,12 +98,13 @@ describe("saveTmnt", () => {
         id: btDbUuid("tmt"),
         tmnt_name: "",
       };
-      const result = await tmntSaveTmnt(origTmnt, newTmnt, createTmnt);      
+      const result = await tmntSaveTmnt(origTmnt, newTmnt);      
       expect(result).toBeNull();
     });
   });
 
   describe("edited tournament", () => {
+    // from prisma/seeds.ts
     const resetTmnt = {
       ...initTmnt,
       id: "tmt_fd99387c33d9c78aba290286576ddce5",
@@ -121,8 +123,7 @@ describe("saveTmnt", () => {
       bowl_id: "bwl_8b4a5c35ad1247049532ff53a12def0a",
       start_date: startOfDayFromString("2022-09-23") as Date,
       end_date: startOfDayFromString("2022-09-23") as Date,
-    }; 
-    const updateTmnt: saveTypes = "UPDATE";
+    };     
 
     let putted = false;
 
@@ -152,7 +153,7 @@ describe("saveTmnt", () => {
         start_date: startOfDayFromString("2021-09-22") as Date,
         end_date: startOfDayFromString("2021-09-22") as Date,
       };      
-      const result = await tmntSaveTmnt(origTmnt, toPutTmnt, updateTmnt);
+      const result = await tmntSaveTmnt(origTmnt, toPutTmnt);
       expect(result).not.toBeNull();
       putted = true;
       const postedTmnt = result as tmntType;
@@ -176,10 +177,10 @@ describe("saveTmnt", () => {
         ...resetTmnt,
         tmnt_name: "",
       };
-      const result = await tmntSaveTmnt(origTmnt, invalidTmnt, updateTmnt);      
+      const result = await tmntSaveTmnt(origTmnt, invalidTmnt);      
       expect(result).toBeNull();
     });
-  });
+  });  
 
   describe('unedited tournament', () => {
     const putTmnt = {
@@ -196,10 +197,10 @@ describe("saveTmnt", () => {
     }
     
     it('should return tmnt for unedited tournament', async () => { 
-      const result = await tmntSaveTmnt(origTmnt, putTmnt, "UPDATE");
+      const result = await tmntSaveTmnt(origTmnt, putTmnt);
       expect(result).not.toBeNull();
       const postedTmnt = result as tmntType;
     })
   })
 
-});
+})

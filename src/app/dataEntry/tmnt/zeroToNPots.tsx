@@ -22,6 +22,7 @@ interface ChildProps {
   pots: potType[];
   setPots: (pots: potType[]) => void;
   divs: divType[];  
+  squads: squadType[];
   setAcdnErr: (objAcdnErr: AcdnErrType) => void;  
   setShowingModal: (showingModal: boolean) => void;
 }
@@ -127,6 +128,7 @@ const ZeroToNPots: React.FC<ChildProps> = ({
   pots,
   setPots,
   divs,  
+  squads,
   setAcdnErr,  
   setShowingModal,
 }) => {
@@ -137,6 +139,12 @@ const ZeroToNPots: React.FC<ChildProps> = ({
   const [tabKey, setTabKey] = useState(defaultTabKey);  
   const [sortOrder, setSortOrder] = useState(1);
   const [createPot, setCreatePot] = useState(initPot);
+
+  // only 1 squad for now, so all pots use squad[0]
+  setCreatePot({
+    ...createPot,
+    squad_id: squads[0].id
+  })
 
   const validNewPot = () => {
     let isPotValid = true;

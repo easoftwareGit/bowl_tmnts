@@ -7,7 +7,7 @@ import { mockTmnt } from "../../../mocks/tmnts/twoDivs/mockTmnt";
 import { mockEvent } from "../../../mocks/tmnts/twoDivs/mockEvent";
 import { mockDivs, mockPots, mockBrkts, mockElims } from "../../../mocks/tmnts/twoDivs/mockDivs";
 import { mockSquad } from "../../../mocks/tmnts/twoDivs/mockSquad";
-import { allDataOneTmntType } from "@/lib/types/types";
+import { dataOneTmntType } from "@/lib/types/types";
 import { defaultHdcpPer, defaultHdcpFrom, initBrkts, initDivs, initElims, initEvents, initPots, initSquads, initLanes } from "@/lib/db/initVals";
 import { formatValuePercent2Dec } from "@/lib/currency/formatValue";
 
@@ -49,7 +49,7 @@ describe('TmntDataPage - Divs Component', () => {
   })
 
   describe('render multiple divs', () => {
-    const mockFullTmnt: allDataOneTmntType = {
+    const mockFullTmnt: dataOneTmntType = {
       tmnt: mockTmnt,
       events: mockEvent,
       divs: mockDivs,
@@ -93,7 +93,7 @@ describe('TmntDataPage - Divs Component', () => {
   })
 
   describe('changing the div name changes the divisions radio buttons', () => {
-    const mockFullTmnt: allDataOneTmntType = {
+    const mockFullTmnt: dataOneTmntType = {
       tmnt: mockTmnt,
       events: mockEvent,
       divs: mockDivs,
@@ -274,7 +274,7 @@ describe('TmntDataPage - Divs Component', () => {
   })
 
   describe('render the div name errors', () => {
-    const mockFullTmnt: allDataOneTmntType = {
+    const mockFullTmnt: dataOneTmntType = {
       tmnt: mockTmnt,
       events: mockEvent,
       divs: mockDivs,
@@ -352,7 +352,7 @@ describe('TmntDataPage - Divs Component', () => {
   })
 
   describe('render hdcp % errors', () => { 
-    const mockFullTmnt: allDataOneTmntType = {
+    const mockFullTmnt: dataOneTmntType = {
       tmnt: mockTmnt,
       events: mockEvent,
       divs: mockDivs,
@@ -559,7 +559,7 @@ describe('TmntDataPage - Divs Component', () => {
   })
 
   describe('render multiple errors', () => { 
-    const mockFullTmnt: allDataOneTmntType = {
+    const mockFullTmnt: dataOneTmntType = {
       tmnt: mockTmnt,
       events: mockEvent,
       divs: mockDivs,
@@ -664,7 +664,7 @@ describe('TmntDataPage - Divs Component', () => {
   describe('delete division errors', () => {
 
     it('delete division error, when division to delete has a pot', async () => {
-      const mockFullTmnt: allDataOneTmntType = {
+      const mockFullTmnt: dataOneTmntType = {
         tmnt: mockTmnt,
         events: mockEvent,
         divs: mockDivs,
@@ -691,7 +691,7 @@ describe('TmntDataPage - Divs Component', () => {
       expect(cannotDelete).toBeInTheDocument();
     })
     it('delete division error, when division to delete has a bracket', async () => {
-      const mockFullTmnt: allDataOneTmntType = {
+      const mockFullTmnt: dataOneTmntType = {
         tmnt: mockTmnt,
         events: mockEvent,
         divs: mockDivs,
@@ -718,7 +718,7 @@ describe('TmntDataPage - Divs Component', () => {
       expect(cannotDelete).toBeInTheDocument();
     })
     it('delete division error, when division to delete has an eliminator', async () => {
-      const mockFullTmnt: allDataOneTmntType = {
+      const mockFullTmnt: dataOneTmntType = {
         tmnt: mockTmnt,
         events: mockEvent,
         divs: mockDivs,
@@ -748,7 +748,7 @@ describe('TmntDataPage - Divs Component', () => {
 
   describe('add new division', () => { 
 
-    const mockFullTmnt: allDataOneTmntType = {
+    const mockFullTmnt: dataOneTmntType = {
       tmnt: mockTmnt,
       events: initEvents,
       divs: initDivs,
@@ -773,7 +773,7 @@ describe('TmntDataPage - Divs Component', () => {
 
   describe('delete division', () => { 
 
-    const mockFullTmnt: allDataOneTmntType = {
+    const mockFullTmnt: dataOneTmntType = {
       tmnt: mockTmnt,
       events: mockEvent,
       divs: mockDivs,

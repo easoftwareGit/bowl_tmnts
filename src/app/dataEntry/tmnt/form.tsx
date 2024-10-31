@@ -1,10 +1,10 @@
 "use client";
-import React, { useState, ChangeEvent, useEffect } from "react";
+import React, { useState, ChangeEvent } from "react";
 import { useSelector } from "react-redux";
 import { selectAllBowls } from "@/redux/features/bowls/bowlsSlice";
 import { maxTmntNameLength } from "@/lib/validation";
 import { Accordion, AccordionItem } from "react-bootstrap";
-import { tmntType, tmntPropsType, saveTypes, eventType, divType, squadType, laneType, potType, brktType, elimType, ioDataErrorsType } from "../../../lib/types/types";
+import { tmntType, tmntPropsType, eventType, divType, squadType, laneType, potType, brktType, elimType, ioDataErrorsType, dataOneTmntType, allDataOneTmntType } from "../../../lib/types/types";
 import { noAcdnErr } from "./errors";
 import OneToNEvents, { validateEvents } from "./oneToNEvents";
 import OneToNDivs, { validateDivs } from "./oneToNDivs";
@@ -17,30 +17,42 @@ import ZeroToNBrackets, { validateBrkts } from "./zeroToNBrkts";
 import ZeroToNElims, { validateElims } from "./zeroToNElims";
 import ModalErrorMsg, { cannotSaveTitle } from "@/components/modal/errorModal";
 import { initModalObj } from "@/components/modal/modalObjType";
-import { saveAllTmntData} from "./saveTmnt";
+import { saveAllDataOneTmnt } from "@/lib/db/oneTmnt/oneTmnt";
 import { blankBrkt, blankDiv, blankElim, blankEvent, blankLane, blankPot, blankSquad, blankTmnt } from "@/lib/db/initVals";
 
 import "./form.css";
+import { cloneDeep } from "lodash";
 
-interface FormProps {
-  tmntProps: tmntPropsType
+interface FormProps {  
+  // tmntProps: tmntPropsType
+  tmntProps: allDataOneTmntType
 }
 
 const TmntDataForm: React.FC<FormProps> = ({ tmntProps }) => {
-  const {
-    tmnt, setTmnt,
-    events, setEvents,
-    divs, setDivs,
-    squads, setSquads,
-    lanes, setLanes,
-    pots, setPots,
-    brkts, setBrkts,
-    elims, setElims,
-    showingModal, setShowingModal,
-    tmntSaveType,
-  } = tmntProps;
+  // const {    
+  //   tmnt, setTmnt,
+  //   events, setEvents,
+  //   divs, setDivs,
+  //   squads, setSquads,
+  //   lanes, setLanes,
+  //   pots, setPots,
+  //   brkts, setBrkts,
+  //   elims, setElims,       
+  // } = tmntProps;  
+  
+  let origData = tmntProps.origData;
+  let oneTmntData = tmntProps.curData;
 
-  let saveType: saveTypes = tmntSaveType;
+  const [tmnt, setTmnt] = useState(oneTmntData.tmnt);
+  const [events, setEvents] = useState(oneTmntData.events);
+  const [divs, setDivs] = useState(oneTmntData.divs);
+  const [squads, setSquads] = useState(oneTmntData.squads);
+  const [lanes, setLanes] = useState(oneTmntData.lanes);
+  const [pots, setPots] = useState(oneTmntData.pots);
+  const [brkts, setBrkts] = useState(oneTmntData.brkts);
+  const [elims, setElims] = useState(oneTmntData.elims);
+
+  const [showingModal, setShowingModal] = useState(false);
 
   const [eventAcdnErr, setEventAcdnErr] = useState(noAcdnErr);
   const [divAcdnErr, setDivAcdnErr] = useState(noAcdnErr);
@@ -49,25 +61,27 @@ const TmntDataForm: React.FC<FormProps> = ({ tmntProps }) => {
   const [brktAcdnErr, setBrktAcdnErr] = useState(noAcdnErr);
   const [elimAcdnErr, setElimAcdnErr] = useState(noAcdnErr);
 
-  let origTmnt: tmntType = { ...blankTmnt };
-  let origEvents: eventType[] = [ { ...blankEvent } ];  
-  let origDivs: divType[] = [{ ...blankDiv }];
-  let origSquads: squadType[] = [{ ...blankSquad }];
-  let origLanes: laneType[] = [{ ...blankLane }];
-  let origPots: potType[] = [{ ...blankPot }];
-  let origBrkts: brktType[] = [{ ...blankBrkt }];
-  let origElims: elimType[] = [{ ...blankElim }];
+  // let origTmnt: tmntType = { ...blankTmnt };
+  // let origEvents: eventType[] = [ { ...blankEvent } ];  
+  // let origDivs: divType[] = [{ ...blankDiv }];
+  // let origSquads: squadType[] = [{ ...blankSquad }];
+  // let origLanes: laneType[] = [{ ...blankLane }];
+  // let origPots: potType[] = [{ ...blankPot }];
+  // let origBrkts: brktType[] = [{ ...blankBrkt }];
+  // let origElims: elimType[] = [{ ...blankElim }];
 
-  if (saveType === 'UPDATE') { 
-    origTmnt = { ...tmnt };
-    origEvents = [ ...events ];  
-    origDivs = [ ...divs ];    
-    origSquads = [ ...squads ];  
-    origLanes = [ ...lanes ];
-    origPots = [ ...pots ];
-    origBrkts = [ ...brkts ];
-    origElims = [ ...elims ];
-  }
+  // // a new tmnt has a blank tmnt name
+  // // a tmnt to edit will have a non-blank tmnt name
+  // if (tmnt.tmnt_name !== '') { 
+  //   origTmnt = { ...tmnt };
+  //   origEvents = [ ...events ];  
+  //   origDivs = [ ...divs ];    
+  //   origSquads = [ ...squads ];  
+  //   origLanes = [ ...lanes ];
+  //   origPots = [ ...pots ];
+  //   origBrkts = [ ...brkts ];
+  //   origElims = [ ...elims ];
+  // }
 
   const bowls = useSelector(selectAllBowls);
 
@@ -323,17 +337,36 @@ const TmntDataForm: React.FC<FormProps> = ({ tmntProps }) => {
 
   const save = async () => { 
 
-    const tmntSaveError: ioDataErrorsType = await saveAllTmntData({
-      saveType,
-      origTmnt, tmnt,
-      origEvents, events,
-      origDivs, divs, 
-      origSquads, squads,
-      origLanes, lanes,
-      origPots, pots,
-      origBrkts, brkts,
-      origElims, elims
-    });
+    // const origData: dataOneTmntType = {
+    //   tmnt: origTmnt,
+    //   events: origEvents,
+    //   divs: origDivs,
+    //   squads: origSquads,
+    //   lanes: origLanes,
+    //   pots: origPots,
+    //   brkts: origBrkts,
+    //   elims: origElims
+    // }
+    const curDataToSave: dataOneTmntType = {
+      tmnt,
+      events,
+      divs,
+      squads,
+      lanes,
+      pots,
+      brkts,
+      elims
+    }
+    // const origData: dataOneTmntType = { ...oneTmntData }
+    // if a new tournament (tmnt_name will be blank)
+    // set id to blank for original tmnt data    
+    // if (origData.tmnt.tmnt_name=== '') {
+    //   origData.tmnt.id = '';
+    // }
+    const tmntSaveError: ioDataErrorsType = await saveAllDataOneTmnt({      
+      origData: origData,
+      curData: curDataToSave,
+    });    
     switch (tmntSaveError) {
       case ioDataErrorsType.Tmnt:
         setErrModalObj({
@@ -409,160 +442,18 @@ const TmntDataForm: React.FC<FormProps> = ({ tmntProps }) => {
         break;
       default:
         break;
-    }
-    origTmnt = { ...tmnt };
-    origEvents = [...events];
-    origDivs = [...divs];
-    origSquads = [...squads];
-    origLanes = [...lanes];
-    origPots = [...pots];
-    origBrkts = [...brkts];
-    origElims = [...elims];
-    saveType = 'UPDATE';
-    return true;
-    
-    // const saveTmnt = async (): Promise<boolean> => {      
-    //   const savedTmnt = await tmntSaveTmnt(origTmnt, tmnt, saveType);
-    //   if (!savedTmnt) {
-    //     setErrModalObj({
-    //       show: true,
-    //       title: cannotSaveTitle,
-    //       message: `Cannot save Tournament "${tmnt.tmnt_name}".`,
-    //       id: initModalObj.id
-    //     })   
-    //     return false;
-    //   };    
-    //   origTmnt = {...tmnt};
-    //   return true;
-    // }  
-    // const saveEvents = async (): Promise<boolean> => {
-    //   const savedEvents = await tmntSaveEvents(origEvents, events, saveType);
-    //   if (!savedEvents) {
-    //     setErrModalObj({
-    //       show: true,
-    //       title: cannotSaveTitle,
-    //       message: `Cannot save Events.`,
-    //       id: initModalObj.id
-    //     }) 
-    //     return false;
-    //   }
-    //   origEvents = [...events];
-    //   return true;
-    // }
-    // const saveDivs = async (): Promise<boolean> => {
-    //   const savedDivs = await tmntSaveDivs(origDivs, divs, saveType);
-    //   if (!savedDivs) {
-    //     setErrModalObj({
-    //       show: true,
-    //       title: cannotSaveTitle,
-    //       message: `Cannot save Divisions.`,
-    //       id: initModalObj.id
-    //     }) 
-    //     return false;
-    //   }
-    //   origDivs = [...divs];
-    //   return true;
-    // }  
-    // const saveSquads = async (): Promise<boolean> => {
-    //   const savedSquads = await tmntSaveSquads(origSquads, squads, saveType);
-    //   if (!savedSquads) {
-    //     setErrModalObj({
-    //       show: true,
-    //       title: cannotSaveTitle,
-    //       message: `Cannot save Squads.`,
-    //       id: initModalObj.id
-    //     }) 
-    //     return false;
-    //   }
-    //   origSquads = [...squads];
-    //   return true;
-    // }
-    // const saveLanes = async (): Promise<boolean> => {
-    //   const savedLanes = await tmntSaveLanes(origLanes, lanes, saveType);
-    //   if (!savedLanes) {
-    //     setErrModalObj({
-    //       show: true,
-    //       title: cannotSaveTitle,
-    //       message: `Cannot save Lanes.`,
-    //       id: initModalObj.id
-    //     }) 
-    //     return false;
-    //   }
-    //   origLanes = [...lanes];
-    //   return true;
-    // }  
-    // const savePots = async (): Promise<boolean> => {
-    //   // start with all pots on first squad
-    //   pots.forEach(pot => {
-    //     pot.squad_id = squads[0].id
-    //   });
-    //   const savedPots = await tmntSavePots(origPots, pots, saveType);
-    //   if (!savedPots) {
-    //     setErrModalObj({
-    //       show: true,
-    //       title: cannotSaveTitle,
-    //       message: `Cannot save Pots.`,
-    //       id: initModalObj.id
-    //     }) 
-    //     return false;
-    //   }
-    //   origPots = [...pots];
-    //   return true;
-    // }
-    // const saveBrkts = async (): Promise<boolean> => {
-    //   // start with all brkts on first squad
-    //   brkts.forEach(brkt => {
-    //     brkt.squad_id = squads[0].id
-    //   })
-    //   const saveBrkts = await tmntSaveBrkts(origBrkts, brkts, saveType);
-    //   if (!saveBrkts) {
-    //     setErrModalObj({
-    //       show: true,
-    //       title: cannotSaveTitle,
-    //       message: `Cannot save Brackets.`,
-    //       id: initModalObj.id
-    //     }) 
-    //     return false;
-    //   }
-    //   origBrkts = [...brkts];
-    //   return true;
-    // }
-    // const saveElims = async (): Promise<boolean> => {
-    //   // start with all elims on first squad
-    //   elims.forEach(elim => {
-    //     elim.squad_id = squads[0].id
-    //   })
-    //   const savedElims = await tmntSaveElims(origElims, elims, saveType);
-    //   if (!savedElims) {
-    //     setErrModalObj({
-    //       show: true,
-    //       title: cannotSaveTitle,
-    //       message: `Cannot save Eliminations.`,
-    //       id: initModalObj.id
-    //     }) 
-    //     return false;
-    //   }
-    //   return true;
-    // }
-    // let saved = false;
-    // saved = await saveTmnt();
-    // if (!saved) return false;
-    // saved = await saveEvents();
-    // if (!saved) return false;
-    // saved = await saveDivs();
-    // if (!saved) return false;
-    // saved = await saveSquads();
-    // if (!saved) return false;    
-    // saved = await saveLanes();
-    // if (!saved) return false;
-    // saved = await savePots();
-    // if (!saved) return false;   
-    // saved = await saveBrkts();
-    // if (!saved) return false;    
-    // saved = await saveElims();
-    // if (!saved) return false;
-    // saveType = 'UPDATE';
-    // return true;
+    }    
+    oneTmntData = { ...curDataToSave }
+    origData = { ...curDataToSave }
+    // origTmnt = { ...tmnt };
+    // origEvents = [...events];
+    // origDivs = [...divs];
+    // origSquads = [...squads];
+    // origLanes = [...lanes];
+    // origPots = [...pots];
+    // origBrkts = [...brkts];
+    // origElims = [...elims];    
+    return true;    
   };
 
   const handleSubmit = (e: React.FormEvent) => {    
@@ -772,7 +663,8 @@ const TmntDataForm: React.FC<FormProps> = ({ tmntProps }) => {
                 <ZeroToNPots
                   pots={pots}
                   setPots={setPots}
-                  divs={divs}                  
+                  divs={divs}      
+                  squads={squads}
                   setAcdnErr={setPotAcdnErr}
                   setShowingModal={setShowingModal}
                 />

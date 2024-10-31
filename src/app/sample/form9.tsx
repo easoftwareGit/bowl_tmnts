@@ -5,7 +5,7 @@ import { AppDispatch, RootState } from "@/redux/store";
 import {
   fetchBowls,
   selectAllBowls,
-  getBowlsStatus,
+  getBowlsLoadStatus,
   getBowlsError,
 } from "@/redux/features/bowls/bowlsSlice";
 import { maxTmntNameLength } from "@/lib/validation";
@@ -15,7 +15,7 @@ const Form9 = () => {
   
   const [tmnt, setTmnt] = useState(initTmnt);
   const dispatch = useDispatch<AppDispatch>();
-  const bowlsStatus = useSelector(getBowlsStatus);
+  const bowlsStatus = useSelector(getBowlsLoadStatus);
   const bowls = useSelector(selectAllBowls);
   const bowlsError = useSelector(getBowlsError);
 

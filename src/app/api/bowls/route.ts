@@ -82,6 +82,9 @@ export async function POST(request: NextRequest) {
   } catch (error: any) {
     let errStatus: number
     switch (error.code) {
+      case 'P2002': // unique constraint violation
+        errStatus = 400
+        break;
       case 'P2003': // parent row not found
         errStatus = 404
         break;    

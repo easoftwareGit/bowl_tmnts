@@ -201,8 +201,13 @@ const ZeroToNBrackets: React.FC<ChildProps> = ({
   const [sortOrder, setSortOrder] = useState(1); 
   const [createBrkt, setCreateBrkt] = useState(initBrkt);
 
-  // right now only 1 squad is allowed, so just grab the first one
+  // right now only 1 squad is allowed, so just use the first one
   const maxStartGame = squads[0].games - (defaultBrktGames - 1);
+  // only 1 squad for now, so all new brkts use squad[0]
+  setCreateBrkt({
+    ...createBrkt,
+    squad_id: squads[0].id
+  })
 
   const validNewBrkt = () => {
 

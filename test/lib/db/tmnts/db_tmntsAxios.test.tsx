@@ -1,13 +1,13 @@
 import axios, { AxiosError } from "axios";
 import { baseTmntsApi } from "@/lib/db/apiPaths";
 import { testBaseTmntsApi } from "../../../testApi";
-import { brktType, divType, elimType, eventType, allDataOneTmntType, laneType, potType, saveAllTmntDataType, ioDataErrorsType, squadType, tmntType } from "@/lib/types/types";
-import { blankBrkt, blankDiv, blankElim, blankEvent, blankLane, blankPot, blankSquad, blankTmnt, initTmnt } from "@/lib/db/initVals";
+import { dataOneTmntType, allDataOneTmntType, ioDataErrorsType, tmntType } from "@/lib/types/types";
+import { blankDataOneTmnt, initTmnt } from "@/lib/db/initVals";
 import { deleteTmnt, getTmnt, getTmnts, getTmntYears, getUserTmnts, postTmnt, putTmnt, exportedForTesting, getAllDataForTmnt, deleteAllDataForTmnt } from "@/lib/db/tmnts/tmntsAxios";
 import { compareAsc, startOfToday } from "date-fns";
 import { startOfDayFromString } from "@/lib/dateTools";
 import { mockTmnt, mockEvents, mockDivs, mockSquads, mockLanes, mockPots, mockBrkts, mockElims } from "../../../mocks/tmnts/newTmnt/mockNewTmnt";
-import { saveAllTmntData } from "@/app/dataEntry/tmnt/saveTmnt";
+import { saveAllDataOneTmnt } from "@/lib/db/oneTmnt/oneTmnt";
 import { deleteAllTmntElims } from "@/lib/db/elims/elimsAxios";
 import { deleteAllTmntBrkts } from "@/lib/db/brkts/brktsAxios";
 import { deleteAllTmntPots } from "@/lib/db/pots/potsAxios";
@@ -265,38 +265,25 @@ describe("tmntsAxios", () => {
   })
 
   describe('getAllDataForTmnt', () => {
-
-    const origTmnt: tmntType = { ...blankTmnt };
-    const origEvents: eventType[] = [];  
-    const origDivs: divType[] = [];
-    const origSquads: squadType[] = [];
-    const origLanes: laneType[] = [];
-    const origPots: potType[] = [];
-    const origBrkts: brktType[] = [];
-    const origElims: elimType[] = [];
-  
-    const toSaveTmntData: saveAllTmntDataType = {
-      saveType: 'CREATE',
-      origTmnt: origTmnt,
+    
+    const origData = blankDataOneTmnt();    
+    const curData: dataOneTmntType = {
       tmnt: mockTmnt,
-      origEvents: origEvents,
       events: mockEvents,
-      origDivs: origDivs,
       divs: mockDivs,
-      origSquads: origSquads,
       squads: mockSquads,
-      origLanes: origLanes,
       lanes: mockLanes,
-      origPots: origPots,
       pots: mockPots,
-      origBrkts: origBrkts,
       brkts: mockBrkts,
-      origElims: origElims,
-      elims: mockElims
+      elims: mockElims,
+    } 
+    const toSaveTmntData: allDataOneTmntType = {
+      origData,
+      curData,
     }
 
     beforeAll(async () => {
-      let result: ioDataErrorsType = await saveAllTmntData(toSaveTmntData);
+      let result: ioDataErrorsType = await saveAllDataOneTmnt(toSaveTmntData);
       if (result !== ioDataErrorsType.None) console.log('Error: ', result); 
     });
 
@@ -617,33 +604,20 @@ describe("tmntsAxios", () => {
 
   describe('deleteAllDataForTmnt', () => { 
 
-    const origTmnt: tmntType = { ...blankTmnt };
-    const origEvents: eventType[] = [];  
-    const origDivs: divType[] = [];
-    const origSquads: squadType[] = [];
-    const origLanes: laneType[] = [];
-    const origPots: potType[] = [];
-    const origBrkts: brktType[] = [];
-    const origElims: elimType[] = [];
-  
-    const toSaveTmntData: saveAllTmntDataType = {
-      saveType: 'CREATE',
-      origTmnt: origTmnt,
+    const origData = blankDataOneTmnt();
+    const curData: dataOneTmntType = {
       tmnt: mockTmnt,
-      origEvents: origEvents,
       events: mockEvents,
-      origDivs: origDivs,
       divs: mockDivs,
-      origSquads: origSquads,
       squads: mockSquads,
-      origLanes: origLanes,
       lanes: mockLanes,
-      origPots: origPots,
       pots: mockPots,
-      origBrkts: origBrkts,
       brkts: mockBrkts,
-      origElims: origElims,
-      elims: mockElims
+      elims: mockElims,
+    } 
+    const toSaveTmntData: allDataOneTmntType = {
+      origData,
+      curData,
     }
 
     afterEach(async () => {
@@ -658,7 +632,7 @@ describe("tmntsAxios", () => {
     });
 
     it('should delete all data for a tmnt', async () => { 
-      let result: ioDataErrorsType = await saveAllTmntData(toSaveTmntData);
+      let result: ioDataErrorsType = await saveAllDataOneTmnt(toSaveTmntData);
       if (result !== ioDataErrorsType.None) console.log('Error: ', result);
       expect(result).toBe(ioDataErrorsType.None);
       result = await deleteAllDataForTmnt(mockTmnt.id);
@@ -666,26 +640,26 @@ describe("tmntsAxios", () => {
     })
     it('should delete when no pots for a tmnt', async () => { 
       const noPotsTmnt = structuredClone(toSaveTmntData)
-      noPotsTmnt.pots = [];
-      const saveResult = await saveAllTmntData(noPotsTmnt);
+      noPotsTmnt.curData.pots = [];
+      const saveResult = await saveAllDataOneTmnt(noPotsTmnt);
       expect(saveResult).toBe(ioDataErrorsType.None);
-      const delResult = await deleteAllDataForTmnt(noPotsTmnt.tmnt.id);
+      const delResult = await deleteAllDataForTmnt(noPotsTmnt.curData.tmnt.id);
       expect(delResult).toBe(ioDataErrorsType.None);
     })
     it('should delete when no brkts for a tmnt', async () => { 
       const noBrktsTmnt = structuredClone(toSaveTmntData)
-      noBrktsTmnt.brkts = [];
-      const saveResult = await saveAllTmntData(noBrktsTmnt);
+      noBrktsTmnt.curData.brkts = [];
+      const saveResult = await saveAllDataOneTmnt(noBrktsTmnt);
       expect(saveResult).toBe(ioDataErrorsType.None);
-      const delResult = await deleteAllDataForTmnt(noBrktsTmnt.tmnt.id);
+      const delResult = await deleteAllDataForTmnt(noBrktsTmnt.curData.tmnt.id);
       expect(delResult).toBe(ioDataErrorsType.None);
     })
     it('should delete when no elims for a tmnt', async () => { 
       const noElimsTmnt = structuredClone(toSaveTmntData)
-      noElimsTmnt.elims = [];
-      const saveResult = await saveAllTmntData(noElimsTmnt);
+      noElimsTmnt.curData.elims = [];
+      const saveResult = await saveAllDataOneTmnt(noElimsTmnt);
       expect(saveResult).toBe(ioDataErrorsType.None);
-      const delResult = await deleteAllDataForTmnt(noElimsTmnt.tmnt.id);
+      const delResult = await deleteAllDataForTmnt(noElimsTmnt.curData.tmnt.id);
       expect(delResult).toBe(ioDataErrorsType.None);
     })
 

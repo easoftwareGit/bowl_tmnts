@@ -196,6 +196,13 @@ const ZeroToNElims: React.FC<ChildProps> = ({
   const [sortOrder, setSortOrder] = useState(1); 
   const [createElim, setCreateElim] = useState(initElim);
 
+  // only 1 squad for now, so all new brkts use squad[0]
+  setCreateElim({
+    ...createElim,
+    squad_id: squads[0].id
+  })
+
+
   const validNewElim = (): boolean => {
 
     // right now only 1 squad is allowed, so just grab the first one

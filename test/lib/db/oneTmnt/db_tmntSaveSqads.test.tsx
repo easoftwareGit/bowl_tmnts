@@ -1,9 +1,9 @@
 import axios from "axios";
 import { baseSquadsApi } from "@/lib/db/apiPaths";
 import { testBaseSquadsApi } from "../../../testApi";
-import { tmntSaveSquads, exportedForTesting } from "@/app/dataEntry/tmnt/saveTmntSquads";
+import { tmntSaveSquads, exportedForTesting } from "@/lib/db/oneTmnt/oneTmnt";
 import { mockSquadsToPost, mockSquadsToEdit, tmntToDelId } from "../../../mocks/tmnts/singlesAndDoubles/mockSquads";
-import { squadType, saveTypes } from "@/lib/types/types";
+import { squadType } from "@/lib/types/types";
 import { deleteAllTmntSquads, deleteSquad, postManySquads, postSquad, putSquad } from "@/lib/db/squads/squadsAxios";
 import { blankSquad } from "@/lib/db/initVals";
 import { compareAsc } from "date-fns";
@@ -31,9 +31,6 @@ describe('saveTmntDivs test', () => {
     ? baseSquadsApi
     : testBaseSquadsApi;
 
-  const stCreate: saveTypes = "CREATE";
-  const stUpdate: saveTypes = "UPDATE";
-  
   const deleteTestSquads = async () => {
     await deleteAllTmntSquads(tmntToDelId);
   };
@@ -230,7 +227,7 @@ describe('saveTmntDivs test', () => {
           ...newSquadClone
         }        
       ]
-      const result = await tmntSaveSquads(origSquads, newSquads, stCreate);
+      const result = await tmntSaveSquads(origSquads, newSquads);
       expect(result).not.toBeNull();
       didCreate = true;
       if (!result) return;
@@ -248,7 +245,7 @@ describe('saveTmntDivs test', () => {
     })
     it('should create multiple new squads when multiple squads to save', async () => {
       const newSquads = structuredClone(mockSquadsToPost);
-      const result = await tmntSaveSquads(origSquads, newSquads, stCreate);
+      const result = await tmntSaveSquads(origSquads, newSquads);
       expect(result).not.toBeNull();
       didCreate = true;
       if (!result) return;
@@ -360,7 +357,7 @@ describe('saveTmntDivs test', () => {
       squadsToEdit[1].squad_name = "Edited Squad";
       squadsToEdit[1].games = 5;
       squadsToEdit[1].lane_count = 16;
-      const savedSquads = await tmntSaveSquads(mockSquadsToEdit, squadsToEdit, stUpdate);
+      const savedSquads = await tmntSaveSquads(mockSquadsToEdit, squadsToEdit);
       if (!savedSquads) {
         expect(savedSquads).not.toBeNull();
         return;
@@ -380,7 +377,7 @@ describe('saveTmntDivs test', () => {
     it('should save edited squads, one squad added', async () => { 
       const squadsToEdit = structuredClone(mockSquadsToEdit);
       squadsToEdit.push(toAddSquad);
-      const savedSquads = await tmntSaveSquads(mockSquadsToEdit, squadsToEdit, stUpdate);
+      const savedSquads = await tmntSaveSquads(mockSquadsToEdit, squadsToEdit);
       if (!savedSquads) {
         expect(savedSquads).not.toBeNull();
         return;
@@ -403,7 +400,7 @@ describe('saveTmntDivs test', () => {
     it('should save edited squads, one squad deleted', async () => { 
       const squadsToEdit = structuredClone(mockSquadsToEdit);
       squadsToEdit.pop();      
-      const savedSquads = await tmntSaveSquads(mockSquadsToEdit, squadsToEdit, stUpdate);
+      const savedSquads = await tmntSaveSquads(mockSquadsToEdit, squadsToEdit);
       if (!savedSquads) {
         expect(savedSquads).not.toBeNull();
         return;
@@ -427,7 +424,7 @@ describe('saveTmntDivs test', () => {
       squadsToEdit[1].lane_count = 16;
       // add squad 4
       squadsToEdit.push(toAddSquad);
-      const savedDivs = await tmntSaveSquads(mockSquadsToEdit, squadsToEdit, stUpdate);
+      const savedDivs = await tmntSaveSquads(mockSquadsToEdit, squadsToEdit);
       if (!savedDivs) {
         expect(savedDivs).not.toBeNull();
         return;
@@ -447,5 +444,6 @@ describe('saveTmntDivs test', () => {
       expect(found.lane_count).toBe(squadsToEdit[1].lane_count);
     })
   })
+
 
 })

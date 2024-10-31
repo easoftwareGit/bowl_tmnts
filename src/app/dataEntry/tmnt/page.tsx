@@ -1,10 +1,10 @@
 "use client";
-import React, { use, useEffect, useState } from "react";
+import React, { useState } from "react";
 import { useSession } from "next-auth/react"; 
-import { AppDispatch } from "@/redux/store";
 import TmntDataForm from "./form";
 import {
   initBrkts,
+  blankDataOneTmnt,
   initDivs,
   initElims,
   initEvents,
@@ -13,15 +13,14 @@ import {
   initSquads,
   initTmnt,  
 } from "../../../lib/db/initVals";
-import { allDataOneTmntType, saveTypes, tmntPropsType } from "../../../lib/types/types";
-import { useDispatch, useSelector } from "react-redux";
-import { fetchBowls, getBowlsError, getBowlsStatus, selectAllBowls } from "@/redux/features/bowls/bowlsSlice";
+import { allDataOneTmntType, dataOneTmntType, tmntPropsType } from "../../../lib/types/types";
+import { clone, cloneDeep } from "lodash";
 
 interface FormProps {
-  fullTmntData?: allDataOneTmntType;
+  fullTmntData?: dataOneTmntType;
 }
 
-const blankFullTmnt: allDataOneTmntType = {
+const blankFullTmnt: dataOneTmntType = {
   tmnt: initTmnt,
   events: initEvents,
   divs: initDivs,
@@ -36,8 +35,6 @@ export const TmntDataPage: React.FC<FormProps> = ({
   fullTmntData = blankFullTmnt,
 }) => {
 
-  const dispatch = useDispatch<AppDispatch>();
-
   const { status, data } = useSession();
   // link the tmnt data types
   fullTmntData.tmnt.user_id = data?.user?.id || "";  
@@ -47,44 +44,47 @@ export const TmntDataPage: React.FC<FormProps> = ({
   fullTmntData.lanes[0].squad_id = fullTmntData.squads[0].id;
   fullTmntData.lanes[1].squad_id = fullTmntData.squads[0].id; // initLanes has 2 itens
 
-  const [tmntData, setTmntData] = useState(fullTmntData.tmnt);
-  const [events, setEvents] = useState(fullTmntData.events);
-  const [divs, setDivs] = useState(fullTmntData.divs);
-  const [squads, setSquads] = useState(fullTmntData.squads);
-  const [lanes, setLanes] = useState(fullTmntData.lanes);
-  const [pots, setPots] = useState(fullTmntData.pots);
-  const [brkts, setBrkts] = useState(fullTmntData.brkts);
-  const [elims, setElims] = useState(fullTmntData.elims);
-  const [showingModal, setShowingModal] = useState(false);  
   
-  const tmntFormProps: tmntPropsType = {
-    tmnt: tmntData,
-    setTmnt: setTmntData,
-    events,
-    setEvents,
-    divs,
-    setDivs,
-    squads,
-    setSquads,
-    lanes,
-    setLanes,
-    pots,
-    setPots,
-    brkts,
-    setBrkts,
-    elims,
-    setElims,
-    showingModal,
-    setShowingModal,
-    tmntSaveType: 'CREATE'
-  };  
+  const dataOneTmnt: allDataOneTmntType = {
+    origData: blankDataOneTmnt(),
+    curData: fullTmntData,
+  }
+  
+  // const [tmntData, setTmntData] = useState(fullTmntData.tmnt);
+  // const [events, setEvents] = useState(fullTmntData.events);
+  // const [divs, setDivs] = useState(fullTmntData.divs);
+  // const [squads, setSquads] = useState(fullTmntData.squads);
+  // const [lanes, setLanes] = useState(fullTmntData.lanes);
+  // const [pots, setPots] = useState(fullTmntData.pots);
+  // const [brkts, setBrkts] = useState(fullTmntData.brkts);
+  // const [elims, setElims] = useState(fullTmntData.elims);
+    
+  // const tmntFormProps: tmntPropsType = {
+  //   tmnt: tmntData,
+  //   setTmnt: setTmntData,
+  //   events,
+  //   setEvents,
+  //   divs,
+  //   setDivs,
+  //   squads,
+  //   setSquads,
+  //   lanes,
+  //   setLanes,
+  //   pots,
+  //   setPots,
+  //   brkts,
+  //   setBrkts,
+  //   elims,
+  //   setElims,
+  // };  
 
   return (
     <>      
       <div className="d-flex flex-column justify-content-center align-items-center">
         <div className="shadow p-3 m-3 rounded-3 container">
           <h2 className="mb-3">Tournament Info</h2>
-          <TmntDataForm tmntProps={tmntFormProps} />
+          {/* <TmntDataForm tmntProps={tmntFormProps} /> */}
+          <TmntDataForm tmntProps={dataOneTmnt} />
         </div>
       </div>
     </>

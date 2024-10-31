@@ -1,15 +1,13 @@
 import axios from "axios";
 import { baseEventsApi } from "@/lib/db/apiPaths";
 import { testBaseEventsApi } from "../../../testApi";
-import {
-  tmntSaveEvents,
-  exportedForTesting,
-} from "@/app/dataEntry/tmnt/saveTmntEvents";
 import { mockEventsToPost, mockEventsToEdit } from "../../../mocks/tmnts/singlesAndDoubles/mockEvents";
-import { eventType, saveTypes } from "@/lib/types/types";
-import { deleteAllTmntEvents, deleteEvent, postEvent, putEvent } from "@/lib/db/events/eventsAxios";
-import { blankEvent } from "@/lib/db/initVals";
+import { tmntSaveEvents, exportedForTesting } from "@/lib/db/oneTmnt/oneTmnt";
+
 import 'core-js/actual/structured-clone';
+import { deleteAllTmntEvents, deleteEvent, postEvent, putEvent } from "@/lib/db/events/eventsAxios";
+import { eventType } from "@/lib/types/types";
+import { blankEvent } from "@/lib/db/initVals";
 
 const { tmntPostPutOrDelEvents } = exportedForTesting;
 
@@ -32,10 +30,7 @@ describe("saveTmntEvents tests", () => {
   const url = testBaseEventsApi.startsWith("undefined")
     ? baseEventsApi
     : testBaseEventsApi;
-
-  const stCreate: saveTypes = "CREATE";
-  const stUpdate: saveTypes = "UPDATE";
-
+  
   describe("tmntPostPutOrDelEvents(): edited events ", () => {
     const clonedEvent = structuredClone(mockEventsToEdit[0]);
     const toAddEvent = {
@@ -49,18 +44,18 @@ describe("saveTmntEvents tests", () => {
       prize_fund: '150',
       other: '4',
       expenses: '10',
-      added_money: '0',    
+      added_money: '0',
       lpox: '200',
       sort_order: 4,
-    }    
+    }
     // 1 deleted - trios [2]
     // 1 edited - doubles [1]
     // 1 left alone - singles [0]
     // 1 created - team    
-   
+     
     const doResetEvent = async () => {
       await putEvent(mockEventsToEdit[1]);
-    }    
+    }
     const rePostEvent = async () => {
       const response = await axios.get(url);
       const events = response.data.events;
@@ -69,28 +64,28 @@ describe("saveTmntEvents tests", () => {
       );
       if (!found) {
         await postEvent(mockEventsToEdit[2]);
-      }      
+      }
     }
     const removeEvent = async () => {
       await deleteEvent(toAddEvent.id);
     }
-
+  
     let didPost = false;
     let didPut = false;
     let didDel = false;
-
+  
     beforeEach(async () => {
       await doResetEvent();
       await rePostEvent();
       await removeEvent();
     });
-
+  
     beforeEach = () => {
       didPost = false;
       didPut = false;
       didDel = false;
     };
-
+  
     afterEach(async () => {
       if (didPost) {
         await removeEvent();
@@ -223,9 +218,8 @@ describe("saveTmntEvents tests", () => {
       }
       expect(found).toBeUndefined();
     })
-
-  });
-
+  })
+  
   describe("tmntSaveEvents(): new event(s)", () => {
     let createdEvent = false;
 
@@ -257,7 +251,7 @@ describe("saveTmntEvents tests", () => {
           ...newEventClone,
         },
       ];
-      const result = await tmntSaveEvents(origEvents, newEvents, stCreate);
+      const result = await tmntSaveEvents(origEvents, newEvents);
       expect(result).not.toBeNull();
       createdEvent = true;
       if (!result) return;
@@ -279,7 +273,7 @@ describe("saveTmntEvents tests", () => {
     });
     it("should save multiple events when more one event to save", async () => {      
       const newEvents = structuredClone(mockEventsToPost);      
-      const result = await tmntSaveEvents(origEvents, newEvents, stCreate);
+      const result = await tmntSaveEvents(origEvents, newEvents);
       expect(result).not.toBeNull();
       createdEvent = true;
       if (!result) return;
@@ -398,7 +392,7 @@ describe("saveTmntEvents tests", () => {
       eventsToEdit[1].event_name = "Edited Doubles";
       eventsToEdit[1].games = 4;
       eventsToEdit[1].added_money = '300';
-      const savedEvents = await tmntSaveEvents(mockEventsToEdit, eventsToEdit, stUpdate);
+      const savedEvents = await tmntSaveEvents(mockEventsToEdit, eventsToEdit);
       if (!savedEvents) {
         expect(savedEvents).not.toBeNull();
         return;
@@ -417,7 +411,7 @@ describe("saveTmntEvents tests", () => {
     it('should save edited events, one event added', async () => { 
       const eventsToEdit = structuredClone(mockEventsToEdit);
       eventsToEdit.push(toAddEvent);  
-      const savedEvents = await tmntSaveEvents(mockEventsToEdit, eventsToEdit, stUpdate);
+      const savedEvents = await tmntSaveEvents(mockEventsToEdit, eventsToEdit);
       if (!savedEvents) {
         expect(savedEvents).not.toBeNull();
         return;
@@ -446,7 +440,7 @@ describe("saveTmntEvents tests", () => {
     it('should save edited events, one event deleted', async () => { 
       const eventsToEdit = structuredClone(mockEventsToEdit);
       eventsToEdit.pop();      
-      const savedEvents = await tmntSaveEvents(mockEventsToEdit, eventsToEdit, stUpdate);
+      const savedEvents = await tmntSaveEvents(mockEventsToEdit, eventsToEdit);
       if (!savedEvents) {
         expect(savedEvents).not.toBeNull();
         return;
@@ -471,7 +465,7 @@ describe("saveTmntEvents tests", () => {
       // add team
       eventsToEdit.push(toAddEvent);
       
-      const savedEvents = await tmntSaveEvents(mockEventsToEdit, eventsToEdit, stUpdate);
+      const savedEvents = await tmntSaveEvents(mockEventsToEdit, eventsToEdit);
       if (!savedEvents) {
         expect(savedEvents).not.toBeNull();
         return;
@@ -513,6 +507,6 @@ describe("saveTmntEvents tests", () => {
       }
       expect(found).toBeUndefined();
     })
-
   });
-});
+
+})

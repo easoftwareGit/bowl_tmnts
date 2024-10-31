@@ -1,9 +1,9 @@
 import axios from "axios";
 import { baseDivsApi } from "@/lib/db/apiPaths";
 import { testBaseDivsApi } from "../../../testApi";
-import { tmntSaveDivs, exportedForTesting } from "@/app/dataEntry/tmnt/saveTmntDivs";
+import { tmntSaveDivs, exportedForTesting } from "@/lib/db/oneTmnt/oneTmnt";
 import { mockDivsToPost, mockDivsToEdit } from "../../../mocks/tmnts/twoDivs/mockDivs";
-import { divType, HdcpForTypes, saveTypes } from "@/lib/types/types";
+import { divType, HdcpForTypes } from "@/lib/types/types";
 import { deleteAllTmntDivs, deleteDiv, postDiv, putDiv } from "@/lib/db/divs/divsAxios";
 import { blankDiv } from "@/lib/db/initVals";
 import 'core-js/actual/structured-clone';
@@ -25,13 +25,10 @@ const { tmntPostPutOrDelDivs } = exportedForTesting;
 //      d) directly to the left of the drop down select, click the green play button
 //         This will start the server in debug mode.
 
-describe('saveTmntDivs test', () => { 
+describe('saveTmntDivs test', () => {
   const url = testBaseDivsApi.startsWith("undefined")
     ? baseDivsApi
     : testBaseDivsApi;
-
-  const stCreate: saveTypes = "CREATE";
-  const stUpdate: saveTypes = "UPDATE";
 
   const deleteTestDivs = async () => {
     await deleteAllTmntDivs(mockDivsToPost[0].tmnt_id);
@@ -188,7 +185,7 @@ describe('saveTmntDivs test', () => {
       expect(found.hdcp_from).toBe(divsToEdit[1].hdcp_from);
     })
   })
-
+  
   describe('tmntSaveDivs(): new div(s)', () => { 
     let createdDiv = false;
 
@@ -220,7 +217,7 @@ describe('saveTmntDivs test', () => {
           ...newDivClone
         }        
       ]
-      const result = await tmntSaveDivs(origDivs, newDivs, stCreate);
+      const result = await tmntSaveDivs(origDivs, newDivs);
       expect(result).not.toBeNull();
       createdDiv = true;
       if (!result) return;
@@ -237,7 +234,7 @@ describe('saveTmntDivs test', () => {
     })
     it('should create multiple new divs when multiple divs to save', async () => {
       const newDivs = structuredClone(mockDivsToPost);
-      const result = await tmntSaveDivs(origDivs, newDivs, stCreate);
+      const result = await tmntSaveDivs(origDivs, newDivs);
       expect(result).not.toBeNull();
       createdDiv = true;
       if (!result) return;
@@ -342,7 +339,7 @@ describe('saveTmntDivs test', () => {
       eventsToEdit[1].div_name = "Edited Div";
       eventsToEdit[1].hdcp_per = .87;
       eventsToEdit[1].hdcp_from = 222;
-      const savedEvents = await tmntSaveDivs(mockDivsToEdit, eventsToEdit, stUpdate);
+      const savedEvents = await tmntSaveDivs(mockDivsToEdit, eventsToEdit);
       if (!savedEvents) {
         expect(savedEvents).not.toBeNull();
         return;
@@ -362,7 +359,7 @@ describe('saveTmntDivs test', () => {
     it('should save edited divs, one div added', async () => { 
       const divsToEdit = structuredClone(mockDivsToEdit);
       divsToEdit.push(toAddDiv);
-      const savedDivs = await tmntSaveDivs(mockDivsToEdit, divsToEdit, stUpdate);
+      const savedDivs = await tmntSaveDivs(mockDivsToEdit, divsToEdit);
       if (!savedDivs) {
         expect(savedDivs).not.toBeNull();
         return;
@@ -382,7 +379,7 @@ describe('saveTmntDivs test', () => {
     it('should save edited divs, one div deleted', async () => { 
       const divsToEdit = structuredClone(mockDivsToEdit);
       divsToEdit.pop();      
-      const savedDivs = await tmntSaveDivs(mockDivsToEdit, divsToEdit, stUpdate);
+      const savedDivs = await tmntSaveDivs(mockDivsToEdit, divsToEdit);
       if (!savedDivs) {
         expect(savedDivs).not.toBeNull();
         return;
@@ -406,7 +403,7 @@ describe('saveTmntDivs test', () => {
       divsToEdit[1].hdcp_from = 221;
       // add women
       divsToEdit.push(toAddDiv);
-      const savedDivs = await tmntSaveDivs(mockDivsToEdit, divsToEdit, stUpdate);
+      const savedDivs = await tmntSaveDivs(mockDivsToEdit, divsToEdit);
       if (!savedDivs) {
         expect(savedDivs).not.toBeNull();
         return;
@@ -427,4 +424,5 @@ describe('saveTmntDivs test', () => {
     })
 
   })
+
 })

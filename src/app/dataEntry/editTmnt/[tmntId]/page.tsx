@@ -2,31 +2,27 @@
 import React, { useEffect, useState } from "react";
 import { useSession } from "next-auth/react"; 
 import { getAllDataForTmnt } from "@/lib/db/tmnts/tmntsAxios";
-import { allDataOneTmntType, tmntPropsType, tmntType } from "@/lib/types/types";
+import { dataOneTmntType, tmntPropsType, tmntType } from "@/lib/types/types";
 import { blankTmnt } from "@/lib/db/initVals";
 import TmntDataForm from "../../tmnt/form";
-import { useRouter } from "next/navigation";
 import { useParams } from "next/navigation";
-// import { useRouter } from "next/router";
-
-// interface FormProps {
-//   tmntId: string;
-// }
+import { useDispatch, useSelector } from "react-redux";
+import { fetchOneTmnt, getOneTmntError, getOneTmntLoadStatus } from "@/redux/features/allDataOneTmnt/allDataOneTmntSlice";
+import { AppDispatch } from "@/redux/store";
 
 export default function EditTmntPage() {
 
-  // const router = useRouter();
-  // const { tmntId } = router.query; // Access tmntId from the URL
-  
   const params = useParams();
   const tmntId = params.tmntId as string;
+
+  const dispatch = useDispatch<AppDispatch>();
 
   const initBlankTmnt: tmntType = {
     ...blankTmnt,
     start_date: null as any,
     end_date: null as any,
   } 
-  const initAllTmntData: allDataOneTmntType = {
+  const initAllTmntData: dataOneTmntType = {
     tmnt: initBlankTmnt,
     events: [],
     divs: [],
@@ -37,7 +33,7 @@ export default function EditTmntPage() {
     elims: [],
   }
 
-  const [allTmntData, setAllTmntData] = useState<allDataOneTmntType>(initAllTmntData);  
+  const [allTmntData, setAllTmntData] = useState<dataOneTmntType>(initAllTmntData);  
   const [tmntData, setTmntData] = useState(allTmntData.tmnt);
   const [events, setEvents] = useState(allTmntData.events);
   const [divs, setDivs] = useState(allTmntData.divs);
@@ -66,41 +62,30 @@ export default function EditTmntPage() {
     elims,
     setElims,
     showingModal,
-    setShowingModal,
-    tmntSaveType: 'UPDATE'
+    setShowingModal,    
   };  
 
-  useEffect(() => { 
-    const fetchAllDataForTmnt = async () => {
-      const tmntData = await getAllDataForTmnt(tmntId);
-      if (tmntData) {
-        setAllTmntData(tmntData);
-        setTmntData(tmntData.tmnt);
-        setEvents(tmntData.events);
-        setDivs(tmntData.divs);
-        setSquads(tmntData.squads);
-        setLanes(tmntData.lanes);
-        setPots(tmntData.pots);
-        setBrkts(tmntData.brkts);
-        setElims(tmntData.elims);      
-      }    
-    }
+  useEffect(() => {
+    dispatch(fetchOneTmnt(tmntId));
+  }, [tmntId, dispatch]);
 
-    fetchAllDataForTmnt()
-      .catch(console.error);
-  }, [tmntId]);
+  const tmntLoadStatus = useSelector(getOneTmntLoadStatus);
+  const tmntError = useSelector(getOneTmntError);  
 
   return (
-    <>       
-      <div className="d-flex flex-column justify-content-center align-items-center">
-        <div className="shadow p-3 m-3 rounded-3 container">
-          <h2 className="mb-3">Tournament Info</h2>
-          <TmntDataForm tmntProps={tmntFormProps} />
-        </div>
-      </div>    
+    <> 
+      {(tmntLoadStatus === 'loading') && <div>Loading...</div>}  
+      {tmntLoadStatus !== 'loading' && tmntError
+        ? (<div>Error: {tmntError}</div>
+        ) : null}
+      {(tmntLoadStatus === 'succeeded') ? ( 
+        <div className="d-flex flex-column justify-content-center align-items-center">
+          <div className="shadow p-3 m-3 rounded-3 container">
+            <h2 className="mb-3">Tournament Info</h2>
+            <TmntDataForm tmntProps={tmntFormProps} />
+          </div>
+        </div> 
+      ) : null}  
     </>
   );
-
 }
-
-// export default EditTmntPage;

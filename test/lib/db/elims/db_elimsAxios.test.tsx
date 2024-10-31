@@ -236,7 +236,8 @@ describe('elimsAxios', () => {
     // no text values to sanitize
     it('should not post many elims with no data', async () => { 
       const postedElims = await postManyElims([]);
-      expect(postedElims).toBeNull();
+      expect(postedElims).not.toBeNull();
+      expect(postedElims).toHaveLength(0);
     })
     it('should NOT post many elims with invalid data', async () => { 
       const invalidElims = [

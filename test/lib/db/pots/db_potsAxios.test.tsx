@@ -250,7 +250,8 @@ describe('potsAxios', () => {
     })
     it('should not post many pots with no data', async () => { 
       const postedPots = await postManyPots([]);
-      expect(postedPots).toBeNull();
+      expect(postedPots).not.toBeNull();
+      expect(postedPots).toHaveLength(0);
     })
     it('should not post many pots with invalid data', async () => { 
       const invalidPots = [

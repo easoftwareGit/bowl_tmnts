@@ -44,9 +44,9 @@ export const getAllElimsForTmnt = async (tmntId: string): Promise<elimType[] | n
  */
 export const postElim = async (elim: elimType): Promise<elimType | null> => {
   
-  // all sanatation and validation done in POST route
-
   try {
+    if (!elim || !isValidBtDbId(elim.id, 'elm')) return null
+    // further sanatation and validation done in POST route
     const elimJSON = JSON.stringify(elim);
     const response = await axios({
       method: "post",

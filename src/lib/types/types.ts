@@ -4,8 +4,6 @@ export type roleTypes = "ADMIN" | "DIRECTOR" | "USER"
 
 export type idTypes = 'usr' | 'bwl' | 'tmt' | 'evt' | 'div' | 'sqd' | 'lan' | 'hdc' | 'pot' | 'brk' | 'elm' | 'ply'
 
-export type saveTypes = "CREATE" | "UPDATE"
-
 export type userType = {
   id: string
   email: string
@@ -325,7 +323,7 @@ export type AcdnErrType = {
   message: string,
 }
 
-export type allDataOneTmntType = {
+export type dataOneTmntType = {
   tmnt: tmntType;
   events: eventType[];
   divs: divType[];
@@ -334,48 +332,31 @@ export type allDataOneTmntType = {
   pots: potType[];
   brkts: brktType[];
   elims: elimType[];
+}
+
+export type allDataOneTmntType = {      
+  origData: dataOneTmntType;
+  curData: dataOneTmntType;
 }
 
 export type tmntPropsType = {
-  tmnt: tmntType;
-  setTmnt: (tmnt: tmntType) => void;
-  events: eventType[];
-  setEvents: (events: eventType[]) => void;
-  divs: divType[];
-  setDivs: (divs: divType[]) => void;
-  squads: squadType[];
-  setSquads: (squads: squadType[]) => void;
-  lanes: laneType[];
-  setLanes: (lanes: laneType[]) => void;
-  pots: potType[];
-  setPots: (pots: potType[]) => void;
-  elims: elimType[];
-  setElims: (elims: elimType[]) => void;
-  brkts: brktType[];
-  setBrkts: (brkts: brktType[]) => void;  
-  showingModal: boolean;
-  setShowingModal: (showingModal: boolean) => void;
-  tmntSaveType: saveTypes;
-}
-
-export type saveAllTmntDataType = {  
-  saveType: saveTypes;
-  origTmnt: tmntType;
-  tmnt: tmntType;
-  origEvents: eventType[];
-  events: eventType[];
-  origDivs: divType[];
-  divs: divType[];
-  origSquads: squadType[];
-  squads: squadType[];
-  origLanes: laneType[];
-  lanes: laneType[];
-  origPots: potType[];
-  pots: potType[];
-  origBrkts: brktType[];
-  brkts: brktType[];
-  origElims: elimType[];
-  elims: elimType[];
+  allDataOneTmntType: allDataOneTmntType;
+  // tmnt: tmntType;
+  // setTmnt: (tmnt: tmntType) => void;
+  // events: eventType[];
+  // setEvents: (events: eventType[]) => void;
+  // divs: divType[];
+  // setDivs: (divs: divType[]) => void;
+  // squads: squadType[];
+  // setSquads: (squads: squadType[]) => void;
+  // lanes: laneType[];
+  // setLanes: (lanes: laneType[]) => void;
+  // pots: potType[];
+  // setPots: (pots: potType[]) => void;
+  // elims: elimType[];
+  // setElims: (elims: elimType[]) => void;
+  // brkts: brktType[];
+  // setBrkts: (brkts: brktType[]) => void;  
 }
 
 export enum ioDataErrorsType {

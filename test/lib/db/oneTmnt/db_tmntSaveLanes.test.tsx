@@ -1,12 +1,12 @@
 import axios from "axios";
 import { baseLanesApi } from "@/lib/db/apiPaths";
 import { testBaseLanesApi } from "../../../testApi";
-import { tmntSaveLanes, exportedForTesting } from "@/app/dataEntry/tmnt/saveTmntLanes";
-import { tmntToDelId, mockLanesToPost, mockLanesToEdit, mockSquadsToPost } from "../../../mocks/tmnts/singlesAndDoubles/mockSquads";
-import { laneType, saveTypes } from "@/lib/types/types";
+import { tmntSaveLanes, exportedForTesting } from "@/lib/db/oneTmnt/oneTmnt";
+import { mockLanesToPost, mockLanesToEdit, mockSquadsToPost, tmntToDelId } from "../../../mocks/tmnts/singlesAndDoubles/mockSquads";
+import { laneType } from "@/lib/types/types";
 import { deleteAllTmntLanes, deleteLane, postLane, postManyLanes, putLane } from "@/lib/db/lanes/lanesAxios";
-import { blankLane } from "@/lib/db/initVals";
 import { deleteAllEventSquads, postManySquads } from "@/lib/db/squads/squadsAxios";
+import { blankLane } from "@/lib/db/initVals";
 import 'core-js/actual/structured-clone';
 const { tmntPostPutOrDelLanes } = exportedForTesting;
 
@@ -30,9 +30,6 @@ describe('saveTmntDivs test', () => {
     ? baseLanesApi
     : testBaseLanesApi;
   
-  const stCreate: saveTypes = "CREATE";
-  const stUpdate: saveTypes = "UPDATE";
-  
   const doResetLane = async () => {
     await putLane(mockLanesToEdit[1]);
   }
@@ -42,7 +39,7 @@ describe('saveTmntDivs test', () => {
     const found = lanes.find((l: laneType) => l.id === mockLanesToEdit[3].id);
     if (!found) {
       await postLane(mockLanesToEdit[3]);
-    }      
+    }
   }
 
   describe('tmntPostPutOrDelLanes(): edited lane(s)', () => {
@@ -237,7 +234,7 @@ describe('saveTmntDivs test', () => {
           ...newLaneClone,
         }
       ]
-      const result = await tmntSaveLanes(origLanes, newLanes, stCreate);
+      const result = await tmntSaveLanes(origLanes, newLanes);
       expect(result).not.toBeNull();
       didCreate = true;
       if (!result) return;
@@ -249,7 +246,7 @@ describe('saveTmntDivs test', () => {
     })
     it('should create multiple new lanes when multiple lanes to save', async () => { 
       const newLanes = structuredClone(mockLanesToPost);
-      const result = await tmntSaveLanes(origLanes, newLanes, stCreate);
+      const result = await tmntSaveLanes(origLanes, newLanes);
       expect(result).not.toBeNull();
       didCreate = true;
       if (!result) return;
@@ -328,7 +325,7 @@ describe('saveTmntDivs test', () => {
     it('should save edited lanes, one lane edited', async () => { 
       const lanesToEdit = structuredClone(mockLanesToEdit);
       lanesToEdit[1].lane_number = 22;
-      const savedLanes = await tmntSaveLanes(mockLanesToEdit, lanesToEdit, stUpdate);
+      const savedLanes = await tmntSaveLanes(mockLanesToEdit, lanesToEdit);
       if (!savedLanes) {
         expect(savedLanes).not.toBeNull();
         return;
@@ -343,7 +340,7 @@ describe('saveTmntDivs test', () => {
     it('should save edited lanes, one lane added', async () => { 
       const lanesToEdit = structuredClone(mockLanesToEdit);
       lanesToEdit.push(toAddLane);
-      const savedLanes = await tmntSaveLanes(mockLanesToEdit, lanesToEdit, stUpdate);
+      const savedLanes = await tmntSaveLanes(mockLanesToEdit, lanesToEdit);
       if (!savedLanes) {
         expect(savedLanes).not.toBeNull();
         return;
@@ -362,7 +359,7 @@ describe('saveTmntDivs test', () => {
     it('should save edited lanes, one lane deleted', async () => { 
       const lanesToEdit = structuredClone(mockLanesToEdit);
       lanesToEdit.pop();
-      const savedLanes = await tmntSaveLanes(mockLanesToEdit, lanesToEdit, stUpdate);
+      const savedLanes = await tmntSaveLanes(mockLanesToEdit, lanesToEdit);
       if (!savedLanes) {
         expect(savedLanes).not.toBeNull();
         return;
@@ -385,7 +382,7 @@ describe('saveTmntDivs test', () => {
       lanesToEdit[1].lane_number = 22;
       // add lane 99
       lanesToEdit.push(toAddLane);
-      const savedLanes = await tmntSaveLanes(mockLanesToEdit, lanesToEdit, stUpdate);
+      const savedLanes = await tmntSaveLanes(mockLanesToEdit, lanesToEdit);
       if (!savedLanes) {
         expect(savedLanes).not.toBeNull();
         return;

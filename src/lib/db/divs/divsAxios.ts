@@ -41,9 +41,9 @@ export const getAllDivsForTmnt = async (tmntId: string): Promise<divType[] | nul
  */  
 export const postDiv = async (div: divType): Promise<divType | null> => {
   
-  // all sanatation and validation done in POST route
-
   try {
+    if (!div || !isValidBtDbId(div.id, 'div')) return null
+    // further sanatation and validation done in POST route
     const divJSON = JSON.stringify(div);
     const response = await axios({
       method: "post",
@@ -90,11 +90,11 @@ export const postManyDivs = async (divs: divType[]): Promise<divType[] | null> =
  * @param {divType} event - div to put
  * @returns - div putted or null
  */  
-export const putDiv = async (div: divType): Promise<divType | null> => {
-  
-  // all sanatation and validation done in PUT route
+export const putDiv = async (div: divType): Promise<divType | null> => {  
 
   try {
+    if (!div || !isValidBtDbId(div.id, 'div')) return null
+    // further sanatation and validation done in POST route
     const divJSON = JSON.stringify(div);
     const response = await axios({
       method: "put",
